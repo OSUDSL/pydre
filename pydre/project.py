@@ -32,18 +32,19 @@ class Project():
 		"""Load all files in datafiles, then process the rois and metrics"""
 		raw_data = []
 		for datafile in datafiles:
-			raw_data.append(__loadSingleFile(datafile))
+			raw_data.append(self.__loadSingleFile(datafile))
 
 		try:
 			for roi_file in self.definition.rois:
 				pass
-		except AtrributeError:
+		except AttributeError:
+			# no ROIs to process, but that's OK
 			pass
 
 		try:
 			for metric in self.definition.metrics:
 				pass
-		except AtrributeError:
+		except AttributeError:
 			print("No metrics to process!")
 
 	def save(self, outfilename):
