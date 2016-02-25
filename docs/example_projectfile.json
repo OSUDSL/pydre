@@ -1,0 +1,19 @@
+{
+  "rois": [
+  		{"type": "time", "filename": "filetimes.csv"},
+        {"type": "positions", "filename": "signlocations.csv"}
+	],
+
+    "metrics": [
+    	{
+    		"name": "meanVelocity",
+    		"cutoff": 20
+    	},
+    	{
+    		"name": "meanVelocity",
+    		"cutoff": 10
+    	}
+
+
+    ]
+ }
