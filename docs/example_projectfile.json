@@ -1,7 +1,7 @@
 {
   "rois": [
   		{"type": "time", "filename": "filetimes.csv"},
-        {"type": "positions", "filename": "signlocations.csv"}
+        {"type": "position", "filename": "signlocations.csv"}
 	],
 
     "metrics": [

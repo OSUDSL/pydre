@@ -28,18 +28,33 @@ class Project():
 		experiment_name, subject_id, drive_id = match.groups()
 		return pydre.core.DriveData(SubjectID=subject_id, DriveID=drive_id, data=d, sourcefilename=filename)
 
+
+	def processROI(roi, dataset):
+		"""
+		Handles running region of interest definitions for a dataset
+
+		Args:
+			roi: A dict containing the type of a roi and the filename of the data used to process it
+
+		Returns:
+			A list of pandas DataFrames containing the data for each region of interest
+		"""
+		try
+
 	def run(self, datafiles):
 		"""Load all files in datafiles, then process the rois and metrics"""
 		raw_data = []
 		for datafile in datafiles:
 			raw_data.append(self.__loadSingleFile(datafile))
 
+		data_set = []
 		try:
-			for roi_file in self.definition.rois:
-				pass
+			for roi in self.definition.rois:
+				data_set.append(self.processROI(roi))
 		except AttributeError:
 			# no ROIs to process, but that's OK
-			pass
+			data_set = raw_data
+			
 
 		try:
 			for metric in self.definition.metrics:
@@ -51,4 +66,4 @@ class Project():
 		try:
 			self.results.to_csv(outfilename)
 		except AtrributeError:
-			print("Results not computed yet")
+			pydre.logging("Results not computed yet")

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import collections
+import logging
+logger = logging.getLogger(__name__)
+
 
 def namedtuple_with_defaults(typename, field_names, default_values=()):
     T = collections.namedtuple(typename, field_names)
