@@ -1,19 +1,19 @@
 {
-  "rois": [
+    "rois": [
   		{"type": "time", "filename": "filetimes.csv"},
         {"type": "position", "filename": "signlocations.csv"}
 	],
 
     "metrics": [
     	{
-    		"name": "meanVelocity",
+            "name": "meanVelocityOver20",
+    		"function": "meanVelocity",
     		"cutoff": 20
     	},
     	{
-    		"name": "meanVelocity",
+            "name": "meanVelocityOver10",
+    		"function": "meanVelocity",
     		"cutoff": 10
     	}
-
-
     ]
  }

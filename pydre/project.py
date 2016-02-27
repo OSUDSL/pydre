@@ -7,6 +7,7 @@ import re
 
 import pydre.core
 import pydre.rois
+import pydre.metrics
 
 class Project():
 	def __init__(self, projectfilename):
@@ -35,11 +36,37 @@ class Project():
 
 		Args:
 			roi: A dict containing the type of a roi and the filename of the data used to process it
+			dataset: a list of pandas dataframes containing the source data to partition
 
 		Returns:
 			A list of pandas DataFrames containing the data for each region of interest
 		"""
-		try
+		roi_type = roi['type']
+		filename = roi['filename']
+		if roi_type is "time":
+			return pydre.rois.meanVelocity(dataset, filename)
+
+	def processMetric(self, metric, dataset):
+		"""
+		Handles running any metric defninition
+
+		Args:
+			metric: A dict containing the type of a metric and the parameters to process it
+
+		Returns:
+			A list of values with the results 
+		"""
+
+		try:
+			metric_func = pydre.metrics.metricsList[metric.pop('function')]
+			report_name = metric.pop('name')
+		except KeyError as e:
+			pydre.core.logger.warning("Malformed metrics defninition: missing " + str(e))
+			return []
+		return [metric_func(d, **metric) for d in dataset]
+			
+
+
 
 	def run(self, datafiles):
 		"""Load all files in datafiles, then process the rois and metrics"""
@@ -49,18 +76,18 @@ class Project():
 
 		data_set = []
 		try:
+			raise AttributeError('bogus') # rois not done yet
 			for roi in self.definition.rois:
 				data_set.append(self.processROI(roi))
 		except AttributeError:
 			# no ROIs to process, but that's OK
-			data_set = raw_data
-			
+			data_set = [ [x,] for x in raw_data ]
 
-		try:
-			for metric in self.definition.metrics:
-				pass
-		except AttributeError:
-			print("No metrics to process!")
+		results = []
+		for metric in self.definition['metrics']:
+			results.append(self.processMetric(metric, data_set))
+		return results
+
 
 	def save(self, outfilename):
 		try:
