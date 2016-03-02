@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import json
@@ -9,7 +8,9 @@ import pydre.core
 import pydre.rois
 import pydre.metrics
 
+
 class Project():
+
 	def __init__(self, projectfilename):
 		self.project_filename = projectfilename
 		self.definition = None
@@ -19,7 +20,6 @@ class Project():
 		# TODO: check for correct definition syntax
 		self.data = []
 
-
 	def __loadSingleFile(self, filename):
 		"""Load a single .dat file (whitespace delmited csv) into a DriveData object"""
 		# Could cache this re, probably affect performance
@@ -28,7 +28,6 @@ class Project():
 		match = datafile_re.match(filename)
 		experiment_name, subject_id, drive_id = match.groups()
 		return pydre.core.DriveData(SubjectID=subject_id, DriveID=drive_id, data=d, sourcefilename=filename)
-
 
 	def processROI(roi, dataset):
 		"""
@@ -54,7 +53,7 @@ class Project():
 			metric: A dict containing the type of a metric and the parameters to process it
 
 		Returns:
-			A list of values with the results 
+			A list of values with the results
 		"""
 
 		try:
@@ -64,9 +63,6 @@ class Project():
 			pydre.core.logger.warning("Malformed metrics defninition: missing " + str(e))
 			return []
 		return [metric_func(d, **metric) for d in dataset]
-			
-
-
 
 	def run(self, datafiles):
 		"""Load all files in datafiles, then process the rois and metrics"""
@@ -76,21 +72,20 @@ class Project():
 
 		data_set = []
 		try:
-			raise AttributeError('bogus') # rois not done yet
+			raise AttributeError('bogus')  # rois not done yet
 			for roi in self.definition.rois:
 				data_set.append(self.processROI(roi))
 		except AttributeError:
 			# no ROIs to process, but that's OK
-			data_set = [ [x,] for x in raw_data ]
+			data_set = [[x, ] for x in raw_data]
 
 		results = []
 		for metric in self.definition['metrics']:
 			results.append(self.processMetric(metric, data_set))
 		return results
 
-
 	def save(self, outfilename):
 		try:
 			self.results.to_csv(outfilename)
-		except AtrributeError:
+		except AttributeError:
 			pydre.logging("Results not computed yet")
