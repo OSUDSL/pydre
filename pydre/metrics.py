@@ -3,6 +3,8 @@
 
 import pandas
 import pydre.core
+import np
+import math
 
 metricsList = {}
 
@@ -25,9 +27,9 @@ def steeringEntropy(regions,cutoff=0):
         minTime = df.SimTime.values.min()
         maxTime = df.SimTime.values.max()
         nsteps = math.floor((maxTime - minTime) / 0.0167)  #divide into 0.0167s increments
-        regTime = np.linspace(minTime, maxTime, num=nsteps)
-        rsSteer = np.interp(regTime, df.SimTime, df.Steer)
-        resampdf = np.column_stack((regTime, rsSteer))
+        regTime = numpy.linspace(minTime, maxTime, num=nsteps)
+        rsSteer = numpy.interp(regTime, df.SimTime, df.Steer)
+        resampdf = numpy.column_stack((regTime, rsSteer))
         resampdf = pandas.DataFrame(resampdf, columns=("simTime","rsSteerAngle")) #df
 
         #calculate predicted angle
@@ -38,22 +40,22 @@ def steeringEntropy(regions,cutoff=0):
         out.append(error)
 
     #concatenate out (list of np objects) into a single list
-    error = np.stack(out)
+    error = numpy.stack(out)
     #90th percentile of error
-    alpha = np.nanpercentile(error,90)
+    alpha = numpy.nanpercentile(error,90)
 
     #divide into 9 bins with edges: -5a,-2.5a,-a,a,2.5,5a
-    binnedError = np.histogram(error, bins= [-10 * abs(alpha), -5 * abs(alpha), -2.5 * abs(alpha), -abs(alpha), -0.5 * abs(alpha), 0.5 * abs(alpha), abs(alpha), 2.5 * abs(alpha), 5 * abs(alpha), 10 * abs(alpha)])
+    binnedError = numpy.histogram(error, bins= [-10 * abs(alpha), -5 * abs(alpha), -2.5 * abs(alpha), -abs(alpha), -0.5 * abs(alpha), 0.5 * abs(alpha), abs(alpha), 2.5 * abs(alpha), 5 * abs(alpha), 10 * abs(alpha)])
 
     #calculate H
-    binnedArr = np.asarray(binnedError[0])
+    binnedArr = numpy.asarray(binnedError[0])
     binnedArr = binnedArr.astype(float)
 
     #check out calc of p
-    p = np.divide(binnedArr,np.sum(binnedArr))
-    Hp = np.multiply(np.multiply(-1,p),(np.log(p)/np.log(9)))
-    Hp = Hp[~np.isnan(Hp)]
-    Hp = np.sum(Hp)
+    p = numpy.divide(binnedArr,numpy.sum(binnedArr))
+    Hp = numpy.multiply(numpy.multiply(-1,p),(numpy.log(p)/numpy.log(9)))
+    Hp = Hp[~numpy.isnan(Hp)]
+    Hp = numpy.sum(Hp)
 
     return Hp
 
