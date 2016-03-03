@@ -11,7 +11,6 @@ class TimeROI():
 	def __init__(self, filename):
 		# parse time filename values
 		self.time_file = open(filename, "r")
-		pass
 
 	def split(self, datalist):
 		"""
@@ -24,29 +23,26 @@ class TimeROI():
 		outputs = []
 		for row in range(1, len(table)):
 			subject = int(table[row][0])
-			for roi in table[row]:
+			for roi in range(1, len(table[row])):
 				data_frame = None
 				drives = []
 				source_files = []
-				for drive_info in TimeROI.getCellInfo(table[row][titles[roi]]):
+				roi = int(roi)
+				for drive_info in TimeROI.getCellInfo(table[row][roi]):
 					# Add each drive specified by a particular cell data
 					vid_start = drive_info[0]
 					vid_end = drive_info[1]
 					driveID = drive_info[2]
 					i = 0
-					for i in len(datalist):
+					for item in datalist:
 						# Find the proper subject and drive in the input data
-						if (int(datalist[i]('SubjectID')) == subject and int(datalist[i]('DriveID')) == driveID):
-							data_frame = datalist[i]('data')
+						if (int(item.SubjectID) == subject and int(item.DriveID) == driveID):
+							data_frame = item.data
+							drives.append(item.DriveID)
+							source_files.append(item.sourcefilename)
 							break
-						else:
-							data_frame = data_frame.append(datalist[i]('data'))
-							break
-						drives.append(datalist[i]('DriveID'))
-						source_files.append(datalist[i]('sourcefilename'))
-						i = i + 1
-				outputs.append(pydre.core.DriveData(subject, drives, roi, data_frame, source_files))
-		pass
+				outputs.append(pydre.core.DriveData(subject, drives, titles[roi], data_frame, source_files))
+		return outputs
 
 	def getCellInfo(cell_content):
 		# FORMAT- 1:15:10-1:20:30#2 02:32-08:45#3
