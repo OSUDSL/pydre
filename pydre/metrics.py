@@ -5,7 +5,8 @@ import pandas
 import pydre.core
 import numpy
 import math
-
+import logging
+logger = logging.getLogger(__name__)
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
 def meanVelocity(drivedata: pydre.core.DriveData, cutoff=0):

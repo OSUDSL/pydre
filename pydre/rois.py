@@ -4,6 +4,8 @@ import pydre.core
 import pandas as pd
 import csv
 import re
+import logging
+logger = logging.getLogger(__name__)
 
 
 class TimeROI():
@@ -39,7 +41,7 @@ class TimeROI():
 							source_files.append(item.sourcefilename)
 							break
 				if len(drives) == 0:
-					pydre.core.logger.warning("No data for ROI (subject: {}, roi: {})".format(subject, titles[roi]))
+					logger.warning("No data for ROI (subject: {}, roi: {})".format(subject, titles[roi]))
 				else:
 					outputs.append(pydre.core.DriveData(subject, drives, titles[roi], data_frame, source_files))
 		return outputs

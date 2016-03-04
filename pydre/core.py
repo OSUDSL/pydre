@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import collections
 import logging
-print(__name__)
 logger = logging.getLogger(__name__)
+
 
 def sliceByTime(begin, end, column, drive_data):
 	"""
