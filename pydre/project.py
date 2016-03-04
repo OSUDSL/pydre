@@ -75,7 +75,7 @@ class Project():
 			raw_data.append(self.__loadSingleFile(datafile))
 		return raw_data
 
-	def run(self, datafiles, outfile = "out.csv"):
+	def run(self, datafiles, outfile="out.csv"):
 		"""Load all files in datafiles, then process the rois and metrics"""
 		raw_data_set = self.loadFileList(datafiles)
 		data_set = []
@@ -86,15 +86,14 @@ class Project():
 			# no ROIs to process, but that's OK
 			logger.warning("No ROIs, processing raw data")
 			data_set = raw_data_set
-		
+
 		result_data = pandas.DataFrame()
 		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 		for metric in self.definition['metrics']:
 			metric_title, metric_values = self.processMetric(metric, data_set)
 			result_data[metric_title] = pandas.Series(metric_values)
-			
-		result_data.to_csv(outfile)
+		result_data.to_csv(outfile, index=False)
 
 	def save(self, outfilename):
 		try:
