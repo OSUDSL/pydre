@@ -60,7 +60,37 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
 	Hp = numpy.sum(Hp)
 
 	return Hp
+	
+def tailgatingTime(drivedata: pydre.core.DriveData, cutoff = 2):
+	for d in drivedata.data:
+		table = d
+		difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
+		table['delta_t'] = numpy.concatenate([numpy.zeros(1), difftime])
+		
+		#find all tailgating instances where the delta time is reasonable.
+		#this ensures we don't get screwy data from merged files
+		tail_data = table[(table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
+		tail_time = tail_data['delta_t'][abs(table.delta_t) < .5].sum()
+	
+	return tail_time
+	
+def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff = 2):
+	for d in drivedata.data:
+		table = d
+		difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
+		table['delta_t'] = numpy.concatenate([numpy.zeros(1), difftime])
+		
+		#find all tailgating instances where the delta time is reasonable.
+		#this ensures we don't get screwy data from merged files
+		tail_data = table[(table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
+		tail_time = tail_data['delta_t'][abs(table.delta_t) < .5].sum()
+		total_time = table['delta_t'][abs(table.delta_t) < .5].sum()
+	
+	return tail_time/total_time
+	
 
 metricsList = {}
 metricsList['meanVelocity'] = meanVelocity
 metricsList['steeringEntropy'] = steeringEntropy
+metricsList['tailgatingTime'] = tailgatingTime
+metricsList['tailgatingPercentage'] = tailgatingPercentage
