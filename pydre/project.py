@@ -30,7 +30,8 @@ class Project():
 		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+).dat")
 		match = datafile_re.match(filename)
 		experiment_name, subject_id, drive_id = match.groups()
-		return pydre.core.DriveData(SubjectID=int(subject_id), DriveID=int(drive_id), roi = None, data=d, sourcefilename=filename)
+		return pydre.core.DriveData(SubjectID=int(subject_id), DriveID=int(drive_id),
+									roi=None, data=d, sourcefilename=filename)
 
 	def processROI(self, roi, dataset):
 		"""
@@ -48,6 +49,8 @@ class Project():
 		if roi_type == "time":
 			roi_obj = pydre.rois.TimeROI(filename, dataset)
 			return roi_obj.split(dataset)
+		else:
+			return []
 
 	def processMetric(self, metric, dataset):
 		"""
@@ -69,35 +72,51 @@ class Project():
 		return [report_name, [metric_func(d, **metric) for d in dataset]]
 
 	def loadFileList(self, datafiles):
-		raw_data = []
-		for datafile in datafiles:
-			logger.info("Loading file #{}: {}".format(len(raw_data), datafile))
-			raw_data.append(self.__loadSingleFile(datafile))
-		return raw_data
+		"""
+		Args:
+			datafiles: a list of filename strings (SimObserver .dat files)
 
-	def run(self, datafiles, outfile = "out.csv"):
-		"""Load all files in datafiles, then process the rois and metrics"""
-		raw_data_set = self.loadFileList(datafiles)
+		Loads all datafiles into the project raw data list.
+		Before loading, the internal list is cleared.
+		"""
+		self.raw_data = []
+		for datafile in datafiles:
+			logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
+			self.raw_data.append(self.__loadSingleFile(datafile))
+
+	def run(self, datafiles):
+		"""
+		Args:
+			datafiles: a list of filename strings (SimObserver .dat files)
+
+		Load all files in datafiles, then process the rois and metrics
+		"""
+		self.loadFileList(datafiles)
 		data_set = []
 		if 'rois' in self.definition:
 			for roi in self.definition['rois']:
-				data_set.extend(self.processROI(roi, raw_data_set))
+				data_set.extend(self.processROI(roi, self.raw_data))
 		else:
 			# no ROIs to process, but that's OK
-			logger.warning("No ROIs, processing raw data")
-			data_set = raw_data_set
-		
+			logger.warning("No ROIs, processing raw data.")
+			data_set = self.raw_data
+
 		result_data = pandas.DataFrame()
 		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 		for metric in self.definition['metrics']:
 			metric_title, metric_values = self.processMetric(metric, data_set)
 			result_data[metric_title] = pandas.Series(metric_values)
-			
-		result_data.to_csv(outfile)
+		self.results = result_data
 
-	def save(self, outfilename):
+	def save(self, outfilename="out.csv"):
+		"""
+		Args:
+			outfilename: filename to output csv data to.
+
+		The filename specified will be overwritten automatically.
+		"""
 		try:
-			self.results.to_csv(outfilename)
+			self.results.to_csv(outfilename, index=False)
 		except AttributeError:
-			pydre.logging("Results not computed yet")
+			logger.error("Results not computed yet")
