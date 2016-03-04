@@ -79,7 +79,7 @@ class Project():
 		"""Load all files in datafiles, then process the rois and metrics"""
 		raw_data_set = self.loadFileList(datafiles)
 		data_set = []
-		if 'roi' in self.definition:
+		if 'rois' in self.definition:
 			for roi in self.definition['rois']:
 				data_set.extend(self.processROI(roi, raw_data_set))
 		else:
