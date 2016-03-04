@@ -49,6 +49,8 @@ class Project():
 		if roi_type == "time":
 			roi_obj = pydre.rois.TimeROI(filename, dataset)
 			return roi_obj.split(dataset)
+		else:
+			return []
 
 	def processMetric(self, metric, dataset):
 		"""
