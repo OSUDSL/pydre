@@ -27,7 +27,7 @@ class Project():
 		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+).dat")
 		match = datafile_re.match(filename)
 		experiment_name, subject_id, drive_id = match.groups()
-		return pydre.core.DriveData(SubjectID=subject_id, DriveID=drive_id, roi = None, data=d, sourcefilename=filename)
+		return pydre.core.DriveData(SubjectID=int(subject_id), DriveID=int(drive_id), roi = None, data=d, sourcefilename=filename)
 
 	def processROI(self, roi, dataset):
 		"""
@@ -43,9 +43,9 @@ class Project():
 		roi_type = roi['type']
 		filename = roi['filename']
 		if roi_type == "time":
-			roi_obj = pydre.rois.TimeROI(filename)
+			roi_obj = pydre.rois.TimeROI(filename, dataset)
 			return roi_obj.split(dataset)
-			
+
 	def processMetric(self, metric, dataset):
 		"""
 		Handles running any metric defninition
@@ -68,28 +68,24 @@ class Project():
 	def loadFileList(self, datafiles):
 		raw_data = []
 		for datafile in datafiles:
-			print(len(raw_data))
+			pydre.core.logger.warning("Loading file #{}: {}".format(len(raw_data), datafile))
 			raw_data.append(self.__loadSingleFile(datafile))
 		return raw_data
-		
+
 	def run(self, datafiles):
 		"""Load all files in datafiles, then process the rois and metrics"""
-	
-		data_set = self.loadFileList(datafiles)
-		
-		try:
+		raw_data_set = self.loadFileList(datafiles)
+		data_set = []
+		if 'roi' in self.definition:
 			for roi in self.definition['rois']:
-				data_set = self.processROI(roi, data_set)
-		except AttributeError as e:
-			pydre.core.logger.warning("AttributeError:" + e)
+				data_set.extend(self.processROI(roi, raw_data_set))
+		else:
 			# no ROIs to process, but that's OK
-			data_set = [[x, ] for x in data_set]
+			pydre.core.logger.warning("No ROIs, processing raw data")
+			data_set = raw_data_set
 
 		results = []
-		
-	
 		results.append([d.SubjectID for d in data_set])
-		
 		for metric in self.definition['metrics']:
 			results.append(self.processMetric(metric, data_set))
 		return results

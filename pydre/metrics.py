@@ -6,19 +6,16 @@ import pydre.core
 import numpy
 import math
 
-metricsList = {}
-
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
-def meanVelocity(regions, cutoff=0):
+def meanVelocity(drivedata: pydre.core.DriveData, cutoff=0):
 	total_vel = pandas.Series()
-	for r in regions:
-		data = r.data
-		total_vel = total_vel.append(data[data.Velocity >= cutoff].Velocity)
+	for d in drivedata.data:
+		total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
 	return total_vel.mean()
 
 
-def steeringEntropy(regions, cutoff=0):
+def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
 	out = []
 	for i in range(0, len(regions)):
 		df = pandas.DataFrame(regions[i].data)
@@ -63,5 +60,6 @@ def steeringEntropy(regions, cutoff=0):
 
 	return Hp
 
+metricsList = {}
 metricsList['meanVelocity'] = meanVelocity
 metricsList['steeringEntropy'] = steeringEntropy
