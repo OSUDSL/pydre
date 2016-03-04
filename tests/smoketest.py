@@ -13,10 +13,10 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-p = pydre.project.Project("docs/example_projectfile.json")
+p = pydre.project.Project("docs/test_pf.json")
 
 # put some data files in tests/testdata/ to test it out
-filelist = glob.glob(os.path.join(os.path.dirname(__file__), 'testdata/CWS2_Sub_16_*.dat'))
+filelist = glob.glob(os.path.join(os.path.dirname(__file__), 'testdata/*.dat'))
 
-r = p.run(filelist)
+r = p.run(filelist, "CWS_Output.csv")
 print(r)

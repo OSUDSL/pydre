@@ -61,15 +61,16 @@ class TimeROI():
 
 			start_info = re.match(time_regex, drive_info.groups()[0])
 			end_info = re.match(time_regex, drive_info.groups()[1])
+			
 			start_hour = 0
 			start_minute = 0
 			start_second = 0
 			if start_info.groups()[0] is not None:
 				start_hour = int(start_info.groups()[0])
-
+				
 			if start_info.groups()[1] is not None:
 				start_minute = int(start_info.groups()[1])
-
+				
 			if start_info.groups()[2] is not None:
 				start_second = int(start_info.groups()[2])
 
