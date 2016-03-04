@@ -36,7 +36,7 @@ class TimeROI():
 					for item in datalist:
 						# Find the proper subject and drive in the input data
 						if (item.SubjectID == subject and  driveID in item.DriveID):
-							data_frame.append(pydre.core.sliceByTime(start_time, end_time, "SimTime", item.data[0]))
+							data_frame.append(pydre.core.sliceByTime(start_time, end_time, "VidTime", item.data[0]))
 							drives.append(item.DriveID)
 							source_files.append(item.sourcefilename)
 							break
