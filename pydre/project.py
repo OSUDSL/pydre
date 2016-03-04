@@ -8,6 +8,9 @@ import pydre.core
 import pydre.rois
 import pydre.metrics
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Project():
 
@@ -61,14 +64,14 @@ class Project():
 			metric_func = pydre.metrics.metricsList[metric.pop('function')]
 			report_name = metric.pop('name')
 		except KeyError as e:
-			pydre.core.logger.warning("Malformed metrics defninition: missing " + str(e))
+			logger.warning("Malformed metrics defninition: missing " + str(e))
 			return []
 		return [metric_func(d, **metric) for d in dataset]
 
 	def loadFileList(self, datafiles):
 		raw_data = []
 		for datafile in datafiles:
-			pydre.core.logger.warning("Loading file #{}: {}".format(len(raw_data), datafile))
+			logger.info("Loading file #{}: {}".format(len(raw_data), datafile))
 			raw_data.append(self.__loadSingleFile(datafile))
 		return raw_data
 
@@ -81,7 +84,7 @@ class Project():
 				data_set.extend(self.processROI(roi, raw_data_set))
 		else:
 			# no ROIs to process, but that's OK
-			pydre.core.logger.warning("No ROIs, processing raw data")
+			logger.warning("No ROIs, processing raw data")
 			data_set = raw_data_set
 
 		results = []
