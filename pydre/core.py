@@ -1,11 +1,21 @@
 # -*- coding: utf-8 -*-
 
+import pandas
 import logging
 logger = logging.getLogger(__name__)
 
 
-def sliceByTime(begin, end, column, drive_data):
+def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFrame):
 	"""
+		args:
+			begin: float defnining the start point of the slice
+			end: float defining the end part of the slice
+			column: which column in the drive_data frame to use for the time.  This is usually SimTime or VidTime.
+			drive_data: pandas DataFrame containing the data to be sliced
+
+		returns:
+			pandas.DataFrame slice containing requested time slice
+
 	Given a start and end and a column name that represents a time value, output the slice that contains
 	only the specified data.
 	"""
