@@ -66,7 +66,7 @@ class Project():
 		except KeyError as e:
 			logger.warning("Malformed metrics defninition: missing " + str(e))
 			return []
-		return [metric_func(d, **metric) for d in dataset]
+		return [report_name, [metric_func(d, **metric) for d in dataset]]
 
 	def loadFileList(self, datafiles):
 		raw_data = []
@@ -75,7 +75,7 @@ class Project():
 			raw_data.append(self.__loadSingleFile(datafile))
 		return raw_data
 
-	def run(self, datafiles):
+	def run(self, datafiles, outfile = "out.csv"):
 		"""Load all files in datafiles, then process the rois and metrics"""
 		raw_data_set = self.loadFileList(datafiles)
 		data_set = []
@@ -86,12 +86,15 @@ class Project():
 			# no ROIs to process, but that's OK
 			logger.warning("No ROIs, processing raw data")
 			data_set = raw_data_set
-
-		results = []
-		results.append([d.SubjectID for d in data_set])
+		
+		result_data = pandas.DataFrame()
+		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
+		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 		for metric in self.definition['metrics']:
-			results.append(self.processMetric(metric, data_set))
-		return results
+			metric_title, metric_values = self.processMetric(metric, data_set)
+			result_data[metric_title] = pandas.Series(metric_values)
+			
+		result_data.to_csv(outfile)
 
 	def save(self, outfilename):
 		try:
