@@ -1,24 +1,12 @@
 {
     "rois": [
-  		{"type": "time", "filename": "filetimes.csv"},
-        {"type": "position", "filename": "signlocations.csv"}
+  		{"type": "time", "filename": "filetimes.csv"}
 	],
 
     "metrics": [
-    	{
-            "name": "meanVelocityOver20",
-    		"function": "meanVelocity",
-    		"cutoff": 20
-    	},
-    	{
-            "name": "meanVelocityOver10",
-    		"function": "meanVelocity",
-    		"cutoff": 10
-    	},
-		{
-            "name": "steeringEntropy",
-    		"function": "steeringEntropy",
-    		"cutoff": 0
-    	}
+        {
+            "name": "tailgatetime",
+            "function": "tailgatingTime"
+        }
     ]
  }
