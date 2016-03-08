@@ -8,6 +8,7 @@ import math
 import logging
 logger = logging.getLogger(__name__)
 
+
 # metrics defined here take a list of DriveData objects and return a single floating point value
 def meanVelocity(drivedata: pydre.core.DriveData, cutoff=0):
 	total_vel = pandas.Series()
@@ -18,9 +19,8 @@ def meanVelocity(drivedata: pydre.core.DriveData, cutoff=0):
 
 def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
 	out = []
-	for i in range(0, len(regions)):
-		df = pandas.DataFrame(regions[i].data)
-		df = pandas.DataFrame(df, columns=("SimTime", "Steer"))  # drop other columns
+	for d in drivedata.data:
+		df = pandas.DataFrame(d, columns=("SimTime", "Steer"))  # drop other columns
 		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
 
 		# resample data
@@ -40,7 +40,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
 		out.append(error)
 
 	# concatenate out (list of np objects) into a single list
-	error = numpy.stack(out)
+	error = numpy.concatenate(out)
 	# 90th percentile of error
 	alpha = numpy.nanpercentile(error, 90)
 
@@ -60,32 +60,31 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
 	Hp = numpy.sum(Hp)
 
 	return Hp
-	
-def tailgatingTime(drivedata: pydre.core.DriveData, cutoff = 2):
+
+
+def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
+	tail_time = 0
 	for d in drivedata.data:
 		table = d
 		difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
-		table['delta_t'] = numpy.concatenate([numpy.zeros(1), difftime])
-		
-		#find all tailgating instances where the delta time is reasonable.
-		#this ensures we don't get screwy data from merged files
-		tail_data = table[(table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
-		tail_time = tail_data['delta_t'][abs(table.delta_t) < .5].sum()
-	
+		table.loc[:, 'delta_t'] = numpy.concatenate([numpy.zeros(1), difftime])
+		# find all tailgating instances where the delta time is reasonable.
+		# this ensures we don't get screwy data from merged files
+		tail_data = table[(table.HeadwayTime > 0) & (table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
+		tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
 	return tail_time
-	
-def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff = 2):
+
+
+def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff=2):
 	for d in drivedata.data:
 		table = d
 		difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
-		table['delta_t'] = numpy.concatenate([numpy.zeros(1), difftime])
-		
-		#find all tailgating instances where the delta time is reasonable.
-		#this ensures we don't get screwy data from merged files
-		tail_data = table[(table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
+		table.loc[:, 'delta_t'] = numpy.concatenate([numpy.zeros(1), difftime])
+		# find all tailgating instances where the delta time is reasonable.
+		# this ensures we don't get screwy data from merged files
+		tail_data = table[(table.HeadwayTime > 0) & (table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
 		tail_time = tail_data['delta_t'][abs(table.delta_t) < .5].sum()
 		total_time = table['delta_t'][abs(table.delta_t) < .5].sum()
-	
 	return tail_time/total_time
 
 
