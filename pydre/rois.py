@@ -35,7 +35,7 @@ class TimeROI():
 					start_time, end_time, driveID = drive_info
 					for item in datalist:
 						# Find the proper subject and drive in the input data
-						if (item.SubjectID == subject and  driveID in item.DriveID):
+						if (item.SubjectID == subject and driveID in item.DriveID):
 							data_frame.append(pydre.core.sliceByTime(start_time, end_time, "VidTime", item.data[0]))
 							drives.append(item.DriveID)
 							source_files.append(item.sourcefilename)
@@ -91,3 +91,31 @@ class TimeROI():
 
 			cell_info.append([start_VidTime, end_VidTime, driveID])
 		return cell_info
+
+
+class SpaceROI():
+
+	def __init__(self, filename, nameprefix=""):
+		# parse time filename values
+		self.roi_info = pd.read_csv(filename, skipinitialspace=True)
+		self.name_prefix = nameprefix
+
+	def split(self, datalist):
+		"""
+		return list of pydre.core.DriveData objects
+		the 'roi' field of the objects will be filled with the roi tag listed
+		in the roi definition file column name
+		"""
+		return_list = []
+		for i in self.roi_info.index:
+			processed_data = []
+			for ddata in datalist:
+				for raw_data in ddata.data:
+					processed_data.append(raw_data[(raw_data.XPos < self.roi_info.X1[i]) &
+										(raw_data.XPos > self.roi_info.X2[i]) &
+										(raw_data.YPos < self.roi_info.Y1[i]) &
+										(raw_data.YPos > self.roi_info.Y2[i])])
+				return_list.append(pydre.core.DriveData(ddata.SubjectID, ddata.DriveID,
+					self.roi_info.roi[i], processed_data, self.roi_info.sourcefilename[i]))
+		return return_list
+
