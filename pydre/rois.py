@@ -98,6 +98,9 @@ class SpaceROI():
 	def __init__(self, filename, nameprefix=""):
 		# parse time filename values
 		self.roi_info = pd.read_csv(filename, skipinitialspace=True)
+		print(self.roi_info)
+		#roi_info is a data frame containing the cutoff points for the region in each row.
+		#It's columns must be roi, X1, X2, Y1, Y2
 		self.name_prefix = nameprefix
 
 	def split(self, datalist):
@@ -107,15 +110,32 @@ class SpaceROI():
 		in the roi definition file column name
 		"""
 		return_list = []
+		
 		for i in self.roi_info.index:
 			processed_data = []
 			for ddata in datalist:
 				for raw_data in ddata.data:
-					processed_data.append(raw_data[(raw_data.XPos < self.roi_info.X1[i]) &
-										(raw_data.XPos > self.roi_info.X2[i]) &
-										(raw_data.YPos < self.roi_info.Y1[i]) &
-										(raw_data.YPos > self.roi_info.Y2[i])])
+					xmin = min(self.roi_info.X1[i], self.roi_info.X2[i])
+					xmax = max(self.roi_info.X1[i], self.roi_info.X2[i])
+					ymin = min(self.roi_info.Y1[i], self.roi_info.Y2[i])
+					ymax = max(self.roi_info.Y1[i], self.roi_info.Y2[i])
+					region_data = raw_data[(raw_data.XPos < xmax) &
+						(raw_data.XPos > xmin) &
+						(raw_data.YPos < ymax) &
+						(raw_data.YPos > ymin)]
+					processed_data.append(region_data)
+					if (len(region_data) == 0):
+						logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format( 
+							ddata.SubjectID, 
+							ddata.sourcefilename, 
+							self.roi_info.roi[i]))
+					else:
+						logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
+							len(region_data),
+							self.roi_info.roi[i],
+							ddata.SubjectID, 
+							ddata.sourcefilename))
 				return_list.append(pydre.core.DriveData(ddata.SubjectID, ddata.DriveID,
-					self.roi_info.roi[i], processed_data, self.roi_info.sourcefilename[i]))
+					self.roi_info.roi[i], processed_data, ddata.sourcefilename))
 		return return_list
 
