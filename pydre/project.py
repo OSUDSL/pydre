@@ -26,8 +26,8 @@ class Project():
 	def __loadSingleFile(self, filename):
 		"""Load a single .dat file (whitespace delmited csv) into a DriveData object"""
 		# Could cache this re, probably affect performance
-		d = pandas.read_csv(filename, sep=' ', na_values='.')
-		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+).dat")
+		d = pandas.read_csv(filename, sep='\s+', na_values='.')
+		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
 		match = datafile_re.match(filename)
 		experiment_name, subject_id, drive_id = match.groups()
 		return pydre.core.DriveData(SubjectID=int(subject_id), DriveID=int(drive_id),
@@ -47,7 +47,10 @@ class Project():
 		roi_type = roi['type']
 		filename = roi['filename']
 		if roi_type == "time":
-			roi_obj = pydre.rois.TimeROI(filename, dataset)
+			roi_obj = pydre.rois.TimeROI(filename)
+			return roi_obj.split(dataset)
+		elif roi_type == "rect":
+			roi_obj = pydre.rois.SpaceROI(filename)
 			return roi_obj.split(dataset)
 		else:
 			return []
