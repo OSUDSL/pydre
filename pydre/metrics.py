@@ -15,8 +15,26 @@ def meanVelocity(drivedata: pydre.core.DriveData, cutoff=0):
 	for d in drivedata.data:
 		total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
 	return total_vel.mean()
-
-
+	
+def brakeJerk(drivedata: pydre.core.DriveData, cutoff=0):
+	a = []
+	t = []
+	for d in drivedata.data:
+		df = pandas.DataFrame(d, columns=("SimTime", "LonAccel"))  # drop other columns
+		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+		a.append = df.LonAccel
+		t.append = df.simTime
+	jerk = np.gradient(a, np.gradient(t))
+	count = 0
+	flag = 0
+	for i in jerk:
+		if jerk(i) >= cutoff and flag == 0:
+			count = count + 1
+			flag = 1
+		elif jerk(i) < cutoff:
+			flag = 0
+	return count
+	
 def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
 	out = []
 	for d in drivedata.data:
