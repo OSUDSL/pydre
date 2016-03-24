@@ -98,7 +98,6 @@ class SpaceROI():
 	def __init__(self, filename, nameprefix=""):
 		# parse time filename values
 		self.roi_info = pd.read_csv(filename, skipinitialspace=True)
-		print(self.roi_info)
 		#roi_info is a data frame containing the cutoff points for the region in each row.
 		#It's columns must be roi, X1, X2, Y1, Y2
 		self.name_prefix = nameprefix
@@ -112,7 +111,6 @@ class SpaceROI():
 		return_list = []
 		
 		for i in self.roi_info.index:
-			processed_data = []
 			for ddata in datalist:
 				for raw_data in ddata.data:
 					xmin = min(self.roi_info.X1[i], self.roi_info.X2[i])
@@ -123,7 +121,6 @@ class SpaceROI():
 						(raw_data.XPos > xmin) &
 						(raw_data.YPos < ymax) &
 						(raw_data.YPos > ymin)]
-					processed_data.append(region_data)
 					if (len(region_data) == 0):
 						logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format( 
 							ddata.SubjectID, 
@@ -135,7 +132,7 @@ class SpaceROI():
 							self.roi_info.roi[i],
 							ddata.SubjectID, 
 							ddata.sourcefilename))
-				return_list.append(pydre.core.DriveData(ddata.SubjectID, ddata.DriveID,
-					self.roi_info.roi[i], processed_data, ddata.sourcefilename))
+					return_list.append(pydre.core.DriveData(ddata.SubjectID, ddata.DriveID,
+					self.roi_info.roi[i], region_data, ddata.sourcefilename))
 		return return_list
 

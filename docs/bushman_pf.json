@@ -1,0 +1,33 @@
+{
+    "rois": [
+  		{"type": "rect", "filename": "spatial_roi.csv"}
+	],
+
+    "metrics": [
+    	{
+            "name": "meanVelocityOver20",
+    		"function": "meanVelocity",
+    		"cutoff": 20
+    	},
+		{
+            "name": "meanVelocityOver10",
+    		"function": "meanVelocity",
+    		"cutoff": 10
+    	},
+		{
+            "name": "steeringEntropy",
+    		"function": "steeringEntropy",
+    		"cutoff": 0
+    	},
+		{
+            "name": "tailgateTime",
+    		"function": "tailgatingTime",
+    		"cutoff": 2
+    	},
+		{
+            "name": "tailgatePercentage",
+    		"function": "tailgatingPercentage",
+    		"cutoff": 2
+    	}
+    ]
+ }
