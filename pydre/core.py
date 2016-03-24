@@ -21,6 +21,20 @@ def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFr
 	"""
 	return(drive_data[(drive_data[column] >= begin) & (drive_data[column] <= end)])
 
+def mergeBySpace(tomerge: list):
+	"""
+		args:
+			tomerge: list of DriveData objects to merge
+
+		returns:
+			DriveData object containing merged data and Drive ID of first element in the tomerge list
+
+		Takes the first DriveData in 'tomerge', finds the last X and Y position, matches the closest X and Y
+		position in the next DriveData object in 'tomerge'.  The time stamps for the second data list are
+		altered appropriately.
+		This repeats for all elements in 'tomerge'.
+	"""
+	pass
 
 class DriveData:
 
