@@ -16,8 +16,7 @@
     	},
 		{
             "name": "steeringEntropy",
-    		"function": "steeringEntropy",
-    		"cutoff": 0
+    		"function": "steeringEntropy"
     	},
 		{
             "name": "tailgateTime",

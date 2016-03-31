@@ -1,7 +1,7 @@
-roi,Y1,X1,Y2,X2
-Start,-300,500,300,3700
-Pull out Car,3900,3100,300,3700
-Traffic Jam,3300,3700,3900,7700
-Construction Zone,3300,7100,-900,7700
-Mimic Car,-300,7700,-600,12500
-Traffic Light,-600,11900,-4000,12500
+roi,X1,Y1,X2,Y2
+Start,500,-300,3700,300
+Pull out Car,3100,3900,3700,300
+Traffic Jam,3700,3300,7700,3900
+Construction Zone,7100,3300,7700,-900
+Mimic Car,7700,-300,12500,-600
+Traffic Light,11900,-600,12500,-4000

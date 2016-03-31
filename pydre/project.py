@@ -110,7 +110,7 @@ class Project():
 		for metric in self.definition['metrics']:
 			metric_title, metric_values = self.processMetric(metric, data_set)
 			result_data[metric_title] = pandas.Series(metric_values)
-		self.results = result_data
+		self.results = result_data	
 
 	def save(self, outfilename="out.csv"):
 		"""
