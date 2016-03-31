@@ -35,7 +35,7 @@ def brakeJerk(drivedata: pydre.core.DriveData, cutoff=0):
 			flag = 0
 	return count
 	
-def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
+def steeringEntropy(drivedata: pydre.core.DriveData):
 	out = []
 	for d in drivedata.data:
 		if(len(d) > 0):
@@ -115,3 +115,4 @@ metricsList['meanVelocity'] = meanVelocity
 metricsList['steeringEntropy'] = steeringEntropy
 metricsList['tailgatingTime'] = tailgatingTime
 metricsList['tailgatingPercentage'] = tailgatingPercentage
+metricsList['brakeJerk'] = brakeJerk
