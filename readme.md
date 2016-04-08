@@ -21,9 +21,12 @@ Project files are JSON marked up files that dictate things like which region of 
 As for metrics, the array should consist of elements containing every function that you wish to analyze. There are a minimum of two required fields: name and function. Name is the column header for the metric in the output file and function is the name of the function you wish to call in pydre. Then, any arguments required for the function must be specified. 
     
 
-# ROI CSV File Formats
+# Region of Interest CSV File Formats
 
-Time ROI table format
+For analysis, it is often useful to define regions of interest in the data.  pydre uses csv files to define spatial and temporal regions of interest.
+The spatial regions are defined over the scenario course, while the temporal regions are defined per subject.
+
+#### Time ROI table format
 
 | Subject | _roi name 1_  | _roi name 2_  | ... | _roi name N_  |
 |---------|-----------|-----------|-----|-----------|
@@ -32,12 +35,12 @@ Time ROI table format
 | ...     | ...       | ...       | ... | ... |
 | N | _time range_ | _time range_ | ... | _time range_ |
 
-*_NOTE_: Time Ranges are formatted as hh:mm:ss-hh:mm:ss#driveID If multiple drives are used in a praticular ROI, simply add a space and write in another time range in the same cell.*
+*_NOTE_: Time Ranges are formatted as `hh:mm:ss-hh:mm:ss#driveID` If multiple drives are used in a praticular ROI, simply add a space and write in another time range in the same cell.*
 
-Space ROI table format
+#### Space ROI table format
 
-|ROI |X1|Y1|X2|Y2|
-|--------|--|--|--|--|
+| ROI    | X1 | Y1 | X2 | Y2 |
+|--------|----|----|----|----|
 |_ROI name_|_min x_|_min y_|_max x_|_max y_|
 |_ROI name_|_min x_|_min y_|_max x_|_max y_|
 |...       |...    |...    |...    |...    |
