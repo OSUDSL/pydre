@@ -28,7 +28,7 @@ class Project():
 		# Could cache this re, probably affect performance
 		d = pandas.read_csv(filename, sep='\s+', na_values='.')
 		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
-		match = datafile_re.match(filename)
+		match = datafile_re.search(filename)
 		experiment_name, subject_id, drive_id = match.groups()
 		return pydre.core.DriveData(SubjectID=int(subject_id), DriveID=int(drive_id),
 									roi=None, data=d, sourcefilename=filename)
