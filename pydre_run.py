@@ -3,7 +3,7 @@
 
 import os
 import sys
-sys.path.append(os.getcwd())
+sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 import pydre.project
 import pydre.core
@@ -11,7 +11,6 @@ import os.path
 import glob
 import logging
 logging.basicConfig(level=logging.INFO)
-
 
 import argparse
 parser = argparse.ArgumentParser()
