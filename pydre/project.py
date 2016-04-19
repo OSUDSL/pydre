@@ -106,6 +106,7 @@ class Project():
 
 		result_data = pandas.DataFrame()
 		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
+		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 		for metric in self.definition['metrics']:
 			metric_title, metric_values = self.processMetric(metric, data_set)

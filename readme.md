@@ -12,6 +12,8 @@ Command Line Arguments:
 
 Command Line Syntax: `python pydre_run.py -p [project file path] -d [data file path] -o [output file name]`
 
+Example execution 'python pydre_run.py -p C:\Users\pveith\Documents\pydre\docs\bioptics.json -d C:\Users\pveith\Documents\bioptics\pydreDataSet\*.dat -o bioptics.csv'
+
 For additional assistance while running the script use the help command (-h)
 
 # Project Files
