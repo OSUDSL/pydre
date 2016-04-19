@@ -64,6 +64,10 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
 		df = pandas.DataFrame(d, columns=("SimTime", "Steer"))  # drop other columns
 		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
 
+		if(len(df) == 0):
+
+			continue
+			
 		# resample data
 		minTime = df.SimTime.values.min()
 		maxTime = df.SimTime.values.max()
@@ -81,6 +85,8 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
 		out.append(error)
 
 	# concatenate out (list of np objects) into a single list
+	if(len(out) ==0):
+		return 0
 	error = numpy.concatenate(out)
 	# 90th percentile of error
 	alpha = numpy.nanpercentile(error, 90)
