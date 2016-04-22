@@ -37,7 +37,26 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff=20, percentage=False)
 		out = time
 	return out
 
-
+def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2):
+	for d in drivedata.data:
+		df = pandas.DataFrame(d, columns=("SimTime", "Lane", "LaneOffset"))  #drop other columns
+		if(laneInfo in ["mean","Mean"]):
+			#mean lane position
+			LPout = np.mean((df.LaneOffset) #abs to give mean lane "error"
+		elif(laneInfo in ["sdlp", "SDLP"]):
+			LPout = np.std(df.LaneOffset)
+		elif(laneInfo in ["exits"]):
+			LPout = 0;
+			laneno = pandas.DataFrame(d, columns=("Lane"));
+			lane = lane.values;
+			for i in laneno: #ignore first item 
+				if laneno(i) == laneno(i-1):
+					LPout = LPout + 1
+		else:
+			print("Not a valid lane position metric - use 'mean', 'sdlp', or 'exits'.")
+			return None
+	return LPout
+	
 def brakeJerk(drivedata: pydre.core.DriveData, cutoff=0):
 	a = []
 	t = []
@@ -144,3 +163,4 @@ metricsList['steeringEntropy'] = steeringEntropy
 metricsList['tailgatingTime'] = tailgatingTime
 metricsList['tailgatingPercentage'] = tailgatingPercentage
 metricsList['timeAboveSpeed'] = timeAboveSpeed
+metricsList['lanePosition'] = lanePosition

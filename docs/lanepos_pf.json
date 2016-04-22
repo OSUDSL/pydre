@@ -1,0 +1,13 @@
+{
+    "rois": [
+  		{"type": "rect", "filename": "spatial_roi.csv"}
+	],
+
+    "metrics": [
+    	{
+            "name": "lane exits",
+    		"function": "lanePosition",
+    		"laneInfo": "exits"
+    	}
+    ]
+ }
