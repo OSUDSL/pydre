@@ -42,13 +42,12 @@ def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2):
 		df = pandas.DataFrame(d, columns=("SimTime", "Lane", "LaneOffset"))  #drop other columns
 		if(laneInfo in ["mean","Mean"]):
 			#mean lane position
-			LPout = np.mean((df.LaneOffset) #abs to give mean lane "error"
+			LPout = np.mean((df.LaneOffset)) #abs to give mean lane "error"
 		elif(laneInfo in ["sdlp", "SDLP"]):
 			LPout = np.std(df.LaneOffset)
 		elif(laneInfo in ["exits"]):
-			LPout = 0;
-			laneno = pandas.DataFrame(d, columns=("Lane"));
-			lane = lane.values;
+			LPout = 0
+			laneno = df.Lane.values			
 			for i in laneno: #ignore first item 
 				if laneno(i) == laneno(i-1):
 					LPout = LPout + 1
