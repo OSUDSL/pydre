@@ -1,12 +1,22 @@
 {
     "rois": [
-  		{"type": "rect", "filename": "spatial_roi.csv"}
+  		{"type": "rect", "filename": "signDistances_bioptics.csv"}
 	],
 
     "metrics": [
     	{
-            "name": "lane exits",
     		"function": "lanePosition",
+			"name": "lane deviation",
+    		"laneInfo": "sdlp"
+    	},
+		{
+    		"function": "lanePosition",
+			"name": "lane mean",
+    		"laneInfo": "mean"
+    	},
+		{
+    		"function": "lanePosition",
+			"name": "lane exits",
     		"laneInfo": "exits"
     	}
     ]

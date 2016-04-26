@@ -6,7 +6,7 @@ The user must enter the path for the project file and data file in order to aggr
 
 Command Line Arguments:
 
-  * Project File [-p]: The project file contains the regions of interest from which the data should be aggregated. It also specifies a list of metrics (the type of data) that will be aggregated from the regions of interest. 
+  * Project File [-p]: The project file specifies a file for the regions of interest from which the data should be aggregated. It also specifies a list of metrics (the type of data) that will be aggregated from the regions of interest. 
   * Data File [-d]: The data file contains the raw metrics obtained from the simulation.
   * Ouput File [-o]: After the script has executed, the output file will display the aggregated metrics from the regions of interests that were both specified in the project file. The output file will be saved in the same folder as the script. 
 
