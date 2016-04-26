@@ -47,9 +47,9 @@ def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2):
 			LPout = np.std(df.LaneOffset)
 		elif(laneInfo in ["exits"]):
 			LPout = 0
-			laneno = df.Lane.values			
-			for i in laneno: #ignore first item 
-				if laneno(i) == laneno(i-1):
+			laneno = df.Lane.values		
+			for i in laneno[1:]: #ignore first item 
+				if laneno[i] != laneno[i-1]:
 					LPout = LPout + 1
 		else:
 			print("Not a valid lane position metric - use 'mean', 'sdlp', or 'exits'.")
