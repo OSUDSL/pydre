@@ -37,23 +37,49 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff=20, percentage=False)
 		out = time
 	return out
 
-def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2):
+def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2, lane_width = 3.65, car_width = 2.1):
 	for d in drivedata.data:
 		df = pandas.DataFrame(d, columns=("SimTime", "Lane", "LaneOffset"))  #drop other columns
-		if(laneInfo in ["mean","Mean"]):
-			#mean lane position
-			LPout = np.mean((df.LaneOffset)) #abs to give mean lane "error"
-		elif(laneInfo in ["sdlp", "SDLP"]):
-			LPout = np.std(df.LaneOffset)
-		elif(laneInfo in ["exits"]):
-			LPout = 0
-			laneno = df.Lane.values		
-			for i in laneno[1:]: #ignore first item 
-				if laneno[i] != laneno[i-1]:
+		LPout = None
+		if (df.size > 0):
+			if(laneInfo in ["mean","Mean"]):
+				#mean lane position
+				LPout = np.mean((df.LaneOffset)) #abs to give mean lane "error"
+			elif(laneInfo in ["sdlp", "SDLP"]):
+				LPout = np.std(df.LaneOffset)
+			elif(laneInfo in ["exits"]):
+				LPout = 0
+				laneno = df.Lane.values		
+				for i in laneno[1:]: #ignore first item 
+					if laneno[i] != laneno[i-1]:
+						LPout = LPout + 1
+			elif(laneInfo in ["violation_count"]):
+				LPout = 0
+				#tolerance is the maximum allowable offset deviation from 0
+				tolerance = lane_width/2 - car_width/2
+				is_violating = abs(df.LaneOffset) > tolerance
+				
+				#Shift the is_violating array and look for differences. Count
+				#a lane violation if we start in the wrong lane.
+				shifted = is_violating.shift(1)
+				shifted.iloc[0] = is_violating.iloc[0]
+				if (is_violating.iloc[0] == True):
 					LPout = LPout + 1
-		else:
-			print("Not a valid lane position metric - use 'mean', 'sdlp', or 'exits'.")
-			return None
+				
+				compare = shifted != is_violating
+				
+				LPout = LPout + compare.loc[compare == True].size
+			elif(laneInfo in ["violation_duration"]):
+				LPout = 0
+				tolerance = lane_width/2 - car_width/2
+				violations = df[abs(df.LaneOffset) > tolerance]
+				if (violations.size > 0):
+					deltas = violations.diff()
+					deltas.iloc[0] = deltas.iloc[1]
+					LPout = sum(deltas.SimTime[deltas.SimTime < .5])
+			else:
+				print("Not a valid lane position metric - use 'mean', 'sdlp', or 'exits'.")
+				return None
 	return LPout
 	
 def brakeJerk(drivedata: pydre.core.DriveData, cutoff=0):

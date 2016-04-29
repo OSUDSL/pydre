@@ -18,6 +18,16 @@
     		"function": "lanePosition",
 			"name": "lane exits",
     		"laneInfo": "exits"
+    	},
+		{
+    		"function": "lanePosition",
+			"name": "violation count",
+    		"laneInfo": "violation_count"
+    	},
+		{
+    		"function": "lanePosition",
+			"name": "violation duration",
+    		"laneInfo": "violation_duration"
     	}
     ]
  }
