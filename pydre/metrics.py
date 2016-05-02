@@ -59,16 +59,22 @@ def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2, lane_
 				tolerance = lane_width/2 - car_width/2
 				is_violating = abs(df.LaneOffset) > tolerance
 				
-				#Shift the is_violating array and look for differences. Count
-				#a lane violation if we start in the wrong lane.
+				#Shift the is_violating array and look for differences.
 				shifted = is_violating.shift(1)
 				shifted.iloc[0] = is_violating.iloc[0]
+				
+				#Create an array which is true whenever the car goes in/out of
+				#the lane
+				compare = shifted != is_violating
+				
+				#Grab only the lines in which the car is leaving (no entry)
+				shiftouts = compare.loc[compare == True] == is_violating.loc[compare == True]
+				
+				#Count all violations. Add one if the region begins with a violation.
+				LPout = shiftouts.size
 				if (is_violating.iloc[0] == True):
 					LPout = LPout + 1
 				
-				compare = shifted != is_violating
-				
-				LPout = LPout + compare.loc[compare == True].size
 			elif(laneInfo in ["violation_duration"]):
 				LPout = 0
 				tolerance = lane_width/2 - car_width/2
