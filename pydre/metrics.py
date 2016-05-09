@@ -190,8 +190,9 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff=2):
 		tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
 		total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
 	return tail_time/total_time
+		
 
-
+#Every time you add a new function do not forget to add to the metrics list
 metricsList = {}
 metricsList['meanVelocity'] = meanVelocity
 metricsList['steeringEntropy'] = steeringEntropy
