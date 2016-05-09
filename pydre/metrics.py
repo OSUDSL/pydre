@@ -67,13 +67,17 @@ def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2, lane_
 				#the lane
 				compare = shifted != is_violating
 				
-				#Grab only the lines in which the car is leaving (no entry)
-				shiftouts = compare.loc[compare == True] == is_violating.loc[compare == True]
+				#shiftout becomes an array which only has elements each time
+				#compare is true (ie, violation status changed). These elements
+				#are True when the direction is out of the lane, False when the
+				#direction is back into the lane. We only count the out shifts.
+				shifts = compare.loc[compare == True] == is_violating.loc[compare == True]
+				shiftout = shifts.loc[shifts == True]
 				
 				#Count all violations. Add one if the region begins with a violation.
-				LPout = shiftouts.size
 				if (is_violating.iloc[0] == True):
 					LPout = LPout + 1
+				LPout = LPout + shiftout.size
 				
 			elif(laneInfo in ["violation_duration"]):
 				LPout = 0
