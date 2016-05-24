@@ -7,7 +7,7 @@ import numpy
 import numpy as np
 import math
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('PydreLogger')
 
 
 import pdb
