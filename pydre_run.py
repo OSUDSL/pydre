@@ -12,6 +12,10 @@ import glob
 import logging
 logging.basicConfig(level=logging.INFO)
 
+#Use one logger to log all of our outputs in every module.
+#Get pydrelogger in every file where we need to log something.
+logger = logging.getLogger('PydreLogger')
+
 import argparse
 parser = argparse.ArgumentParser()
 #command line arguments for project file (pf) and data file (df)
@@ -22,8 +26,17 @@ parser.add_argument("-l", "--warninglevel", type= str, default="WARNING", help="
 
 args = parser.parse_args()
 
+try:
+	logger.setLevel(args.warninglevel.upper())
+except Exception:
+	logger.setLevel(logging.WARNING)
+	logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
 
-p = pydre.project.Project(args.projectfile, args.warninglevel)
+if (args.outputfile is 'out.csv'):
+	logger.warning("No output file specified. Defaulting to 'out.csv'")
+
+p = pydre.project.Project(args.projectfile)
+
 # test the data files
 
 filelist = glob.glob(os.path.join(os.path.dirname(__file__), args.datafile))

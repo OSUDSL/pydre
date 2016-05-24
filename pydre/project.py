@@ -9,12 +9,12 @@ import pydre.rois
 import pydre.metrics
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('PydreLogger')
 
 
 class Project():
 
-	def __init__(self, projectfilename, warninglevel):
+	def __init__(self, projectfilename):
 		self.project_filename = projectfilename
 		self.definition = None
 		with open(self.project_filename) as project_file:
@@ -22,11 +22,6 @@ class Project():
 
 		# TODO: check for correct definition syntax
 		self.data = []
-		try:
-			logger.setLevel(warninglevel.upper())
-		except Exception:
-			logger.setLevel(logging.WARNING)
-			logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
 
 	def __loadSingleFile(self, filename):
 		"""Load a single .dat file (whitespace delmited csv) into a DriveData object"""
@@ -115,6 +110,11 @@ class Project():
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 		for metric in self.definition['metrics']:
 			metric_title, metric_values = self.processMetric(metric, data_set)
+			
+			if (metric_title in result_data):
+				logger.error("The metric title [" + metric_title + "] occrus multiple times in the project file. Only the last metric named [" + metric_title + "] will be kept in the data.")
+				#Should we quit() here??
+				
 			result_data[metric_title] = pandas.Series(metric_values)
 		self.results = result_data	
 
@@ -125,6 +125,7 @@ class Project():
 
 		The filename specified will be overwritten automatically.
 		"""
+		
 		try:
 			self.results.to_csv(outfilename, index=False)
 		except AttributeError:
