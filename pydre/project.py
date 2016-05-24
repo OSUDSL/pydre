@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Project():
 
-	def __init__(self, projectfilename):
+	def __init__(self, projectfilename, warninglevel):
 		self.project_filename = projectfilename
 		self.definition = None
 		with open(self.project_filename) as project_file:
@@ -22,6 +22,11 @@ class Project():
 
 		# TODO: check for correct definition syntax
 		self.data = []
+		try:
+			logger.setLevel(warninglevel.upper())
+		except Exception:
+			logger.setLevel(logging.WARNING)
+			logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
 
 	def __loadSingleFile(self, filename):
 		"""Load a single .dat file (whitespace delmited csv) into a DriveData object"""

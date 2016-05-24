@@ -1,8 +1,4 @@
 {
-    "rois": [
-  		{"type": "rect", "filename": "spatial_roi.csv"}
-	],
-
     "metrics": [
     	{
             "name": "meanVelocityOver20",
