@@ -9,7 +9,7 @@ import pydre.rois
 import pydre.metrics
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('PydreLogger')
 
 
 class Project():
@@ -26,9 +26,9 @@ class Project():
 	def __loadSingleFile(self, filename):
 		"""Load a single .dat file (whitespace delmited csv) into a DriveData object"""
 		# Could cache this re, probably affect performance
-		d = pandas.read_csv(filename, sep=' ', na_values='.')
-		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+).dat")
-		match = datafile_re.match(filename)
+		d = pandas.read_csv(filename, sep='\s+', na_values='.')
+		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
+		match = datafile_re.search(filename)
 		experiment_name, subject_id, drive_id = match.groups()
 		return pydre.core.DriveData(SubjectID=int(subject_id), DriveID=int(drive_id),
 									roi=None, data=d, sourcefilename=filename)
@@ -47,7 +47,10 @@ class Project():
 		roi_type = roi['type']
 		filename = roi['filename']
 		if roi_type == "time":
-			roi_obj = pydre.rois.TimeROI(filename, dataset)
+			roi_obj = pydre.rois.TimeROI(filename)
+			return roi_obj.split(dataset)
+		elif roi_type == "rect":
+			roi_obj = pydre.rois.SpaceROI(filename)
 			return roi_obj.split(dataset)
 		else:
 			return []
@@ -103,11 +106,17 @@ class Project():
 
 		result_data = pandas.DataFrame()
 		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
+		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 		for metric in self.definition['metrics']:
 			metric_title, metric_values = self.processMetric(metric, data_set)
+			
+			if (metric_title in result_data):
+				logger.error("The metric title [" + metric_title + "] occrus multiple times in the project file. Only the last metric named [" + metric_title + "] will be kept in the data.")
+				#Should we quit() here??
+				
 			result_data[metric_title] = pandas.Series(metric_values)
-		self.results = result_data
+		self.results = result_data	
 
 	def save(self, outfilename="out.csv"):
 		"""
@@ -116,6 +125,7 @@ class Project():
 
 		The filename specified will be overwritten automatically.
 		"""
+		
 		try:
 			self.results.to_csv(outfilename, index=False)
 		except AttributeError:

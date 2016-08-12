@@ -35,7 +35,7 @@ class TimeROI():
 					start_time, end_time, driveID = drive_info
 					for item in datalist:
 						# Find the proper subject and drive in the input data
-						if (item.SubjectID == subject and  driveID in item.DriveID):
+						if (item.SubjectID == subject and driveID in item.DriveID):
 							data_frame.append(pydre.core.sliceByTime(start_time, end_time, "VidTime", item.data[0]))
 							drives.append(item.DriveID)
 							source_files.append(item.sourcefilename)
@@ -91,3 +91,48 @@ class TimeROI():
 
 			cell_info.append([start_VidTime, end_VidTime, driveID])
 		return cell_info
+
+
+class SpaceROI():
+
+	def __init__(self, filename, nameprefix=""):
+		# parse time filename values
+		self.roi_info = pd.read_csv(filename, skipinitialspace=True)
+		#roi_info is a data frame containing the cutoff points for the region in each row.
+		#It's columns must be roi, X1, X2, Y1, Y2
+		self.name_prefix = nameprefix
+
+	def split(self, datalist):
+		"""
+		return list of pydre.core.DriveData objects
+		the 'roi' field of the objects will be filled with the roi tag listed
+		in the roi definition file column name
+		"""
+		return_list = []
+		
+		for i in self.roi_info.index:
+			for ddata in datalist:
+				for raw_data in ddata.data:
+					xmin = min(self.roi_info.X1[i], self.roi_info.X2[i])
+					xmax = max(self.roi_info.X1[i], self.roi_info.X2[i])
+					ymin = min(self.roi_info.Y1[i], self.roi_info.Y2[i])
+					ymax = max(self.roi_info.Y1[i], self.roi_info.Y2[i])
+					region_data = raw_data[(raw_data.XPos < xmax) &
+						(raw_data.XPos > xmin) &
+						(raw_data.YPos < ymax) &
+						(raw_data.YPos > ymin)]
+					if (len(region_data) == 0):
+						logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format( 
+							ddata.SubjectID, 
+							ddata.sourcefilename, 
+							self.roi_info.roi[i]))
+					else:
+						logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
+							len(region_data),
+							self.roi_info.roi[i],
+							ddata.SubjectID, 
+							ddata.sourcefilename))
+					return_list.append(pydre.core.DriveData(ddata.SubjectID, ddata.DriveID,
+					self.roi_info.roi[i], region_data, ddata.sourcefilename))
+		return return_list
+
