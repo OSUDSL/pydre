@@ -12,9 +12,9 @@ import glob
 import logging
 logging.basicConfig(level=logging.INFO)
 
-p = pydre.project.Project("docs/example_projectfile.json")
+p = pydre.project.Project("docs/bushman_pf.json")
 
 # put some data files in tests/testdata/ to test it out
-filelist = glob.glob(os.path.join(os.path.dirname(__file__), 'testdata/CWS2_Sub_16_*.dat'))
+filelist = glob.glob(os.path.join(os.path.dirname(__file__), 'testdata\Bushman1_Sub_*.dat'))
 p.run(filelist)
 p.save()
