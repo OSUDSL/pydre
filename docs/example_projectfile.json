@@ -1,0 +1,12 @@
+{
+    "rois": [
+  		{"type": "time", "filename": "filetimes.csv"}
+	],
+
+    "metrics": [
+        {
+            "name": "tailgatetime",
+            "function": "tailgatingTime"
+        }
+    ]
+ }
