@@ -10,6 +10,28 @@ import logging
 logger = logging.getLogger('PydreLogger')
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
+def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff = 25):
+	timestepID = -1
+	breakOut = False
+	for d in drivedata.data:
+		for i, row in d.iterrows()
+			if row.Velocity >= cutoff:
+				timestepID = i
+				breakOut = True
+				break
+		if breakOut:
+			break
+	return timestepID
+	
+def findFirstTimeOutside(drivedata: pydre.core.DriveData, area=(0,0,10000,10000)):
+	timeAtEnd = 0
+	for d in drivedata.data:
+		if d.position >= pos:
+			timeAtEnd = d.simTime
+			break
+	return timeAtEnd
+
+	
 def meanVelocity(drivedata: pydre.core.DriveData, cutoff=0):
 	total_vel = pandas.Series()
 	for d in drivedata.data:
