@@ -7,6 +7,7 @@ import numpy
 import numpy as np
 import math
 import logging
+import ctypes
 logger = logging.getLogger('PydreLogger')
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
@@ -14,7 +15,7 @@ def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff = 25):
 	timestepID = -1
 	breakOut = False
 	for d in drivedata.data:
-		for i, row in d.iterrows()
+		for i, row in d.iterrows():
 			if row.Velocity >= cutoff:
 				timestepID = i
 				breakOut = True
@@ -192,7 +193,6 @@ def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
 	tail_time = 0
 	for d in drivedata.data:
 		table = d
-
 		difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
 		table.loc[:, 'delta_t'] = numpy.concatenate([numpy.zeros(1), difftime])
 		# find all tailgating instances where the delta time is reasonable.
@@ -215,7 +215,30 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff=2):
 		tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
 		total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
 	return tail_time / total_time
-
+	
+def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0):
+	total_boxclicks = pandas.Series()
+	time_boxappeared = 0.0
+	time_buttonclicked = 0.0
+	hitButton = 0;
+	for d in drivedata.data:
+		df = pandas.DataFrame(d, columns=("SimTime", "FeedbackButton", "BoxAppears"))  # drop other columns
+		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+		if(len(df) == 0):
+			continue
+		boxAppearsdf = df['BoxAppears']
+		simTimedf = df['SimTime']
+		boxOndf = boxAppearsdf.diff(1)
+		indicesBoxOn = boxOndf[boxOndf.values > .5].index[0:]
+		indicesBoxOff = boxOndf[boxOndf.values < 0.0].index[0:]
+		feedbackButtondf = df['FeedbackButton']
+		for counter in range(0, len(indicesBoxOn)):
+			boxOn = int(indicesBoxOn[counter])
+			boxOff = int(indicesBoxOff[counter])
+			sum = feedbackButtondf.loc[boxOn:boxOff].sum();
+			if sum > 0.000:
+				hitButton = hitButton + 1;
+	return hitButton
 
 metricsList = {}
 metricsList['meanVelocity'] = meanVelocity
@@ -225,3 +248,4 @@ metricsList['tailgatingTime'] = tailgatingTime
 metricsList['tailgatingPercentage'] = tailgatingPercentage
 metricsList['timeAboveSpeed'] = timeAboveSpeed
 metricsList['lanePosition'] = lanePosition
+metricsList['boxMetrics'] = boxMetrics
