@@ -1,0 +1,15 @@
+{
+   
+    "metrics": [
+    	{
+            "name": "IdentifiedBox2Seconds",
+    		"function": "boxMetrics",
+    		"cutoff": 1
+    	},
+    	{
+            "name": "IdentifiedBox5Seconds",
+    		"function": "boxMetrics",
+    		"cutoff": 5
+    	}
+    ]
+ }
