@@ -216,7 +216,7 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff=2):
 		total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
 	return tail_time / total_time
 	
-def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0):
+def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0, stat="count"):
 	total_boxclicks = pandas.Series()
 	time_boxappeared = 0.0
 	time_buttonclicked = 0.0
@@ -232,12 +232,43 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0):
 		indicesBoxOn = boxOndf[boxOndf.values > .5].index[0:]
 		indicesBoxOff = boxOndf[boxOndf.values < 0.0].index[0:]
 		feedbackButtondf = df['FeedbackButton']
+		reactionTimeList = list();
 		for counter in range(0, len(indicesBoxOn)):
 			boxOn = int(indicesBoxOn[counter])
 			boxOff = int(indicesBoxOff[counter])
+			startTime = simTimedf.loc[boxOn]
+			buttonClickeddf = feedbackButtondf.loc[boxOn:boxOff].diff(1)
+			buttonClickedIndices = buttonClickeddf[buttonClickeddf.values > .5].index[0:]
+			
+			if(len(buttonClickedIndices) > 0):
+				indexClicked = int(buttonClickedIndices[0])
+				clickTime = simTimedf.loc[indexClicked]
+				reactionTime = clickTime - startTime
+				reactionTimeList.append(reactionTime)
+			else:
+				if(counter < len(indicesBoxOn) - 1):
+					endIndex = counter + 1;
+					endOfBox = int(indicesBoxOn[endIndex])
+					buttonClickeddf = feedbackButtondf.loc[boxOn:endOfBox - 1].diff(1)
+					buttonClickedIndices = buttonClickeddf[buttonClickeddf.values > .5].index[0:]
+					if(len(buttonClickedIndices) > 0):
+						indexClicked = int(buttonClickedIndices[0])
+						clickTime = simTimedf.loc[indexClicked]
+						reactionTime = clickTime - startTime
+						reactionTimeList.append(reactionTime)
 			sum = feedbackButtondf.loc[boxOn:boxOff].sum();
 			if sum > 0.000:
 				hitButton = hitButton + 1;
+		if stat == "count":
+			return hitButton
+		elif stat == "mean":
+			mean = numpy.mean(reactionTimeList, axis=0)
+			return mean
+		elif stat == "sd":
+			sd = numpy.std(reactionTimeList, axis=0)
+			return sd
+		else:
+			print("Can't calculate that statistic.")
 	return hitButton
 
 metricsList = {}

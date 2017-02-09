@@ -2,14 +2,22 @@
    
     "metrics": [
     	{
-            "name": "IdentifiedBox2Seconds",
+            "name": "StandardDeviation",
     		"function": "boxMetrics",
-    		"cutoff": 1
+    		"cutoff": 2,
+			"stat": "sd"
     	},
-    	{
-            "name": "IdentifiedBox5Seconds",
+		{
+            "name": "IdentifiedBoxWithin2Seconds",
     		"function": "boxMetrics",
-    		"cutoff": 5
+    		"cutoff": 2,
+			"stat": "count"
+    	},
+		{
+            "name": "Mean",
+    		"function": "boxMetrics",
+    		"cutoff": 2,
+			"stat": "mean"
     	}
     ]
  }
