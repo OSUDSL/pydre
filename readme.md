@@ -49,6 +49,8 @@ The spatial regions are defined over the scenario course, while the temporal reg
 |...       |...    |...    |...    |...    |
 |_ROI name_|_min x_|_min y_|_max x_|_max y_|
   
+  Note: -Z corresponds to positive X, and if Y is 0 in the WRL file, set Y1 = -100, Y2 = 100.
+  
 # pydre/core.py
 
 This script contains code that is intergral to the pydre module
