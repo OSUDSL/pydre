@@ -115,4 +115,7 @@ Contains all functions for getting data metrics out of the DraveData DataFrames.
   - `brakeJerk(data, cutoff = 0)`
     - data: the DriveData to be analyzed.
     - cutoff: Smallest amount of jerk to be counted
-
+ - `boxMetrics(data, cutoff = 0, stat = "count")`
+    - data: the DriveData to be analyzed.
+    - cutoff: Smallest amount of jerk to be counted
+    - stat: statistic to compute, either "count" for the number of times the participant identified the box within 2 seconds, "mean" for their mean reaction time, or "sd" for the standard deviation of their reaction time.
