@@ -54,6 +54,10 @@ The spatial regions are defined over the scenario course, while the temporal reg
   
   Note: -Z corresponds to positive X, and if Y is 0 in the WRL file, set Y1 = -100, Y2 = 100.
   
+  The ROI will consist of the area inside the max_y - min_y and the max_x - min_x.
+  
+  For an example file, look at spatial_rois.csv in the main pydre folder.  Once the ROI csv file has been generated, reference it in the project file (as seen in bushman_pf.json) to perform the function calculations only on the regions of interest specified by the x and y coordinates in this csv file.
+  
 # pydre/core.py
 
 This script contains code that is intergral to the pydre module
