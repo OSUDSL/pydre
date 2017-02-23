@@ -52,6 +52,8 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff=20, percentage=False)
 	total_time = 0
 	for d in drivedata.data:
 		df = pandas.DataFrame(d, columns=("SimTime", "Velocity"))  # drop other columns
+		if df.shape[0] < 2:
+			continue
 		df['Duration'] = pandas.Series(np.gradient(df.SimTime.values), index=df.index)
 		# merged files might have bad splices.  This next line avoids time-travelling.
 		df.Duration[df.Duration < 0] = np.median(df.Duration.values)
