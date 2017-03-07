@@ -89,7 +89,7 @@ def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2, lane_
 				if (violations.size > 0):
 					deltas = violations.diff()
 					deltas.iloc[0] = deltas.iloc[1]
-					LPout = sum(deltas.SimTime[deltas.SimTime < .5])
+					LPout = sum(deltas.SimTime[(deltas.SimTime < .5) & (deltas.SimTime > 0)  ])
 			else:
 				print("Not a valid lane position metric - use 'mean', 'sdlp', or 'exits'.")
 				return None

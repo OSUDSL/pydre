@@ -39,7 +39,7 @@ p = pydre.project.Project(args.projectfile)
 
 # test the data files
 
-filelist = glob.glob(os.path.join(os.path.dirname(__file__), args.datafile))
+filelist = glob.glob(os.path.join(os.getcwd(), args.datafile))
 p.run(filelist)
 p.save(args.outputfile)
 
