@@ -22,7 +22,10 @@ For additional assistance while running the script use the help command (-h)
 Project files are JSON marked up files that dictate things like which region of interest should be tested and which metrics should be gathered. A project file should consist of two main parts: the rois array and the metrics array. Each element of the rois array should have a field to tell which type of roi the element is (rect or time) and a corresponding file name with a path to a csv file with the relevant information for a region. Time and Space are currently the only two roi types implemented. Their formats are detailed below. 
 
 As for metrics, the array should consist of elements containing every function that you wish to analyze. There are a minimum of two required fields: name and function. Name is the column header for the metric in the output file and function is the name of the function you wish to call in pydre. Then, any arguments required for the function must be specified. 
-    
+
+Multiple functions can be called within one project file.  The result of each function will be outputted in a separate column of the generated csv file.
+
+To see an example project file, look at bushman_pf.json in the docs directory of the pydre folder.    
 
 # Region of Interest CSV File Formats
 
@@ -48,6 +51,12 @@ The spatial regions are defined over the scenario course, while the temporal reg
 |_ROI name_|_min x_|_min y_|_max x_|_max y_|
 |...       |...    |...    |...    |...    |
 |_ROI name_|_min x_|_min y_|_max x_|_max y_|
+  
+  Note: -Z corresponds to positive X, and if Y is 0 in the WRL file, set Y1 = -100, Y2 = 100.
+  
+  The ROI will consist of the area inside the max_y - min_y and the max_x - min_x.
+  
+  For an example file, look at spatial_rois.csv in the main pydre folder.  Once the ROI csv file has been generated, reference it in the project file (as seen in bushman_pf.json) to perform the function calculations only on the regions of interest specified by the x and y coordinates in this csv file.
   
 # pydre/core.py
 
@@ -113,4 +122,7 @@ Contains all functions for getting data metrics out of the DraveData DataFrames.
   - `brakeJerk(data, cutoff = 0)`
     - data: the DriveData to be analyzed.
     - cutoff: Smallest amount of jerk to be counted
-
+  - `boxMetrics(data, cutoff = 0, stat = "count")`
+    - data: the DriveData to be analyzed.
+    - cutoff: Smallest amount of jerk to be counted
+    - stat: statistic to compute, either "count" for the number of times the participant identified the box within 2 seconds, "mean" for their mean reaction time, or "sd" for the standard deviation of their reaction time. Used for Anna's hearing impaired study.
