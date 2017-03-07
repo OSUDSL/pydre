@@ -44,6 +44,7 @@ class Project():
 		Returns:
 			A list of pandas DataFrames containing the data for each region of interest
 		"""
+		logger.info("Processing ROI file " + roi['filename'])
 		roi_type = roi['type']
 		filename = roi['filename']
 		if roi_type == "time":
@@ -103,6 +104,8 @@ class Project():
 			# no ROIs to process, but that's OK
 			logger.warning("No ROIs, processing raw data.")
 			data_set = self.raw_data
+
+		logger.info("number of datafiles: {}, number of rois: {}".format(len(datafiles), len(data_set)))
 
 		result_data = pandas.DataFrame()
 		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
