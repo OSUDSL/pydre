@@ -120,6 +120,17 @@ def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2, lane_
 				return None
 	return LPout
 
+def roadExits(drivedata: pydre.core.DriveData): 
+	# assuming a two lane road, determine the amount of time they were not in the legal roadway
+	roadOutTime = 0
+	for d in drivedata.data:
+		df = pandas.DataFrame(d, columns=("SimTime", "Lane"))
+		outtimes = df[(df.Lane > 2) | (df.Lane < 1)]
+		deltas = outtimes.diff()
+		if deltas.shape[0] > 0:
+			deltas.iloc[0] = deltas.iloc[1]
+			roadOutTime += sum(deltas.SimTime[(deltas.SimTime < .5) & (deltas.SimTime > 0)  ])
+	return roadOutTime
 
 def brakeJerk(drivedata: pydre.core.DriveData, cutoff=0):
 	a = []
@@ -282,3 +293,4 @@ metricsList['tailgatingPercentage'] = tailgatingPercentage
 metricsList['timeAboveSpeed'] = timeAboveSpeed
 metricsList['lanePosition'] = lanePosition
 metricsList['boxMetrics'] = boxMetrics
+metricsList['roadExits'] = roadExits
