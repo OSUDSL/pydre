@@ -44,14 +44,18 @@ class Project():
 		Returns:
 			A list of pandas DataFrames containing the data for each region of interest
 		"""
-		logger.info("Processing ROI file " + roi['filename'])
 		roi_type = roi['type']
-		filename = roi['filename']
 		if roi_type == "time":
-			roi_obj = pydre.rois.TimeROI(filename)
+			logger.info("Processing ROI file " + roi['filename'])
+			roi_obj = pydre.rois.TimeROI(roi['filename'])
 			return roi_obj.split(dataset)
 		elif roi_type == "rect":
-			roi_obj = pydre.rois.SpaceROI(filename)
+			logger.info("Processing ROI file " + roi['filename'])
+			roi_obj = pydre.rois.SpaceROI(roi['filename'])
+			return roi_obj.split(dataset)
+		elif roi_type == "column":
+			logger.info("Processing ROI column " + roi['columnname'])
+			roi_obj = pydre.rois.ColumnROI(roi['columnname'])
 			return roi_obj.split(dataset)
 		else:
 			return []
