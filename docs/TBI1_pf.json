@@ -1,0 +1,13 @@
+{
+    "rois": [
+  		{"type": "column", "columnname": "MapSectionLocatedIn"}
+	],
+
+    "metrics": [
+    	{
+            "name": "meanVelocityOver0",
+    		"function": "meanVelocity",
+    		"cutoff": 0
+    	}
+    ]
+ }
