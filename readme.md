@@ -27,7 +27,7 @@ Multiple functions can be called within one project file.  The result of each fu
 
 To see an example project file, look at bushman_pf.json in the docs directory of the pydre folder.    
 
-# Region of Interest CSV File Formats
+# Region of Interest (ROI) CSV File Formats
 
 For analysis, it is often useful to define regions of interest in the data.  pydre uses csv files to define spatial and temporal regions of interest.
 The spatial regions are defined over the scenario course, while the temporal regions are defined per subject.
