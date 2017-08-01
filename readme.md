@@ -1,5 +1,7 @@
 # pydre_run.py
 
+Pydre is software used to analyze data collected from studies. When experiments are run in the simulator, the program SimObserver collects information on the drive, such as vehicle speed and following distance. This information is gathered every 1/60th of a second, which results in many data points. These data points can be analyzed by examining trends over longer periods of time, and this is done through Pydre. Pydre takes a file with data that is difficult to interpret in the form it comes in and then converts it into a much more comprehensive format (i.e. Excel). 
+
 This script is a front end application that allows the user to analyze data using command line arguments.
 
 The user must enter the path for the project file and data file in order to aggregate the data. The user has the option of specifying an output file name, to which the test results will be saved. If no output file name is given the output will save to _"out.csv"_ by default. A brief description of the aforementioned arguments is offered below.
@@ -13,21 +15,25 @@ Command Line Arguments:
   
 Command Line Syntax: `python pydre_run.py -p [project file path] -d [data file path] -o [output file name] -l [warning level]`
 
-Example execution 'python pydre_run.py -p C:\Users\pveith\Documents\pydre\docs\bioptics.json -d C:\Users\pveith\Documents\bioptics\pydreDataSet\*.dat -o bioptics.csv -l debug'
+Example execution: 
+'python pydre_run.py -p C:\Users\pveith\Documents\pydre\docs\bioptics.json -d C:\Users\pveith\Documents\bioptics\pydreDataSet\*.dat -o bioptics.csv -l debug'
 
 For additional assistance while running the script use the help command (-h)
+
+# Regions of Interest (ROIs)
+Each region of interest is an area of data that the user is interested in examining. This can include things such as where the car starts on the track, when the car hits a traffic jam, when the car hits construction, etc. 
 
 # Project Files
 
 Project files are JavaScript Object Notation (json) marked-up files that dictate things like which region of interest (ROI) should be tested and which metrics should be gathered. A project file should consist of two main parts: the rois array and the metrics array. Each element of the rois array should have a field to tell which type of ROI the element is (rect or time) and a corresponding file name with a path to a csv file with the relevant information for a region. Time and Space are currently the only two ROI types implemented. Their formats are detailed below. 
 
-As for metrics, the array should consist of elements containing every function that you wish to analyze. There are a minimum of two required fields: name and function. Name is the column header for the metric in the output file and function is the name of the function you wish to call in pydre. Then, any arguments required for the function must be specified. 
+As for metrics, the array should consist of elements containing every function that you wish to analyze. There are a minimum of two required fields: "name" and "function". "Name" is the column header for the metric in the output file and "function" is the name of the function you wish to call in Pydre. Then, any arguments required for the function must be specified. 
 
 Multiple functions can be called within one project file.  The result of each function will be outputted in a separate column of the generated csv file.
 
 To see an example project file, look at bushman_pf.json in the docs directory of the pydre folder.    
 
-# Region of Interest (ROI) CSV File Formats
+# ROI CSV File Formats
 
 For analysis, it is often useful to define ROIs in the data.  Pydre uses csv files to define spatial and temporal ROIs.
 The spatial regions are defined over the scenario course, while the temporal regions are defined per subject.
@@ -82,7 +88,7 @@ This is a utility to merge an ordered list of DriveData objects based on the poi
 
 # pydre/project.py
 
-This is where the processing actually takes place. The only functions that should be called outside of the project.py class are `__init(projectfilename)__`, `run(datafiles)`, and `save(outfilename)`. The basic idea is that init will load the json projectfile, run will convert all of the datafiles into DriveData objects and do all of the processing specified in the json file, and save will write all of the results to a csv file. For further details, investigate the project.py script.
+This is where the processing actually takes place. The only functions that should be called outside of the project.py class are `__init(projectfilename)__`, `run(datafiles)`, and `save(outfilename)`. The basic idea is that "init" will load the json projectfile, "run" will convert all of the datafiles into DriveData objects and do all of the processing specified in the json file, and "save" will write all of the results to a csv file. For further details, investigate the project.py script.
 
 # pydre/rois.py
 
