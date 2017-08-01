@@ -19,7 +19,7 @@ For additional assistance while running the script use the help command (-h)
 
 # Project Files
 
-Project files are JSON marked up files that dictate things like which region of interest should be tested and which metrics should be gathered. A project file should consist of two main parts: the rois array and the metrics array. Each element of the rois array should have a field to tell which type of roi the element is (rect or time) and a corresponding file name with a path to a csv file with the relevant information for a region. Time and Space are currently the only two roi types implemented. Their formats are detailed below. 
+Project files are JavaScript Object Notation (json) marked-up files that dictate things like which region of interest (ROI) should be tested and which metrics should be gathered. A project file should consist of two main parts: the rois array and the metrics array. Each element of the rois array should have a field to tell which type of ROI the element is (rect or time) and a corresponding file name with a path to a csv file with the relevant information for a region. Time and Space are currently the only two ROI types implemented. Their formats are detailed below. 
 
 As for metrics, the array should consist of elements containing every function that you wish to analyze. There are a minimum of two required fields: name and function. Name is the column header for the metric in the output file and function is the name of the function you wish to call in pydre. Then, any arguments required for the function must be specified. 
 
@@ -29,19 +29,19 @@ To see an example project file, look at bushman_pf.json in the docs directory of
 
 # Region of Interest (ROI) CSV File Formats
 
-For analysis, it is often useful to define regions of interest in the data.  pydre uses csv files to define spatial and temporal regions of interest.
+For analysis, it is often useful to define ROIs in the data.  Pydre uses csv files to define spatial and temporal ROIs.
 The spatial regions are defined over the scenario course, while the temporal regions are defined per subject.
 
 #### Time ROI table format
 
-| Subject | _roi name 1_  | _roi name 2_  | ... | _roi name N_  |
+| Subject | _ROI name 1_  | _ROI name 2_  | ... | _ROI name N_  |
 |---------|-----------|-----------|-----|-----------|
 | 1 | _time range_ | _time range_ | ... | _time range_ |
 | 2 | _time range_ | _time range_ | ... | _time range_ |
 | ...     | ...       | ...       | ... | ... |
 | N | _time range_ | _time range_ | ... | _time range_ |
 
-*_NOTE_: Time Ranges are formatted as `hh:mm:ss-hh:mm:ss#driveID` If multiple drives are used in a praticular ROI, simply add a space and write in another time range in the same cell.*
+*_NOTE_: Time Ranges are formatted as `hh:mm:ss-hh:mm:ss#driveID` If multiple drives are used in a particular ROI, simply add a space and write in another time range in the same cell.*
 
 #### Space ROI table format
 
@@ -66,11 +66,11 @@ This script contains code that is intergral to the pydre module
 
 This is the unit of data storage for the module. Each DriveData object contains a singular SubjectID, a list of DriveIDs, a single (optional) region of interest, a list of Pandas DataFrames created from the associated.dat files, and a list of the source file names. 
 
-  - SubjectID: Is a unique identifier for this object. Any file loaded into a DriveData object should ONLY be data from this subject number, however, this is not currently enforced.
-  - DriveID: Is a list of all of the drive ids for each DataFrame in the DriveData object.
-  - roi: Is a singular string denoting the region of interest of the particular DriveData. There can currently only be one region of interest per DriveData object
-  - data: A list of the DataFrames corresponding to each drive from the DriveIDs
-  - sourcefilename: The names of each source file used in the data argument.
+  - SubjectID: Unique identifier for this object. Any file loaded into a DriveData object should ONLY be data from this subject number, however, this is not currently enforced
+  - DriveID: List of all of the drive ids for each DataFrame in the DriveData object
+  - roi: Singular string denoting the region of interest of the particular DriveData. There can currently only be one region of interest per DriveData object
+  - data: List of the DataFrames corresponding to each drive from the DriveIDs
+  - sourcefilename: The names of each source file used in the data argument
   
 ### `SliceByTime()`
 
@@ -82,7 +82,7 @@ This is a utility to merge an ordered list of DriveData objects based on the poi
 
 # pydre/project.py
 
-This is where the processing actually takes place. The only functions that should be called outside of the project.py class are `__init(projectfilename)__`, `run(datafiles)`, and `save(outfilename)`. The basic idea is that init will load the json projectfile, run will convert all of the datafiles into DriveData objects and do all of the processing specified in the json file, and save will wrtie all of the results to a csav file. For further details, investigate the project.py script.
+This is where the processing actually takes place. The only functions that should be called outside of the project.py class are `__init(projectfilename)__`, `run(datafiles)`, and `save(outfilename)`. The basic idea is that init will load the json projectfile, run will convert all of the datafiles into DriveData objects and do all of the processing specified in the json file, and save will write all of the results to a csv file. For further details, investigate the project.py script.
 
 # pydre/rois.py
 
