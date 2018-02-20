@@ -4,10 +4,71 @@
 	],
 
     "metrics": [
-    	{
-            "name": "meanVelocityOver0",
-    		"function": "meanVelocity",
-    		"cutoff": 0
-    	}
+        {
+            "name": "MeanVelocity",
+            "function": "colMean",
+            "cutoff": 0,
+            "var": "Velocity"
+        },
+        {
+            "name": "SDVelocity",
+            "function": "colSD",
+            "cutoff": 0,
+            "var": "Velocity"
+        },
+
+        {
+            "name": "MeanLaneOffset",
+            "function": "colMean",
+            "cutoff": 0,
+            "var": "LaneOffset"
+        },
+        {
+            "name": "SDLaneOffset",
+            "function": "colSD",
+            "cutoff": 0,
+            "var": "LaneOffset"
+        },
+
+        {
+            "name": "MeanAcceleration",
+            "function": "colMean",
+            "cutoff": 0,
+            "var": "LonAccel"
+        },
+        {
+            "name": "SDAcceleration",
+            "function": "colSD",
+            "cutoff": 0,
+            "var": "LonAccel"
+        },
+
+        {
+            "name": "MeanHeadwayDistance",
+            "function": "colMean",
+            "cutoff": 0,
+            "var": "HeadwayDistance"
+        },
+        {
+            "name": "SDHeadwayDistance",
+            "function": "colSD",
+            "cutoff": 0,
+            "var": "HeadwayDistance"
+        },
+
+        {
+            "name": "MeanSteer",
+            "function": "colMean",
+            "cutoff": -10000,
+            "var": "Steer"
+        },
+        {
+            "name": "SDSteer",
+            "function": "colSD",
+            "cutoff": -10000,
+            "var": "Steer"
+        }
+
     ]
  }
+

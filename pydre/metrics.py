@@ -32,7 +32,21 @@ def findFirstTimeOutside(drivedata: pydre.core.DriveData, area=(0,0,10000,10000)
 			break
 	return timeAtEnd
 
-	
+def colMean(drivedata: pydre.core.DriveData, var, cutoff=0):
+	total = pandas.Series()
+	for d in drivedata.data:
+		var_dat = d[var]
+		total = total.append(var_dat[var_dat >= cutoff])
+	return numpy.mean(total.values, dtype=np.float64).astype(np.float64)
+
+def colSD(drivedata: pydre.core.DriveData, var, cutoff=0):
+	total = pandas.Series()
+	for d in drivedata.data:
+		var_dat = d[var]
+		total = total.append(var_dat[var_dat >= cutoff])
+	return numpy.std(total.values, dtype=np.float64).astype(np.float64)
+
+
 def meanVelocity(drivedata: pydre.core.DriveData, cutoff=0):
 	total_vel = pandas.Series()
 	for d in drivedata.data:
@@ -299,6 +313,8 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0, stat="count"):
 	return hitButton
 
 metricsList = {}
+metricsList['colMean'] = colMean
+metricsList['colSD'] = colSD
 metricsList['meanVelocity'] = meanVelocity
 metricsList['stdDevVelocity'] = stdDevVelocity
 metricsList['steeringEntropy'] = steeringEntropy
@@ -308,3 +324,4 @@ metricsList['timeAboveSpeed'] = timeAboveSpeed
 metricsList['lanePosition'] = lanePosition
 metricsList['boxMetrics'] = boxMetrics
 metricsList['roadExits'] = roadExits
+metricsList['brakeJerk'] = brakeJerk
