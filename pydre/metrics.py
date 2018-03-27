@@ -315,103 +315,120 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0, stat="count"):
 def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 	event=0
 	for d in drivedata.data:
-		df = pandas.DataFrame(d, columns=("SimTime", "WarningToggle","FailureCode", "Throttle", "Brake", "Steer"))  # drop other columns
+		df = pandas.DataFrame(d, columns=("SimTime", "WarningToggle","FailureCode", "Throttle", "Brake", "Steer","AutonomousDriving"))  # drop other columns
 		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
 			
 		if(len(df) == 0):
 			continue
 			
 		warningToggledf = df['WarningToggle']
+		autonomousToggledf = df['AutonomousDriving']
 		throttledf = df['Throttle']
 		brakedf = df['Brake']
 		steerdf= df['Steer']
 		simTimedf = df['SimTime']
 		failureCodedf= df["FailureCode"]
 		
+		
 		toggleOndf= warningToggledf.diff(1)		
 		indicesToggleOn = toggleOndf[toggleOndf.values > .5].index[0:] 
 		indicesToggleOff = toggleOndf[toggleOndf.values < 0.0].index[0:]
 		
+	
 		reactionTimeList = list();
-		
-		
+
 		
 		for counter in range(0, len(indicesToggleOn)):
 			
-			warningOn = int(indicesToggleOn[counter])
+			warningOn = int(indicesToggleOn[counter])		
 			startWarning = simTimedf.loc[warningOn]
-			## end time of warning
-			warningOff = int (indicesToggleOff[counter])
-			endWarning= simTimedf.loc[warningOff]
+			## End time (start of warning time plus 15 seconds)	
+			warningPlus15 = df[(df.SimTime >= startWarning) & (df.SimTime <= startWarning+15)]
+			indWarning = warningPlus15.index[0:]
 			
+			warningOff = int (indWarning[-1])
+			endTime= simTimedf.loc[warningOff]
+				
 			if(failureCodedf.loc[warningOn]== int(FailCode)):
+				
 				if (stat == "event"):
 					event+=1
 				else: 
 					rtList=list()
 					## Compare brake, throttle & steer 
+					
+					#Brake Reaction 
 					brakeDuringWarning = brakedf.loc[warningOn:warningOff]
-					
-					
 					reaction_Brake= 0	
 					initial_Brake = brakeDuringWarning.iloc[0]
 					thresholdBrake=2
-					
 					brakeVector = brakeDuringWarning[brakeDuringWarning>=(initial_Brake+thresholdBrake)]
 					if(len(brakeVector>0)):
 						brakeValue=brakeVector.iloc[0]
-						indexB = throttleVector.index[0]
+						indexB = brakeVector.index[0]
 						reaction_Brake = simTimedf[indexB]-startWarning
-					
-					
-					
 					if (reaction_Brake != 0):
 						rtList.append(reaction_Brake)
 						
-					
-					## Throttle
+						
+					## Throttle Reaction
 					throttleDuringWarning= throttledf.loc[warningOn:warningOff]
 					reaction_throttle = 0
 					initial_throttle = throttleDuringWarning.iloc[0]
-					thresholdThrottle=2
-					
-					throttleVector = throttleDuringWarning[throttleDuringWarning>=(initial_throttle+thresholdThrottle)]
+					thresholdThrottle=2	
+					throttleVector = throttleDuringWarning[throttleDuringWarning>=(initial_throttle+thresholdThrottle)]					
 					if(len(throttleVector>0)):
 						throttleValue=throttleVector.iloc[0]
 						indexT = throttleVector.index[0]
 						reaction_throttle = simTimedf[indexT]-startWarning
-					
-					
 					if (reaction_throttle != 0):
 						rtList.append(reaction_throttle)
-					## Steer
+					
+					## Steer Reaction
 					steerDuringWarning= steerdf.loc[warningOn:warningOff]
 					reaction_steer = 0
 					thresholdSteer=2
-					initial_steer = steerDuringWarning.iloc[0]
-					
+					initial_steer = steerDuringWarning.iloc[0]					
 					steerVector =steerDuringWarning[(steerDuringWarning >= (initial_steer+thresholdSteer))]
 					steerVector2= steerDuringWarning[(steerDuringWarning <= (initial_steer-thresholdSteer))]
 					steerVector.append(steerVector2)
-					
 					if(len(steerVector>0)):
 						steerValue=steerVector.iloc[0]
 						indexS = steerVector.index[0]
 						reaction_steer = simTimedf[indexS]-startWarning
-					
-				
+						
 					if (reaction_steer != 0):
 						rtList.append(reaction_steer)
+				
+					#Reaction By Toggling Autonomous Back On
+					autonomousDuringWarning = autonomousToggledf.loc[warningOn:warningOff]
+					reaction_autonomous = 0	
+					autonomousOndf= autonomousDuringWarning.diff(1)		
+					autonomousToggleOn = autonomousOndf[autonomousOndf.values > .5].index[0:] 
+					if(len(autonomousToggleOn)>0):
+						indexA = int (autonomousToggleOn[0])
+						reaction_autonomous = simTimedf[indexA] - startWarning
 					
+					if (reaction_autonomous != 0):
+						rtList.append(reaction_autonomous)
 					
-					reactionTime = min(rtList)	
+					#Compare all Reaction Times	
+					if(len(rtList) != 0):					
+						reactionTime = min(rtList)	
+					else: 
+						reactionTime = -1
+						
 					reactionTimeList.append(reactionTime)
 		
 		if stat == "mean":
-			mean = numpy.mean(reactionTimeList, axis=0)
+			mean = -1
+			if (len(reactionTimeList) > 0):
+				mean = numpy.mean(reactionTimeList, axis=0)
 			return mean
 		elif stat == "sd":
-			sd = numpy.std(reactionTimeList, axis=0)
+			sd = -1
+			if (len(reactionTimeList) > 0):
+				sd = numpy.std(reactionTimeList, axis=0)
 			return sd
 		elif stat == "event":
 			return event	
