@@ -299,7 +299,7 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0, stat="count"):
 						reactionTimeList.append(reactionTime)
 			sum = feedbackButtondf.loc[boxOn:boxOff].sum();
 			if sum > 0.000:
-				hitButton = hitButton + 1;
+				hitButton = hitButton + 1
 		if stat == "count":
 			return hitButton
 		elif stat == "mean":
@@ -335,7 +335,7 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 		indicesToggleOff = toggleOndf[toggleOndf.values < 0.0].index[0:]
 		
 	
-		reactionTimeList = list();
+		reactionTimeList = list()
 
 		
 		for counter in range(0, len(indicesToggleOn)):
@@ -351,87 +351,86 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 				
 			if(failureCodedf.loc[warningOn]== int(FailCode)):
 				
-				if (stat == "event"):
-					event+=1
-				else: 
-					rtList=list()
-					## Compare brake, throttle & steer 
-					
-					#Brake Reaction 
-					brakeDuringWarning = brakedf.loc[warningOn:warningOff]
-					reaction_Brake= 0	
-					initial_Brake = brakeDuringWarning.iloc[0]
-					thresholdBrake=2
-					brakeVector = brakeDuringWarning[brakeDuringWarning>=(initial_Brake+thresholdBrake)]
-					if(len(brakeVector>0)):
-						brakeValue=brakeVector.iloc[0]
-						indexB = brakeVector.index[0]
-						reaction_Brake = simTimedf[indexB]-startWarning
-					if (reaction_Brake != 0):
-						rtList.append(reaction_Brake)
-						
-						
-					## Throttle Reaction
-					throttleDuringWarning= throttledf.loc[warningOn:warningOff]
-					reaction_throttle = 0
-					initial_throttle = throttleDuringWarning.iloc[0]
-					thresholdThrottle=2	
-					throttleVector = throttleDuringWarning[throttleDuringWarning>=(initial_throttle+thresholdThrottle)]					
-					if(len(throttleVector>0)):
-						throttleValue=throttleVector.iloc[0]
-						indexT = throttleVector.index[0]
-						reaction_throttle = simTimedf[indexT]-startWarning
-					if (reaction_throttle != 0):
-						rtList.append(reaction_throttle)
-					
-					## Steer Reaction
-					steerDuringWarning= steerdf.loc[warningOn:warningOff]
-					reaction_steer = 0
-					thresholdSteer=2
-					initial_steer = steerDuringWarning.iloc[0]					
-					steerVector =steerDuringWarning[(steerDuringWarning >= (initial_steer+thresholdSteer))]
-					steerVector2= steerDuringWarning[(steerDuringWarning <= (initial_steer-thresholdSteer))]
-					steerVector.append(steerVector2)
-					if(len(steerVector>0)):
-						steerValue=steerVector.iloc[0]
-						indexS = steerVector.index[0]
-						reaction_steer = simTimedf[indexS]-startWarning
-						
-					if (reaction_steer != 0):
-						rtList.append(reaction_steer)
-				
-					#Reaction By Toggling Autonomous Back On
-					autonomousDuringWarning = autonomousToggledf.loc[warningOn:warningOff]
-					reaction_autonomous = 0	
-					autonomousOndf= autonomousDuringWarning.diff(1)		
-					autonomousToggleOn = autonomousOndf[autonomousOndf.values > .5].index[0:] 
-					if(len(autonomousToggleOn)>0):
-						indexA = int (autonomousToggleOn[0])
-						reaction_autonomous = simTimedf[indexA] - startWarning
-					
-					if (reaction_autonomous != 0):
-						rtList.append(reaction_autonomous)
-					
-					#Compare all Reaction Times	
-					if(len(rtList) != 0):					
-						reactionTime = min(rtList)	
-					else: 
-						reactionTime = -1
-						
+
+				rtList=list()
+				## Compare brake, throttle & steer
+
+				#Brake Reaction
+				brakeDuringWarning = brakedf.loc[warningOn:warningOff]
+				reaction_Brake= 0
+				initial_Brake = brakeDuringWarning.iloc[0]
+				thresholdBrake=2
+				brakeVector = brakeDuringWarning[brakeDuringWarning>=(initial_Brake+thresholdBrake)]
+				if(len(brakeVector>0)):
+					brakeValue=brakeVector.iloc[0]
+					indexB = brakeVector.index[0]
+					reaction_Brake = simTimedf[indexB]-startWarning
+				if (reaction_Brake > 0):
+					rtList.append(reaction_Brake)
+
+
+				## Throttle Reaction
+				throttleDuringWarning= throttledf.loc[warningOn:warningOff]
+				reaction_throttle = 0
+				initial_throttle = throttleDuringWarning.iloc[0]
+				thresholdThrottle=2
+				throttleVector = throttleDuringWarning[throttleDuringWarning>=(initial_throttle+thresholdThrottle)]
+				if(len(throttleVector>0)):
+					throttleValue=throttleVector.iloc[0]
+					indexT = throttleVector.index[0]
+					reaction_throttle = simTimedf[indexT]-startWarning
+				if (reaction_throttle > 0):
+					rtList.append(reaction_throttle)
+
+				## Steer Reaction
+				steerDuringWarning= steerdf.loc[warningOn:warningOff]
+				reaction_steer = 0
+				thresholdSteer=2
+				initial_steer = steerDuringWarning.iloc[0]
+				steerVector =steerDuringWarning[(steerDuringWarning >= (initial_steer+thresholdSteer))]
+				steerVector2= steerDuringWarning[(steerDuringWarning <= (initial_steer-thresholdSteer))]
+				steerVector.append(steerVector2)
+				if(len(steerVector>0)):
+					steerValue=steerVector.iloc[0]
+					indexS = steerVector.index[0]
+					reaction_steer = simTimedf[indexS]-startWarning
+
+				if (reaction_steer > 0):
+					rtList.append(reaction_steer)
+
+				#Reaction By Toggling Autonomous Back On
+				autonomousDuringWarning = autonomousToggledf.loc[warningOn:warningOff]
+				reaction_autonomous = 0
+				autonomousOndf= autonomousDuringWarning.diff(1)
+				autonomousToggleOn = autonomousOndf[autonomousOndf.values > .5].index[0:]
+				if(len(autonomousToggleOn)>0):
+					indexA = int (autonomousToggleOn[0])
+					reaction_autonomous = simTimedf[indexA] - startWarning
+
+				if (reaction_autonomous > 0):
+					rtList.append(reaction_autonomous)
+
+				#Compare all Reaction Times
+				if(len(rtList) != 0):
+					reactionTime = min(rtList)
 					reactionTimeList.append(reactionTime)
-		
+
+		reactionTimeList = [x for x in reactionTimeList if x != None]
+		print(drivedata.SubjectID)
+		print(reactionTimeList)
+
 		if stat == "mean":
-			mean = -1
+			mean = None
 			if (len(reactionTimeList) > 0):
 				mean = numpy.mean(reactionTimeList, axis=0)
 			return mean
 		elif stat == "sd":
-			sd = -1
+			sd = None
 			if (len(reactionTimeList) > 0):
 				sd = numpy.std(reactionTimeList, axis=0)
 			return sd
 		elif stat == "event":
-			return event	
+			return len(reactionTimeList)
 		else:
 			print("Can't calculate that statistic.")
 	
