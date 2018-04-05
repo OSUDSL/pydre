@@ -416,8 +416,6 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 					reactionTimeList.append(reactionTime)
 
 		reactionTimeList = [x for x in reactionTimeList if x != None]
-		print(drivedata.SubjectID)
-		print(reactionTimeList)
 
 		if stat == "mean":
 			mean = None
