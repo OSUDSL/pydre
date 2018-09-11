@@ -312,6 +312,40 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0, stat="count"):
 			print("Can't calculate that statistic.")
 	return hitButton
 
+def firstOccurance(df: pandas.DataFrame, condition):
+	try:
+	    output = df[df.A>=6].head(1)
+    	return output.index[0]
+	except: 
+		return None
+
+def tbiReaction(drivedata: pydre.core.DriveData, type="brake"):
+	for d in drivedata.data:
+		df = pandas.DataFrame(d, columns=("SimTime", "Brake", "MapHalf", "MapSectionLocatedIn", "HazardActivation"))
+		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+		if(len(df) == 0):
+			continue
+		
+		simtime = df['SimTime']
+		hazard = df['HazardActivation']
+		brakesd = numpy.std(df[hazard == 0].Brake)
+		hazardToggleOn1 = df[(hazard == 1)]
+
+		for hazardIndex in [1, 3]:
+			start = firstOccurance(df, hazard == hazardIndex)
+			reactionTimes = []
+			if start:
+				startTime = df["SimTime"].loc[i]
+				startBrake = df["Brake"].loc[i]
+				#check maximum of 10 seconds from hazard activation
+				reactionTime = firstOccurance(df, (simtime > start) & (simtime < start + 10) & (df["Brake"] > startBrake+brakesd))
+				if reactionTime:
+					reactionTimes.append(reactionTime)
+		
+
+
+
+
 def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 	event=0
 	for d in drivedata.data:

@@ -14,7 +14,7 @@ def ecoCar(d: pandas.DataFrame):
     event = 0
     reactionTimeList = list()
     df = pandas.DataFrame(d, columns=("SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer",
-                                      "AutonomousDriving"))  # drop other columns
+                                      "AutonomousDriving", "Velocity", "Gear"))  # drop other columns
     df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
 
     if (len(df) == 0):
@@ -30,6 +30,10 @@ def ecoCar(d: pandas.DataFrame):
         warningOn = int(indicesToggleOn[counter])
         warning = int(df["FailureCode"].loc[warningOn])
         startWarning = df["SimTime"].loc[warningOn]
+
+        if ((df["Velocity"].loc[warningOn] < 5) or (df["Gear"].loc[warningOn] < 1) ):
+            print("skipped...")
+            continue
 
         ## End time (start of warning time plus 15 seconds)
 
@@ -85,7 +89,9 @@ def main():
     parser.add_argument("-d","--directory", type= str, help="the directory of files to process", required = True)
     args = parser.parse_args()
     file_list = glob.glob(args.directory + '/*_Sub_*_Drive_*.dat')
+    print(file_list)
     results = runFiles(file_list)
+
     with open('ecocar_out.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
         writer.writerow(("subject", "warning", "reactionTime", "startTime"))
