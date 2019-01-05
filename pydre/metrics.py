@@ -314,10 +314,35 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0, stat="count"):
 
 def firstOccurance(df: pandas.DataFrame, condition):
 	try:
-	    output = df[df.A>=6].head(1)
-    	return output.index[0]
+		output = df[condition].head(1)
+		return output.index[0]
 	except: 
 		return None
+
+
+'''
+TBI Reaction algorithm
+To find the braking reaction time to the event (for each Section):
+    Only look at values after the event E (Activation = 1)
+    Find the first timestep X where:
+		X is after the Event (Activation=1)
+			AND
+		BrakeForce(X) – BrakeForce(E) > 0
+    Reaction time is Time(X) – Time(First timestep where Activation = 1)
+
+
+To find the throttle reaction time to the event (for each Section):
+    Only look at values after the event E (Activation = 1)
+    Find the first timestep X where:
+		X is after the Event (Activation=1)
+			AND
+		Throttle(X) – Throttle(X-1) > SD([Throttle for all X in Section where Activation !=1]).
+    Reaction time is Time(X) – Time(First timestep where Activation = 1)
+
+
+Then you average the two throttle reaction times and the two brake reaction times for each of the 4 DriveIDs.
+This results in 8 reaction times per participant.
+'''
 
 def tbiReaction(drivedata: pydre.core.DriveData, type="brake"):
 	for d in drivedata.data:
@@ -335,16 +360,15 @@ def tbiReaction(drivedata: pydre.core.DriveData, type="brake"):
 			start = firstOccurance(df, hazard == hazardIndex)
 			reactionTimes = []
 			if start:
-				startTime = df["SimTime"].loc[i]
-				startBrake = df["Brake"].loc[i]
+				startTime = df["SimTime"].loc[start]
+				startBrake = df["Brake"].loc[start]
 				#check maximum of 10 seconds from hazard activation
-				reactionTime = firstOccurance(df, (simtime > start) & (simtime < start + 10) & (df["Brake"] > startBrake+brakesd))
+				reactionTime = firstOccurance(df, (simtime > start)  # after the starting of the hazard
+											  	& (simtime < start + 10) # before 10 seconds after the hazard
+											  	& (df["Brake"] > startBrake+brakesd))
 				if reactionTime:
 					reactionTimes.append(reactionTime)
-		
-
-
-
+		return reactionTimes
 
 def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 	event=0
@@ -480,3 +504,5 @@ metricsList['boxMetrics'] = boxMetrics
 metricsList['roadExits'] = roadExits
 metricsList['brakeJerk'] = brakeJerk
 metricsList['ecoCar'] = ecoCar
+metricsList['tbiReaction'] = tbiReaction
+
