@@ -344,31 +344,48 @@ Then you average the two throttle reaction times and the two brake reaction time
 This results in 8 reaction times per participant.
 '''
 
-def tbiReaction(drivedata: pydre.core.DriveData, type="brake"):
+def tbiReaction(drivedata: pydre.core.DriveData, type="brake", index=0):
 	for d in drivedata.data:
-		df = pandas.DataFrame(d, columns=("SimTime", "Brake", "MapHalf", "MapSectionLocatedIn", "HazardActivation"))
+		df = pandas.DataFrame(d, columns=("SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"))
 		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
 		if(len(df) == 0):
 			continue
-		
+
+		reactionTimes = []
 		simtime = df['SimTime']
 		hazard = df['HazardActivation']
-		brakesd = numpy.std(df[hazard == 0].Brake)
-		hazardToggleOn1 = df[(hazard == 1)]
 
-		for hazardIndex in [1, 3]:
+		hazardIndex = [1, 3][index]
+		if type=="brake":
+			#brakesd = numpy.std(df.Brake)
 			start = firstOccurance(df, hazard == hazardIndex)
-			reactionTimes = []
 			if start:
 				startTime = df["SimTime"].loc[start]
 				startBrake = df["Brake"].loc[start]
 				#check maximum of 10 seconds from hazard activation
-				reactionTime = firstOccurance(df, (simtime > start)  # after the starting of the hazard
-											  	& (simtime < start + 10) # before 10 seconds after the hazard
-											  	& (df["Brake"] > startBrake+brakesd))
+				reactionTime = firstOccurance(df, (simtime > startTime)  # after the starting of the hazard
+												& (simtime < startTime + 10) # before 10 seconds after the hazard
+												& (df["Brake"] > startBrake+0.5))
 				if reactionTime:
-					reactionTimes.append(reactionTime)
-		return reactionTimes
+					print("hazard {} reactiontime {}".format(hazardIndex, simtime.loc[reactionTime] - simtime.loc[start]))
+					reactionTimes.append(simtime.loc[reactionTime] - simtime.loc[start])
+		elif type=="throttle":
+			throttlesd = numpy.std(df[(hazard==0)|(hazard==2)].Throttle)
+			throttlediff = df["Throttle"].diff()
+			start = firstOccurance(df, hazard == hazardIndex)
+			if start:
+				startTime = df["SimTime"].loc[start]
+				reactionTime = firstOccurance(df, (simtime > startTime)  # after the starting of the hazard
+												& (simtime < startTime + 10) # before 10 seconds after the hazard
+												& (throttlediff > throttlesd) )
+				if reactionTime:
+					print("hazard {} reactiontime {}".format(hazardIndex, simtime.loc[reactionTime] - simtime.loc[start]))
+					reactionTimes.append(simtime.loc[reactionTime] - simtime.loc[start])
+
+		if len(reactionTimes) >0:
+			return reactionTimes[0]
+		else:
+			return None
 
 def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 	event=0
