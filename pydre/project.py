@@ -75,7 +75,7 @@ class Project():
 			metric_func = pydre.metrics.metricsList[metric.pop('function')]
 			report_name = metric.pop('name')
 		except KeyError as e:
-			logger.warning("Malformed metrics defninition: missing " + str(e))
+			logger.warning("Malformed metrics definition: missing " + str(e))
 			return []
 		return [report_name, [metric_func(d, **metric) for d in dataset]]
 
@@ -119,7 +119,7 @@ class Project():
 			metric_title, metric_values = self.processMetric(metric, data_set)
 			
 			if (metric_title in result_data):
-				logger.error("The metric title [" + metric_title + "] occrus multiple times in the project file. Only the last metric named [" + metric_title + "] will be kept in the data.")
+				logger.error("The metric title [" + metric_title + "] occurs multiple times in the project file. Only the last metric named [" + metric_title + "] will be kept in the data.")
 				#Should we quit() here??
 				
 			result_data[metric_title] = pandas.Series(metric_values)
