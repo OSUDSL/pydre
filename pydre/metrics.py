@@ -506,20 +506,44 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 			return len(reactionTimeList)
 		else:
 			print("Can't calculate that statistic.")
-	
+
+def gazeNHTSA(drivedata: pydre.core.DriveData):
+	for d in drivedata.data:
+		df = pandas.DataFrame(d, columns=("SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer",
+										  "AutonomousDriving"))  # drop other columns
+		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+
+		if (len(df) == 0):
+			continue
+
+
+
+
 metricsList = {}
-metricsList['colMean'] = colMean
-metricsList['colSD'] = colSD
-metricsList['meanVelocity'] = meanVelocity
-metricsList['stdDevVelocity'] = stdDevVelocity
-metricsList['steeringEntropy'] = steeringEntropy
-metricsList['tailgatingTime'] = tailgatingTime
-metricsList['tailgatingPercentage'] = tailgatingPercentage
-metricsList['timeAboveSpeed'] = timeAboveSpeed
-metricsList['lanePosition'] = lanePosition
-metricsList['boxMetrics'] = boxMetrics
-metricsList['roadExits'] = roadExits
-metricsList['brakeJerk'] = brakeJerk
-metricsList['ecoCar'] = ecoCar
-metricsList['tbiReaction'] = tbiReaction
+metricsColNames = {}
+
+def registerMetric(name, function, columnnames=None):
+	metricsList[name] = function
+	if columnnames:
+		metricsColNames[name] = columnnames
+	else:
+		metricsColNames[name] = [name,]
+
+registerMetric('colMean',colMean)
+registerMetric('colSD',colSD)
+registerMetric('meanVelocity',meanVelocity)
+registerMetric('stdDevVelocity',stdDevVelocity)
+registerMetric('steeringEntropy',steeringEntropy)
+registerMetric('tailgatingTime',tailgatingTime)
+registerMetric('tailgatingPercentage',tailgatingPercentage)
+registerMetric('timeAboveSpeed',timeAboveSpeed)
+registerMetric('lanePosition',lanePosition)
+registerMetric('boxMetrics',boxMetrics)
+registerMetric('roadExits',roadExits)
+registerMetric('brakeJerk',brakeJerk)
+registerMetric('ecoCar',ecoCar)
+registerMetric('tbiReaction',tbiReaction)
+
+registerMetric('gazes', gazeNHTSA, ['trialnum', 'timegazeoffroad' 'timegazeonroad',
+									'meandurationoffroadglaces', 'percentoffroadglanceabove2s'])
 
