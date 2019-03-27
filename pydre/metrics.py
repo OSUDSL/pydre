@@ -46,6 +46,19 @@ def colSD(drivedata: pydre.core.DriveData, var, cutoff=0):
 		total = total.append(var_dat[var_dat >= cutoff])
 	return numpy.std(total.values, dtype=np.float64).astype(np.float64)
 
+def colMax(drivedata: pydre.core.DriveData, var):
+	maxes = []
+	for d in drivedata.data:
+		var_dat = d[var]
+		maxes.append(var_dat.max())
+	return pandas.Series(maxes).max()
+
+def colMin(drivedata: pydre.core.DriveData, var):
+	mins = []
+	for d in drivedata.data:
+		var_dat = d[var]
+		mins = mins.append(var_dat.min())
+	return pandas.Series(mins).min()
 
 def meanVelocity(drivedata: pydre.core.DriveData, cutoff=0):
 	total_vel = pandas.Series()
@@ -508,15 +521,41 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 			print("Can't calculate that statistic.")
 
 def gazeNHTSA(drivedata: pydre.core.DriveData):
+	numofglances = 0
 	for d in drivedata.data:
-		df = pandas.DataFrame(d, columns=("SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer",
-										  "AutonomousDriving"))  # drop other columns
+		df = pandas.DataFrame(d, columns=("VidTime", "gaze", "gazenum", "TaskFail"))  # drop other columns
 		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
 
 		if (len(df) == 0):
 			continue
 
+		# construct table with columns [glanceduration, glancelocation, error]
+		gr = df.groupby('gazenum', sort=False)
+		durations = gr['VidTime'].max() - gr['VidTime'].min()
+		locations = gr['gaze'].first()
+		error_list = gr['TaskFail'].any()
 
+		glancelist = pandas.DataFrame({'duration': durations, 'locations': locations, 'errors': error_list})
+		glancelist['locations'].fillna('offroad', inplace=True)
+		glancelist['locations'].replace(['car.WindScreen', 'car.dashPlane', 'None'], ['onroad', 'offroad', 'offroad'], inplace=True)
+
+		# table constructed, now find metrics
+		#glancelist['over2s'] = glancelist['duration'] > 2
+
+		num_over_2s_offroad_glances = glancelist[(glancelist['duration'] > 2) &
+											   (glancelist['locations'] == 'offroad') ]['duration'].count()
+
+		num_offroad_glances = glancelist[(glancelist['locations'] == 'offroad') ]['duration'].count()
+
+		total_time_offroad_glances = glancelist[(glancelist['locations'] == 'offroad')]['duration'].sum()
+
+		mean_time_offroad_glances = glancelist[(glancelist['locations'] == 'offroad')]['duration'].mean()
+
+		#print(">2s glances: {}, num glances: {}, total time glances: {}, mean time glances {}".format(
+		#	num_over_2s_offroad_glances, num_offroad_glances, total_time_offroad_glances, mean_time_offroad_glances))
+
+		return [num_offroad_glances, num_over_2s_offroad_glances, mean_time_offroad_glances, total_time_offroad_glances]
+	return [None, None, None, None]
 
 
 metricsList = {}
@@ -530,6 +569,8 @@ def registerMetric(name, function, columnnames=None):
 		metricsColNames[name] = [name,]
 
 registerMetric('colMean',colMean)
+registerMetric('colMin',colMin)
+registerMetric('colMax',colMax)
 registerMetric('colSD',colSD)
 registerMetric('meanVelocity',meanVelocity)
 registerMetric('stdDevVelocity',stdDevVelocity)
@@ -544,6 +585,5 @@ registerMetric('brakeJerk',brakeJerk)
 registerMetric('ecoCar',ecoCar)
 registerMetric('tbiReaction',tbiReaction)
 
-registerMetric('gazes', gazeNHTSA, ['trialnum', 'timegazeoffroad' 'timegazeonroad',
-									'meandurationoffroadglaces', 'percentoffroadglanceabove2s'])
+registerMetric('gazes', gazeNHTSA, ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
 

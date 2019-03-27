@@ -72,12 +72,19 @@ class Project():
 		"""
 
 		try:
-			metric_func = pydre.metrics.metricsList[metric.pop('function')]
+			func_name = metric.pop('function')
+			metric_func = pydre.metrics.metricsList[func_name]
 			report_name = metric.pop('name')
+			col_names = pydre.metrics.metricsColNames[func_name]
 		except KeyError as e:
 			logger.warning("Malformed metrics definition: missing " + str(e))
 			return []
-		return [report_name, [metric_func(d, **metric) for d in dataset]]
+		if len(col_names) > 1:
+			x = [metric_func(d, **metric) for d in dataset]
+			report = pandas.DataFrame(x, columns=col_names)
+		else:
+			report = pandas.DataFrame([metric_func(d, **metric) for d in dataset], columns=[report_name,])
+		return report
 
 	def loadFileList(self, datafiles):
 		"""
@@ -115,15 +122,12 @@ class Project():
 		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
 		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
+		processed_metrics = [result_data]
 		for metric in self.definition['metrics']:
-			metric_title, metric_values = self.processMetric(metric, data_set)
-			
-			if (metric_title in result_data):
-				logger.error("The metric title [" + metric_title + "] occurs multiple times in the project file. Only the last metric named [" + metric_title + "] will be kept in the data.")
-				#Should we quit() here??
-				
-			result_data[metric_title] = pandas.Series(metric_values)
-		self.results = result_data	
+			processed_metric = self.processMetric(metric, data_set)
+			processed_metrics.append(processed_metric)
+		result_data = pandas.concat(processed_metrics, axis=1)
+		self.results = result_data
 
 	def save(self, outfilename="out.csv"):
 		"""
