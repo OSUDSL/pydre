@@ -17,6 +17,8 @@ datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
 def smoothGazeData(dt, timeColName="VidTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
     cat_type = CategoricalDtype(categories=['None', 'car.dashPlane', 'car.WindScreen'])
     dt['gaze'] = dt[gazeColName].astype(cat_type)
+    # adjust for 100ms latency
+    dt['gaze'] = dt['gaze'].shift(-6)
     dt['timedelta'] = pandas.to_timedelta(dt[timeColName], unit="s")
     dt.set_index('timedelta', inplace=True)
 
@@ -40,6 +42,7 @@ def smoothGazeData(dt, timeColName="VidTime", gazeColName="FILTERED_GAZE_OBJ_NAM
 
     print("{} short gazes out of {} gazes total".format(short_gaze_count, n))
     dt['gaze'].fillna(method='bfill', inplace=True)
+    dt['gazenum'] = (dt['gaze'].shift(1) != dt['gaze']).astype(int).cumsum()
     return dt
 
 def numberSwitchBlocks(dt):
