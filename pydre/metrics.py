@@ -57,7 +57,7 @@ def colMin(drivedata: pydre.core.DriveData, var):
 	mins = []
 	for d in drivedata.data:
 		var_dat = d[var]
-		mins = mins.append(var_dat.min())
+		mins.append(var_dat.min())
 	return pandas.Series(mins).min()
 
 def meanVelocity(drivedata: pydre.core.DriveData, cutoff=0):
@@ -103,11 +103,7 @@ def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2, lane_
 			elif(laneInfo in ["sdlp", "SDLP"]):
 				LPout = np.std(df.LaneOffset)
 			elif(laneInfo in ["exits"]):
-				LPout = 0
-				laneno = df.Lane.values
-				for i in laneno[1:]:  # ignore first item
-					if laneno[i] != laneno[i - 1]:
-						LPout = LPout + 1
+				LPout = (df.Lane - df.Lane.shift(1)).abs().sum()
 			elif(laneInfo in ["violation_count"]):
 				LPout = 0
 				# tolerance is the maximum allowable offset deviation from 0
@@ -331,6 +327,16 @@ def firstOccurance(df: pandas.DataFrame, condition):
 		return output.index[0]
 	except: 
 		return None
+
+
+def numOfErrorPresses(drivedata: pydre.core.DriveData):
+	presses = 0
+	for d in drivedata.data:
+		df = pandas.DataFrame(d, columns=("TaskFail",))  # drop other columns
+		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+		p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
+		presses += p
+	return presses
 
 
 '''
@@ -584,6 +590,7 @@ registerMetric('roadExits',roadExits)
 registerMetric('brakeJerk',brakeJerk)
 registerMetric('ecoCar',ecoCar)
 registerMetric('tbiReaction',tbiReaction)
+registerMetric('errorPresses', numOfErrorPresses)
 
 registerMetric('gazes', gazeNHTSA, ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
 
