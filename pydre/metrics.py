@@ -545,6 +545,10 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
 		glancelist['locations'].fillna('offroad', inplace=True)
 		glancelist['locations'].replace(['car.WindScreen', 'car.dashPlane', 'None'], ['onroad', 'offroad', 'offroad'], inplace=True)
 
+		#print(d.columns.values)
+		print("Task {}, Trial {}".format(d["TaskID"].min(), d["taskblocks"].min()))
+		print(glancelist)
+
 		# table constructed, now find metrics
 		#glancelist['over2s'] = glancelist['duration'] > 2
 
