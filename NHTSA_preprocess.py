@@ -26,7 +26,7 @@ def smoothGazeData(dt, timeColName="VidTime", gazeColName="FILTERED_GAZE_OBJ_NAM
     # smooth frame blips
     gaze_same = (dt['gaze'].shift(-1) == dt['gaze'].shift(1)) & (dt['gaze'].shift(-2) == dt['gaze'].shift(2)) & (dt['gaze'].shift(-2) == dt['gaze'].shift(-1)) & (dt['gaze'] != dt['gaze'].shift(1))
     print("{} frame blips".format(gaze_same.sum()))
-    dt.loc[gaze_same , 'gaze'] = dt['gaze'].shift(-1)
+    dt.loc[gaze_same, 'gaze'] = dt['gaze'].shift(-1)
  
     # adjust for 100ms latency
     dt['gaze'] = dt['gaze'].shift(-6)
@@ -45,19 +45,20 @@ def smoothGazeData(dt, timeColName="VidTime", gazeColName="FILTERED_GAZE_OBJ_NAM
     # breakpoint()
     durations = dt.groupby('gazenum')['timedelta'].max() - dt.groupby('gazenum')['timedelta'].min()
 
-    print("{} gazes".format(n))
+    print("{} gazes before removing transitions".format(n))
     short_gaze_count = 0
     dt.set_index('gazenum')
-    for x in trange(n):
-        if durations.iloc[x] < min_delta:
+    for x in trange(durations.index.min(), durations.index.max()):
+        if durations.loc[x] < min_delta:
             short_gaze_count += 1
             #dt['gaze'].where(dt['gazenum'] != x, inplace=True)
-            dt.loc[x,'gaze']  = np.nan
-            #dt.loc[dt['gazenum'] == x, 'gaze'] = np.nan
+            #dt.loc[x,'gaze']  = np.nan
+            dt.loc[dt['gazenum'] == x, 'gaze'] = np.nan
     dt.reset_index()
-    print("{} transition gazes out of {} gazes total".format(short_gaze_count, n))
+    print("{} transition gazes out of {} gazes total.".format(short_gaze_count, n))
     dt['gaze'].fillna(method='bfill', inplace=True)
     dt['gazenum'] = (dt['gaze'].shift(1) != dt['gaze']).astype(int).cumsum()
+    print("{} gazes after removing transitions.".format(dt['gazenum'].max()))
     return dt
 
 def numberSwitchBlocks(dt):
