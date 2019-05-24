@@ -88,26 +88,33 @@ def process_filelist(filelist, outpath, gazetype="FILTERED_GAZE_OBJ_NAME"):
                  "Brake", "HeadwayTime", "RoadOffset", "XPos", "YPos", "ZPos", "TaskID",
                 "TaskStatus", "TaskFail", "DriveID", "ParticipantID", "gaze", "gazenum", "taskblocks"])
 
+def merge_dat(dat_filename, gaze_filename):
+
+    dt = pandas.read_csv(dat_filename, sep='\s+', na_values='.')
+    gaze = pandas.read_csv(gaze_filename)    
+    print("merging {} with {}".format(dat_filename, gaze_filename))
+
+    aa = pandas.merge_asof(dt, gaze, left_on="VidTime", right_on="Time", direction='forward')
+    aa['gaze'] = aa['Default']
+    aa.gaze.fillna("onroad", inplace=True)
+    aa.gaze.replace("GazeOff", "offroad", inplace=True)
+    aa = numberSwitchBlocks(aa)
+    aa['gazenum'] = (aa['gaze'].shift(1) != aa['gaze']).astype(int).cumsum()
+    return aa
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("files", nargs="+", help=".dat files to process")
-    parser.add_argument("--outdir", nargs=1, required=True,  help="directory to output processed files")
-    parser.add_argument("--est", default=False, action='store_true', help="use estimate gaze based on head position")
+    parser.add_argument("--dat", nargs=1, required=True,  help="input dat file")
+    parser.add_argument("--gaze", nargs=1, required=True,  help="gaze file from Solomon Coder")
+    parser.add_argument("--out", nargs=1, required=True,  help="output dat file")
+
     args = parser.parse_args()
-    filelist = []
-    outpath = os.path.abspath(args.outdir[0])
-    if args.est:
-        gazetype = "ESTIMATED_CLOSEST_WORLD_INTERSECTION"
-    else:
-        gazetype = "FILTERED_GAZE_OBJ_NAME"
-    print(gazetype)
-    if (not os.path.isdir(outpath)):
-        print("Output directory does not exist" + outpath)
-        exit()
-    for g in args.files:
-        filelist.extend(glob.glob(g))
-    process_filelist(filelist, outpath, gazetype)
+    augmented_dat = merge_dat(args.dat[0], args.gaze[0])
+    augmented_dat.to_csv(args.out[0], sep=" ", na_rep='.', index=False, columns=["VidTime", "SimTime", "LonAccel",
+                "LatAccel", "Throttle",
+                "Brake", "HeadwayTime", "RoadOffset", "XPos", "YPos", "ZPos", "TaskID",
+                "TaskStatus", "TaskFail", "DriveID", "ParticipantID", "gaze", "gazenum", "taskblocks"])
+
 
 if __name__ == "__main__":
     main()
