@@ -526,6 +526,17 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode= "1", stat= "mean"):
 		else:
 			print("Can't calculate that statistic.")
 
+def appendDFToCSV_void(df, csvFilePath, sep=","):
+    import os
+    if not os.path.isfile(csvFilePath):
+        df.to_csv(csvFilePath, mode='a', index=False, sep=sep)
+    elif len(df.columns) != len(pandas.read_csv(csvFilePath, nrows=1, sep=sep).columns):
+        raise Exception("Columns do not match!! Dataframe has " + str(len(df.columns)) + " columns. CSV file has " + str(len(pandas.read_csv(csvFilePath, nrows=1, sep=sep).columns)) + " columns.")
+    elif not (df.columns == pandas.read_csv(csvFilePath, nrows=1, sep=sep).columns).all():
+        raise Exception("Columns and column order of dataframe and csv file do not match!!")
+    else:
+        df.to_csv(csvFilePath, mode='a', index=False, sep=sep, header=False)
+
 def gazeNHTSA(drivedata: pydre.core.DriveData):
 	numofglances = 0
 	for d in drivedata.data:
@@ -548,6 +559,13 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
 		#print(d.columns.values)
 		print("Task {}, Trial {}".format(d["TaskID"].min(), d["taskblocks"].min()))
 		print(glancelist)
+
+		glancelist_aug = glancelist
+		glancelist_aug['TaskID'] = d["TaskID"].min()
+		glancelist_aug['taskblock'] = d["taskblocks"].min()
+		glancelist_aug['Subject'] = d["ParticipantID"].min()
+
+		appendDFToCSV_void(glancelist_aug, "glance_list.csv")
 
 		# table constructed, now find metrics
 		#glancelist['over2s'] = glancelist['duration'] > 2
