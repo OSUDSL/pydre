@@ -332,9 +332,10 @@ def firstOccurance(df: pandas.DataFrame, condition):
 def numOfErrorPresses(drivedata: pydre.core.DriveData):
 	presses = 0
 	for d in drivedata.data:
-		df = pandas.DataFrame(d, columns=("TaskFail",))  # drop other columns
+		df = pandas.DataFrame(d, columns=("SimTime", "TaskFail"))  # drop other columns
 		df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
 		p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
+		print(p)
 		presses += p
 	return presses
 
@@ -557,8 +558,8 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
 		glancelist['locations'].replace(['car.WindScreen', 'car.dashPlane', 'None'], ['onroad', 'offroad', 'offroad'], inplace=True)
 
 		#print(d.columns.values)
-		print("Task {}, Trial {}".format(d["TaskID"].min(), d["taskblocks"].min()))
-		print(glancelist)
+		#print("Task {}, Trial {}".format(d["TaskID"].min(), d["taskblocks"].min()))
+		#print(glancelist)
 
 		glancelist_aug = glancelist
 		glancelist_aug['TaskID'] = d["TaskID"].min()

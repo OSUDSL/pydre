@@ -23,6 +23,10 @@ def smoothGazeData(dt, timeColName="VidTime", gazeColName="FILTERED_GAZE_OBJ_NAM
     #dt['gaze'].replace(['None', 'car.dashPlane', 'car.WindScreen'], ['offroad', 'offroad', 'onroad'], inplace=True)
     dt['gaze'].replace(['None', 'localCS.dashPlane', 'localCS.WindScreen'], ['offroad', 'offroad', 'onroad'], inplace=True)
 
+    if len(dt['gaze'].unique()) < 2:
+        print("Bad gaze data, not enough variety. Aborting")
+        return None
+
     # smooth frame blips
     gaze_same = (dt['gaze'].shift(-1) == dt['gaze'].shift(1)) & (dt['gaze'].shift(-2) == dt['gaze'].shift(2)) & (dt['gaze'].shift(-2) == dt['gaze'].shift(-1)) & (dt['gaze'] != dt['gaze'].shift(1))
     print("{} frame blips".format(gaze_same.sum()))
@@ -79,6 +83,8 @@ def process_filelist(filelist, outpath, gazetype="FILTERED_GAZE_OBJ_NAME"):
         print("Experiment {}, Subject {}, drive {}".format(experiment_name, subject_id, drive_id))
         print("-- Smoothing gaze data")
         dt = smoothGazeData(dt, gazeColName=gazetype)
+        if dt is None:
+            continue
         print("-- Converting switch blocks")
         dt = numberSwitchBlocks(dt)
         newfilename = os.path.join(outpath, os.path.basename(fn))
