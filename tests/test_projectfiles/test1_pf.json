@@ -1,0 +1,14 @@
+{
+    "metrics": [
+    	{
+            "name": "meanVelocity",
+    		"function": "meanVelocity",
+    		"cutoff": 20
+    	},
+		{
+            "name": "meanVelocity",
+    		"function": "meanVelocity",
+    		"cutoff": 5
+    	}
+    ]
+ }

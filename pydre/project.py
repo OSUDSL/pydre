@@ -128,6 +128,8 @@ class Project():
 			processed_metrics.append(processed_metric)
 		result_data = pandas.concat(processed_metrics, axis=1)
 		self.results = result_data
+		return result_data
+
 
 	def save(self, outfilename="out.csv"):
 		"""
