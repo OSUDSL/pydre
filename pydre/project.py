@@ -3,7 +3,7 @@
 import json
 import pandas
 import re
-
+import sys
 import pydre.core
 import pydre.rois
 import pydre.metrics
@@ -25,9 +25,10 @@ class Project():
 				# 	editors used, the line number was consistently 1 more than the actual location of the syntax error.
 				# 	Hence, the "e.lineno -1" in the logger error below.
 
-				logger.error("In ProjectFile: " + str(e.msg) + ". Invalid JSON syntax found at Line: "
-								+ str(e.lineno - 1) + ". Refer to JSONDecodeError below for more information.")
-				raise e
+				logger.error("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
+								+ str(e.lineno - 1) + ".")
+				# exited as a general error because it is seemingly best suited for the problem encountered
+				sys.exit(1)
 
 		self.data = []
 
