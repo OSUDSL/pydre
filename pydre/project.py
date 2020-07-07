@@ -18,9 +18,17 @@ class Project():
 		self.project_filename = projectfilename
 		self.definition = None
 		with open(self.project_filename) as project_file:
-			self.definition = json.load(project_file)
+			try:
+				self.definition = json.load(project_file)
+			except json.decoder.JSONDecodeError as e:
+				# The exact location of the error according to the exception, is a little wonky. Amongst all the text
+				# 	editors used, the line number was consistently 1 more than the actual location of the syntax error.
+				# 	Hence, the "e.lineno -1" in the logger error below.
 
-		# TODO: check for correct definition syntax
+				logger.error("In ProjectFile: " + str(e.msg) + ". Invalid JSON syntax found at Line: "
+								+ str(e.lineno - 1) + ". Refer to JSONDecodeError below for more information.")
+				raise e
+
 		self.data = []
 
 	def __loadSingleFile(self, filename):
@@ -77,8 +85,9 @@ class Project():
 			report_name = metric.pop('name')
 			col_names = pydre.metrics.metricsColNames[func_name]
 		except KeyError as e:
-			logger.warning("Malformed metrics definition: missing " + str(e))
-			return []
+			logger.warning("Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(e))
+			raise e
+
 		if len(col_names) > 1:
 			x = [metric_func(d, **metric) for d in dataset]
 			report = pandas.DataFrame(x, columns=col_names)
@@ -106,6 +115,7 @@ class Project():
 
 		Load all files in datafiles, then process the rois and metrics
 		"""
+
 		self.loadFileList(datafiles)
 		data_set = []
 		if 'rois' in self.definition:
@@ -123,6 +133,7 @@ class Project():
 		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 		processed_metrics = [result_data]
+
 		for metric in self.definition['metrics']:
 			processed_metric = self.processMetric(metric, data_set)
 			processed_metrics.append(processed_metric)
