@@ -2,6 +2,7 @@
 
 import pandas
 import logging
+import sys
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +20,13 @@ def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFr
 	Given a start and end and a column name that represents a time value, output the slice that contains
 	only the specified data.
 	"""
-	return(drive_data[(drive_data[column] >= begin) & (drive_data[column] <= end)])
+	try:
+		dataframeslice = drive_data[(drive_data[column] >= begin) & (drive_data[column] <= end)]
+	except KeyError:
+		logger.error(" Data file(-d) invalid. Data frame slice could not be created. Please check contents of file for \"VidTime\" column.")
+		sys.exit(1)
+	return dataframeslice
+
 
 def mergeBySpace(tomerge: list):
 	"""

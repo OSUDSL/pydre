@@ -38,7 +38,9 @@ class MergeTool():
 		out_dir = os.makedirs(os.path.join(input_directory, 'MergedData'), exist_ok=True)
 		out_dir_name = os.path.join(input_directory, 'MergedData')
 		file_list = glob.glob(input_directory + '/*_Sub_*_Drive_*.dat')
+
 		subject_groups = self.groupBySubject(file_list)
+
 
 		for key in subject_groups:
 			print("merging for subject: ", key)
@@ -61,7 +63,6 @@ class MergeTool():
 		file_list = glob.glob(input_directory + '/*_Sub_*_Drive_*.dat')
 
 		subject_groups = self.groupBySubject(file_list)
-
 		for key in subject_groups:
 			drive_group = subject_groups[key]
 			out_frame = pd.read_csv(drive_group[0], sep='\s+', na_values='.')
@@ -100,9 +101,10 @@ class MergeTool():
 				out_frame.to_csv(out_dir_name + "\\" + base_filename, sep=' ')
 
 	def __init__(self, input_directory, merge_type="spatial"):
-		if merge_type == "spatial":
+		upper_type = merge_type.upper()
+		if upper_type == "SPATIAL":
 			self.spatial_merge(input_directory)
-		elif merge_type == "sequential":
+		elif upper_type == "SEQUENTIAL":
 			self.sequential_merge(input_directory)
 		else:
-			raise ValueError("Merge type \"{}\" not supported.".format(merge_type))
+			raise ValueError("Merge type \"{}\" not supported. Valid merge types: \"Spatial\" or \"Sequential\"".format(merge_type))

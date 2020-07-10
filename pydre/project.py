@@ -16,6 +16,10 @@ class Project():
 
 	def __init__(self, projectfilename):
 		self.project_filename = projectfilename
+
+		# This will suppress the unnecessary SettingWithCopy Warning.
+		pandas.options.mode.chained_assignment = None
+
 		self.definition = None
 		with open(self.project_filename) as project_file:
 			try:
@@ -26,7 +30,7 @@ class Project():
 				# 	Hence, the "e.lineno -1" in the logger error below.
 
 				logger.error("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
-								+ str(e.lineno - 1) + ".")
+							+ str(e.lineno - 1) + ".")
 				# exited as a general error because it is seemingly best suited for the problem encountered
 				sys.exit(1)
 
@@ -87,13 +91,14 @@ class Project():
 			col_names = pydre.metrics.metricsColNames[func_name]
 		except KeyError as e:
 			logger.warning("Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(e))
-			raise e
+			sys.exit(1)
 
 		if len(col_names) > 1:
 			x = [metric_func(d, **metric) for d in dataset]
 			report = pandas.DataFrame(x, columns=col_names)
 		else:
 			report = pandas.DataFrame([metric_func(d, **metric) for d in dataset], columns=[report_name,])
+
 		return report
 
 	def loadFileList(self, datafiles):
@@ -134,6 +139,7 @@ class Project():
 		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 		processed_metrics = [result_data]
+
 
 		for metric in self.definition['metrics']:
 			processed_metric = self.processMetric(metric, data_set)
