@@ -41,7 +41,6 @@ class MergeTool():
 
 		subject_groups = self.groupBySubject(file_list)
 
-
 		for key in subject_groups:
 			print("merging for subject: ", key)
 			drive_group = subject_groups[key]
@@ -51,10 +50,14 @@ class MergeTool():
 			study = match.group(1)
 			subject = match.group(2)
 			for drive in drive_group[1:]:
-				timejump = out_frame[:-1]["SimTime"]
+				# The latest out_frame's final SimTime. To be added across next_frame's SimTime column as a constant.
+				# '-1' indices didn't work here, threw a pandas error. But this code produces desired result.
+				timejump = out_frame[:]["SimTime"]
+				timeconstant = timejump[len(timejump) - 1]
 				next_frame = pd.read_csv(drive, sep='\s+', na_values='.', engine="c")
-				next_frame["SimTime"] += timejump
-				out_frame = out_frame.append(next_frame)
+				next_frame["SimTime"] += timeconstant
+				# TODO: Discuss with Thomas & Cam the potential for this to produce the same time twice if 0.00 found in next_frame
+				out_frame = out_frame.append(next_frame, ignore_index=True)
 			out_frame.to_csv(out_dir_name + "\\" + study + "_Sub_" + subject + "_Drive_0.dat", sep=' ', na_rep=".", index=False)
 
 	def spatial_merge(self, input_directory):

@@ -18,8 +18,7 @@ class TestMergeTool(unittest.TestCase):
 
     def setUp(self):
         # self.whatever to access them in the rest of the script, runs before other scripts
-        self.merge_dirs = ["ref_dir"]
-
+        self.merge_dirs = ["ref_dir", "three_subs_seq", "seq_times"]
 
     def tearDown(self):
         pass
@@ -29,6 +28,22 @@ class TestMergeTool(unittest.TestCase):
     def test_reftest(self):
         # ---- MergeTool() Arguments ----
         index_of_dir = 0
+        mergetype = "sequential"
+        # -------------------------------
+        self.template(index_of_dir, mergetype)
+
+    # Standard case of three subs w/ 3 drives, similar times. Sequential Merge.
+    def test_sequential_standard1(self):
+        # ---- MergeTool() Arguments ----
+        index_of_dir = 1
+        mergetype = "sequential"
+        # -------------------------------
+        self.template(index_of_dir, mergetype)
+
+    # Standard case of one sub w/ 4 drives, very different times. Sequential Merge.
+    def test_sequential_standard2(self):
+        # ---- MergeTool() Arguments ----
+        index_of_dir = 2
         mergetype = "sequential"
         # -------------------------------
         self.template(index_of_dir, mergetype)
