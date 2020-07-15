@@ -51,8 +51,8 @@ To run the tests, navigate to the pydre module directory (top level) and use the
 		  Briefly, below will address how each argument is supplied in the testing. <br>
 
 1) Merge Directory (-d) - Within `MergeTools\test_dats_to_merge\` there are a host of 
-directories. Each of these directories is unique per test<br>
-case and will contain particular data files to simulate the<br>
+directories. Each of these directories is unique per test
+case and will contain particular data files to simulate the 
 intended use of the program.
 		
 2) Merge Type (-t) - Supplied as a string within the test case, unique to the target 
