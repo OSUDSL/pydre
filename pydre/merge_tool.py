@@ -40,8 +40,9 @@ class MergeTool():
 		file_list = glob.glob(input_directory + '/*_Sub_*_Drive_*.dat')
 
 		subject_groups = self.groupBySubject(file_list)
-
+		warning = True
 		for key in subject_groups:
+			warning = False
 			print("merging for subject: ", key)
 			drive_group = subject_groups[key]
 			out_frame = pd.read_csv(drive_group[0], sep='\s+', na_values='.', engine="c")
@@ -56,9 +57,11 @@ class MergeTool():
 				timeconstant = timejump[len(timejump) - 1]
 				next_frame = pd.read_csv(drive, sep='\s+', na_values='.', engine="c")
 				next_frame["SimTime"] += timeconstant
-				# TODO: Discuss with Thomas & Cam the potential for this to produce the same time twice if 0.00 found in next_frame
 				out_frame = out_frame.append(next_frame, ignore_index=True)
 			out_frame.to_csv(out_dir_name + "\\" + study + "_Sub_" + subject + "_Drive_0.dat", sep=' ', na_rep=".", index=False)
+
+		if warning is True:
+			print("No files processed, check merge directory (-d) to ensure there are valid data files present.")
 
 	def spatial_merge(self, input_directory):
 		out_dir = os.makedirs(os.path.join(input_directory, 'MergedData'), exist_ok=True)

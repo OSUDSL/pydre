@@ -6,12 +6,12 @@ ____
 &nbsp;&nbsp;&nbsp;&nbsp; Merge Tools is a program designed to effectively merge SimObserver data in the event that a
 particpant's drive is interrupted. This often occurs due to study interruptions such as
 SimCreator shut downs. To combat this potential data loss, Merge Tools accepts a directory 
-of seperate data files from the same participant's drive and merges them into one file
+of separate data files from the same participant's drive and merges them into one file
 to ensure a uniform presentation of the data. 
 	  
   *For example*:<br>
   &nbsp;&nbsp;&nbsp;&nbsp; If during a study, called 'ExampleProject', Participant 3's drive 1 was interrupted 
-		by two SimCreator shut downs, there would be 3 seperate data files created.
+		by two SimCreator shut downs, there would be 3 separate data files created.
 		'ExampleProject_Sub_3_Drive_1.dat', 'ExampleProject_Sub_3_Drive_10.dat', and 
 		'ExampleProject_Sub_3_Drive_11.dat' would have to be present in the `merge directory`
 		(-d) to produce a single, usable data file named 'ExampleProject_Sub_3_Drive_0.dat'.
@@ -19,9 +19,17 @@ to ensure a uniform presentation of the data.
 
 ### Merge Types:
 ___
-   This section is to be filled in later, highlighting the function of each merge type.
-   1) Sequential - WHAT THEY DO
-   2) Spatial - WHAT THEY DO
+   Merge Tool has two different kinds of merge options. This section will highlight each of them.
+   
+   ####1) Sequential:
+   &nbsp;&nbsp;&nbsp;&nbsp; Sequential Merge is a file merge based on time. Once all the files in the 
+   `merge directory (-d)` have been processed by the program, Merge Tool will use the SimCreator's recorded
+   `SimTime` metric to ensure all the files are merged as accurately as possible. This is accomplished by iterating 
+   through every `SimTime` column, reading the last `SimTime` value of the current data file, and adding that
+   value as a constant through the next data file's `SimTime` column. <br>
+   
+   ####2) Spatial:
+   &nbsp;&nbsp;&nbsp;&nbsp; TODO
 	
 ### Usage:
 ___

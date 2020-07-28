@@ -18,7 +18,7 @@ class TestMergeTool(unittest.TestCase):
 
     def setUp(self):
         # self.whatever to access them in the rest of the script, runs before other scripts
-        self.merge_dirs = ["ref_dir", "three_subs_seq", "seq_times"]
+        self.merge_dirs = ["ref_dir", "three_subs_seq", "seq_times", "one_file", "no_file"]
 
     def tearDown(self):
         pass
@@ -48,6 +48,22 @@ class TestMergeTool(unittest.TestCase):
         # -------------------------------
         self.template(index_of_dir, mergetype)
 
+    # Edge case in which the target directory only has one file.
+    def test_sequential_one_file(self):
+        # ---- MergeTool() Arguments ----
+        index_of_dir = 3
+        mergetype = "sequential"
+        # -------------------------------
+        self.template(index_of_dir, mergetype)
+
+    # Edge case in which the target directory has no files. Expect program to warn the user, but not crash.
+    def test_sequential_no_files(self):
+        # ---- MergeTool() Arguments ----
+        index_of_dir = 4
+        mergetype = "sequential"
+        # -------------------------------
+        self.template(index_of_dir, mergetype)
+
     # ----- Helper Methods -----
     def template(self, desired_index, merge_type):
         """ Consistent code that will run between all test cases. Should work for both sequential and spatial.
@@ -55,6 +71,7 @@ class TestMergeTool(unittest.TestCase):
         :param desired_index: Index of directory for this particular test case.
         :param merge_type: Type of merge, either Spatial or Sequential
         """
+        print("Test: " + str(desired_index + 1) + " running...")
         desired_dir = self.getpath(desired_index)
         merged_data_path = desired_dir + "\\MergedData\\"
 
