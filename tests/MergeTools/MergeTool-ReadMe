@@ -29,7 +29,7 @@ ___
    value as a constant through the next data file's `SimTime` column. <br>
    
    ####2) Spatial:
-   &nbsp;&nbsp;&nbsp;&nbsp; TODO
+   &nbsp;&nbsp;&nbsp;&nbsp; Spatial Merge is a file merge based on X & Y coordinate positions.
 	
 ### Usage:
 ___
