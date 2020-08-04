@@ -29,15 +29,23 @@ ___
    value as a constant through the next data file's `SimTime` column. <br>
    
    ####2) Spatial:
-   &nbsp;&nbsp;&nbsp;&nbsp; Spatial Merge is a file merge based on X & Y coordinate positions.
+   &nbsp;&nbsp;&nbsp;&nbsp; Spatial Merge is a file merge based on X & Y coordinate positions. Much like the `Sequential`
+   merge, Spatial Merge will perform the same `SimTime` corrections as multiple drives for the same participant are merged.
+   However, along with the time correction, Spatial Merge also analyzes SimCreator's recorded `XPos` and `YPos` metrics.
+   `out_frame` is the variable name in which all the merged data will end up, before a csv is created. For every 
+   `next_frame` (files that comes after the first for the participant), the row with the minimum distance from the 
+   last position in `out_frame` will be the starting index of the data that is appended to `out_frame`.
+   
 	
 ### Usage:
 ___
-This section is to be filled later, similar to Soda's usage.
+This section covers how Merge Tool is executed as well as the command line parameters that the user is expected to supply.
    - Command Line execution
+        - Ran from where pydre is ran from
+        - Ex: `python pydre_merge.py -d 'exampleMergeDirectory' -t 'spatial or sequential'`
    - Two Args. 
-		1) -d (DataFile directory). Seems to be the directory where unmerged files are.
-		2) -t (Merge Type). Chosen as either "Spatial" or "Sequential".
+		1) -d (DataFile directory). The directory to be merged, is occupied by multiple drives for at least one participant.
+		2) -t (Merge Type). Chosen as either "Spatial" or "Sequential", determines which type of merge will be performed.
 
 
 ### Testing:
