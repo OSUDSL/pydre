@@ -19,7 +19,7 @@ class TestMergeTool(unittest.TestCase):
     def setUp(self):
         # self.whatever to access them in the rest of the script, runs before other scripts
         self.merge_dirs = ["ref_dir", "ref_dir_spatial", "three_subs_seq", "seq_times", "one_file", "no_file",
-                           "three_subs_spa"]
+                           "three_subs_spa", "standard_spa", "one_file_spa", "no_file_spa"]
 
     def tearDown(self):
         pass
@@ -76,6 +76,30 @@ class TestMergeTool(unittest.TestCase):
     def test_spatial_standard1(self):
         # ---- MergeTool() Arguments ----
         index_of_dir = 6
+        mergetype = "spatial"
+        # -------------------------------
+        self.template(index_of_dir, mergetype)
+
+    # Standard case of one sub w/ 4 drives, spatial merge.
+    def test_spatial_standard2(self):
+        # ---- MergeTool() Arguments ----
+        index_of_dir = 7
+        mergetype = "spatial"
+        # -------------------------------
+        self.template(index_of_dir, mergetype)
+
+    # Edge case in which the target directory only has one file.
+    def test_spatial_one_file(self):
+        # ---- MergeTool() Arguments ----
+        index_of_dir = 8
+        mergetype = "spatial"
+        # -------------------------------
+        self.template(index_of_dir, mergetype)
+
+    # Edge case in which the target directory has no files. Expect program to warn the user, but not crash.
+    def test_spatial_no_files(self):
+        # ---- MergeTool() Arguments ----
+        index_of_dir = 9
         mergetype = "spatial"
         # -------------------------------
         self.template(index_of_dir, mergetype)
