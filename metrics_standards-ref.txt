@@ -1,0 +1,62 @@
+		---- DSL's Metrics w/ SAE International Standards References ----
+		______________________________________________________
+
+	This, here, will be a list of all of the DSL's metrics with references to each of their 
+respective locations in the SAE document. In reference to the SAE International Standards doc found
+on box.osu.edu as the file 'J2944_201506.pdf':
+
+	Current DSL Metrics (found in metrics.py):
+	------------------------------------------
+				_____
+	- colMean		     |
+				     |
+	- colMin		     |
+				     | <----- Don't expect these to be found within SAE doc
+	- colMax		     |
+				     |
+	- colSD			     |
+				 ____|
+	- meanVelocity
+		-- velocity is only mentioned, it seems, in the context of accelerating or calculations
+			for TTC or similar formulas within SAE documentation
+
+	- stdDevVelocity
+		-- like meanVelocity above, no mentions within SAE documentation
+
+	- steeringEntropy <-- SAE Reference @ 9.2.4 p.84
+
+	- tailgatingTime <-- related SAE Reference @ 8.1.4 as 'Time Headway'
+		-- Tailgating not mentioned in document except for when discussing lane change urgency;
+			however, time headway was the time measurement of how far a subject was from
+			a lead car, within a certain range would be considered tailgating. ( I think).
+
+	- tailgatingPercentage
+		-- Nothing about percentages found, refer to metric above.
+
+	- timeAboveSpeed
+		-- Speed not really discussed in SAE docs except as mentioned above in meanVelocity
+
+	- lanePosition <-- SAE Referenced as 'Standard deviation of lane position (SDLP)' @ 10.1.3 p.90
+
+	- boxMetrics
+		-- specific metric not expecting to find, think this had to do with reaction time tho,
+			which is covered in the SAE doc @ 6.5.2 (see tbiReaction)
+
+	- roadExits <-- related SAE Reference as 'Roadway departure' @ 10.5.2 p.115
+
+	- brakeJerk <-- SAE Reference @ 7.2.13
+
+	- ecoCar
+		-- study specific metric, not expecting to find anything on this
+
+	- tbiReaction <-- related SAE Reference @ 6.5.2 p.30 & 6.5.4 p.31
+		-- These are the references for the general fields of "Reaction Time" & "Response Time",
+			respectively. They briefly mention the guidelines for performing each of these
+			in studies.
+
+	- errorPresses
+		-- Couldn't find any metrics dealing with user error in performing studies, only user 
+			error in variable settings such as steering or accelerating (within SAE doc)
+
+	- gazes <-- related SAE Reference as 'Gaze time... lane change average...' @ 10.4.1.1 p.106
+		-- Very specific, but is the only mention of "gaze" in all the SAE documentation.
