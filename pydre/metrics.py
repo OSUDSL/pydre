@@ -102,6 +102,18 @@ def lanePosition(drivedata: pydre.core.DriveData,laneInfo = "sdlp",lane=2, lane_
 				LPout = np.mean((df.LaneOffset))  # abs to give mean lane "error"
 			elif(laneInfo in ["sdlp", "SDLP"]):
 				LPout = np.std(df.LaneOffset)
+				# Just cause I've been staring at this a while and want to get some code down:
+				# Explanation behind this: SAE recommends using the unbiased estimator "1/n-1". The numpy code does
+				# not use this, so I wrote up code that can easily be subbed in, if it's determined necessary.
+				"""
+				entrynum = len(df.LaneOffset)
+				unbiased_estimator = 1/(entrynum - 1)
+				average = np.mean((df.LaneOffset))
+				variation = 0
+				for entry in entrynum:
+					variation += (pow(df.LaneOffset[entry] - average, 2))
+				LPout = math.sqrt(unbiased_estimator * variation)
+				"""
 			elif(laneInfo in ["exits"]):
 				LPout = (df.Lane - df.Lane.shift(1)).abs().sum()
 			elif(laneInfo in ["violation_count"]):
