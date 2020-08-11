@@ -1,1 +1,10 @@
 site_name: pydre documentation
+
+theme: 
+  name: readthedocs
+
+nav:
+  - Home: 'index.md'
+  - Metrics: 'metrics.md'
+  - Regions of Interest: 'rois.md'
+
