@@ -1,0 +1,4 @@
+site_name: MergeTools
+theme: readthedocs
+nav:
+    - Home: index.md
