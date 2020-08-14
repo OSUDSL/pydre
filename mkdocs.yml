@@ -7,4 +7,5 @@ nav:
   - Home: 'index.md'
   - Metrics: 'metrics.md'
   - Regions of Interest: 'rois.md'
+  - Merge Tool: 'mergetool.md'
 
