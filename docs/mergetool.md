@@ -1,35 +1,27 @@
 
-# Merge Tool 
-___
+# Merge Tool
 
-## Overview
-
-Merge Tools is a program designed to effectively merge SimObserver data in the event that a
-participant's's drive is interrupted. This often occurs due to study interruptions such as
-SimCreator shut downs. To combat this potential data loss, Merge Tools accepts a directory 
-of separate data files from the same participant's drive and merges them into one file
-to ensure a uniform presentation of the data. 
+Merge Tool is a program designed to effectively merge SimObserver data in the event that a
+participant's drive is interrupted. This often occurs due to study interruptions such as
+SimCreator shut downs. Merge Tools is run on these separate data files from the same participant's drives and
+merges them into one file to ensure a uniform presentation of the data. 
 	  
-  *For example*:<br>
-        If during a study, called 'ExampleProject', Participant 3's drive 1 was interrupted 
-		by two SimCreator shut downs, there would be 3 separate data files created.
-		'ExampleProject_Sub_3_Drive_1.dat', 'ExampleProject_Sub_3_Drive_10.dat', and 
-		'ExampleProject_Sub_3_Drive_11.dat' would have to be present in the `merge directory`
-		(-d) to produce a single, usable data file named 'ExampleProject_Sub_3_Drive_0.dat'.
-	  
+For example, if during a study, called 'ExampleProject', Participant 3's original drive 1 was interrupted  
+prematurely two times, there would be 3 separate data files created, with different drive IDs. These 
+drive files could be merged to create a single drive file for further processing.
 
 ## Merge Types
-
    Merge Tool has two different kinds of merge options. This section will highlight each of them.
    
-#### Sequential
-   Sequential Merge is a file merge based on time. Once all the files in the 
-   `merge directory (-d)` have been processed by the program, Merge Tool will use the SimCreator's recorded
-   `SimTime` metric to ensure all the files are merged as accurately as possible. This is accomplished by iterating 
-   through every `SimTime` column, reading the last `SimTime` value of the current data file, and adding that
-   value as a constant through the next data file's `SimTime` column. <br>
+### Sequential
+
+Sequential Merge is a file merge based on time. Once all the files in the 
+`merge directory (-d)` have been processed by the program, Merge Tool will use the SimCreator's recorded
+`SimTime` metric to concatenate the files. This is accomplished by iterating 
+through every `SimTime` column, reading the last `SimTime` value of the current data file, and adding that
+value as a constant through the next data file's `SimTime` column. 
    
-#### Spatial
+### Spatial
    Spatial Merge is a file merge based on X & Y coordinate positions. Much like the `Sequential`
    merge, Spatial Merge will perform the same `SimTime` corrections as multiple drives for the same participant are merged.
    However, along with the time correction, Spatial Merge also analyzes SimCreator's recorded `XPos` and `YPos` metrics.
@@ -50,13 +42,14 @@ This section covers how Merge Tool is executed as well as the command line param
 
 
 ## Testing
-___
+
 Within the `pydre` folder, there will be a `test` directory with a sub-directory called 
 `MergeTools`. This sub-directory contains all the materials for testing `pydre_merge.py`.
 To run the tests, navigate to the pydre module directory (top level) and use the command:
-`python -m unittest tests\MergeTools\test_merge.py`. <br>
+`python -m unittest tests\MergeTools\test_merge.py`. 
 	  
-#### Testing Explanation
+### Testing Explanation
+
 - There are two, primary functions to test within `merge_tool.py`, one for each merge 
 		  type (`Sequential` and `Spatial`). These two functions are found at (considering 
 		  `pydre.merge_tool` as `p_merge`) `p_merge.MergeTool.sequential_merge()` and 
@@ -77,16 +70,18 @@ intended use of the program.
 		 
 #### Results and Expected
 This section will cover the results from running the program, the expected
-results, and how the two will be compared for the sake of testing. <br>
+results, and how the two will be compared for the sake of testing.
 
-Results:<br>
+Results:
+
 After calling the target function (either `Sequential` or `Spatial`) with the two
 parameters from the test case, the program, after running successfully, will create
 a `.csv` file per participant found in the `Merge Directory (-d)`. This `.csv` file(s)
 can always be found in `MergeTools\test_dats_to_merge\current-dir\MergedData\`. With that, using the
 `pandas` module for Python, it is easy to recover the contents of the `.csv`.
 			
-Expected:<br>
+Expected:
+
 Within `MergeTools\expected_csv` there will be a sub-directory for every test.
 Each of these sub-directories will be named with the prefix `expected_` followed
 by the `Merge Directory (-d)` name. (Ex: with "-d test_dats_to_merge/ref_dir"
@@ -94,11 +89,11 @@ the expected csv will be found at `MergeTools\expected_csv\expected_ref_dir\`).
 These directories and their contents must be prepared prior to testing, as these 
 `.csv` files' are recovered using `pandas` as well.
 
-- With both the results and expected results in the testing program, the contents
+With both the results and expected results in the testing program, the contents
 of both `.csv` files will be compared. In order for the `MergeTool()` function
 to pass the test, it must produce a `.csv` file that is exactly the same as the
-corresponding file found in `\expected_csv\`.
+corresponding file found in `expected_csv`.
 
-- Note: For streamlined testing, `/MergedData/` is completely removed after
+Note: For streamlined testing, `MergedData` is completely removed after
 each test case. This ensures `test_merge.py` will have easy access to only the
 pertinent results of the current, running test case.
