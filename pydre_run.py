@@ -10,7 +10,8 @@ import pydre.core
 import os.path
 import glob
 import logging
-logging.basicConfig(level=logging.INFO)
+
+#logging.basicConfig(level=logging.INFO)
 
 #Use one logger to log all of our outputs in every module.
 #Get pydrelogger in every file where we need to log something.

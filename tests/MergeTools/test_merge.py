@@ -4,7 +4,9 @@ import shutil
 import os
 import glob
 import pandas as pd
+import logging
 
+logger = logging.getLogger('PydreLogger')
 
 class WritableObject:
     def __init__(self):
@@ -111,7 +113,7 @@ class TestMergeTool(unittest.TestCase):
         :param desired_index: Index of directory for this particular test case.
         :param merge_type: Type of merge, either Spatial or Sequential
         """
-        print("Test: " + str(desired_index + 1) + " running...")
+        logging.info("Test: " + str(desired_index + 1) + " running...")
         desired_dir = self.getpath(desired_index)
         merged_data_path = os.path.join(desired_dir + "/MergedData")
 
