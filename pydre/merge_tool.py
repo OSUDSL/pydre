@@ -4,7 +4,10 @@ import math
 import glob
 import pandas as pd
 import re
+import logging
 import shutil
+
+logger = logging.getLogger('PydreLogger')
 
 
 class MergeTool():
@@ -44,7 +47,7 @@ class MergeTool():
         warning = True
         for key in subject_groups:
             warning = False
-            print("merging for subject: ", key)
+            logger.info("merging for subject: ", key)
             drive_group = subject_groups[key]
             out_frame = pd.read_csv(drive_group[0], sep='\s+', na_values='.', engine="c")
             name_pattern = re.compile("(?:.*\\\)?(.*)_Sub_(\d+)_Drive_\d+\.dat")
@@ -63,7 +66,7 @@ class MergeTool():
                              sep=' ', na_rep=".", index=False)
 
         if warning is True:
-            print("No files processed, check merge directory (-d) to ensure there are valid data files present.")
+            logging.warning("No files processed, check merge directory (-d) to ensure there are valid data files present.")
 
     def spatial_merge(self, input_directory):
         os.makedirs(os.path.join(input_directory, 'MergedData'), exist_ok=True)
