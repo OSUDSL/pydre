@@ -36,7 +36,7 @@ class TestPydre(unittest.TestCase):
     # ----- Helper Methods -----
     def projectfileselect(self, index: int):
         projectfile = self.projectlist[index]
-        fullpath = os.getcwd() + "\\tests\\" + "test_projectfiles\\" + projectfile
+        fullpath = os.path.join(os.getcwd(), "test_projectfiles/", projectfile)
         return fullpath
 
     def datafileselect(self, index: int):
