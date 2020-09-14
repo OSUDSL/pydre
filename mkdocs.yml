@@ -6,6 +6,7 @@ theme:
 nav:
   - Home: 'index.md'
   - Metrics: 'metrics.md'
+  - SAE Standards: 'metricStandards.md'
   - Regions of Interest: 'rois.md'
   - Merge Tool: 'mergetool.md'
 
