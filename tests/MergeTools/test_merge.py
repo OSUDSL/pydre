@@ -4,7 +4,9 @@ import shutil
 import os
 import glob
 import pandas as pd
+import logging
 
+logger = logging.getLogger('PydreLogger')
 
 class WritableObject:
     def __init__(self):
@@ -111,9 +113,9 @@ class TestMergeTool(unittest.TestCase):
         :param desired_index: Index of directory for this particular test case.
         :param merge_type: Type of merge, either Spatial or Sequential
         """
-        print("Test: " + str(desired_index + 1) + " running...")
+        logging.info("Test: " + str(desired_index + 1) + " running...")
         desired_dir = self.getpath(desired_index)
-        merged_data_path = desired_dir + "\\MergedData\\"
+        merged_data_path = os.path.join(desired_dir + "/MergedData")
 
         merged_data_filelist = []
 
@@ -147,7 +149,8 @@ class TestMergeTool(unittest.TestCase):
         :return: fullpath: string representing the completed path, based on the current working directory.
         """
         selected_dir = self.merge_dirs[index]
-        fullpath = os.getcwd() + "\\tests\\MergeTools\\test_dats_to_merge\\" + selected_dir
+        fullpath = os.path.join(os.getcwd(), "tests/MergeTools/test_dats_to_merge", selected_dir)
+        fullpath = os.path.normpath(fullpath)
         return fullpath
 
     def retrievemergeddata(self, file_list, current_dir ):
@@ -167,7 +170,8 @@ class TestMergeTool(unittest.TestCase):
         :return filelist: Full list of paths in expected directory.
         """
         expected_dir = "expected_" + self.merge_dirs[index]
-        fullpath = os.getcwd() + "\\tests\\MergeTools\\expected_csv\\" + expected_dir
+        fullpath = os.path.join(os.getcwd(), "tests/MergeTools/expected_csv", expected_dir)
+        fullpath = os.path.normpath(fullpath)
         filelist = glob.glob(fullpath + '/*_Sub_*_Drive_*.dat')
         return filelist
 
