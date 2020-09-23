@@ -6,7 +6,6 @@
 import sys
 import os
 import inspect
-import time
 from functools import partial
 from PySide2.QtWidgets import *
 from gui.ui_mainwindow import Ui_MainWindow
@@ -37,7 +36,7 @@ class MainWindow(QMainWindow):
 
     def _get_file(self, file_inp):
         """
-        Launches a file selection dialog for the given file type
+        Launches a file selection dialog for the given file type.
 
         args:
             file_inp: line editor corresponding to the desired file
