@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>300</height>
+    <height>318</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -101,17 +101,19 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Output file</string>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string/>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="ofile_inp">
-          <property name="text">
-           <string>out.csv</string>
-          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
+            <widget class="QLineEdit" name="ofile_inp">
+             <property name="text">
+              <string>Output file (out.csv by default)</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
         <item>
@@ -129,14 +131,22 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>View mode</string>
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string/>
           </property>
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <item>
+            <widget class="QComboBox" name="comboBox">
+             <item>
+              <property name="text">
+               <string>View mode</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="comboBox"/>
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_3">
@@ -153,14 +163,22 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>Plot mode</string>
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="title">
+           <string/>
           </property>
+          <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <widget class="QComboBox" name="comboBox_2">
+             <item>
+              <property name="text">
+               <string>Plot mode</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="comboBox_2"/>
         </item>
         <item>
          <widget class="QPushButton" name="pushButton">
