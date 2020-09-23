@@ -17,7 +17,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(500, 318)
+        MainWindow.resize(400, 208)
         MainWindow.setMinimumSize(QSize(0, 0))
         MainWindow.setMaximumSize(QSize(16777215, 16777215))
         MainWindow.setWindowOpacity(1.000000000000000)
@@ -30,11 +30,6 @@ class Ui_MainWindow(object):
         self.groupBox_2.setObjectName(u"groupBox_2")
         self.verticalLayout_4 = QVBoxLayout(self.groupBox_2)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.label_2 = QLabel(self.groupBox_2)
-        self.label_2.setObjectName(u"label_2")
-
-        self.verticalLayout_4.addWidget(self.label_2)
-
         self.horizontalLayout_8 = QHBoxLayout()
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
         self.pfile_inp = QLineEdit(self.groupBox_2)
@@ -50,10 +45,12 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_8)
 
-        self.label_3 = QLabel(self.groupBox_2)
-        self.label_3.setObjectName(u"label_3")
+        self.line_2 = QFrame(self.groupBox_2)
+        self.line_2.setObjectName(u"line_2")
+        self.line_2.setFrameShape(QFrame.HLine)
+        self.line_2.setFrameShadow(QFrame.Sunken)
 
-        self.verticalLayout_4.addWidget(self.label_3)
+        self.verticalLayout_4.addWidget(self.line_2)
 
         self.horizontalLayout_7 = QHBoxLayout()
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
@@ -70,88 +67,30 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_7)
 
+        self.line = QFrame(self.groupBox_2)
+        self.line.setObjectName(u"line")
+        self.line.setFrameShape(QFrame.HLine)
+        self.line.setFrameShadow(QFrame.Sunken)
+
+        self.verticalLayout_4.addWidget(self.line)
+
+        self.ofile_inp = QLineEdit(self.groupBox_2)
+        self.ofile_inp.setObjectName(u"ofile_inp")
+
+        self.verticalLayout_4.addWidget(self.ofile_inp)
+
 
         self.verticalLayout.addWidget(self.groupBox_2)
 
-        self.tabWidget = QTabWidget(self.centralwidget)
-        self.tabWidget.setObjectName(u"tabWidget")
-        self.tabWidget.setTabPosition(QTabWidget.North)
-        self.tabWidget.setTabShape(QTabWidget.Rounded)
-        self.tab_3 = QWidget()
-        self.tab_3.setObjectName(u"tab_3")
-        self.verticalLayout_2 = QVBoxLayout(self.tab_3)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.groupBox = QGroupBox(self.tab_3)
-        self.groupBox.setObjectName(u"groupBox")
-        self.verticalLayout_6 = QVBoxLayout(self.groupBox)
-        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
-        self.ofile_inp = QLineEdit(self.groupBox)
-        self.ofile_inp.setObjectName(u"ofile_inp")
-
-        self.verticalLayout_6.addWidget(self.ofile_inp)
-
-
-        self.verticalLayout_2.addWidget(self.groupBox)
-
-        self.convert_btn = QPushButton(self.tab_3)
+        self.convert_btn = QPushButton(self.centralwidget)
         self.convert_btn.setObjectName(u"convert_btn")
 
-        self.verticalLayout_2.addWidget(self.convert_btn)
-
-        self.tabWidget.addTab(self.tab_3, "")
-        self.tab = QWidget()
-        self.tab.setObjectName(u"tab")
-        self.verticalLayout_3 = QVBoxLayout(self.tab)
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.groupBox_3 = QGroupBox(self.tab)
-        self.groupBox_3.setObjectName(u"groupBox_3")
-        self.verticalLayout_7 = QVBoxLayout(self.groupBox_3)
-        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
-        self.comboBox = QComboBox(self.groupBox_3)
-        self.comboBox.addItem("")
-        self.comboBox.setObjectName(u"comboBox")
-
-        self.verticalLayout_7.addWidget(self.comboBox)
-
-
-        self.verticalLayout_3.addWidget(self.groupBox_3)
-
-        self.pushButton_3 = QPushButton(self.tab)
-        self.pushButton_3.setObjectName(u"pushButton_3")
-
-        self.verticalLayout_3.addWidget(self.pushButton_3)
-
-        self.tabWidget.addTab(self.tab, "")
-        self.tab_4 = QWidget()
-        self.tab_4.setObjectName(u"tab_4")
-        self.verticalLayout_5 = QVBoxLayout(self.tab_4)
-        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
-        self.groupBox_4 = QGroupBox(self.tab_4)
-        self.groupBox_4.setObjectName(u"groupBox_4")
-        self.verticalLayout_8 = QVBoxLayout(self.groupBox_4)
-        self.verticalLayout_8.setObjectName(u"verticalLayout_8")
-        self.comboBox_2 = QComboBox(self.groupBox_4)
-        self.comboBox_2.addItem("")
-        self.comboBox_2.setObjectName(u"comboBox_2")
-
-        self.verticalLayout_8.addWidget(self.comboBox_2)
-
-
-        self.verticalLayout_5.addWidget(self.groupBox_4)
-
-        self.pushButton = QPushButton(self.tab_4)
-        self.pushButton.setObjectName(u"pushButton")
-
-        self.verticalLayout_5.addWidget(self.pushButton)
-
-        self.tabWidget.addTab(self.tab_4, "")
-
-        self.verticalLayout.addWidget(self.tabWidget)
+        self.verticalLayout.addWidget(self.convert_btn)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 500, 21))
+        self.menubar.setGeometry(QRect(0, 0, 400, 21))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuEdit = QMenu(self.menubar)
@@ -166,33 +105,18 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(0)
-
-
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"PyDre", None))
         self.groupBox_2.setTitle("")
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Project file", None))
+        self.pfile_inp.setText(QCoreApplication.translate("MainWindow", u"Project file", None))
         self.pfile_btn.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Data file", None))
+        self.dfile_inp.setText(QCoreApplication.translate("MainWindow", u"Data file", None))
         self.dfile_btn.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.groupBox.setTitle("")
         self.ofile_inp.setText(QCoreApplication.translate("MainWindow", u"Output file (out.csv by default)", None))
         self.convert_btn.setText(QCoreApplication.translate("MainWindow", u"Convert", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QCoreApplication.translate("MainWindow", u"Convert", None))
-        self.groupBox_3.setTitle("")
-        self.comboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"View mode", None))
-
-        self.pushButton_3.setText(QCoreApplication.translate("MainWindow", u"Show", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"View", None))
-        self.groupBox_4.setTitle("")
-        self.comboBox_2.setItemText(0, QCoreApplication.translate("MainWindow", u"Plot mode", None))
-
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Show", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QCoreApplication.translate("MainWindow", u"Plot", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))
         self.menuView.setTitle(QCoreApplication.translate("MainWindow", u"View", None))
