@@ -52,12 +52,18 @@ class MainWindow(QMainWindow):
         """
         Runs PyDre and saves the resulting output file.
         """
+
+        # convert_prg = QProgressBar(self.ui.centralWidget)
+        # convert_prg.setMinimum(0)
+        # convert_prg.setMaximum(100)
+        # self.ui.verticalLayout.addWidget(QProgressBar())
+
         pfile = self.ui.pfile_inp.displayText()
         dfile = self.ui.dfile_inp.displayText()
         ofile = self.ui.ofile_inp.displayText()
 
         # If no output file name is given, log warning and default to 'out.csv'
-        if ofile == "":
+        if ofile == "" or ofile == "Output file (out.csv by default)":
             ofile = "out.csv"
             logger.warning("No output file specified. Defaulting to 'out.csv'")
 
