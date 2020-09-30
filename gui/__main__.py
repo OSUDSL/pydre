@@ -74,13 +74,11 @@ class MainWindow(QMainWindow):
 
         if self.ui.dfile_inp.count() == 0:
             self.ui.remove_btn.setEnabled(False)
-            self.ui.modify_btn.setEnabled(False)
 
         self._enable_convert()
 
     def _select_file(self):
         self.ui.remove_btn.setEnabled(True)
-        self.ui.modify_btn.setEnabled(True)
 
     def run_pydre(self):
         """
