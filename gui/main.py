@@ -27,26 +27,60 @@ class MainWindow(QMainWindow):
         self.ui = window_ui()
         self.ui.setupUi(self)
 
+        self.ui.pfile_btn.setIconSize(self.ui.pfile_inp.size())
+
         # Button callbacks
         self.ui.pfile_btn.clicked.connect(
-            partial(self._get_file, self.ui.pfile_inp))
+            partial(self._add_file, self.ui.pfile_inp, "JSON (*.json)"))
         self.ui.dfile_btn.clicked.connect(
-            partial(self._get_file, self.ui.dfile_inp))
+            partial(self._add_file, self.ui.dfile_inp, "DAT (*.dat)"))
+        self.ui.remove_btn.clicked.connect(self._remove_file)
         self.ui.convert_btn.clicked.connect(self.run_pydre)
 
-    def _get_file(self, file_inp):
+        # TODO
+        self.ui.pfile_inp.textChanged.connect(self._enable_convert)
+        self.ui.dfile_inp.itemSelectionChanged.connect(self._select_file)
+
+    def _enable_convert(self):
+        if not self.ui.pfile_inp.displayText() == "" and not \
+                self.ui.pfile_inp.displayText().isspace() and \
+                self.ui.dfile_inp.count() > 0:
+            self.ui.convert_btn.setEnabled(True)
+        else:
+            self.ui.convert_btn.setEnabled(False)
+
+    def _add_file(self, file_inp, file_type):
         """
         Launches a file selection dialog for the given file type.
 
         args:
             file_inp: line editor corresponding to the desired file
         """
-        path, filter_ = QFileDialog.getOpenFileName(self, "Open file", "..")
+        path, filter_ = QFileDialog.getOpenFileName(self, "Open file", "..",
+                                                    file_type)
 
         if path:
-            file_inp.setText(path)
+            try:
+                file_inp.addItem(path)
+            except AttributeError:
+                file_inp.setText(path)
         else:
             logger.warning("File path not found.")
+
+        self._enable_convert()
+
+    def _remove_file(self):
+        self.ui.dfile_inp.takeItem(self.ui.dfile_inp.currentRow())
+
+        if self.ui.dfile_inp.count() == 0:
+            self.ui.remove_btn.setEnabled(False)
+            self.ui.modify_btn.setEnabled(False)
+
+        self._enable_convert()
+
+    def _select_file(self):
+        self.ui.remove_btn.setEnabled(True)
+        self.ui.modify_btn.setEnabled(True)
 
     def run_pydre(self):
         """
@@ -59,17 +93,18 @@ class MainWindow(QMainWindow):
         # self.ui.verticalLayout.addWidget(QProgressBar())
 
         pfile = self.ui.pfile_inp.displayText()
-        dfile = self.ui.dfile_inp.displayText()
+        dfiles = [self.ui.dfile_inp.item(i).text() for i in
+                  range(self.ui.dfile_inp.count())]
         ofile = self.ui.ofile_inp.displayText()
 
         # If no output file name is given, log warning and default to 'out.csv'
-        if ofile == "" or ofile == "Output file (out.csv by default)":
+        if ofile == "":
             ofile = "out.csv"
             logger.warning("No output file specified. Defaulting to 'out.csv'")
 
         p = pydre.project.Project(pfile)
         pydre_path = os.path.dirname(inspect.getfile(pydre))
-        file_list = glob.glob(os.path.join(pydre_path, dfile))
+        file_list = [os.path.join(pydre_path, file) for file in dfiles]
         p.run(file_list)
         p.save(ofile)
 
