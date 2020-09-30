@@ -57,7 +57,7 @@
             <string notr="true">width: 75%;</string>
            </property>
            <property name="text">
-            <string>Search</string>
+            <string>Add File</string>
            </property>
           </widget>
          </item>
@@ -84,17 +84,17 @@
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_2">
-           <item>
+           <item alignment="Qt::AlignTop">
             <widget class="QToolButton" name="dfile_btn">
              <property name="styleSheet">
               <string notr="true">width: 75%;</string>
              </property>
              <property name="text">
-              <string>Search</string>
+              <string>Add File</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item alignment="Qt::AlignTop">
             <widget class="QToolButton" name="remove_btn">
              <property name="enabled">
               <bool>false</bool>
@@ -108,17 +108,17 @@
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="modify_btn">
-             <property name="enabled">
-              <bool>false</bool>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
              </property>
-             <property name="styleSheet">
-              <string notr="true">width: 75%;</string>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
              </property>
-             <property name="text">
-              <string>Modify</string>
-             </property>
-            </widget>
+            </spacer>
            </item>
           </layout>
          </item>
