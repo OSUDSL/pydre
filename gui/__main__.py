@@ -14,8 +14,6 @@ import logging
 import pydre.project
 import pydre.core
 
-# os.system("pyside2-uic mainwindow.ui > ui_mainwindow.py")
-
 logger = logging.getLogger("PydreLogger")
 
 
@@ -24,9 +22,10 @@ class MainWindow(QMainWindow):
 
     def __init__(self, window_ui, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Configurations
         self.ui = window_ui()
         self.ui.setupUi(self)
-
         self.setWindowIcon(QIcon("icon.png"))
 
         # Button callbacks
@@ -37,11 +36,15 @@ class MainWindow(QMainWindow):
         self.ui.remove_btn.clicked.connect(self._remove_file)
         self.ui.convert_btn.clicked.connect(self.run_pydre)
 
-        # TODO
+        # Input callbacks
         self.ui.pfile_inp.textChanged.connect(self._enable_convert)
         self.ui.dfile_inp.itemSelectionChanged.connect(self._select_file)
 
     def _enable_convert(self):
+        """
+        Enables the convert button if enough parameters are satisfied.
+        """
+
         if not self.ui.pfile_inp.displayText() == "" and not \
                 self.ui.pfile_inp.displayText().isspace() and \
                 self.ui.dfile_inp.count() > 0:
@@ -50,45 +53,46 @@ class MainWindow(QMainWindow):
             self.ui.convert_btn.setEnabled(False)
 
     def _add_pfile(self, file_type):
+        """
+        Launches a file selection dialog for the project file.
+
+        args:
+            file_type: File type associated with project files
+        """
+
+        # Get project file path
         path, filter_ = QFileDialog.getOpenFileName(self, "Add file", "..",
                                                     file_type)
 
+        # If a project file is selected, insert it into the QLineEdit
         if path:
             self.ui.pfile_inp.setText(path)
 
         self._enable_convert()
 
     def _add_dfile(self, file_type):
+        """
+        Launches a file selection dialog for the data files.
+
+        args:
+            file_type: File type associated with data files
+        """
+
+        # Get a list of selected data files
         paths, filter_ = QFileDialog.getOpenFileNames(self, "Add files", "..",
                                                       file_type)
 
+        # Add each selected data file to the QListWidget
         for path in paths:
             self.ui.dfile_inp.addItem(path)
 
         self._enable_convert()
 
-    # def _add_file(self, file_inp, file_type):
-    #     """
-    #     Launches a file selection dialog for the given file type.
-    #
-    #     args:
-    #         file_inp: line editor corresponding to the desired file
-    #     """
-    #     paths, filter_ = QFileDialog.getOpenFileNames(self, "Open file", "..",
-    #                                                   file_type)
-    #
-    #     if paths:
-    #         try:
-    #             for path in paths:
-    #                 file_inp.addItem(path)
-    #         except AttributeError:
-    #             file_inp.setText(paths[0])
-    #     else:
-    #         logger.warning("File path not found.")
-    #
-    #     self._enable_convert()
-
     def _remove_file(self):
+        """
+        Removes the selected data file from the QListWidget
+        """
+
         self.ui.dfile_inp.takeItem(self.ui.dfile_inp.currentRow())
 
         if self.ui.dfile_inp.count() == 0:
@@ -97,17 +101,16 @@ class MainWindow(QMainWindow):
         self._enable_convert()
 
     def _select_file(self):
+        """
+        Enables the remove button if any data files are selected
+        """
+
         self.ui.remove_btn.setEnabled(True)
 
     def run_pydre(self):
         """
         Runs PyDre and saves the resulting output file.
         """
-
-        # convert_prg = QProgressBar(self.ui.centralWidget)
-        # convert_prg.setMinimum(0)
-        # convert_prg.setMaximum(100)
-        # self.ui.verticalLayout.addWidget(QProgressBar())
 
         pfile = self.ui.pfile_inp.displayText()
         dfiles = [self.ui.dfile_inp.item(i).text() for i in
@@ -126,6 +129,10 @@ class MainWindow(QMainWindow):
         p.save(ofile)
 
     def run(self):
+        """
+        Displays and executes the GUI application
+        """
+
         self.show()
         self.app.exec_()
 
