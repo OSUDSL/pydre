@@ -17,7 +17,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(400, 208)
+        MainWindow.resize(600, 326)
         MainWindow.setMinimumSize(QSize(0, 0))
         MainWindow.setMaximumSize(QSize(16777215, 16777215))
         MainWindow.setWindowOpacity(1.000000000000000)
@@ -30,6 +30,11 @@ class Ui_MainWindow(object):
         self.groupBox_2.setObjectName(u"groupBox_2")
         self.verticalLayout_4 = QVBoxLayout(self.groupBox_2)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.label_2 = QLabel(self.groupBox_2)
+        self.label_2.setObjectName(u"label_2")
+
+        self.verticalLayout_4.addWidget(self.label_2)
+
         self.horizontalLayout_8 = QHBoxLayout()
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
         self.pfile_inp = QLineEdit(self.groupBox_2)
@@ -39,6 +44,7 @@ class Ui_MainWindow(object):
 
         self.pfile_btn = QToolButton(self.groupBox_2)
         self.pfile_btn.setObjectName(u"pfile_btn")
+        self.pfile_btn.setStyleSheet(u"width: 75%;")
 
         self.horizontalLayout_8.addWidget(self.pfile_btn)
 
@@ -52,17 +58,42 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.line_2)
 
+        self.label_3 = QLabel(self.groupBox_2)
+        self.label_3.setObjectName(u"label_3")
+
+        self.verticalLayout_4.addWidget(self.label_3)
+
         self.horizontalLayout_7 = QHBoxLayout()
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.dfile_inp = QLineEdit(self.groupBox_2)
+        self.dfile_inp = QListWidget(self.groupBox_2)
         self.dfile_inp.setObjectName(u"dfile_inp")
 
         self.horizontalLayout_7.addWidget(self.dfile_inp)
 
+        self.verticalLayout_2 = QVBoxLayout()
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.dfile_btn = QToolButton(self.groupBox_2)
         self.dfile_btn.setObjectName(u"dfile_btn")
+        self.dfile_btn.setStyleSheet(u"width: 75%;")
 
-        self.horizontalLayout_7.addWidget(self.dfile_btn)
+        self.verticalLayout_2.addWidget(self.dfile_btn)
+
+        self.remove_btn = QToolButton(self.groupBox_2)
+        self.remove_btn.setObjectName(u"remove_btn")
+        self.remove_btn.setEnabled(False)
+        self.remove_btn.setStyleSheet(u"width: 75%;")
+
+        self.verticalLayout_2.addWidget(self.remove_btn)
+
+        self.modify_btn = QToolButton(self.groupBox_2)
+        self.modify_btn.setObjectName(u"modify_btn")
+        self.modify_btn.setEnabled(False)
+        self.modify_btn.setStyleSheet(u"width: 75%;")
+
+        self.verticalLayout_2.addWidget(self.modify_btn)
+
+
+        self.horizontalLayout_7.addLayout(self.verticalLayout_2)
 
 
         self.verticalLayout_4.addLayout(self.horizontalLayout_7)
@@ -74,8 +105,14 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.line)
 
+        self.label = QLabel(self.groupBox_2)
+        self.label.setObjectName(u"label")
+
+        self.verticalLayout_4.addWidget(self.label)
+
         self.ofile_inp = QLineEdit(self.groupBox_2)
         self.ofile_inp.setObjectName(u"ofile_inp")
+        self.ofile_inp.setEnabled(True)
 
         self.verticalLayout_4.addWidget(self.ofile_inp)
 
@@ -84,13 +121,14 @@ class Ui_MainWindow(object):
 
         self.convert_btn = QPushButton(self.centralwidget)
         self.convert_btn.setObjectName(u"convert_btn")
+        self.convert_btn.setEnabled(False)
 
         self.verticalLayout.addWidget(self.convert_btn)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 400, 21))
+        self.menubar.setGeometry(QRect(0, 0, 600, 21))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuEdit = QMenu(self.menubar)
@@ -111,11 +149,14 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"PyDre", None))
         self.groupBox_2.setTitle("")
-        self.pfile_inp.setText(QCoreApplication.translate("MainWindow", u"Project file", None))
-        self.pfile_btn.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.dfile_inp.setText(QCoreApplication.translate("MainWindow", u"Data file", None))
-        self.dfile_btn.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.ofile_inp.setText(QCoreApplication.translate("MainWindow", u"Output file (out.csv by default)", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Project file", None))
+        self.pfile_btn.setText(QCoreApplication.translate("MainWindow", u"Search", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Data files", None))
+        self.dfile_btn.setText(QCoreApplication.translate("MainWindow", u"Search", None))
+        self.remove_btn.setText(QCoreApplication.translate("MainWindow", u"Remove", None))
+        self.modify_btn.setText(QCoreApplication.translate("MainWindow", u"Modify", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"Output file (out.csv by default)", None))
+        self.ofile_inp.setText("")
         self.convert_btn.setText(QCoreApplication.translate("MainWindow", u"Convert", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))
