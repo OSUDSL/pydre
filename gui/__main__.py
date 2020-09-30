@@ -31,9 +31,9 @@ class MainWindow(QMainWindow):
 
         # Button callbacks
         self.ui.pfile_btn.clicked.connect(
-            partial(self._add_file, self.ui.pfile_inp, "JSON (*.json)"))
+            partial(self._add_pfile, "JSON (*.json)"))
         self.ui.dfile_btn.clicked.connect(
-            partial(self._add_file, self.ui.dfile_inp, "DAT (*.dat)"))
+            partial(self._add_dfile, "DAT (*.dat)"))
         self.ui.remove_btn.clicked.connect(self._remove_file)
         self.ui.convert_btn.clicked.connect(self.run_pydre)
 
@@ -49,25 +49,44 @@ class MainWindow(QMainWindow):
         else:
             self.ui.convert_btn.setEnabled(False)
 
-    def _add_file(self, file_inp, file_type):
-        """
-        Launches a file selection dialog for the given file type.
-
-        args:
-            file_inp: line editor corresponding to the desired file
-        """
-        path, filter_ = QFileDialog.getOpenFileName(self, "Open file", "..",
+    def _add_pfile(self, file_type):
+        path, filter_ = QFileDialog.getOpenFileName(self, "Add file", "..",
                                                     file_type)
 
         if path:
-            try:
-                file_inp.addItem(path)
-            except AttributeError:
-                file_inp.setText(path)
-        else:
-            logger.warning("File path not found.")
+            self.ui.pfile_inp.setText(path)
 
         self._enable_convert()
+
+    def _add_dfile(self, file_type):
+        paths, filter_ = QFileDialog.getOpenFileNames(self, "Add files", "..",
+                                                      file_type)
+
+        for path in paths:
+            self.ui.dfile_inp.addItem(path)
+
+        self._enable_convert()
+
+    # def _add_file(self, file_inp, file_type):
+    #     """
+    #     Launches a file selection dialog for the given file type.
+    #
+    #     args:
+    #         file_inp: line editor corresponding to the desired file
+    #     """
+    #     paths, filter_ = QFileDialog.getOpenFileNames(self, "Open file", "..",
+    #                                                   file_type)
+    #
+    #     if paths:
+    #         try:
+    #             for path in paths:
+    #                 file_inp.addItem(path)
+    #         except AttributeError:
+    #             file_inp.setText(paths[0])
+    #     else:
+    #         logger.warning("File path not found.")
+    #
+    #     self._enable_convert()
 
     def _remove_file(self):
         self.ui.dfile_inp.takeItem(self.ui.dfile_inp.currentRow())
