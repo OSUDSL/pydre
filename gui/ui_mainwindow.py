@@ -76,21 +76,18 @@ class Ui_MainWindow(object):
         self.dfile_btn.setObjectName(u"dfile_btn")
         self.dfile_btn.setStyleSheet(u"width: 75%;")
 
-        self.verticalLayout_2.addWidget(self.dfile_btn)
+        self.verticalLayout_2.addWidget(self.dfile_btn, 0, Qt.AlignTop)
 
         self.remove_btn = QToolButton(self.groupBox_2)
         self.remove_btn.setObjectName(u"remove_btn")
         self.remove_btn.setEnabled(False)
         self.remove_btn.setStyleSheet(u"width: 75%;")
 
-        self.verticalLayout_2.addWidget(self.remove_btn)
+        self.verticalLayout_2.addWidget(self.remove_btn, 0, Qt.AlignTop)
 
-        self.modify_btn = QToolButton(self.groupBox_2)
-        self.modify_btn.setObjectName(u"modify_btn")
-        self.modify_btn.setEnabled(False)
-        self.modify_btn.setStyleSheet(u"width: 75%;")
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.verticalLayout_2.addWidget(self.modify_btn)
+        self.verticalLayout_2.addItem(self.verticalSpacer)
 
 
         self.horizontalLayout_7.addLayout(self.verticalLayout_2)
@@ -150,11 +147,10 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"PyDre", None))
         self.groupBox_2.setTitle("")
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Project file", None))
-        self.pfile_btn.setText(QCoreApplication.translate("MainWindow", u"Search", None))
+        self.pfile_btn.setText(QCoreApplication.translate("MainWindow", u"Add File", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Data files", None))
-        self.dfile_btn.setText(QCoreApplication.translate("MainWindow", u"Search", None))
+        self.dfile_btn.setText(QCoreApplication.translate("MainWindow", u"Add File", None))
         self.remove_btn.setText(QCoreApplication.translate("MainWindow", u"Remove", None))
-        self.modify_btn.setText(QCoreApplication.translate("MainWindow", u"Modify", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Output file (out.csv by default)", None))
         self.ofile_inp.setText("")
         self.convert_btn.setText(QCoreApplication.translate("MainWindow", u"Convert", None))

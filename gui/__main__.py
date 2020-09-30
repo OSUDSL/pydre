@@ -9,8 +9,8 @@ import inspect
 from functools import partial
 from PySide2.QtWidgets import *
 from gui.ui_mainwindow import Ui_MainWindow
+from PySide2.QtGui import QIcon
 import logging
-import glob
 import pydre.project
 import pydre.core
 
@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.ui = window_ui()
         self.ui.setupUi(self)
 
-        self.ui.pfile_btn.setIconSize(self.ui.pfile_inp.size())
+        self.setWindowIcon(QIcon("icon.png"))
 
         # Button callbacks
         self.ui.pfile_btn.clicked.connect(
