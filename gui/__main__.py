@@ -13,12 +13,13 @@ from PySide2.QtGui import QIcon
 import logging
 import pydre.project
 import pydre.core
+import json
 
 logger = logging.getLogger("PydreLogger")
 
 
 class MainWindow(QMainWindow):
-    app = QApplication(sys.argv)
+    app = QApplication()
 
     def __init__(self, window_ui, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -37,8 +38,19 @@ class MainWindow(QMainWindow):
         self.ui.convert_btn.clicked.connect(self.run_pydre)
 
         # Input callbacks
-        self.ui.pfile_inp.textChanged.connect(self._enable_convert)
+        self.ui.pfile_inp.textChanged.connect(self._toggle_enable)
         self.ui.dfile_inp.itemSelectionChanged.connect(self._select_file)
+
+        # Menu callbacks
+        self.ui.pfile_act.triggered.connect(self._test)
+
+    def _test(self):
+        try:
+            pfile = open(self.ui.pfile_inp.displayText())
+            pfile_contents = json.load(pfile)
+            print(pfile_contents)
+        except FileNotFoundError:
+            print("File not found")
 
     def _enable_convert(self):
         """
@@ -51,6 +63,25 @@ class MainWindow(QMainWindow):
             self.ui.convert_btn.setEnabled(True)
         else:
             self.ui.convert_btn.setEnabled(False)
+
+    def _enable_actions(self):
+        """
+        Enables menu actions if enough parameters are satisfied.
+        """
+
+        if not self.ui.pfile_inp.displayText() == "" and not \
+                self.ui.pfile_inp.displayText().isspace():
+            self.ui.pfile_act.setEnabled(True)
+        else:
+            self.ui.pfile_act.setEnabled(False)
+
+    def _toggle_enable(self):
+        """
+        Calls enabling methods
+        """
+
+        self._enable_convert()
+        self._enable_actions()
 
     def _add_pfile(self, file_type):
         """

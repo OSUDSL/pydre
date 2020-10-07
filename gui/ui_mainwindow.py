@@ -22,6 +22,9 @@ class Ui_MainWindow(object):
         MainWindow.setMaximumSize(QSize(16777215, 16777215))
         MainWindow.setWindowOpacity(1.000000000000000)
         MainWindow.setStyleSheet(u"")
+        self.pfile_act = QAction(MainWindow)
+        self.pfile_act.setObjectName(u"pfile_act")
+        self.pfile_act.setEnabled(False)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -137,6 +140,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
+        self.menuView.addAction(self.pfile_act)
 
         self.retranslateUi(MainWindow)
 
@@ -145,6 +149,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"PyDre", None))
+        self.pfile_act.setText(QCoreApplication.translate("MainWindow", u"Project File", None))
         self.groupBox_2.setTitle("")
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Project file", None))
         self.pfile_btn.setText(QCoreApplication.translate("MainWindow", u"Add File", None))
