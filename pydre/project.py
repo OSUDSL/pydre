@@ -40,7 +40,12 @@ class Project():
 	def __loadSingleFile(self, filename):
 		"""Load a single .dat file (whitespace delmited csv) into a DriveData object"""
 		# Could cache this re, probably affect performance
-		d = pandas.read_csv(filename, sep='\s+', na_values='.')
+		try:
+			d = pandas.read_csv(filename, sep='\s+', na_values='.')
+		except pandas.errors.ParserError:
+			logger.warning("File '{}' not formatted as a .dat file.".format(filename))
+			return None
+
 		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
 		match = datafile_re.search(filename)
 		if match:
@@ -119,7 +124,9 @@ class Project():
 		self.raw_data = []
 		for datafile in datafiles:
 			logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
-			self.raw_data.append(self.__loadSingleFile(datafile))
+			dat = self.__loadSingleFile(datafile)
+			if dat:
+				self.raw_data.append(dat)
 
 	def run(self, datafiles):
 		"""
