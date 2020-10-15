@@ -33,7 +33,7 @@ except Exception:
 	logger.setLevel(logging.WARNING)
 	logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
 
-if (args.outputfile is 'out.csv'):
+if args.outputfile == 'out.csv':
 	logger.warning("No output file specified. Defaulting to 'out.csv'")
 
 p = pydre.project.Project(args.projectfile)
@@ -42,8 +42,6 @@ p = pydre.project.Project(args.projectfile)
 filelist = []
 for fn in args.datafiles:
 	filelist.extend(glob.glob(os.path.join(os.getcwd(), fn)))
-
-print(filelist)
 
 p.run(filelist)
 p.save(args.outputfile)
