@@ -638,12 +638,12 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
  #add column with ownship velocity
     for d in drivedata.data:
         df = pandas.DataFrame(d)
-        if not 'OwnshipVelocity' in df.columns:
+        if 'OwnshipVelocity' or 'LeadCarVelocity' not in df.columns:
         #find array of cross-correlations
-            df.insert(len(df.columns), "OwnshipVelocity", np.gradient(df.XPos.values), True)
+            df.insert(len(df.columns), "OwnshipVelocity", df.XPos.values/df.SimTime.values, True)
         # add column with leadcar velocity
             distance = np.divide(df.HeadwayTime, df.OwnshipVelocity)
-            df.insert(len(df.columns), "LeadCarVelocity", np.divide(distance, df.HeadwayTime), True)
+            df.insert(len(df.columns), "LeadCarVelocity", distance, True)
 
         v1 = df.LeadCarVelocity
         v2 = df.OwnshipVelocity
@@ -659,28 +659,11 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
         #normalize vectors
         v1_norm = v1 / np.linalg.norm(v1)
         v2_norm = v2 / np.linalg.norm(v2)
-        return np.dot(v1_norm, v2_norm)
-
-
-
-
-
-
-# def coherence(drivedata: pydre.core.DriveData):
-#     #check for no data
-#  #add column with ownship velocity
-#     for d in drivedata.data:
-#         df = pandas.DataFrame(d)
-#         if(len(df)>0 ):
-#             df.insert(len(df.columns), "OwnshipVelocity", np.gradient(df.XPos.values), True)
-#         # XPos or YPos???
-# #add column with leadcar velocity
-#             distance = np.divide(df.HeadwayTime, df.OwnshipVelocity)
-#             df.insert(len(df.columns), "LeadCarVelocity", np.divide(distance, df.HeadwayTime), True)
-# #find coherence
-#             f, Cxy = scipy.signal.coherence(df.OwnshipVelocity, df.LeadCarVelocity, fs=30)
-#             #what fs to use
-#     return Cxy;
+        cor = np.dot(v1_norm, v2_norm)
+        if(cor > 0):
+            return cor
+        else:
+            return 0.0
 
 
 
