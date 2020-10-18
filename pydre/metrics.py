@@ -633,17 +633,23 @@ def registerMetric(name, function, columnnames=None):
     else:
         metricsColNames[name] = [name, ]
 
+# def addVelocities(drivedata: pydre.core.DriveData):
+#     for d in drivedata.data:
+#         df = pandas.DataFrame(d)
+#     # find array of cross-correlations
+#         df.insert(len(df.columns), "OwnshipVelocity", df.XPos.values / df.SimTime.values, True)
+#     # add column with leadcar velocity
+#         distance = np.divide(df.HeadwayTime, df.OwnshipVelocity)
+#         df.insert(len(df.columns), "LeadCarVelocity", distance, True)
+#     return(df)
+
 
 def crossCorrelate(drivedata: pydre.core.DriveData):
  #add column with ownship velocity
     for d in drivedata.data:
         df = pandas.DataFrame(d)
-        if 'OwnshipVelocity' or 'LeadCarVelocity' not in df.columns:
-        #find array of cross-correlations
-            df.insert(len(df.columns), "OwnshipVelocity", df.XPos.values/df.SimTime.values, True)
-        # add column with leadcar velocity
-            distance = np.divide(df.HeadwayTime, df.OwnshipVelocity)
-            df.insert(len(df.columns), "LeadCarVelocity", distance, True)
+        # if 'OwnshipVelocity' or 'LeadCarVelocity' not in df.columns:
+        #     df = addVelocities(pydre.core.DriveData)
 
         v1 = df.LeadCarVelocity
         v2 = df.OwnshipVelocity
