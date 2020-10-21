@@ -7,6 +7,7 @@ import sys
 import pydre.core
 import pydre.rois
 import pydre.metrics
+import pathlib
 
 import logging
 logger = logging.getLogger('PydreLogger')
@@ -42,7 +43,13 @@ class Project():
 		d = pandas.read_csv(filename, sep='\s+', na_values='.')
 		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
 		match = datafile_re.search(filename)
-		experiment_name, subject_id, drive_id = match.groups()
+		if match:
+			experiment_name, subject_id, drive_id = match.groups()
+		else:
+			logger.warning("Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat")
+			experiment_name = pathlib.Path(filename).stem
+			subject_id = 1
+			drive_id = 1
 		return pydre.core.DriveData(SubjectID=int(subject_id), DriveID=int(drive_id),
 									roi=None, data=d, sourcefilename=filename)
 
