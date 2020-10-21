@@ -233,7 +233,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
         rsSteer = numpy.interp(regTime, df.SimTime, df.Steer)
         resampdf = numpy.column_stack((regTime, rsSteer))
         resampdf = pandas.DataFrame(resampdf, columns=("simTime", "rsSteerAngle"))
-
+        
         # calculate predicted angle
         pAngle = (2.5 * df.Steer.values[3:, ]) - (2 * df.Steer.values[2:-1, ]) - (0.5 * df.Steer.values[1:-2, ])
 
@@ -670,7 +670,6 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
         if(delayIndex > 0):
             v2 = df.LeadCarVelocity.iloc[delayIndex:df.columns.__len__()]
             v1 = df.OwnshipVelocity.iloc[delayIndex:df.columns.__len__()]
-
         #normalize vectors
         v1_norm = v1/np.linalg.norm(v1)
         v2_norm = v2/np.linalg.norm(v2)
