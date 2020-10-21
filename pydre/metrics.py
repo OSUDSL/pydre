@@ -633,15 +633,17 @@ def registerMetric(name, function, columnnames=None):
     else:
         metricsColNames[name] = [name, ]
 
+
+#not working
 def addVelocities(drivedata: pydre.core.DriveData):
     df = pandas.DataFrame;
     for d in drivedata.data:
         df = pandas.DataFrame(d)
-    # add column with leadcar velocity
-        df.insert(len(df.columns), "OwnshipVelocity", df.XPos.values / df.SimTime.values, True)
+    # add column with ownship velocity
+        df.insert(len(df.columns), "OwnshipVelocity", df.YPos.values / df.SimTime.values, True)
     # add column with leadcar velocity
         distance = np.divide(df.HeadwayTime, df.OwnshipVelocity)
-        df.insert(len(df.columns), "LeadCarVelocity", distance, True)
+        df.insert(len(df.columns), "LeadCarVelocity", distance/df.SimTime, True)
     return df
 
 
@@ -649,19 +651,20 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
 
     for d in drivedata.data:
         df = pandas.DataFrame(d)
-        if 'OwnshipVelocity' or 'LeadCarVelocity' not in df.columns:
-            df = addVelocities(drivedata)
+        # if 'OwnshipVelocity' or 'LeadCarVelocity' not in df.columns:
+        #     df = addVelocities(drivedata)
 
-        v1 = df.LeadCarVelocity
-        v2 = df.OwnshipVelocity
-        cor = signal.correlate(v1-v2.mean(),
+        v2 = df.LeadCarVelocity
+        v1 = df.OwnshipVelocity
+        cor = signal.correlate(v1-v1.mean(),
                                        v2-v2.mean(), mode='same')
         # cor-An N-dimensional array containing a subset of the discrete linear cross-correlation of in1 with in2.
-        #delay index at the max
+        # delay index at the max
+        df.insert(len(df.columns), "CrossCorrelations", cor, True)
         delayIndex = np.argmax(cor)
         if(delayIndex > 0):
-            v2 = df.OwnshipVelocity.iloc[delayIndex:df.columns.__len__()]
-            v1 = df.LeadCarVelocity.iloc[0: df.columns.__len__()-delayIndex]
+            v2 = df.LeadCarVelocity.iloc[delayIndex:df.columns.__len__()]
+            v1 = df.OwnshipVelocity.iloc[delayIndex:df.columns.__len__()]
 
         #normalize vectors
         v1_norm = v1 / np.linalg.norm(v1)
