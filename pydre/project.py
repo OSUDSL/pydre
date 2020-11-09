@@ -80,9 +80,39 @@ class Project():
 		else:
 			return []
 
+	def processFilter(self, filter, dataset):
+			"""
+			Handles running any filter definition
+
+			Args:
+				filter: A dict containing the type of a filter and the parameters to process it
+
+			Returns:
+				A list of values with the results
+			"""
+
+			try:
+				func_name = filter.pop('function')
+				filter_func = pydre.filters.filtersList[func_name]
+				report_name = filter.pop('name')
+				col_names = pydre.filters.filtersColNames[func_name]
+			except KeyError as e:
+				logger.warning(
+					"Filter definitions require both \"name\" and \"function\". Malformed filters definition: missing " + str(
+						e))
+				sys.exit(1)
+
+			if len(col_names) > 1:
+				x = [filter_func(d, **filter) for d in dataset]
+				report = pandas.DataFrame(x, columns=col_names)
+			else:
+				report = pandas.DataFrame([filter_func(d, **filter) for d in dataset], columns=[report_name, ])
+
+			return report
+
 	def processMetric(self, metric, dataset):
 		"""
-		Handles running any metric defninition
+		Handles running any metric definition
 
 		Args:
 			metric: A dict containing the type of a metric and the parameters to process it
@@ -121,6 +151,7 @@ class Project():
 			logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
 			self.raw_data.append(self.__loadSingleFile(datafile))
 
+#NEED TO EDIT TO RUN FILTERS
 	def run(self, datafiles):
 		"""
 		Args:
@@ -145,8 +176,19 @@ class Project():
 		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
 		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
-		processed_metrics = [result_data]
+		processed_filters = [result_data]
 
+
+#new stuff
+
+		for filter in self.definition['filters']:
+			processed_filter = self.processFilter(filter, data_set)
+			processed_filters.append(processed_filter)
+		result_data = pandas.concat(processed_filters, axis=1)
+
+		processed_metrics = [result_data] #might need to move to line 180
+		
+#end new stuff
 
 		for metric in self.definition['metrics']:
 			processed_metric = self.processMetric(metric, data_set)
