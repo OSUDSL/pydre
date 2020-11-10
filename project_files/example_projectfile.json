@@ -3,6 +3,13 @@
   		{"type": "time", "filename": "filetimes.csv"}
 	],
 
+  "filters": [
+        {
+            "name": "smoothGazeData",
+            "function": "smoothGazeData"
+        }
+    ],
+
     "metrics": [
         {
             "name": "tailgatetime",
