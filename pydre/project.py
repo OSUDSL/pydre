@@ -7,6 +7,7 @@ import sys
 import pydre.core
 import pydre.rois
 import pydre.metrics
+import pydre.filters
 import pathlib
 
 import logging
@@ -187,7 +188,7 @@ class Project():
 		result_data = pandas.concat(processed_filters, axis=1)
 
 		processed_metrics = [result_data] #might need to move to line 180
-		
+
 #end new stuff
 
 		for metric in self.definition['metrics']:
