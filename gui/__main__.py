@@ -41,9 +41,6 @@ class MainWindow(QMainWindow):
         self.ui.pfile_inp.textChanged.connect(self._toggle_enable)
         self.ui.dfile_inp.itemSelectionChanged.connect(self._select_file)
 
-        # Menu callbacks
-        self.ui.pfile_act.triggered.connect(self._test)
-
     def _test(self):
         try:
             pfile = open(self.ui.pfile_inp.displayText())
@@ -71,9 +68,9 @@ class MainWindow(QMainWindow):
 
         if not self.ui.pfile_inp.displayText() == "" and not \
                 self.ui.pfile_inp.displayText().isspace():
-            self.ui.pfile_act.setEnabled(True)
+            self.ui.edit_pfile_btn.setEnabled(True)
         else:
-            self.ui.pfile_act.setEnabled(False)
+            self.ui.edit_pfile_btn.setEnabled(False)
 
     def _toggle_enable(self):
         """
@@ -109,9 +106,11 @@ class MainWindow(QMainWindow):
             file_type: File type associated with data files
         """
 
+        pydre_path = os.path.dirname(inspect.getfile(pydre))
+
         # Get a list of selected data files
-        paths, filter_ = QFileDialog.getOpenFileNames(self, "Add files", "..",
-                                                      file_type)
+        paths, filter_ = QFileDialog.getOpenFileNames(self, "Add files",
+                                                      pydre_path, file_type)
 
         # Add each selected data file to the QListWidget
         for path in paths:
@@ -137,6 +136,13 @@ class MainWindow(QMainWindow):
         """
 
         self.ui.remove_btn.setEnabled(True)
+
+    def _edit_pfile(self):
+        """
+        Launches project file editor
+        """
+
+        print("heyo")
 
     def run_pydre(self):
         """

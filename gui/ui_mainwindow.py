@@ -17,7 +17,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(600, 326)
+        MainWindow.resize(600, 297)
         MainWindow.setMinimumSize(QSize(0, 0))
         MainWindow.setMaximumSize(QSize(16777215, 16777215))
         MainWindow.setWindowOpacity(1.000000000000000)
@@ -119,28 +119,24 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.groupBox_2)
 
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.edit_pfile_btn = QPushButton(self.centralwidget)
+        self.edit_pfile_btn.setObjectName(u"edit_pfile_btn")
+        self.edit_pfile_btn.setEnabled(False)
+
+        self.horizontalLayout_2.addWidget(self.edit_pfile_btn)
+
         self.convert_btn = QPushButton(self.centralwidget)
         self.convert_btn.setObjectName(u"convert_btn")
         self.convert_btn.setEnabled(False)
 
-        self.verticalLayout.addWidget(self.convert_btn)
+        self.horizontalLayout_2.addWidget(self.convert_btn)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
 
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QMenuBar(MainWindow)
-        self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 600, 21))
-        self.menuFile = QMenu(self.menubar)
-        self.menuFile.setObjectName(u"menuFile")
-        self.menuEdit = QMenu(self.menubar)
-        self.menuEdit.setObjectName(u"menuEdit")
-        self.menuView = QMenu(self.menubar)
-        self.menuView.setObjectName(u"menuView")
-        MainWindow.setMenuBar(self.menubar)
-
-        self.menubar.addAction(self.menuFile.menuAction())
-        self.menubar.addAction(self.menuEdit.menuAction())
-        self.menubar.addAction(self.menuView.menuAction())
-        self.menuView.addAction(self.pfile_act)
 
         self.retranslateUi(MainWindow)
 
@@ -158,9 +154,7 @@ class Ui_MainWindow(object):
         self.remove_btn.setText(QCoreApplication.translate("MainWindow", u"Remove", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Output file (out.csv by default)", None))
         self.ofile_inp.setText("")
+        self.edit_pfile_btn.setText(QCoreApplication.translate("MainWindow", u"Edit Project File", None))
         self.convert_btn.setText(QCoreApplication.translate("MainWindow", u"Convert", None))
-        self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
-        self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))
-        self.menuView.setTitle(QCoreApplication.translate("MainWindow", u"View", None))
     # retranslateUi
 
