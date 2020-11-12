@@ -88,9 +88,11 @@ class MainWindow(QMainWindow):
             file_type: File type associated with project files
         """
 
+        pydre_path = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
+
         # Get project file path
-        path, filter_ = QFileDialog.getOpenFileName(self, "Add file", "..",
-                                                    file_type)
+        path, filter_ = QFileDialog.getOpenFileName(self, "Add file",
+                                                    pydre_path, file_type)
 
         # If a project file is selected, insert it into the QLineEdit
         if path:
@@ -106,7 +108,7 @@ class MainWindow(QMainWindow):
             file_type: File type associated with data files
         """
 
-        pydre_path = os.path.dirname(inspect.getfile(pydre))
+        pydre_path = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
 
         # Get a list of selected data files
         paths, filter_ = QFileDialog.getOpenFileNames(self, "Add files",
