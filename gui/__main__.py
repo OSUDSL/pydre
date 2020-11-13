@@ -9,37 +9,13 @@ import inspect
 from functools import partial
 from PySide2.QtWidgets import *
 from gui.ui_mainwindow import Ui_MainWindow
-from PySide2.QtGui import QIcon
 import logging
 import pydre.project
 import pydre.core
 import json
+from gui.templates import Window, Popup
 
 logger = logging.getLogger("PydreLogger")
-
-
-# TODO: CREATE PARENT WINDOW CLASS
-
-
-class Window(QMainWindow):
-
-    def __init__(self, window_ui, icon_file, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Configurations
-        self.ui = window_ui()
-        self.ui.setupUi(self)
-        self.setWindowIcon(QIcon(icon_file))
-
-
-class Popup(QWidget):
-
-    def __init__(self, title, icon_file, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Configurations
-        self.setWindowTitle(title)
-        self.setWindowIcon(QIcon(icon_file))
 
 
 class MainWindow(Window):
@@ -199,7 +175,7 @@ class MainWindow(Window):
 class JSONPopup(Popup):
 
     def __init__(self, project_file, *args, **kwargs):
-        super().__init__("Project File", "icon.png", *args, **kwargs)
+        super().__init__(None, "Project File", "icon.png", *args, **kwargs)
         self.project_file = project_file
 
         self.resize(400, 300)  # FIXME
