@@ -35,6 +35,8 @@ class MainWindow(Window):
         self.ui.pfile_inp.textChanged.connect(self._toggle_enable)
         self.ui.dfile_inp.itemSelectionChanged.connect(self._select_file)
 
+        self.show()
+
     def _test(self):
         try:
             pfile = open(self.ui.pfile_inp.displayText())
@@ -160,11 +162,3 @@ class MainWindow(Window):
         file_list = [os.path.join(pydre_path, file) for file in dfiles]
         p.run(file_list)
         p.save(ofile)
-
-    def run(self):
-        """
-        Displays the main window
-        """
-
-        self.show()
-        self.app.exec_()
