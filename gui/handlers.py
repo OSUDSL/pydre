@@ -6,7 +6,7 @@
 import inspect
 import logging
 from os import path
-from pydre import project
+import pydre.project
 
 logger = logging.getLogger("PydreLogger")
 
@@ -22,8 +22,9 @@ class Pydre:
         Runs PyDre conversion and saves the resulting output file.
         """
 
-        pydre_path = path.dirname(path.dirname(inspect.getfile(project)))
+        pydre_path = path.dirname(inspect.getfile(pydre))
         file_list = [path.join(pydre_path, file) for file in data_files]
+        project = pydre.project.Project(project_file)
 
         # If no output file name is given, log warning and default to 'out.csv'
         if not output_file.strip():
@@ -33,6 +34,5 @@ class Pydre:
             # TODO: Popup that confirms this decision
 
         # Execute pydre conversion
-        proj = project.Project(project_file)
-        proj.run(file_list)
-        proj.save(output_file)
+        project.run(file_list)
+        project.save(output_file)
