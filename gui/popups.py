@@ -16,8 +16,7 @@ class ProjectFilePopup(Popup):
     """
 
     def __init__(self, project_file, *args, **kwargs):
-        super().__init__(Ui_Form, "images/icon.png", "Project Editor", *args,
-                         **kwargs)
+        super().__init__(Ui_Form, "images/icon.png", "Project Editor")
 
         # self.project_file = project_file
         #
