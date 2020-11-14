@@ -5,76 +5,91 @@
 
 import inspect
 from functools import partial
+from gui.handlers import Pydre
 from gui.popups import ProjectFilePopup
 from gui.templates import Window
 from gui.ui_mainwindow import Ui_MainWindow
 import logging
-import os
-import pydre.core
-import pydre.project
+from os import path
+import pydre
 from PySide2.QtWidgets import QFileDialog
 
 logger = logging.getLogger("PydreLogger")
 
 
 class MainWindow(Window):
+    """
+    Primary window class that handles all tasks related to main window
+    configurations and functionality.
+    """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(Ui_MainWindow, "icon.png", *args, **kwargs)
+        super().__init__(Ui_MainWindow, "icon.png", "Pydre", *args, **kwargs)
 
         # Button callbacks
         self.ui.pfile_btn.clicked.connect(
             partial(self._add_pfile, "JSON (*.json)"))
         self.ui.dfile_btn.clicked.connect(
-            partial(self._add_dfile, "DAT (*.dat)"))
+            partial(self._add_dfiles, "DAT (*.dat)"))
         self.ui.remove_btn.clicked.connect(self._remove_file)
-        self.ui.edit_pfile_btn.clicked.connect(self._test)
-        self.ui.convert_btn.clicked.connect(self.run_pydre)
+        self.ui.edit_pfile_btn.clicked.connect(self._edit_pfile)
+        self.ui.convert_btn.clicked.connect(self._run_pydre)
 
         # Input callbacks
-        self.ui.pfile_inp.textChanged.connect(self._toggle_enable)
-        self.ui.dfile_inp.itemSelectionChanged.connect(self._select_file)
+        self.ui.pfile_inp.textChanged.connect(self._toggle_buttons)
+        self.ui.dfile_inp.model().rowsInserted.connect(self._toggle_buttons)
+        self.ui.dfile_inp.model().rowsRemoved.connect(self._toggle_buttons)
+        self.ui.dfile_inp.itemSelectionChanged.connect(self._toggle_remove)
 
-        self.show()
-
-    def _test(self):
-        try:
-            pfile = open(self.ui.pfile_inp.displayText())
-            self.popup = ProjectFilePopup(self.ui.pfile_inp.displayText())
-            self.popup.run()
-        except FileNotFoundError:
-            print("File not found")
-
-    def _enable_edit_pfile(self):
+    def _toggle_remove(self):
         """
-        Enables menu actions if enough parameters are satisfied.
+        Enables the Remove button if at least one data file is selected.
         """
 
-        if not self.ui.pfile_inp.displayText() == "" and not \
-                self.ui.pfile_inp.displayText().isspace():
+        selected_data_files = self.ui.dfile_inp.selectedItems()
+
+        # Toggle remove button
+        if len(selected_data_files) > 0:
+            self.ui.remove_btn.setEnabled(True)
+        else:
+            self.ui.remove_btn.setEnabled(False)
+
+    def _toggle_edit_pfile(self):
+        """
+        Toggles the Edit Project File button based on whether the project file
+        input is populated.
+        """
+
+        project_file = self.ui.pfile_inp.displayText()
+
+        # Toggle Edit Project File button
+        if project_file.strip():
             self.ui.edit_pfile_btn.setEnabled(True)
         else:
             self.ui.edit_pfile_btn.setEnabled(False)
 
-    def _enable_convert(self):
+    def _toggle_convert(self):
         """
-        Enables the convert button if enough parameters are satisfied.
+        Toggles the Convert button based on whether both the project file input
+        and the data file input are populated.
         """
 
-        if not self.ui.pfile_inp.displayText() == "" and not \
-                self.ui.pfile_inp.displayText().isspace() and \
-                self.ui.dfile_inp.count() > 0:
+        project_file = self.ui.pfile_inp.displayText()
+        data_file_count = self.ui.dfile_inp.count()
+
+        # Toggle Convert button
+        if project_file.strip() and data_file_count > 0:
             self.ui.convert_btn.setEnabled(True)
         else:
             self.ui.convert_btn.setEnabled(False)
 
-    def _toggle_enable(self):
+    def _toggle_buttons(self):
         """
-        Calls enabling methods
+        Calls button toggling methods.
         """
 
-        self._enable_convert()
-        self._enable_edit_pfile()
+        self._toggle_edit_pfile()
+        self._toggle_convert()
 
     def _add_pfile(self, file_type):
         """
@@ -84,19 +99,18 @@ class MainWindow(Window):
             file_type: File type associated with project files
         """
 
-        pydre_path = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
+        # Target directory for file selection dialog
+        dir_ = path.dirname(path.dirname(inspect.getfile(pydre)))
 
         # Get project file path
-        path, filter_ = QFileDialog.getOpenFileName(self, "Add file",
-                                                    pydre_path, file_type)
+        pfile_path, filter_ = QFileDialog.getOpenFileName(self, "Add file",
+                                                          dir_, file_type)
 
         # If a project file is selected, insert it into the QLineEdit
-        if path:
-            self.ui.pfile_inp.setText(path)
+        if pfile_path:
+            self.ui.pfile_inp.setText(pfile_path)
 
-        self._enable_convert()
-
-    def _add_dfile(self, file_type):
+    def _add_dfiles(self, file_type):
         """
         Launches a file selection dialog for the data files.
 
@@ -104,61 +118,46 @@ class MainWindow(Window):
             file_type: File type associated with data files
         """
 
-        pydre_path = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
+        # Target directory for file selection dialog
+        dir_ = path.dirname(path.dirname(inspect.getfile(pydre)))
 
         # Get a list of selected data files
-        paths, filter_ = QFileDialog.getOpenFileNames(self, "Add files",
-                                                      pydre_path, file_type)
+        qfile_paths, filter_ = QFileDialog.getOpenFileNames(self, "Add files",
+                                                            dir_, file_type)
 
         # Add each selected data file to the QListWidget
-        for path in paths:
-            self.ui.dfile_inp.addItem(path)
-
-        self._enable_convert()
+        for qfile_path in qfile_paths:
+            self.ui.dfile_inp.addItem(qfile_path)
 
     def _remove_file(self):
         """
-        Removes the selected data file from the QListWidget
+        Removes the selected data file from the data file input.
         """
 
         self.ui.dfile_inp.takeItem(self.ui.dfile_inp.currentRow())
 
-        if self.ui.dfile_inp.count() == 0:
-            self.ui.remove_btn.setEnabled(False)
-
-        self._enable_convert()
-
-    def _select_file(self):
-        """
-        Enables the remove button if any data files are selected
-        """
-
-        self.ui.remove_btn.setEnabled(True)
-
     def _edit_pfile(self):
         """
-        Launches project file editor
+        Launches project file editor.
         """
 
-        print("heyo")
+        try:
+            project_file = open(self.ui.pfile_inp.displayText())
+            self.popup = ProjectFilePopup(project_file)
+            self.popup.run()
+        except FileNotFoundError:
+            logger.error("ERROR: Project file not found")
 
-    def run_pydre(self):
+    def _run_pydre(self):
         """
-        Runs PyDre and saves the resulting output file.
+        Runs pydre conversion using the given project file, data files, and
+        optional output file.
         """
 
-        pfile = self.ui.pfile_inp.displayText()
-        dfiles = [self.ui.dfile_inp.item(i).text() for i in
-                  range(self.ui.dfile_inp.count())]
-        ofile = self.ui.ofile_inp.displayText()
+        project_file = self.ui.pfile_inp.displayText()
+        data_files = [self.ui.dfile_inp.item(i) for i in
+                      range(self.ui.dfile_inp.count())]
+        output_file = self.ui.ofile_inp.displayText()
 
-        # If no output file name is given, log warning and default to 'out.csv'
-        if ofile == "":
-            ofile = "out.csv"
-            logger.warning("No output file specified. Defaulting to 'out.csv'")
-
-        p = pydre.project.Project(pfile)
-        pydre_path = os.path.dirname(inspect.getfile(pydre))
-        file_list = [os.path.join(pydre_path, file) for file in dfiles]
-        p.run(file_list)
-        p.save(ofile)
+        # Run pydre conversion
+        Pydre.run(project_file, data_files, output_file)

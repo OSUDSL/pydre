@@ -3,41 +3,52 @@
 # Created on: 11/13/2020
 # """
 
+import logging
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMainWindow, QWidget
+
+logger = logging.getLogger("PydreLogger")
 
 
 class Window(QMainWindow):
     """
-    TODO
+    Parent window class that configures window UI, icon, and title if given.
     """
 
-    def __init__(self, window_ui, icon_file, *args, **kwargs):
+    def __init__(self, window_ui, icon_file, title, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # UI configurations
+        try:
+            self.ui = window_ui()
+            self.ui.setupUi(self)
+        except AttributeError:
+            logger.error("ERROR: Invalid window UI")
+        except TypeError:
+            pass
 
         # Window configurations
         self.setWindowIcon(QIcon(icon_file))
-
-        # UI configurations
-        self.ui = window_ui()
-        self.ui.setupUi(self)
+        self.setWindowTitle(title)
 
 
 class Popup(QWidget):
     """
-    TODO
+    Parent popup class that configures popup UI, icon, title, and geometry.
     """
 
-    def __init__(self, popup_ui, title, icon_file, *args, **kwargs):
+    def __init__(self, popup_ui, icon_file, title, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Window configurations
-        self.setWindowTitle(title)
-        self.setWindowIcon(QIcon(icon_file))
 
         # UI configurations
         try:
             self.ui = popup_ui()
             self.ui.setupUi(self)
+        except AttributeError:
+            logger.error("ERROR: Invalid popup UI")
         except TypeError:
             pass
+
+        # Window configurations
+        self.setWindowIcon(QIcon(icon_file))
+        self.setWindowTitle(title)
