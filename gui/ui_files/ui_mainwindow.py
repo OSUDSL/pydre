@@ -17,7 +17,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(600, 297)
+        MainWindow.resize(550, 297)
         MainWindow.setMinimumSize(QSize(0, 0))
         MainWindow.setMaximumSize(QSize(16777215, 16777215))
         MainWindow.setWindowOpacity(1.000000000000000)

@@ -4,9 +4,9 @@
 # """
 
 from gui.templates import Popup
-from gui.ui_projectfilepopup import Ui_Form
+from gui.ui_files.ui_projectfilepopup import Ui_Form
 import json
-from PySide2.QtWidgets import QTreeWidget, QTreeWidgetItem, QVBoxLayout
+from PySide2.QtWidgets import QTreeWidgetItem
 
 
 class ProjectFilePopup(Popup):
@@ -16,7 +16,8 @@ class ProjectFilePopup(Popup):
     """
 
     def __init__(self, project_file, *args, **kwargs):
-        super().__init__(Ui_Form, "icon.png", "Project Editor", *args, **kwargs)
+        super().__init__(Ui_Form, "images/icon.png", "Project Editor", *args,
+                         **kwargs)
 
         # self.project_file = project_file
         #
