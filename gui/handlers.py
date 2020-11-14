@@ -20,6 +20,11 @@ class Pydre:
     def run(project_file, data_files, output_file):
         """
         Runs PyDre conversion and saves the resulting output file.
+
+        args:
+            project_file: .JSON file associated with the project
+            data_files: List of .dat files associated with the project
+            output_file: Output .csv file (out.csv by default)
         """
 
         pydre_path = path.dirname(inspect.getfile(pydre))
