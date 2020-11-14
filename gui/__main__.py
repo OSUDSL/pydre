@@ -3,15 +3,15 @@
 # Created on: 9/17/2020
 # """
 
-
+from gui.windows import MainWindow
 from PySide2.QtWidgets import QApplication
 import sys
-from gui.windows import MainWindow
 
 
 class Application(QApplication):
     """
-    TODO
+    Primary application class that handles command-line arguments and launches
+    the main window.
     """
 
     def __init__(self, *args, **kwargs):
