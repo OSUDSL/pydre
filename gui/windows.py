@@ -8,7 +8,7 @@ from functools import partial
 from gui.handlers import Pydre
 from gui.popups import ProjectFilePopup
 from gui.templates import Window
-from gui.ui_mainwindow import Ui_MainWindow
+from gui.ui_files.ui_mainwindow import Ui_MainWindow
 import logging
 from os import path
 import pydre
@@ -24,7 +24,8 @@ class MainWindow(Window):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(Ui_MainWindow, "icon.png", "Pydre", *args, **kwargs)
+        super().__init__(Ui_MainWindow, "images/icon.png", "Pydre", *args,
+                         **kwargs)
 
         # Button callbacks
         self.ui.pfile_btn.clicked.connect(
@@ -138,13 +139,13 @@ class MainWindow(Window):
 
     def _edit_pfile(self):
         """
-        Launches project file editor.
+        Launches the project file editor.
         """
 
         try:
             project_file = open(self.ui.pfile_inp.displayText())
             self.popup = ProjectFilePopup(project_file)
-            self.popup.run()
+            self.popup.show()
         except FileNotFoundError:
             logger.error("ERROR: Project file not found")
 
