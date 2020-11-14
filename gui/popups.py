@@ -4,6 +4,7 @@
 # """
 
 from gui.templates import Popup
+from gui.ui_projectfilepopup import Ui_Form
 import json
 from PySide2.QtWidgets import QTreeWidget, QTreeWidgetItem, QVBoxLayout
 
@@ -15,20 +16,18 @@ class ProjectFilePopup(Popup):
     """
 
     def __init__(self, project_file, *args, **kwargs):
-        super().__init__(None, "icon.png", "Project File", *args, **kwargs)
+        super().__init__(Ui_Form, "icon.png", "Project Editor", *args, **kwargs)
 
-        self.project_file = project_file
-
-        self.resize(400, 300)  # FIXME
-
-        self.layout = QVBoxLayout()
-
-        self.json_tree = QTreeWidget()
-        self.json_tree.setHeaderLabels(['Project parameters'])
-        self._build_tree()
-
-        self.layout.addWidget(self.json_tree)
-        self.setLayout(self.layout)
+        # self.project_file = project_file
+        #
+        # self.layout = QVBoxLayout()
+        #
+        # self.json_tree = QTreeWidget()
+        # self.json_tree.setHeaderLabels(['Project parameters'])
+        # self._build_tree()
+        #
+        # self.layout.addWidget(self.json_tree)
+        # self.setLayout(self.layout)
 
     def _build_tree(self):
         """
@@ -46,10 +45,3 @@ class ProjectFilePopup(Popup):
                     child = QTreeWidgetItem(branch,
                                             ['{0}: {1}'.format(k, j[k])])
                 metric += 1
-
-    def run(self):
-        """
-        Displays the JSON window
-        """
-
-        self.show()
