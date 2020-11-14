@@ -15,8 +15,8 @@ class Window(QMainWindow):
     Parent window class that configures window UI, icon, and title if given.
     """
 
-    def __init__(self, window_ui, icon_file, title, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, window_ui, icon_file, title):
+        super().__init__()
 
         # UI configurations
         try:
@@ -37,8 +37,8 @@ class Popup(QWidget):
     Parent popup class that configures popup UI, icon, title, and geometry.
     """
 
-    def __init__(self, popup_ui, icon_file, title, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, popup_ui, icon_file, title):
+        super().__init__()
 
         # UI configurations
         try:

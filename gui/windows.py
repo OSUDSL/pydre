@@ -23,9 +23,8 @@ class MainWindow(Window):
     configurations and functionality.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(Ui_MainWindow, "images/icon.png", "Pydre", *args,
-                         **kwargs)
+    def __init__(self):
+        super().__init__(Ui_MainWindow, "images/icon.png", "Pydre")
 
         # Button callbacks
         self.ui.pfile_btn.clicked.connect(
