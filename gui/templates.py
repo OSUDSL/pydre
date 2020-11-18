@@ -25,6 +25,7 @@ class Window(QMainWindow):
         except AttributeError:
             logger.error("ERROR: Invalid window UI")
         except TypeError:
+            # Allow child to inherit without using a Qt-generated UI file
             pass
 
         # Window configurations
@@ -47,6 +48,7 @@ class Popup(QWidget):
         except AttributeError:
             logger.error("ERROR: Invalid popup UI")
         except TypeError:
+            # Allow child to inherit without using a Qt-generated UI file
             pass
 
         # Window configurations
