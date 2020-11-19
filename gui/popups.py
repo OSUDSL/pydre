@@ -40,13 +40,13 @@ class ProjectFilePopup(Popup):
         pfile_contents = json.load(self.project_file)
 
         # Generate tree for each parameter type
-        for i_idx, i in enumerate(pfile_contents):
+        for i in pfile_contents:
             tree = QTreeWidgetItem(self.ui.pfile_tree, [i])
 
             # Generate branch for the contents of each parameter type
-            for j_idx, j in enumerate(pfile_contents[i]):
+            for idx, j in enumerate(pfile_contents[i]):
                 branch = QTreeWidgetItem(tree, [
-                    '{0} {1}'.format(self.param_types[i_idx], j_idx + 1)])
+                    '{0} {1}'.format(self.param_types[i], idx + 1)])
 
                 # Generate leaf for each parameter
                 for k in j:
