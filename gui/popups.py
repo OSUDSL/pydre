@@ -22,7 +22,7 @@ class ProjectFilePopup(Popup):
         self.project_file = project_file
 
         # Class variables
-        self.param_types = ['roi', 'metric']
+        self.param_types = {'rois': 'roi', 'metrics': 'metric'}
 
         # Button callbacks
         self.ui.cancel_btn.clicked.connect(self.close)
@@ -36,19 +36,21 @@ class ProjectFilePopup(Popup):
         FIXME
         """
 
+        # Load project file contents
         pfile_contents = json.load(self.project_file)
 
-        tree_count = 0
-        for i in pfile_contents:
+        # Generate tree for each parameter type
+        for i_idx, i in enumerate(pfile_contents):
             tree = QTreeWidgetItem(self.ui.pfile_tree, [i])
-            leaf_count = 1
-            for j in pfile_contents[i]:
+
+            # Generate branch for the contents of each parameter type
+            for j_idx, j in enumerate(pfile_contents[i]):
                 branch = QTreeWidgetItem(tree, [
-                    '{0} {1}'.format(self.param_types[tree_count], leaf_count)])
+                    '{0} {1}'.format(self.param_types[i_idx], j_idx + 1)])
+
+                # Generate leaf for each parameter
                 for k in j:
                     QTreeWidgetItem(branch, ['{0}: {1}'.format(k, j[k])])
-                leaf_count += 1
-            tree_count += 1
 
     def _save(self):
         """
