@@ -17,27 +17,33 @@ class Ui_Form(object):
     def setupUi(self, Form):
         if not Form.objectName():
             Form.setObjectName(u"Form")
-        Form.resize(400, 261)
+        Form.resize(500, 300)
         self.verticalLayout = QVBoxLayout(Form)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.pfile_tree = QTreeWidget(Form)
-        __qtreewidgetitem = QTreeWidgetItem(self.pfile_tree)
-        __qtreewidgetitem.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEditable|Qt.ItemIsDragEnabled|Qt.ItemIsDropEnabled|Qt.ItemIsUserCheckable|Qt.ItemIsEnabled);
         self.pfile_tree.setObjectName(u"pfile_tree")
+        self.pfile_tree.setAnimated(True)
 
         self.verticalLayout.addWidget(self.pfile_tree)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.pushButton = QPushButton(Form)
-        self.pushButton.setObjectName(u"pushButton")
+        self.cancel_btn = QPushButton(Form)
+        self.cancel_btn.setObjectName(u"cancel_btn")
 
-        self.horizontalLayout_2.addWidget(self.pushButton)
+        self.horizontalLayout_2.addWidget(self.cancel_btn)
 
-        self.pushButton_2 = QPushButton(Form)
-        self.pushButton_2.setObjectName(u"pushButton_2")
+        self.save_btn = QPushButton(Form)
+        self.save_btn.setObjectName(u"save_btn")
+        self.save_btn.setEnabled(False)
 
-        self.horizontalLayout_2.addWidget(self.pushButton_2)
+        self.horizontalLayout_2.addWidget(self.save_btn)
+
+        self.finish_btn = QPushButton(Form)
+        self.finish_btn.setObjectName(u"finish_btn")
+        self.finish_btn.setEnabled(False)
+
+        self.horizontalLayout_2.addWidget(self.finish_btn)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -51,15 +57,9 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         Form.setWindowTitle(QCoreApplication.translate("Form", u"Form", None))
         ___qtreewidgetitem = self.pfile_tree.headerItem()
-        ___qtreewidgetitem.setText(0, QCoreApplication.translate("Form", u"1", None));
-
-        __sortingEnabled = self.pfile_tree.isSortingEnabled()
-        self.pfile_tree.setSortingEnabled(False)
-        ___qtreewidgetitem1 = self.pfile_tree.topLevelItem(0)
-        ___qtreewidgetitem1.setText(0, QCoreApplication.translate("Form", u"Project parameters", None));
-        self.pfile_tree.setSortingEnabled(__sortingEnabled)
-
-        self.pushButton.setText(QCoreApplication.translate("Form", u"Cancel", None))
-        self.pushButton_2.setText(QCoreApplication.translate("Form", u"Save", None))
+        ___qtreewidgetitem.setText(0, QCoreApplication.translate("Form", u"Project parameters", None));
+        self.cancel_btn.setText(QCoreApplication.translate("Form", u"Cancel", None))
+        self.save_btn.setText(QCoreApplication.translate("Form", u"Save", None))
+        self.finish_btn.setText(QCoreApplication.translate("Form", u"Finish", None))
     # retranslateUi
 
