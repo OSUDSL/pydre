@@ -34,7 +34,13 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QStackedWidget" name="stackedWidget">
+     <widget class="QStackedWidget" name="page_stack">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -73,7 +79,7 @@
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
-               <widget class="QPushButton" name="switch_btn">
+               <widget class="QPushButton" name="open_file_btn">
                 <property name="text">
                  <string>Open File</string>
                 </property>
@@ -124,8 +130,23 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QSplitter" name="splitter">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="childrenCollapsible">
+           <bool>false</bool>
           </property>
           <widget class="QTreeWidget" name="treeWidget">
            <column>
@@ -134,7 +155,7 @@
             </property>
            </column>
           </widget>
-          <widget class="QTabWidget" name="tabWidget">
+          <widget class="QTabWidget" name="pfile_tab">
            <property name="focusPolicy">
             <enum>Qt::TabFocus</enum>
            </property>
@@ -159,7 +180,7 @@
               <widget class="QTreeWidget" name="treeWidget_2">
                <column>
                 <property name="text">
-                 <string notr="true">1</string>
+                 <string notr="true">Project parameters</string>
                 </property>
                </column>
               </widget>

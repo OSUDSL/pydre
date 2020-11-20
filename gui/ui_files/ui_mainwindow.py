@@ -29,8 +29,13 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.stackedWidget = QStackedWidget(self.centralwidget)
-        self.stackedWidget.setObjectName(u"stackedWidget")
+        self.page_stack = QStackedWidget(self.centralwidget)
+        self.page_stack.setObjectName(u"page_stack")
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.page_stack.sizePolicy().hasHeightForWidth())
+        self.page_stack.setSizePolicy(sizePolicy)
         self.page = QWidget()
         self.page.setObjectName(u"page")
         self.verticalLayout_7 = QVBoxLayout(self.page)
@@ -49,10 +54,10 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4 = QVBoxLayout()
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.switch_btn = QPushButton(self.page)
-        self.switch_btn.setObjectName(u"switch_btn")
+        self.open_file_btn = QPushButton(self.page)
+        self.open_file_btn.setObjectName(u"open_file_btn")
 
-        self.verticalLayout_4.addWidget(self.switch_btn)
+        self.verticalLayout_4.addWidget(self.open_file_btn)
 
         self.label_2 = QLabel(self.page)
         self.label_2.setObjectName(u"label_2")
@@ -76,43 +81,48 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_7.addLayout(self.horizontalLayout_2)
 
-        self.stackedWidget.addWidget(self.page)
+        self.page_stack.addWidget(self.page)
         self.page_2 = QWidget()
         self.page_2.setObjectName(u"page_2")
         self.verticalLayout_3 = QVBoxLayout(self.page_2)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.splitter = QSplitter(self.page_2)
         self.splitter.setObjectName(u"splitter")
+        sizePolicy.setHeightForWidth(self.splitter.sizePolicy().hasHeightForWidth())
+        self.splitter.setSizePolicy(sizePolicy)
+        self.splitter.setLayoutDirection(Qt.LeftToRight)
+        self.splitter.setFrameShape(QFrame.NoFrame)
         self.splitter.setOrientation(Qt.Horizontal)
+        self.splitter.setChildrenCollapsible(False)
         self.treeWidget = QTreeWidget(self.splitter)
         self.treeWidget.setObjectName(u"treeWidget")
         self.splitter.addWidget(self.treeWidget)
-        self.tabWidget = QTabWidget(self.splitter)
-        self.tabWidget.setObjectName(u"tabWidget")
-        self.tabWidget.setFocusPolicy(Qt.TabFocus)
-        self.tabWidget.setTabShape(QTabWidget.Rounded)
-        self.tabWidget.setTabsClosable(True)
-        self.tabWidget.setMovable(True)
+        self.pfile_tab = QTabWidget(self.splitter)
+        self.pfile_tab.setObjectName(u"pfile_tab")
+        self.pfile_tab.setFocusPolicy(Qt.TabFocus)
+        self.pfile_tab.setTabShape(QTabWidget.Rounded)
+        self.pfile_tab.setTabsClosable(True)
+        self.pfile_tab.setMovable(True)
         self.tab = QWidget()
         self.tab.setObjectName(u"tab")
         self.verticalLayout_2 = QVBoxLayout(self.tab)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.treeWidget_2 = QTreeWidget(self.tab)
         __qtreewidgetitem = QTreeWidgetItem()
-        __qtreewidgetitem.setText(0, u"1");
+        __qtreewidgetitem.setText(0, u"Project parameters");
         self.treeWidget_2.setHeaderItem(__qtreewidgetitem)
         self.treeWidget_2.setObjectName(u"treeWidget_2")
 
         self.verticalLayout_2.addWidget(self.treeWidget_2)
 
-        self.tabWidget.addTab(self.tab, "")
-        self.splitter.addWidget(self.tabWidget)
+        self.pfile_tab.addTab(self.tab, "")
+        self.splitter.addWidget(self.pfile_tab)
 
         self.verticalLayout_3.addWidget(self.splitter)
 
-        self.stackedWidget.addWidget(self.page_2)
+        self.page_stack.addWidget(self.page_2)
 
-        self.verticalLayout.addWidget(self.stackedWidget)
+        self.verticalLayout.addWidget(self.page_stack)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menuBar = QMenuBar(MainWindow)
@@ -135,8 +145,8 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(0)
-        self.tabWidget.setCurrentIndex(0)
+        self.page_stack.setCurrentIndex(0)
+        self.pfile_tab.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -145,11 +155,11 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"PyDre", None))
         self.pfile_act.setText(QCoreApplication.translate("MainWindow", u"Project File", None))
-        self.switch_btn.setText(QCoreApplication.translate("MainWindow", u"Open File", None))
+        self.open_file_btn.setText(QCoreApplication.translate("MainWindow", u"Open File", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Drop files here to open", None))
         ___qtreewidgetitem = self.treeWidget.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"Project", None));
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Tab 1", None))
+        self.pfile_tab.setTabText(self.pfile_tab.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Tab 1", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))
         self.menuView.setTitle(QCoreApplication.translate("MainWindow", u"View", None))
