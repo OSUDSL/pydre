@@ -26,20 +26,23 @@ class MainWindow(Window):
     def __init__(self):
         super().__init__(Ui_MainWindow, "images/icon.png", "Pydre")
 
-        # Button callbacks
-        self.ui.pfile_btn.clicked.connect(
-            partial(self._add_pfile, "JSON (*.json)"))
-        self.ui.dfile_btn.clicked.connect(
-            partial(self._add_dfiles, "DAT (*.dat)"))
-        self.ui.remove_btn.clicked.connect(self._remove_file)
-        self.ui.edit_pfile_btn.clicked.connect(self._edit_pfile)
-        self.ui.convert_btn.clicked.connect(self._run_pydre)
+        # # Button callbacks
+        # self.ui.pfile_btn.clicked.connect(
+        #     partial(self._add_pfile, "JSON (*.json)"))
+        # self.ui.dfile_btn.clicked.connect(
+        #     partial(self._add_dfiles, "DAT (*.dat)"))
+        # self.ui.remove_btn.clicked.connect(self._remove_file)
+        # self.ui.edit_pfile_btn.clicked.connect(self._edit_pfile)
+        # self.ui.convert_btn.clicked.connect(self._run_pydre)
+        #
+        # # Input callbacks
+        # self.ui.pfile_inp.textChanged.connect(self._toggle_buttons)
+        # self.ui.dfile_inp.model().rowsInserted.connect(self._toggle_buttons)
+        # self.ui.dfile_inp.model().rowsRemoved.connect(self._toggle_buttons)
+        # self.ui.dfile_inp.itemSelectionChanged.connect(self._toggle_remove)
 
-        # Input callbacks
-        self.ui.pfile_inp.textChanged.connect(self._toggle_buttons)
-        self.ui.dfile_inp.model().rowsInserted.connect(self._toggle_buttons)
-        self.ui.dfile_inp.model().rowsRemoved.connect(self._toggle_buttons)
-        self.ui.dfile_inp.itemSelectionChanged.connect(self._toggle_remove)
+        self.ui.switch_btn.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
+        self.ui.tabWidget.tabCloseRequested.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
 
     def _toggle_remove(self):
         """
