@@ -41,6 +41,9 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="acceptDrops">
+       <bool>true</bool>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -193,6 +196,8 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="new_action"/>
+    <addaction name="open_action"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -220,6 +225,16 @@
    </property>
    <property name="text">
     <string>Project File</string>
+   </property>
+  </action>
+  <action name="new_action">
+   <property name="text">
+    <string>New...</string>
+   </property>
+  </action>
+  <action name="open_action">
+   <property name="text">
+    <string>Open...</string>
    </property>
   </action>
  </widget>

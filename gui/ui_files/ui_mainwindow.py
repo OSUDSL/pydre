@@ -25,6 +25,10 @@ class Ui_MainWindow(object):
         self.pfile_act = QAction(MainWindow)
         self.pfile_act.setObjectName(u"pfile_act")
         self.pfile_act.setEnabled(False)
+        self.new_action = QAction(MainWindow)
+        self.new_action.setObjectName(u"new_action")
+        self.open_action = QAction(MainWindow)
+        self.open_action.setObjectName(u"open_action")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -36,6 +40,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.page_stack.sizePolicy().hasHeightForWidth())
         self.page_stack.setSizePolicy(sizePolicy)
+        self.page_stack.setAcceptDrops(True)
         self.page = QWidget()
         self.page.setObjectName(u"page")
         self.verticalLayout_7 = QVBoxLayout(self.page)
@@ -129,6 +134,8 @@ class Ui_MainWindow(object):
         self.menuBar.addAction(self.menuEdit.menuAction())
         self.menuBar.addAction(self.menuView.menuAction())
         self.menuBar.addAction(self.menuRun.menuAction())
+        self.menuFile.addAction(self.new_action)
+        self.menuFile.addAction(self.open_action)
 
         self.retranslateUi(MainWindow)
 
@@ -142,6 +149,8 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"PyDre", None))
         self.pfile_act.setText(QCoreApplication.translate("MainWindow", u"Project File", None))
+        self.new_action.setText(QCoreApplication.translate("MainWindow", u"New...", None))
+        self.open_action.setText(QCoreApplication.translate("MainWindow", u"Open...", None))
         self.open_file_btn.setText(QCoreApplication.translate("MainWindow", u"Open File", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Drop files here to open", None))
         ___qtreewidgetitem = self.treeWidget.headerItem()

@@ -5,8 +5,6 @@
 
 import inspect
 from functools import partial
-from gui.handlers import Pydre
-from gui.popups import ProjectFilePopup
 from gui.templates import Window
 from gui.ui_files.ui_mainwindow import Ui_MainWindow
 from json import load
@@ -32,8 +30,17 @@ class MainWindow(Window):
                             'metrics': 'metric'}  # TODO: Move to config file
 
         # Initial window configurations
-        self.ui.splitter.setStretchFactor(0, 2)  # TODO: Move to config file
-        self.ui.splitter.setStretchFactor(1, 3)
+        self.ui.splitter.setStretchFactor(0, 1)  # TODO: Move to config file
+        self.ui.splitter.setStretchFactor(1, 2)
+
+        # Menu bar action shortcuts
+        self.ui.new_action.setShortcut("Ctrl+N")
+        self.ui.open_action.setShortcut("Ctrl+O")
+
+        # Menu bar action callbacks
+        self.ui.new_action.triggered.connect(partial(print, "DEBUG: New..."))
+        self.ui.open_action.triggered.connect(
+            partial(self._open_pfile, "JSON (*.json)"))
 
         # Button callbacks
         self.ui.open_file_btn.clicked.connect(
@@ -67,6 +74,24 @@ class MainWindow(Window):
                 for k in j:
                     QTreeWidgetItem(branch, ['{0}: {1}'.format(k, j[k])])
 
+    def _launch_editor(self, pfile_path):
+        """
+        TODO
+        """
+
+        # Get project file name from path
+        pfile_name = pfile_path.split("/")[-1]
+
+        # Create new tab for the selected project file
+        pfile_tree = QTreeWidget()  # TODO: Create custom tree widget class
+        self.ui.pfile_tab.insertTab(self.ui.pfile_tab.count(), pfile_tree,
+                                    pfile_name)
+
+        # Build and display the project file editor
+        self._build_pfile_tree(pfile_tree, pfile_path)
+        self.ui.page_stack.setCurrentIndex(1)
+        self.ui.pfile_tab.setCurrentIndex(self.ui.pfile_tab.count() - 1)
+
     def _open_pfile(self, file_type):
         """
         TODO
@@ -81,21 +106,6 @@ class MainWindow(Window):
 
         # Launch the project file editor if a project file is selected
         self._launch_editor(pfile_path) if pfile_path else None
-
-    def _launch_editor(self, pfile_path):
-        """
-        TODO
-        """
-
-        # Get project file name from path
-        pfile_name = pfile_path.split("/")[-1]
-
-        # Build and display project file editor page
-        pfile_tree = QTreeWidget()  # TODO: Create custom tree widget class
-        self.ui.pfile_tab.insertTab(self.ui.pfile_tab.count(), pfile_tree,
-                                    pfile_name)
-        self._build_pfile_tree(pfile_tree, pfile_path)
-        self.ui.page_stack.setCurrentIndex(1)
 
     def _close_tab(self, index):
         """
