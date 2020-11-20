@@ -103,19 +103,6 @@ class Ui_MainWindow(object):
         self.pfile_tab.setTabShape(QTabWidget.Rounded)
         self.pfile_tab.setTabsClosable(True)
         self.pfile_tab.setMovable(True)
-        self.tab = QWidget()
-        self.tab.setObjectName(u"tab")
-        self.verticalLayout_2 = QVBoxLayout(self.tab)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.pfile_tree_0 = QTreeWidget(self.tab)
-        __qtreewidgetitem = QTreeWidgetItem()
-        __qtreewidgetitem.setText(0, u"Project parameters");
-        self.pfile_tree_0.setHeaderItem(__qtreewidgetitem)
-        self.pfile_tree_0.setObjectName(u"pfile_tree_0")
-
-        self.verticalLayout_2.addWidget(self.pfile_tree_0)
-
-        self.pfile_tab.addTab(self.tab, "")
         self.splitter.addWidget(self.pfile_tab)
 
         self.verticalLayout_3.addWidget(self.splitter)
@@ -146,7 +133,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
 
         self.page_stack.setCurrentIndex(0)
-        self.pfile_tab.setCurrentIndex(0)
+        self.pfile_tab.setCurrentIndex(-1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -159,7 +146,6 @@ class Ui_MainWindow(object):
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Drop files here to open", None))
         ___qtreewidgetitem = self.treeWidget.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"Project", None));
-        self.pfile_tab.setTabText(self.pfile_tab.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Tab 1", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))
         self.menuView.setTitle(QCoreApplication.translate("MainWindow", u"View", None))

@@ -163,7 +163,7 @@
             <enum>QTabWidget::Rounded</enum>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>-1</number>
            </property>
            <property name="tabsClosable">
             <bool>true</bool>
@@ -171,22 +171,6 @@
            <property name="movable">
             <bool>true</bool>
            </property>
-           <widget class="QWidget" name="tab">
-            <attribute name="title">
-             <string>Tab 1</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_2">
-             <item>
-              <widget class="QTreeWidget" name="pfile_tree_0">
-               <column>
-                <property name="text">
-                 <string notr="true">Project parameters</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
-           </widget>
           </widget>
          </widget>
         </item>

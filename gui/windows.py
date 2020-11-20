@@ -13,7 +13,7 @@ from json import load
 import logging
 from os import path, sep
 import pydre
-from PySide2.QtWidgets import QFileDialog, QTreeWidgetItem
+from PySide2.QtWidgets import QFileDialog, QTreeWidget, QTreeWidgetItem
 
 logger = logging.getLogger("PydreLogger")
 
@@ -43,7 +43,7 @@ class MainWindow(Window):
         self.ui.pfile_tab.tabCloseRequested.connect(
             lambda index: self._close_tab(index))
 
-    def _build_pfile_tree(self, pfile_path):
+    def _build_pfile_tree(self, pfile_tree, pfile_path):
         """
         TODO
         """
@@ -51,9 +51,12 @@ class MainWindow(Window):
         # Load project file contents
         pfile_contents = load(open(pfile_path))
 
+        # Set tree column title
+        pfile_tree.setHeaderLabel("Project parameters")
+
         # Generate tree for each parameter type
         for i in pfile_contents:
-            tree = QTreeWidgetItem(self.ui.pfile_tree_0, [i])
+            tree = QTreeWidgetItem(pfile_tree, [i])
 
             # Generate branch for the contents of each parameter type
             for index, j in enumerate(pfile_contents[i]):
@@ -88,8 +91,10 @@ class MainWindow(Window):
         pfile_name = pfile_path.split("/")[-1]
 
         # Build and display project file editor page
-        self.ui.pfile_tab.setTabText(0, pfile_name)
-        self._build_pfile_tree(pfile_path)
+        pfile_tree = QTreeWidget()  # TODO: Create custom tree widget class
+        self.ui.pfile_tab.insertTab(self.ui.pfile_tab.count(), pfile_tree,
+                                    pfile_name)
+        self._build_pfile_tree(pfile_tree, pfile_path)
         self.ui.page_stack.setCurrentIndex(1)
 
     def _close_tab(self, index):
