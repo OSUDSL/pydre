@@ -3,16 +3,19 @@
 # Created on: 11/13/2020
 # """
 
+from configparser import ConfigParser
 import inspect
 from functools import partial
 from gui.templates import Window
 from gui.ui_files.ui_mainwindow import Ui_MainWindow
-from json import load
+from json import load, loads
 import logging
-from os import path, sep
+from os import path
 import pydre
 from PySide2.QtWidgets import QFileDialog, QTreeWidget, QTreeWidgetItem
 
+config = ConfigParser()
+config.read("./config_files/config.ini")
 logger = logging.getLogger("PydreLogger")
 
 
@@ -26,12 +29,13 @@ class MainWindow(Window):
         super().__init__(Ui_MainWindow, "images/icon.png", "Pydre")
 
         # Class variables
-        self.param_types = {'rois': 'roi',
-                            'metrics': 'metric'}  # TODO: Move to config file
+        self.param_types = dict(config.items("parameters"))
 
         # Initial window configurations
-        self.ui.splitter.setStretchFactor(0, 1)  # TODO: Move to config file
-        self.ui.splitter.setStretchFactor(1, 2)
+        self.ui.splitter.setStretchFactor(0, int(
+            config.get("geometry", "stretch_factor_0")))
+        self.ui.splitter.setStretchFactor(1, int(
+            config.get("geometry", "stretch_factor_1")))
 
         # Menu bar action shortcuts
         self.ui.new_action.setShortcut("Ctrl+N")
@@ -84,6 +88,7 @@ class MainWindow(Window):
 
         # Create new tab for the selected project file
         pfile_tree = QTreeWidget()  # TODO: Create custom tree widget class
+        pfile_tree.setAnimated(True)
         self.ui.pfile_tab.insertTab(self.ui.pfile_tab.count(), pfile_tree,
                                     pfile_name)
 
