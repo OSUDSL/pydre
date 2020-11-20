@@ -177,7 +177,7 @@
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
-              <widget class="QTreeWidget" name="treeWidget_2">
+              <widget class="QTreeWidget" name="pfile_tree_0">
                <column>
                 <property name="text">
                  <string notr="true">Project parameters</string>

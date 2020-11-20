@@ -107,13 +107,13 @@ class Ui_MainWindow(object):
         self.tab.setObjectName(u"tab")
         self.verticalLayout_2 = QVBoxLayout(self.tab)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.treeWidget_2 = QTreeWidget(self.tab)
+        self.pfile_tree_0 = QTreeWidget(self.tab)
         __qtreewidgetitem = QTreeWidgetItem()
         __qtreewidgetitem.setText(0, u"Project parameters");
-        self.treeWidget_2.setHeaderItem(__qtreewidgetitem)
-        self.treeWidget_2.setObjectName(u"treeWidget_2")
+        self.pfile_tree_0.setHeaderItem(__qtreewidgetitem)
+        self.pfile_tree_0.setObjectName(u"pfile_tree_0")
 
-        self.verticalLayout_2.addWidget(self.treeWidget_2)
+        self.verticalLayout_2.addWidget(self.pfile_tree_0)
 
         self.pfile_tab.addTab(self.tab, "")
         self.splitter.addWidget(self.pfile_tab)
