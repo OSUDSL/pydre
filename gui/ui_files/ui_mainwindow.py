@@ -59,10 +59,10 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4 = QVBoxLayout()
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.open_file_btn = QPushButton(self.page)
-        self.open_file_btn.setObjectName(u"open_file_btn")
+        self.open_pfile_btn = QPushButton(self.page)
+        self.open_pfile_btn.setObjectName(u"open_pfile_btn")
 
-        self.verticalLayout_4.addWidget(self.open_file_btn)
+        self.verticalLayout_4.addWidget(self.open_pfile_btn)
 
         self.label_2 = QLabel(self.page)
         self.label_2.setObjectName(u"label_2")
@@ -129,6 +129,9 @@ class Ui_MainWindow(object):
         self.menuRun = QMenu(self.menuBar)
         self.menuRun.setObjectName(u"menuRun")
         MainWindow.setMenuBar(self.menuBar)
+        self.toolBar = QToolBar(MainWindow)
+        self.toolBar.setObjectName(u"toolBar")
+        MainWindow.addToolBar(Qt.TopToolBarArea, self.toolBar)
 
         self.menuBar.addAction(self.menuFile.menuAction())
         self.menuBar.addAction(self.menuEdit.menuAction())
@@ -151,7 +154,7 @@ class Ui_MainWindow(object):
         self.pfile_act.setText(QCoreApplication.translate("MainWindow", u"Project File", None))
         self.new_action.setText(QCoreApplication.translate("MainWindow", u"New...", None))
         self.open_action.setText(QCoreApplication.translate("MainWindow", u"Open...", None))
-        self.open_file_btn.setText(QCoreApplication.translate("MainWindow", u"Open File", None))
+        self.open_pfile_btn.setText(QCoreApplication.translate("MainWindow", u"Open File", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Drop files here to open", None))
         ___qtreewidgetitem = self.treeWidget.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("MainWindow", u"Project", None));
@@ -159,5 +162,6 @@ class Ui_MainWindow(object):
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))
         self.menuView.setTitle(QCoreApplication.translate("MainWindow", u"View", None))
         self.menuRun.setTitle(QCoreApplication.translate("MainWindow", u"Run", None))
+        self.toolBar.setWindowTitle(QCoreApplication.translate("MainWindow", u"toolBar", None))
     # retranslateUi
 

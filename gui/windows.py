@@ -28,35 +28,71 @@ class MainWindow(Window):
     def __init__(self):
         super().__init__(Ui_MainWindow, "images/icon.png", "Pydre")
 
-        # Class variables
+        # Config variables
+        self.stretch_factors = loads(config.get("geometry", "stretch_factors"))
+        self.file_types = dict(config.items("files"))
         self.param_types = dict(config.items("parameters"))
 
-        # Initial window configurations
-        self.ui.splitter.setStretchFactor(0, int(
-            config.get("geometry", "stretch_factor_0")))
-        self.ui.splitter.setStretchFactor(1, int(
-            config.get("geometry", "stretch_factor_1")))
+        # Application configurations
+        self._configure_widgets()
+        self._configure_shortcuts()
+        self._configure_callbacks()
+
+    def _configure_widgets(self):
+        """
+        Configures widgets based on config file settings
+        """
+
+        # Set horizontal splitter location based on config file
+        for i in range(self.ui.splitter.count()):
+            self.ui.splitter.setStretchFactor(i, self.stretch_factors[i])
+
+    def _configure_shortcuts(self):
+        """
+        Configures keyboard shortcuts for widgets events
+        """
 
         # Menu bar action shortcuts
         self.ui.new_action.setShortcut("Ctrl+N")
         self.ui.open_action.setShortcut("Ctrl+O")
 
+    def _configure_callbacks(self):
+        """
+        Configures callback functions for widget events
+        """
+
         # Menu bar action callbacks
         self.ui.new_action.triggered.connect(partial(print, "DEBUG: New..."))
-        self.ui.open_action.triggered.connect(
-            partial(self._open_pfile, "JSON (*.json)"))
+        self.ui.open_action.triggered.connect(self._handle_open)
 
         # Button callbacks
-        self.ui.open_file_btn.clicked.connect(
-            partial(self._open_pfile, "JSON (*.json)"))
+        self.ui.open_pfile_btn.clicked.connect(self._handle_open)
 
         # Tab widget callbacks
         self.ui.pfile_tab.tabCloseRequested.connect(
             lambda index: self._close_tab(index))
 
-    def _build_pfile_tree(self, pfile_tree, pfile_path):
+    def _handle_open(self):
         """
         TODO
+        """
+
+        pfile_path = self._open_file(self.file_types["project"])
+        self._launch_pfile_editor(pfile_path)
+
+    # TODO: Create custom tree class to handle this
+    def _create_branch(self, tree):
+        """
+        TODO
+        """
+
+    def _build_pfile_tree(self, pfile_tree, pfile_path):
+        """
+        Creates and fills the project file editor tree
+
+        args:
+            pfile_tree: Project file tree widget
+            pfile_path: Project file path
         """
 
         # Load project file contents
@@ -71,16 +107,20 @@ class MainWindow(Window):
 
             # Generate branch for the contents of each parameter type
             for index, j in enumerate(pfile_contents[i]):
-                branch = QTreeWidgetItem(tree, [
-                    '{0} {1}'.format(self.param_types[i], index + 1)])
+                branch_text = ['{0} {1}'.format(self.param_types[i], index + 1)]
+                branch = QTreeWidgetItem(tree, branch_text)
 
                 # Generate leaf for each parameter
                 for k in j:
-                    QTreeWidgetItem(branch, ['{0}: {1}'.format(k, j[k])])
+                    leaf_text = ['{0}: {1}'.format(k, j[k])]
+                    QTreeWidgetItem(branch, leaf_text)
 
-    def _launch_editor(self, pfile_path):
+    def _launch_pfile_editor(self, pfile_path):
         """
-        TODO
+        Configures and shows the project file editor in a new tab
+
+        args:
+            pfile_path: Project file path
         """
 
         # Get project file name from path
@@ -97,20 +137,25 @@ class MainWindow(Window):
         self.ui.page_stack.setCurrentIndex(1)
         self.ui.pfile_tab.setCurrentIndex(self.ui.pfile_tab.count() - 1)
 
-    def _open_pfile(self, file_type):
+    def _open_file(self, file_type=None):
         """
-        TODO
+        Launches a file selection dialog based on the given file type and
+        returns the file path if one is selected
+
+        args:
+            file_type: Optional file type of the desired file
+
+        returns: Path of the selected file or None if no file is selected
         """
 
         # Target directory for file selection dialog
         dir_ = path.dirname(path.dirname(inspect.getfile(pydre)))
 
         # Get project file path
-        pfile_path, filter_ = QFileDialog.getOpenFileName(self, "Add file",
-                                                          dir_, file_type)
+        file_path, filter_ = QFileDialog.getOpenFileName(self, "Add file",
+                                                         dir_, file_type)
 
-        # Launch the project file editor if a project file is selected
-        self._launch_editor(pfile_path) if pfile_path else None
+        return file_path if file_path else None
 
     def _close_tab(self, index):
         """
