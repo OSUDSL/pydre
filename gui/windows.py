@@ -74,7 +74,7 @@ class MainWindow(Window):
 
         # Tab widget callbacks
         self.ui.pfile_tab.tabCloseRequested.connect(
-            lambda index: self._close_tab(index))
+            lambda index: self._handle_close(index))
 
     # ==========================================================================
     # Handler methods ----------------------------------------------------------
@@ -88,6 +88,18 @@ class MainWindow(Window):
         pfile_path = self._open_file(self.file_types["project"])
         self._launch_pfile_editor(pfile_path)
 
+    def _handle_close(self, index):
+        """
+        TODO
+        """
+
+        self.ui.pfile_tab.removeTab(index)
+
+        if self.ui.pfile_tab.count() == 0:
+            self.ui.page_stack.setCurrentIndex(0)
+
+    # ==========================================================================
+    # Reference methods --------------------------------------------------------
     # ==========================================================================
 
     # TODO: Create custom tree class to handle this
@@ -166,13 +178,3 @@ class MainWindow(Window):
                                                          dir_, file_type)
 
         return file_path if file_path else None
-
-    def _close_tab(self, index):
-        """
-        TODO
-        """
-
-        self.ui.pfile_tab.removeTab(index)
-
-        if self.ui.pfile_tab.count() == 0:
-            self.ui.page_stack.setCurrentIndex(0)
