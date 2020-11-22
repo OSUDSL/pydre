@@ -38,6 +38,10 @@ class MainWindow(Window):
         self._configure_shortcuts()
         self._configure_callbacks()
 
+    # ==========================================================================
+    # Window configuration methods ---------------------------------------------
+    # ==========================================================================
+
     def _configure_widgets(self):
         """
         Configures widgets based on config file settings
@@ -58,7 +62,7 @@ class MainWindow(Window):
 
     def _configure_callbacks(self):
         """
-        Configures callback functions for widget events
+        Configures callback functionality for widget events
         """
 
         # Menu bar action callbacks
@@ -72,13 +76,19 @@ class MainWindow(Window):
         self.ui.pfile_tab.tabCloseRequested.connect(
             lambda index: self._close_tab(index))
 
+    # ==========================================================================
+    # Handler methods ----------------------------------------------------------
+    # ==========================================================================
+
     def _handle_open(self):
         """
-        TODO
+
         """
 
         pfile_path = self._open_file(self.file_types["project"])
         self._launch_pfile_editor(pfile_path)
+
+    # ==========================================================================
 
     # TODO: Create custom tree class to handle this
     def _create_branch(self, tree):
