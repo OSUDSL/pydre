@@ -177,15 +177,13 @@ class Project():
 		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
 		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
-		processed_filters = [result_data]
 
 
 #new stuff
 
 		for filter in self.definition['filters']:
 			processed_filter = self.processFilter(filter, data_set)
-			processed_filters.append(processed_filter)
-		result_data = pandas.concat(processed_filters, axis=1)
+		result_data = processed_filter
 
 		processed_metrics = [result_data] #might need to move to line 180
 
