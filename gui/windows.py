@@ -6,6 +6,7 @@
 from configparser import ConfigParser
 import inspect
 from functools import partial
+from gui.customs import ProjectTree
 from gui.templates import Window
 from gui.ui_files.ui_mainwindow import Ui_MainWindow
 from json import load, loads
@@ -102,41 +103,6 @@ class MainWindow(Window):
     # Reference methods --------------------------------------------------------
     # ==========================================================================
 
-    # TODO: Create custom tree class to handle this
-    def _create_branch(self, tree):
-        """
-        TODO
-        """
-
-    def _build_pfile_tree(self, pfile_tree, pfile_path):
-        """
-        Creates and fills the project file editor tree
-
-        args:
-            pfile_tree: Project file tree widget
-            pfile_path: Project file path
-        """
-
-        # Load project file contents
-        pfile_contents = load(open(pfile_path))
-
-        # Set tree column title
-        pfile_tree.setHeaderLabel("Project parameters")
-
-        # Generate tree for each parameter type
-        for i in pfile_contents:
-            tree = QTreeWidgetItem(pfile_tree, [i])
-
-            # Generate branch for the contents of each parameter type
-            for index, j in enumerate(pfile_contents[i]):
-                branch_text = ['{0} {1}'.format(self.param_types[i], index + 1)]
-                branch = QTreeWidgetItem(tree, branch_text)
-
-                # Generate leaf for each parameter
-                for k in j:
-                    leaf_text = ['{0}: {1}'.format(k, j[k])]
-                    QTreeWidgetItem(branch, leaf_text)
-
     def _launch_pfile_editor(self, pfile_path):
         """
         Configures and shows the project file editor in a new tab
@@ -145,19 +111,16 @@ class MainWindow(Window):
             pfile_path: Project file path
         """
 
-        # Get project file name from path
-        pfile_name = pfile_path.split("/")[-1]
-
         # Create new tab for the selected project file
-        pfile_tree = QTreeWidget()  # TODO: Create custom tree widget class
-        pfile_tree.setAnimated(True)
-        self.ui.pfile_tab.insertTab(self.ui.pfile_tab.count(), pfile_tree,
-                                    pfile_name)
+        tab = self.ui.pfile_tab.count()
+        pfile_tree = ProjectTree()
+        pfile_name = pfile_path.split("/")[-1]  # TODO: Add try-except here
+        self.ui.pfile_tab.insertTab(tab, pfile_tree, pfile_name)
 
         # Build and display the project file editor
-        self._build_pfile_tree(pfile_tree, pfile_path)
+        pfile_tree.build_from_file(pfile_path)
         self.ui.page_stack.setCurrentIndex(1)
-        self.ui.pfile_tab.setCurrentIndex(self.ui.pfile_tab.count() - 1)
+        self.ui.pfile_tab.setCurrentIndex(tab)
 
     def _open_file(self, file_type=None):
         """
