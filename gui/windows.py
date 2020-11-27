@@ -9,11 +9,11 @@ from functools import partial
 from gui.customs import ProjectTree
 from gui.templates import Window
 from gui.ui_files.ui_mainwindow import Ui_MainWindow
-from json import load, loads
+from json import loads
 import logging
 from os import path
 import pydre
-from PySide2.QtWidgets import QFileDialog, QTreeWidget, QTreeWidgetItem
+from PySide2.QtWidgets import QFileDialog
 
 config = ConfigParser()
 config.read("./config_files/config.ini")
@@ -49,8 +49,10 @@ class MainWindow(Window):
         """
 
         # Set horizontal splitter location based on config file
-        for i in range(self.ui.splitter.count()):
-            self.ui.splitter.setStretchFactor(i, self.stretch_factors[i])
+        splitter_count = self.ui.splitter.count()
+        for i in range(splitter_count):
+            stretch_factor = self.stretch_factors[i]
+            self.ui.splitter.setStretchFactor(i, stretch_factor)
 
     def _configure_shortcuts(self):
         """
@@ -83,44 +85,31 @@ class MainWindow(Window):
 
     def _handle_open(self):
         """
-
+        TODO
         """
 
+        # Launch the file explorer for the project file type
         pfile_path = self._open_file(self.file_types["project"])
-        self._launch_pfile_editor(pfile_path)
+
+        # Launch the project file editor if a project file is selected
+        if pfile_path:
+            self._launch_pfile_editor(pfile_path)
 
     def _handle_close(self, index):
         """
         TODO
         """
 
+        # Delete the tab at the specified index
         self.ui.pfile_tab.removeTab(index)
 
+        # Switch to initial open page if no tabs remain
         if self.ui.pfile_tab.count() == 0:
             self.ui.page_stack.setCurrentIndex(0)
 
     # ==========================================================================
     # Reference methods --------------------------------------------------------
     # ==========================================================================
-
-    def _launch_pfile_editor(self, pfile_path):
-        """
-        Configures and shows the project file editor in a new tab
-
-        args:
-            pfile_path: Project file path
-        """
-
-        # Create new tab for the selected project file
-        tab = self.ui.pfile_tab.count()
-        pfile_tree = ProjectTree()
-        pfile_name = pfile_path.split("/")[-1]  # TODO: Add try-except here
-        self.ui.pfile_tab.insertTab(tab, pfile_tree, pfile_name)
-
-        # Build and display the project file editor
-        pfile_tree.build_from_file(pfile_path)
-        self.ui.page_stack.setCurrentIndex(1)
-        self.ui.pfile_tab.setCurrentIndex(tab)
 
     def _open_file(self, file_type=None):
         """
@@ -136,8 +125,26 @@ class MainWindow(Window):
         # Target directory for file selection dialog
         dir_ = path.dirname(path.dirname(inspect.getfile(pydre)))
 
-        # Get project file path
-        file_path, filter_ = QFileDialog.getOpenFileName(self, "Add file",
-                                                         dir_, file_type)
+        # Get tuple of file path and filter
+        file = QFileDialog.getOpenFileName(self, "Add file", dir_, file_type)
 
-        return file_path if file_path else None
+        return file[0]
+
+    def _launch_pfile_editor(self, pfile_path):
+        """
+        Configures and shows the project file editor in a new tab
+
+        args:
+            pfile_path: Project file path
+        """
+
+        # Create new tab for the selected project file
+        tab = self.ui.pfile_tab.count()
+        pfile_tree = ProjectTree()
+        pfile_name = pfile_path.split("/")[-1]
+        self.ui.pfile_tab.insertTab(tab, pfile_tree, pfile_name)
+
+        # Build and display the project file editor
+        pfile_tree.build_from_file(pfile_path)
+        self.ui.page_stack.setCurrentIndex(1)
+        self.ui.pfile_tab.setCurrentIndex(tab)
