@@ -13,7 +13,7 @@ from json import loads
 import logging
 from os import path
 import pydre
-from PySide2.QtWidgets import QFileDialog
+from PySide2.QtWidgets import QDesktopWidget, QFileDialog
 
 config = ConfigParser()
 config.read("./config_files/config.ini")
@@ -42,6 +42,20 @@ class MainWindow(Window):
     # ==========================================================================
     # Window configuration methods ---------------------------------------------
     # ==========================================================================
+
+    def _configure_geometry(self, width, height):
+        """
+        TODO
+        """
+
+        # Set window dimensions
+        self.resize(width, height)
+
+        # Center window on the screen
+        frame = self.frameGeometry()
+        screen_center = QDesktopWidget().availableGeometry().center()
+        frame.moveCenter(screen_center)
+        self.move(frame.topLeft())
 
     def _configure_widgets(self):
         """
@@ -94,6 +108,7 @@ class MainWindow(Window):
         # Launch the project file editor if a project file is selected
         if pfile_path:
             self._launch_pfile_editor(pfile_path)
+            self._configure_geometry(1100, 768)
 
     def _handle_close(self, index):
         """
@@ -106,6 +121,7 @@ class MainWindow(Window):
         # Switch to initial open page if no tabs remain
         if self.ui.pfile_tab.count() == 0:
             self.ui.page_stack.setCurrentIndex(0)
+            self._configure_geometry(500, 268)
 
     # ==========================================================================
     # Reference methods --------------------------------------------------------
