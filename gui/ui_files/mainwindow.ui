@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -185,9 +188,9 @@
       <widget class="QWidget" name="page_3">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QGroupBox" name="groupBox">
+         <widget class="QGroupBox" name="run_box">
           <property name="title">
-           <string/>
+           <string>Project file</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
            <item>
@@ -251,7 +254,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="cancel_btn">
             <property name="text">
              <string>Cancel</string>
             </property>
@@ -275,7 +278,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
+  <widget class="QMenuBar" name="menu_bar">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -284,35 +287,36 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="file_menu">
     <property name="title">
      <string>File</string>
     </property>
     <addaction name="new_action"/>
     <addaction name="open_action"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="edit_menu">
     <property name="title">
      <string>Edit</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuView">
+   <widget class="QMenu" name="view_menu">
     <property name="title">
      <string>View</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuRun">
+   <widget class="QMenu" name="run_menu">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="title">
      <string>Run</string>
     </property>
+    <addaction name="run_action"/>
    </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuEdit"/>
-   <addaction name="menuView"/>
-   <addaction name="menuRun"/>
+   <addaction name="file_menu"/>
+   <addaction name="edit_menu"/>
+   <addaction name="view_menu"/>
+   <addaction name="run_menu"/>
   </widget>
   <action name="pfile_act">
    <property name="enabled">
@@ -330,6 +334,11 @@
   <action name="open_action">
    <property name="text">
     <string>Open...</string>
+   </property>
+  </action>
+  <action name="run_action">
+   <property name="text">
+    <string>Run</string>
    </property>
   </action>
  </widget>
