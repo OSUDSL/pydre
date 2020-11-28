@@ -85,13 +85,15 @@ class MainWindow(Window):
         # Menu bar action callbacks
         self.ui.new_action.triggered.connect(partial(print, "DEBUG: New..."))
         self.ui.open_action.triggered.connect(self._handle_open)
+        self.ui.run_action.triggered.connect(partial(self.ui.page_stack.setCurrentIndex, 2))  # FIXME
 
         # Button callbacks
         self.ui.open_pfile_btn.clicked.connect(self._handle_open)
+        self.ui.cancel_btn.clicked.connect(partial(self.ui.page_stack.setCurrentIndex, 1))  # FIXME
 
         # Tab widget callbacks
-        self.ui.pfile_tab.tabCloseRequested.connect(
-            lambda index: self._handle_close(index))
+        self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
+        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_close)
 
     # ==========================================================================
     # Handler methods ----------------------------------------------------------
@@ -122,6 +124,17 @@ class MainWindow(Window):
         if self.ui.pfile_tab.count() == 0:
             self.ui.page_stack.setCurrentIndex(0)
             self._configure_geometry(500, 268)
+
+    def _handle_tab_change(self, index):
+        """
+        TODO
+        """
+
+        # Set run action text based on the current project file tab
+        pfile_name = self.ui.pfile_tab.tabText(index)
+        self.ui.run_action.setText("Run '{0}'".format(pfile_name))
+
+        self.ui.run_box.setTitle("Project file: '{0}'".format(pfile_name))  # FIXME: Move to appropriate method
 
     # ==========================================================================
     # Reference methods --------------------------------------------------------
@@ -161,6 +174,7 @@ class MainWindow(Window):
         self.ui.pfile_tab.insertTab(tab, pfile_tree, pfile_name)
 
         # Build and display the project file editor
+        self.ui.run_action.setText("Run '{0}'".format(pfile_name))
         pfile_tree.build_from_file(pfile_path)
         self.ui.page_stack.setCurrentIndex(1)
         self.ui.pfile_tab.setCurrentIndex(tab)
