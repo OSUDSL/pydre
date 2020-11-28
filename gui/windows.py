@@ -34,6 +34,10 @@ class MainWindow(Window):
         self.file_types = dict(config.items("files"))
         self.param_types = dict(config.items("parameters"))
 
+        # Class variables
+        self.pfile_paths = []
+        self.focused_pfile = ""
+
         # Application configurations
         self._configure_widgets()
         self._configure_shortcuts()
@@ -125,6 +129,13 @@ class MainWindow(Window):
             self.ui.page_stack.setCurrentIndex(0)
             self._configure_geometry(500, 268)
 
+    def _handle_run(self):
+        """
+        TODO
+        """
+
+    
+
     def _handle_tab_change(self, index):
         """
         TODO
@@ -156,6 +167,9 @@ class MainWindow(Window):
 
         # Get tuple of file path and filter
         file = QFileDialog.getOpenFileName(self, "Add file", dir_, file_type)
+
+        # Add project file path to currently open project files
+        self.pfile_paths.append(file[0])
 
         return file[0]
 
