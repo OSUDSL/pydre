@@ -142,42 +142,48 @@
        </layout>
       </widget>
       <widget class="QWidget" name="page_2">
-       <layout class="QVBoxLayout" name="verticalLayout_9">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QSplitter" name="splitter">
+         <widget class="QSplitter" name="splitter_2">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Vertical</enum>
           </property>
-          <widget class="QTreeWidget" name="treeWidget">
-           <column>
-            <property name="text">
-             <string>Project</string>
-            </property>
-           </column>
-          </widget>
-          <widget class="QGroupBox" name="groupBox_2">
-           <property name="title">
-            <string/>
+          <widget class="QSplitter" name="splitter">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_3">
+           <widget class="QTreeWidget" name="treeWidget">
+            <column>
+             <property name="text">
+              <string>Project</string>
+             </property>
+            </column>
+           </widget>
+           <widget class="QTabWidget" name="pfile_tab">
+            <property name="focusPolicy">
+             <enum>Qt::TabFocus</enum>
+            </property>
+            <property name="tabShape">
+             <enum>QTabWidget::Rounded</enum>
+            </property>
+            <property name="currentIndex">
+             <number>-1</number>
+            </property>
+            <property name="tabsClosable">
+             <bool>true</bool>
+            </property>
+            <property name="movable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </widget>
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
+            <string>Log</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_9">
             <item>
-             <widget class="QTabWidget" name="pfile_tab">
-              <property name="focusPolicy">
-               <enum>Qt::TabFocus</enum>
-              </property>
-              <property name="tabShape">
-               <enum>QTabWidget::Rounded</enum>
-              </property>
-              <property name="currentIndex">
-               <number>-1</number>
-              </property>
-              <property name="tabsClosable">
-               <bool>true</bool>
-              </property>
-              <property name="movable">
-               <bool>true</bool>
-              </property>
-             </widget>
+             <widget class="QTextBrowser" name="textBrowser"/>
             </item>
            </layout>
           </widget>
