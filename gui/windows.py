@@ -30,7 +30,8 @@ class MainWindow(Window):
         super().__init__(Ui_MainWindow, "images/icon.png", "Pydre")
 
         # Config variables
-        self.stretch_factors = loads(config.get("geometry", "stretch_factors"))
+        self.hstretch_factors = loads(config.get("geometry", "hstretch"))
+        self.vstretch_factors = loads(config.get("geometry", "vstretch"))
         self.file_types = dict(config.items("files"))
         self.param_types = dict(config.items("parameters"))
 
@@ -67,10 +68,16 @@ class MainWindow(Window):
         """
 
         # Set horizontal splitter location based on config file
-        splitter_count = self.ui.splitter.count()
-        for i in range(splitter_count):
-            stretch_factor = self.stretch_factors[i]
-            self.ui.splitter.setStretchFactor(i, stretch_factor)
+        hsplitter_count = self.ui.hsplitter.count()
+        for i in range(hsplitter_count):
+            stretch_factor = self.hstretch_factors[i]
+            self.ui.hsplitter.setStretchFactor(i, stretch_factor)
+
+        # Set vertical splitter location based on config file
+        vsplitter_count = self.ui.vsplitter.count()
+        for i in range(vsplitter_count):
+            stretch_factor = self.vstretch_factors[i]
+            self.ui.vsplitter.setStretchFactor(i, stretch_factor)
 
     def _configure_shortcuts(self):
         """
