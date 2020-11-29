@@ -89,11 +89,11 @@ class MainWindow(Window):
         # Menu bar action callbacks
         self.ui.new_action.triggered.connect(partial(print, "DEBUG: New..."))
         self.ui.open_action.triggered.connect(self._handle_open)
-        self.ui.run_action.triggered.connect(partial(self.ui.page_stack.setCurrentIndex, 2))  # FIXME
+        self.ui.run_action.triggered.connect(self._handle_run)
 
         # Button callbacks
         self.ui.open_pfile_btn.clicked.connect(self._handle_open)
-        self.ui.cancel_btn.clicked.connect(partial(self.ui.page_stack.setCurrentIndex, 1))  # FIXME
+        self.ui.cancel_btn.clicked.connect(self._handle_cancel)
 
         # Tab widget callbacks
         self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
@@ -134,7 +134,18 @@ class MainWindow(Window):
         TODO
         """
 
-    
+        # self._configure_geometry(500, 268)
+
+        self.ui.page_stack.setCurrentIndex(2)
+
+    def _handle_cancel(self):
+        """
+        TODO
+        """
+
+        self._configure_geometry(1100, 768)
+
+        self.ui.page_stack.setCurrentIndex(1)
 
     def _handle_tab_change(self, index):
         """
@@ -183,7 +194,7 @@ class MainWindow(Window):
 
         # Create new tab for the selected project file
         tab = self.ui.pfile_tab.count()
-        pfile_tree = ProjectTree()
+        pfile_tree = ProjectTree(animated=True)
         pfile_name = pfile_path.split("/")[-1]
         self.ui.pfile_tab.insertTab(tab, pfile_tree, pfile_name)
 
