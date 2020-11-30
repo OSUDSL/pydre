@@ -32,23 +32,20 @@ class ProjectTree(QTreeWidget):
         self.setHeaderLabels(self.headers)
         self.setAnimated(animated)
 
-    @staticmethod
-    def _fill_leaves(branch, attributes):
-        """TODO"""
-
-        # Generate leaves with the give attributes list
-        for i in attributes:
-            text = ["{0}: {1}".format(i, attributes[i])]
-            QTreeWidgetItem(branch, text)
-
-    def _fill_branches(self, tree, contents, parameter):
-        """TODO"""
+    def _build_tree(self, tree, contents, parameter):
+        """
+        TODO
+        """
 
         # Generate branches for the specified parameter
-        for index, i in enumerate(contents[parameter]):
+        for index, i, in enumerate(contents[parameter]):
             text = ["{0} {1}".format(self.param_types[parameter], index + 1)]
             branch = QTreeWidgetItem(tree, text)
-            self._fill_leaves(branch, i)
+
+            # Generate leaves for the attributes in each branch
+            for j in i:
+                text = ["{0}: {1}".format(j, i[j])]
+                QTreeWidgetItem(branch, text)
 
     def build_from_file(self, path):
         """
@@ -61,4 +58,4 @@ class ProjectTree(QTreeWidget):
         # Generate tree for each parameter type
         for i in contents:
             tree = QTreeWidgetItem(self, [i])
-            self._fill_branches(tree, contents, i)
+            self._build_tree(tree, contents, i)
