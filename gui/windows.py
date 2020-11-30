@@ -27,7 +27,7 @@ class MainWindow(Window):
     """
 
     def __init__(self):
-        super().__init__(Ui_MainWindow, "images/icon.png", "Pydre")
+        super().__init__("images/icon.png", "Pydre", Ui_MainWindow)
 
         # Config variables
         self.hstretch_factors = loads(config.get("geometry", "hstretch"))
@@ -47,20 +47,6 @@ class MainWindow(Window):
     # ==========================================================================
     # Window configuration methods ---------------------------------------------
     # ==========================================================================
-
-    def _configure_geometry(self, width, height):
-        """
-        TODO
-        """
-
-        # Set window dimensions
-        self.resize(width, height)
-
-        # Center window on the screen
-        frame = self.frameGeometry()
-        screen_center = QDesktopWidget().availableGeometry().center()
-        frame.moveCenter(screen_center)
-        self.move(frame.topLeft())
 
     def _configure_widgets(self):
         """
@@ -121,7 +107,7 @@ class MainWindow(Window):
         # Launch the project file editor if a project file is selected
         if pfile_path:
             self._launch_pfile_editor(pfile_path)
-            self._configure_geometry(1100, 768)
+            self._resize_and_center(1100, 768)
 
     def _handle_close(self, index):
         """
@@ -134,7 +120,7 @@ class MainWindow(Window):
         # Switch to initial open page if no tabs remain
         if self.ui.pfile_tab.count() == 0:
             self.ui.page_stack.setCurrentIndex(0)
-            self._configure_geometry(500, 268)
+            self._resize_and_center(500, 268)
 
     def _handle_run(self):
         """
