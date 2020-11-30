@@ -13,7 +13,7 @@ from json import loads
 import logging
 from os import path
 import pydre
-from PySide2.QtWidgets import QDesktopWidget, QFileDialog
+from PySide2.QtWidgets import QFileDialog
 
 config = ConfigParser()
 config.read("./config_files/config.ini")
@@ -26,8 +26,8 @@ class MainWindow(Window):
     configurations and functionality.
     """
 
-    def __init__(self):
-        super().__init__("images/icon.png", "Pydre", Ui_MainWindow)
+    def __init__(self, icon_file, title, *args, **kwargs):
+        super().__init__(icon_file, title, Ui_MainWindow, *args, **kwargs)
 
         # Config variables
         self.hstretch_factors = loads(config.get("geometry", "hstretch"))
@@ -40,7 +40,8 @@ class MainWindow(Window):
         self.focused_pfile = ""
 
         # Application configurations
-        self._configure_widgets()
+        self._configure_hsplitters()
+        self._configure_vsplitters()
         self._configure_shortcuts()
         self._configure_callbacks()
 
@@ -48,18 +49,21 @@ class MainWindow(Window):
     # Window configuration methods ---------------------------------------------
     # ==========================================================================
 
-    def _configure_widgets(self):
+    def _configure_hsplitters(self):
         """
-        Configures widgets based on config file settings
+        Configures horizontal splitters based on config file settings
         """
 
-        # Set horizontal splitter location based on config file
         hsplitter_count = self.ui.hsplitter.count()
         for i in range(hsplitter_count):
             stretch_factor = self.hstretch_factors[i]
             self.ui.hsplitter.setStretchFactor(i, stretch_factor)
 
-        # Set vertical splitter location based on config file
+    def _configure_vsplitters(self):
+        """
+        Configures vertical splitters based on config file settings
+        """
+
         vsplitter_count = self.ui.vsplitter.count()
         for i in range(vsplitter_count):
             stretch_factor = self.vstretch_factors[i]
@@ -80,7 +84,7 @@ class MainWindow(Window):
         """
 
         # Menu bar action callbacks
-        self.ui.new_action.triggered.connect(partial(print, "DEBUG: New..."))
+        self.ui.new_action.triggered.connect(partial(print, "DEBUG: New..."))  # FIXME
         self.ui.open_action.triggered.connect(self._handle_open)
         self.ui.run_action.triggered.connect(self._handle_run)
 
@@ -102,12 +106,12 @@ class MainWindow(Window):
         """
 
         # Launch the file explorer for the project file type
-        pfile_path = self._open_file(self.file_types["project"])
+        path_ = self._open_file(self.file_types["project"])
 
         # Launch the project file editor if a project file is selected
-        if pfile_path:
-            self._launch_pfile_editor(pfile_path)
-            self._resize_and_center(1100, 768)
+        if path_:
+            self._launch_pfile_editor(pfile_path=path_)
+            self._resize_and_center(width=1100, height=768)
 
     def _handle_close(self, index):
         """
@@ -120,7 +124,7 @@ class MainWindow(Window):
         # Switch to initial open page if no tabs remain
         if self.ui.pfile_tab.count() == 0:
             self.ui.page_stack.setCurrentIndex(0)
-            self._resize_and_center(500, 268)
+            self._resize_and_center(width=500, height=268)
 
     def _handle_run(self):
         """
@@ -129,6 +133,8 @@ class MainWindow(Window):
 
         # self._configure_geometry(500, 268)
 
+        # TODO: Configure page
+
         self.ui.page_stack.setCurrentIndex(2)
 
     def _handle_cancel(self):
@@ -136,7 +142,9 @@ class MainWindow(Window):
         TODO
         """
 
-        self._configure_geometry(1100, 768)
+        self._configure_geometry(width=1100, height=768)
+
+        # TODO: Reset page
 
         self.ui.page_stack.setCurrentIndex(1)
 
@@ -193,6 +201,6 @@ class MainWindow(Window):
 
         # Build and display the project file editor
         self.ui.run_action.setText("Run '{0}'".format(pfile_name))
-        pfile_tree.build_from_file(pfile_path)
+        pfile_tree.build_from_file(path=pfile_path)
         self.ui.page_stack.setCurrentIndex(1)
         self.ui.pfile_tab.setCurrentIndex(tab)
