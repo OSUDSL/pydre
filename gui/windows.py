@@ -163,7 +163,7 @@ class MainWindow(Window):
         pfile_name = self.ui.pfile_tab.tabText(index)
         self.ui.run_action.setText("Run '{0}'".format(pfile_name))
 
-        self.ui.run_box.setTitle("Project file: '{0}'".format(pfile_name))  # FIXME: Move to appropriate method
+        self.ui.pfile_label.setText("Project file: '{0}'".format(pfile_name))  # FIXME: Move to appropriate method
 
     # ==========================================================================
     # Reference methods --------------------------------------------------------
