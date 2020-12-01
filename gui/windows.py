@@ -142,7 +142,7 @@ class MainWindow(Window):
         TODO
         """
 
-        self._configure_geometry(width=1100, height=768)
+        self._resize_and_center(width=1100, height=768)
 
         # TODO: Reset page
 
