@@ -36,7 +36,7 @@ class MainWindow(Window):
         self.param_types = dict(config.items("parameters"))
 
         # Class variables
-        self.pfile_paths = []
+        self.pfile_paths = {}
         self.focused_pfile = ""
 
         # Application configurations
@@ -84,7 +84,8 @@ class MainWindow(Window):
         """
 
         # Menu bar action callbacks
-        self.ui.new_action.triggered.connect(partial(print, "DEBUG: New..."))  # FIXME
+        self.ui.new_action.triggered.connect(
+            partial(print, "DEBUG: New..."))  # FIXME
         self.ui.open_action.triggered.connect(self._handle_open)
         self.ui.run_action.triggered.connect(self._handle_run)
 
@@ -131,10 +132,11 @@ class MainWindow(Window):
         TODO
         """
 
-        # self._configure_geometry(500, 268)
+        # Set the project file label based on the project file being run
+        pfile = self.focused_pfile
+        self.ui.pfile_label.setText("Project file: '{0}'".format(pfile))
 
-        # TODO: Configure page
-
+        # Switch to run page
         self.ui.page_stack.setCurrentIndex(2)
 
     def _handle_cancel(self):
@@ -142,10 +144,7 @@ class MainWindow(Window):
         TODO
         """
 
-        self._resize_and_center(width=1100, height=768)
-
-        # TODO: Reset page
-
+        # Switch to editor page
         self.ui.page_stack.setCurrentIndex(1)
 
     def _handle_tab_change(self, index):
@@ -153,11 +152,12 @@ class MainWindow(Window):
         TODO
         """
 
-        # Set run action text based on the current project file tab
+        # Set run action text based on the current tab
         pfile_name = self.ui.pfile_tab.tabText(index)
         self.ui.run_action.setText("Run '{0}'".format(pfile_name))
 
-        self.ui.pfile_label.setText("Project file: '{0}'".format(pfile_name))  # FIXME: Move to appropriate method
+        # Set focussed project file based on the current tab
+        self.focused_pfile = self.pfile_paths[pfile_name]
 
     # ==========================================================================
     # Reference methods --------------------------------------------------------
@@ -180,9 +180,6 @@ class MainWindow(Window):
         # Get tuple of file path and filter
         file = QFileDialog.getOpenFileName(self, "Add file", dir_, file_type)
 
-        # Add project file path to currently open project files
-        self.pfile_paths.append(file[0])
-
         return file[0]
 
     def _launch_pfile_editor(self, pfile_path):
@@ -197,6 +194,7 @@ class MainWindow(Window):
         tab = self.ui.pfile_tab.count()
         pfile_tree = ProjectTree(animated=True)
         pfile_name = pfile_path.split("/")[-1]
+        self.pfile_paths[pfile_name] = pfile_path
         self.ui.pfile_tab.insertTab(tab, pfile_tree, pfile_name)
 
         # Build and display the project file editor
