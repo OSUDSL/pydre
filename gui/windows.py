@@ -125,6 +125,22 @@ class MainWindow(Window):
         # Handle remaining tabs
         self._handle_tab_change(index)
 
+    def _handle_tab_change(self, index):
+        """
+        TODO
+        """
+
+        if self.ui.pfile_tab.count() > 0:
+            # Set run action text based on the current tab
+            pfile_name = self.ui.pfile_tab.tabText(index)
+            self.ui.run_action.setText("Run '{0}'".format(pfile_name))
+
+            # Set focussed project file based on the current tab
+            self.focused_pfile = self.pfile_paths[pfile_name]
+        else:
+            self.ui.page_stack.setCurrentIndex(0)
+            self._resize_and_center(width=500, height=268)
+
     def _handle_run(self):
         """
         TODO
@@ -144,22 +160,6 @@ class MainWindow(Window):
 
         # Switch to editor page
         self.ui.page_stack.setCurrentIndex(1)
-
-    def _handle_tab_change(self, index):
-        """
-        TODO
-        """
-
-        if self.ui.pfile_tab.count() > 0:
-            # Set run action text based on the current tab
-            pfile_name = self.ui.pfile_tab.tabText(index)
-            self.ui.run_action.setText("Run '{0}'".format(pfile_name))
-
-            # Set focussed project file based on the current tab
-            self.focused_pfile = self.pfile_paths[pfile_name]
-        else:
-            self.ui.page_stack.setCurrentIndex(0)
-            self._resize_and_center(width=500, height=268)
 
     # ==========================================================================
     # Reference methods --------------------------------------------------------

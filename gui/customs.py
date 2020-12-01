@@ -59,3 +59,13 @@ class ProjectTree(QTreeWidget):
         for i in contents:
             tree = QTreeWidgetItem(self, [i])
             self._build_tree(tree, contents, i)
+
+    def build_from_dict(self, contents):
+        """
+        TODO
+        """
+
+        # Generate tree for each parameter type
+        for i in contents:
+            tree = QTreeWidgetItem(self, [i])
+            self._build_tree(tree, contents, i)
