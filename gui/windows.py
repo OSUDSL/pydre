@@ -13,7 +13,7 @@ from json import loads
 import logging
 from os import path
 import pydre
-from PySide2.QtWidgets import QFileDialog
+from PySide2.QtWidgets import QFileDialog, QTreeWidget, QTreeWidgetItem
 
 config = ConfigParser()
 config.read("./config_files/config.ini")
@@ -200,14 +200,21 @@ class MainWindow(Window):
         """
 
         # Create new tab for the selected project file
-        tab = self.ui.pfile_tab.count()
-        pfile_tree = ProjectTree(animated=True)
         pfile_name = pfile_path.split("/")[-1]
-        self.pfile_paths[pfile_name] = pfile_path
-        self.ui.pfile_tab.insertTab(tab, pfile_tree, pfile_name)
-
-        # Build and display the project file editor
         self.ui.run_action.setText("Run '{0}'".format(pfile_name))
-        pfile_tree.build_from_file(path=pfile_path)
-        self.ui.page_stack.setCurrentIndex(1)
-        self.ui.pfile_tab.setCurrentIndex(tab)
+
+        if pfile_name not in self.pfile_paths:  # FIXME
+            self.pfile_paths[pfile_name] = pfile_path
+            pfile_tree = ProjectTree(animated=True)
+            tab_count = self.ui.pfile_tab.count()
+            self.ui.pfile_tab.insertTab(tab_count, pfile_tree, pfile_name)
+
+            # Build and display the project file editor
+            pfile_tree.build_from_file(path=pfile_path)
+            self.ui.page_stack.setCurrentIndex(1)
+            self.ui.pfile_tab.setCurrentIndex(tab_count)
+        else:
+            tab = self.ui.pfile_tab.findChild(QTreeWidgetItem, pfile_name)
+            index = self.ui.pfile_tab.indexOf(tab)
+            print(index)
+            self.ui.pfile_tab.setCurrentIndex(index - 1)
