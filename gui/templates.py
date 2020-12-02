@@ -29,7 +29,11 @@ class Window(QMainWindow):
 
     def _resize_and_center(self, width, height):
         """
-        TODO
+        Resizes and centers the window on the screen.
+
+        args:
+            width: New width of the window
+            height: New height of the window
         """
 
         # Set window dimensions
