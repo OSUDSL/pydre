@@ -183,7 +183,7 @@ class Project():
 
 		for filter in self.definition['filters']:
 			processed_filter = self.processFilter(filter, data_set)
-		result_data = processed_filter
+		#result_data = processed_filter
 
 		processed_metrics = [result_data] #might need to move to line 180
 
