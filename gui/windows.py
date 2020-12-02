@@ -51,7 +51,7 @@ class MainWindow(Window):
 
     def _configure_hsplitters(self):
         """
-        Configures horizontal splitters based on config file settings
+        Configures horizontal splitters based on config file settings.
         """
 
         hsplitter_count = self.ui.hsplitter.count()
@@ -61,7 +61,7 @@ class MainWindow(Window):
 
     def _configure_vsplitters(self):
         """
-        Configures vertical splitters based on config file settings
+        Configures vertical splitters based on config file settings.
         """
 
         vsplitter_count = self.ui.vsplitter.count()
@@ -71,7 +71,7 @@ class MainWindow(Window):
 
     def _configure_shortcuts(self):
         """
-        Configures keyboard shortcuts for widgets events
+        Configures keyboard shortcuts for widgets events.
         """
 
         # Menu bar action shortcuts
@@ -80,30 +80,30 @@ class MainWindow(Window):
 
     def _configure_callbacks(self):
         """
-        Configures callback functionality for widget events
+        Configures callback functionality for widget events.
         """
 
         # Menu bar action callbacks
         self.ui.new_action.triggered.connect(
             partial(print, "DEBUG: New..."))  # FIXME
-        self.ui.open_action.triggered.connect(self._handle_open)
+        self.ui.open_action.triggered.connect(self._handle_open_pfile)
         self.ui.run_action.triggered.connect(self._handle_run)
 
         # Button callbacks
-        self.ui.open_pfile_btn.clicked.connect(self._handle_open)
+        self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
 
         # Tab widget callbacks
         self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
-        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_close)
+        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_close_pfile)
 
     # ==========================================================================
     # Handler methods ----------------------------------------------------------
     # ==========================================================================
 
-    def _handle_open(self):
+    def _handle_open_pfile(self):
         """
-        TODO
+        Handles opening a project file in a new tab.
         """
 
         # Launch the file explorer for the project file type
@@ -114,9 +114,12 @@ class MainWindow(Window):
             self._launch_pfile_editor(pfile_path=path_)
             self._resize_and_center(width=1100, height=768)
 
-    def _handle_close(self, index):
+    def _handle_close_pfile(self, index):
         """
-        TODO
+        Handles closing a project file tab.
+
+        args:
+            index: Index of tab being closed
         """
 
         # Delete the tab at the specified index
@@ -127,7 +130,10 @@ class MainWindow(Window):
 
     def _handle_tab_change(self, index):
         """
-        TODO
+        Handles general project file tab changes.
+
+        args:
+            index: Index of tab being changed
         """
 
         if self.ui.pfile_tab.count() > 0:
@@ -138,12 +144,13 @@ class MainWindow(Window):
             # Set focussed project file based on the current tab
             self.focused_pfile = self.pfile_paths[pfile_name]
         else:
+            # Switch to startup page
             self.ui.page_stack.setCurrentIndex(0)
             self._resize_and_center(width=500, height=268)
 
     def _handle_run(self):
         """
-        TODO
+        Handles menu bar run action based on the current focussed project file.
         """
 
         # Set the project file label based on the project file being run
@@ -155,7 +162,7 @@ class MainWindow(Window):
 
     def _handle_cancel(self):
         """
-        TODO
+        Handles cancel button callback on run page.
         """
 
         # Switch to editor page
@@ -168,7 +175,7 @@ class MainWindow(Window):
     def _open_file(self, file_type=None):
         """
         Launches a file selection dialog based on the given file type and
-        returns the file path if one is selected
+        returns the file path if one is selected.
 
         args:
             file_type: Optional file type of the desired file
@@ -186,7 +193,7 @@ class MainWindow(Window):
 
     def _launch_pfile_editor(self, pfile_path):
         """
-        Configures and shows the project file editor in a new tab
+        Configures and shows the project file editor in a new tab.
 
         args:
             pfile_path: Project file path

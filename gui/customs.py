@@ -13,7 +13,7 @@ config.read("./config_files/config.ini")
 
 class ProjectTree(QTreeWidget):
     """
-    TODO
+    Custom tree widget for building, displaying, and editing project file trees.
     """
 
     def __init__(self, headers=None, animated=False, *args, **kwargs):
@@ -34,7 +34,12 @@ class ProjectTree(QTreeWidget):
 
     def _build_tree(self, tree, contents, parameter):
         """
-        TODO
+        Builds a tree for the specified parameter of the given project file.
+
+        args:
+            tree: Parent tree widget item
+            contents: Dictionary of the contents of the project file
+            parameter: Specified parameter for which the tree is being built
         """
 
         # Generate branches for the specified parameter
@@ -49,7 +54,11 @@ class ProjectTree(QTreeWidget):
 
     def build_from_file(self, path):
         """
-        TODO
+        Unloads contents of the given project file and builds a tree for each of
+        its parameters.
+
+        args:
+            path: Project file path
         """
 
         # Load project file contents
@@ -62,7 +71,11 @@ class ProjectTree(QTreeWidget):
 
     def build_from_dict(self, contents):
         """
-        TODO
+        Builds a tree for each of the parameters in the given project file
+        dictionary.
+
+        args:
+            contents: Dictionary of the contents of a project file
         """
 
         # Generate tree for each parameter type
