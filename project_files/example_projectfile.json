@@ -1,7 +1,4 @@
 {
-    "rois": [
-  		{"type": "time", "filename": "filetimes.csv"}
-	],
 
   "filters": [
         {
@@ -12,8 +9,8 @@
 
     "metrics": [
         {
-            "name": "tailgatetime",
-            "function": "tailgatingTime"
+            "name": "gazes",
+            "function": "gazes"
         }
     ]
  }
