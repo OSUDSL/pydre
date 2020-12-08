@@ -14,6 +14,18 @@ logger = logging.getLogger('PydreLogger')
 
 # filters defined here take a DriveData object and return an updated DriveData object
 
+def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
+    copy = pydre.core.DriveData.__init__(drivedata, drivedata.SubjectID, drivedata.DriveID, drivedata.roi,
+                                         drivedata.data, drivedata.sourcefilename)
+
+    for d in drivedata.data:
+        dt = pandas.DataFrame(d)
+    #dt.set_index('timedelta', inplace=True)
+        blocks = (dt != dt.shift()).TaskStatus.cumsum()
+        blocks[dt.TaskStatus == 0] = None
+        dt["taskblocks"] = blocks
+        dt = dt.reset_index()
+    return drivedata
 
 def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
 
@@ -74,18 +86,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeC
     return drivedata
 
 
-def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
-    copy = pydre.core.DriveData.__init__(drivedata, drivedata.SubjectID, drivedata.DriveID, drivedata.roi,
-                                         drivedata.data, drivedata.sourcefilename)
 
-    for d in drivedata.data:
-        dt = pandas.DataFrame(d)
-    #dt.set_index('timedelta', inplace=True)
-        blocks = (dt != dt.shift()).TaskStatus.cumsum()
-        blocks[dt.TaskStatus == 0] = None
-        dt["taskblocks"] = blocks
-        dt = dt.reset_index()
-    return drivedata
 
 # def numberSwitchBlocks(dt):
 #     #dt.set_index('timedelta', inplace=True)
