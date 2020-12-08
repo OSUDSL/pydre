@@ -173,21 +173,22 @@ class Project():
 
 		logger.info("number of datafiles: {}, number of rois: {}".format(len(datafiles), len(data_set)))
 
+
+
+
+		for filter in self.definition['filters']:
+			processed_filter = self.processFilter(filter, data_set)
+		result_data = processed_filter
+
+
 		result_data = pandas.DataFrame()
 		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
 		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
 		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 
+		processed_metrics = [result_data]  # might need to move to line 180
 
-#new stuff
-
-		for filter in self.definition['filters']:
-			processed_filter = self.processFilter(filter, data_set)
-		#result_data = processed_filter
-
-		processed_metrics = [result_data] #might need to move to line 180
-
-#end new stuff
+# 
 
 		for metric in self.definition['metrics']:
 			processed_metric = self.processMetric(metric, data_set)
@@ -195,6 +196,7 @@ class Project():
 		result_data = pandas.concat(processed_metrics, axis=1)
 		self.results = result_data
 		return result_data
+
 
 
 	def save(self, outfilename="out.csv"):
