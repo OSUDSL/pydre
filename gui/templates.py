@@ -27,7 +27,7 @@ class Window(QMainWindow):
             self.ui = window_ui()
             self.ui.setupUi(self)
 
-    def _resize_and_center(self, width, height):
+    def resize_and_center(self, width, height):
         """
         Resizes and centers the window on the screen.
 
