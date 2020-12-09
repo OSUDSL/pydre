@@ -14,6 +14,7 @@ from json import loads
 import logging
 from os import path
 import pydre
+from PySide2 import QtCore
 from PySide2.QtWidgets import QFileDialog, QTreeWidgetItem
 
 config = ConfigParser()
@@ -35,6 +36,7 @@ class StartWindow(Window):
         print(self.hstretch_factors)
 
         # Window configurations
+        # self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
         self._configure_hsplitters()
 
     def _configure_hsplitters(self):
