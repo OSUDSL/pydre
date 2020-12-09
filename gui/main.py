@@ -3,7 +3,7 @@
 # Created on: 9/17/2020
 # """
 
-from gui.windows import MainWindow
+from gui.windows import StartWindow
 from PySide2.QtWidgets import QApplication
 import sys
 
@@ -17,7 +17,8 @@ class Application(QApplication):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.main = MainWindow(icon_file="images/icon.png", title="Pydre")
+        # self.main = MainWindow(icon_file="images/icon.png", title="Pydre")
+        self.main = StartWindow(icon_file="images/icon.png", title="Pydre")
         self.main.show()
 
 

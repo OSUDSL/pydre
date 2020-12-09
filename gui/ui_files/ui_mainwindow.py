@@ -18,7 +18,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setEnabled(True)
-        MainWindow.resize(500, 281)
+        MainWindow.resize(600, 296)
         MainWindow.setMinimumSize(QSize(0, 0))
         MainWindow.setMaximumSize(QSize(16777215, 16777215))
         MainWindow.setWindowOpacity(1.000000000000000)
@@ -178,6 +178,11 @@ class Ui_MainWindow(object):
         self.groupBox.setObjectName(u"groupBox")
         self.verticalLayout_11 = QVBoxLayout(self.groupBox)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
+        self.lineEdit_2 = QLineEdit(self.groupBox)
+        self.lineEdit_2.setObjectName(u"lineEdit_2")
+
+        self.verticalLayout_11.addWidget(self.lineEdit_2)
+
         self.textBrowser = QTextBrowser(self.groupBox)
         self.textBrowser.setObjectName(u"textBrowser")
 
@@ -271,7 +276,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menu_bar = QMenuBar(MainWindow)
         self.menu_bar.setObjectName(u"menu_bar")
-        self.menu_bar.setGeometry(QRect(0, 0, 500, 21))
+        self.menu_bar.setGeometry(QRect(0, 0, 600, 21))
         self.file_menu = QMenu(self.menu_bar)
         self.file_menu.setObjectName(u"file_menu")
         self.edit_menu = QMenu(self.menu_bar)
@@ -358,7 +363,7 @@ class Ui_MainWindow(object):
         self.groupBox_3.setTitle("")
         self.open_pfile_btn.setText(QCoreApplication.translate("MainWindow", u"Open File", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Drop files here to open", None))
-        self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Editor", None))
+        self.groupBox_2.setTitle("")
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Log", None))
         self.pfile_label.setText(QCoreApplication.translate("MainWindow", u"-", None))
         self.run_box.setTitle("")

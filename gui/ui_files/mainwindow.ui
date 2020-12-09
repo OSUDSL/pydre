@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
-    <height>281</height>
+    <width>600</width>
+    <height>296</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -154,7 +154,7 @@
            </property>
            <widget class="QGroupBox" name="groupBox_2">
             <property name="title">
-             <string>Editor</string>
+             <string/>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_9">
              <item>
@@ -196,6 +196,9 @@
             <string>Log</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_11">
+            <item>
+             <widget class="QLineEdit" name="lineEdit_2"/>
+            </item>
             <item>
              <widget class="QTextBrowser" name="textBrowser"/>
             </item>
@@ -310,7 +313,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>500</width>
+     <width>600</width>
      <height>21</height>
     </rect>
    </property>
