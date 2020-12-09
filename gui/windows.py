@@ -9,15 +9,43 @@ from functools import partial
 from gui.customs import ProjectTree
 from gui.templates import Window
 from gui.ui_files.ui_mainwindow import Ui_MainWindow
+from gui.ui_files.ui_startwindow import Ui_StartWindow
 from json import loads
 import logging
 from os import path
 import pydre
-from PySide2.QtWidgets import QFileDialog, QTreeWidget, QTreeWidgetItem
+from PySide2.QtWidgets import QFileDialog, QTreeWidgetItem
 
 config = ConfigParser()
 config.read("./config_files/config.ini")
 logger = logging.getLogger("PydreLogger")
+
+
+class StartWindow(Window):
+    """
+    Startup window class that handles all tasks related to startup window
+    configurations and functionality.
+    """
+
+    def __init__(self, icon_file, title, *args, **kwargs):
+        super().__init__(icon_file, title, Ui_StartWindow, *args, **kwargs)
+
+        # Config variables
+        self.hstretch_factors = loads(config.get("startwindow", "hstretch"))
+        print(self.hstretch_factors)
+
+        # Window configurations
+        self._configure_hsplitters()
+
+    def _configure_hsplitters(self):
+        """
+        Configures horizontal splitters based on config file settings.
+        """
+
+        hsplitter_count = self.ui.hsplitter.count()
+        for i in range(hsplitter_count):
+            stretch_factor = self.hstretch_factors[i]
+            self.ui.hsplitter.setStretchFactor(i, stretch_factor)
 
 
 class MainWindow(Window):
@@ -30,8 +58,8 @@ class MainWindow(Window):
         super().__init__(icon_file, title, Ui_MainWindow, *args, **kwargs)
 
         # Config variables
-        self.hstretch_factors = loads(config.get("geometry", "hstretch"))
-        self.vstretch_factors = loads(config.get("geometry", "vstretch"))
+        self.hstretch_factors = loads(config.get("mainwindow", "hstretch"))
+        self.vstretch_factors = loads(config.get("mainwindow", "vstretch"))
         self.file_types = dict(config.items("files"))
         self.param_types = dict(config.items("parameters"))
 
@@ -39,7 +67,7 @@ class MainWindow(Window):
         self.pfile_paths = {}
         self.focused_pfile = ""
 
-        # Application configurations
+        # Window configurations
         self._configure_hsplitters()
         self._configure_vsplitters()
         self._configure_shortcuts()
@@ -112,7 +140,7 @@ class MainWindow(Window):
         # Launch the project file editor if a project file is selected
         if path_:
             self._launch_pfile_editor(pfile_path=path_)
-            self._resize_and_center(width=1100, height=768)
+            self.resize_and_center(width=1100, height=768)
 
     def _handle_close_pfile(self, index):
         """
@@ -146,7 +174,7 @@ class MainWindow(Window):
         else:
             # Switch to startup page
             self.ui.page_stack.setCurrentIndex(0)
-            self._resize_and_center(width=500, height=268)
+            self.resize_and_center(width=600, height=268)
 
     def _handle_run(self):
         """
