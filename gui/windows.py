@@ -8,7 +8,6 @@ import inspect
 from functools import partial
 from gui.customs import ProjectTree
 from gui.templates import Window
-from gui.ui_files.ui_mainwindow import Ui_MainWindow
 from json import loads
 import logging
 from os import path
@@ -31,10 +30,19 @@ class StartWindow(Window):
 
         # Config variables
         self.hstretch_factors = loads(config.get("startwindow", "hstretch"))
-        print(self.hstretch_factors)
+        self.file_types = dict(config.items("files"))
+
+        # Class variables
+        self.main_window = MainWindow(icon_file=icon_file, title=title,
+                                      ui_file="ui_files/mainwindow.ui")
 
         # Window configurations
         self._configure_hsplitters()
+        self._configure_callbacks()
+
+    # ==========================================================================
+    # Window configuration methods ---------------------------------------------
+    # ==========================================================================
 
     def _configure_hsplitters(self):
         """
@@ -46,6 +54,62 @@ class StartWindow(Window):
             stretch_factor = self.hstretch_factors[i]
             self.ui.hsplitter.setStretchFactor(i, stretch_factor)
 
+    def _configure_callbacks(self):
+        """
+        Configures callback functionality for widget events
+        """
+
+        # Button callbacks
+        self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
+
+    # ==========================================================================
+    # Handler methods ----------------------------------------------------------
+    # ==========================================================================
+
+    def _handle_open_pfile(self):
+        """
+        Handles opening a project file in a new tab.
+        """
+
+        # Launch the file explorer for the project file type
+        path_ = self._open_file(self.file_types["project"])
+
+        # Launch the project file editor if a project file is selected
+        if path_:
+            self.ui.close()
+            self._launch_pfile_editor()
+
+    # ==========================================================================
+    # Reference methods --------------------------------------------------------
+    # ==========================================================================
+
+    def _open_file(self, file_type=None):
+        """
+        Launches a file selection dialog based on the given file type and
+        returns the file path if a file is selected.
+
+        args:
+            file_type: Optional file type of the desired file
+
+        returns: Path of the selected file or None if no file is selected
+        """
+
+        # Target directory for the file selection dialog
+        dir_ = path.dirname(path.dirname(inspect.getfile(pydre)))
+
+        # Get the file path and filter
+        file = QFileDialog.getOpenFileName(self, "Add file", dir_, file_type)
+
+        # Return the file path
+        return file[0]
+
+    def _launch_pfile_editor(self):
+        """
+        TODO
+        """
+
+        self.main_window.show()
+
 
 class MainWindow(Window):
     """
@@ -53,10 +117,11 @@ class MainWindow(Window):
     configurations and functionality.
     """
 
-    def __init__(self, icon_file, title, *args, **kwargs):
-        super().__init__(icon_file, title, Ui_MainWindow, *args, **kwargs)
+    def __init__(self, icon_file, title, ui_file, *args, **kwargs):
+        super().__init__(icon_file, title, ui_file, *args, **kwargs)
 
         # Config variables
+        self.sstretch_factors = loads(config.get("startwindow", "sstretch"))
         self.hstretch_factors = loads(config.get("mainwindow", "hstretch"))
         self.vstretch_factors = loads(config.get("mainwindow", "vstretch"))
         self.file_types = dict(config.items("files"))
@@ -67,14 +132,27 @@ class MainWindow(Window):
         self.focused_pfile = ""
 
         # Window configurations
+        self._configure_ssplitters()
         self._configure_hsplitters()
         self._configure_vsplitters()
         self._configure_shortcuts()
         self._configure_callbacks()
 
+        # TEMP
+        self.ui.menu_bar.setVisible(False)
+
     # ==========================================================================
     # Window configuration methods ---------------------------------------------
     # ==========================================================================
+
+    def _configure_ssplitters(self):
+        """
+        Configures start-page splitters based on config file settings
+        """
+        ssplitter_count = self.ui.ssplitter.count()
+        for i in range(ssplitter_count):
+            stretch_factor = self.sstretch_factors[i]
+            self.ui.ssplitter.setStretchFactor(i, stretch_factor)
 
     def _configure_hsplitters(self):
         """
@@ -139,7 +217,7 @@ class MainWindow(Window):
         # Launch the project file editor if a project file is selected
         if path_:
             self._launch_pfile_editor(pfile_path=path_)
-            self.resize_and_center(width=1100, height=768)
+            self.resize_and_center(width=1000, height=768)
 
     def _handle_close_pfile(self, index):
         """
@@ -202,7 +280,7 @@ class MainWindow(Window):
     def _open_file(self, file_type=None):
         """
         Launches a file selection dialog based on the given file type and
-        returns the file path if one is selected.
+        returns the file path if a file is selected.
 
         args:
             file_type: Optional file type of the desired file
@@ -210,10 +288,10 @@ class MainWindow(Window):
         returns: Path of the selected file or None if no file is selected
         """
 
-        # Target directory for file selection dialog
+        # Target directory for the file selection dialog
         dir_ = path.dirname(path.dirname(inspect.getfile(pydre)))
 
-        # Get tuple of file path and filter
+        # Get the file path and filter
         file = QFileDialog.getOpenFileName(self, "Add file", dir_, file_type)
 
         return file[0]

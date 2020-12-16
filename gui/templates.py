@@ -40,13 +40,13 @@ class Window(QMainWindow):
         """
 
         # Set window dimensions
-        self.resize(width, height)
+        self.ui.resize(width, height)
 
         # Center window on the screen
-        frame = self.frameGeometry()
+        frame = self.ui.frameGeometry()
         screen_center = QDesktopWidget().availableGeometry().center()
         frame.moveCenter(screen_center)
-        self.move(frame.topLeft())
+        self.ui.move(frame.topLeft())
 
     def start(self):
         """
