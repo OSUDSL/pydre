@@ -84,13 +84,13 @@ font: 75 10pt &quot;Arial&quot;;</string>
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="open_pfile_btn">
             <property name="styleSheet">
              <string notr="true">background-color: rgb(220, 220, 220);
 font: 75 10pt &quot;Arial&quot;;</string>
             </property>
             <property name="text">
-             <string>Open file</string>
+             <string>Open project file</string>
             </property>
             <property name="flat">
              <bool>false</bool>
