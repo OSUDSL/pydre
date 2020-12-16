@@ -18,8 +18,9 @@ class Application(QApplication):
         super().__init__(*args, **kwargs)
 
         # self.main = MainWindow(icon_file="images/icon.png", title="Pydre")
-        self.main = StartWindow(icon_file="images/icon.png", title="Pydre")
-        self.main.show()
+        self.main = StartWindow(icon_file="images/icon.png", title="Pydre",
+                                ui_file="ui_files/startwindow.ui")
+        self.main.start()
 
 
 if __name__ == '__main__':
