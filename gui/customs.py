@@ -5,7 +5,7 @@ Created on: 11/21/2020
 
 from configparser import ConfigParser
 from json import load
-from PySide2.QtWidgets import QTreeWidget, QTreeWidgetItem
+from PySide2.QtWidgets import QComboBox, QTreeWidget, QTreeWidgetItem
 
 config = ConfigParser()
 config.read("./config_files/config.ini")
@@ -24,7 +24,7 @@ class ProjectTree(QTreeWidget):
 
         # Class variables
         if headers is None:
-            self.headers = ["Project parameters"]
+            self.headers = ["Project parameters", ""]
         else:
             self.headers = headers
 
@@ -50,7 +50,8 @@ class ProjectTree(QTreeWidget):
             # Generate leaves for the attributes in each branch
             for j in i:
                 text = ["{0}: {1}".format(j, i[j])]
-                QTreeWidgetItem(branch, text)
+                leaf = QTreeWidgetItem(branch, text)
+                self.setItemWidget(leaf, 1, QComboBox())
 
     def build_from_file(self, path):
         """
