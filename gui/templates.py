@@ -4,9 +4,12 @@
 # """
 
 import logging
+from PySide2.QtCore import QFile
 from PySide2.QtGui import QIcon
+from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QDesktopWidget, QMainWindow, QWidget
 
+loader = QUiLoader()
 logger = logging.getLogger("PydreLogger")
 
 
@@ -15,7 +18,7 @@ class Window(QMainWindow):
     Parent window class that configures window UI, icon, and title if given.
     """
 
-    def __init__(self, icon_file, title, window_ui=None, *args, **kwargs):
+    def __init__(self, icon_file, title, window_ui, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Window configurations
@@ -23,9 +26,9 @@ class Window(QMainWindow):
         self.setWindowTitle(title)
 
         # UI configurations
-        if window_ui:
-            self.ui = window_ui()
-            self.ui.setupUi(self)
+        self.ui_file = QFile(window_ui)
+        self.ui_file.open(QFile.ReadOnly)
+        self.ui = loader.load(self.ui_file)
 
     def resize_and_center(self, width, height):
         """
@@ -44,6 +47,16 @@ class Window(QMainWindow):
         screen_center = QDesktopWidget().availableGeometry().center()
         frame.moveCenter(screen_center)
         self.move(frame.topLeft())
+
+    def start(self):
+        """
+        Displays the window given the associated UI file.
+
+        args:
+            window_ui: Window UI file
+        """
+
+        self.ui.show()
 
 
 class Popup(QWidget):

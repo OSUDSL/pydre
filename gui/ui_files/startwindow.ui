@@ -23,16 +23,14 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <widget class="QLabel" name="label_2">
           <property name="styleSheet">
            <string notr="true">color: rgb(220, 220, 220);
 background-color: rgb(50, 60, 60);
-padding-left: 4px;
-padding-top: 8px;
-padding-bottom: 8px;
+padding: 8px;
 font: 75 10pt &quot;Arial&quot;;</string>
           </property>
           <property name="text">
@@ -55,7 +53,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <spacer name="horizontalSpacer">
@@ -86,40 +84,30 @@ font: 75 10pt &quot;Arial&quot;;</string>
            </spacer>
           </item>
           <item>
-           <widget class="QGroupBox" name="groupBox">
+           <widget class="QPushButton" name="pushButton">
             <property name="styleSheet">
-             <string notr="true">background-color: rgb(50, 60, 60);</string>
-            </property>
-            <property name="title">
-             <string/>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_4">
-             <item>
-              <widget class="QPushButton" name="pushButton">
-               <property name="styleSheet">
-                <string notr="true">background-color: rgb(220, 220, 220);
+             <string notr="true">background-color: rgb(220, 220, 220);
 font: 75 10pt &quot;Arial&quot;;</string>
-               </property>
-               <property name="text">
-                <string>Open file</string>
-               </property>
-               <property name="flat">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label">
-               <property name="styleSheet">
-                <string notr="true">color: rgb(220, 220, 220);
-font: 75 10pt &quot;Arial&quot;;</string>
-               </property>
-               <property name="text">
-                <string>Drop file here to open</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            </property>
+            <property name="text">
+             <string>Open file</string>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="styleSheet">
+             <string notr="true">color: rgb(220, 220, 220);
+background-color: rgb(50, 60, 60);
+font: 75 10pt &quot;Arial&quot;;
+padding: 8px;</string>
+            </property>
+            <property name="text">
+             <string>Drop file here to open</string>
+            </property>
            </widget>
           </item>
           <item>

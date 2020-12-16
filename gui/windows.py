@@ -9,12 +9,10 @@ from functools import partial
 from gui.customs import ProjectTree
 from gui.templates import Window
 from gui.ui_files.ui_mainwindow import Ui_MainWindow
-from gui.ui_files.ui_startwindow import Ui_StartWindow
 from json import loads
 import logging
 from os import path
 import pydre
-from PySide2 import QtCore
 from PySide2.QtWidgets import QFileDialog, QTreeWidgetItem
 
 config = ConfigParser()
@@ -28,15 +26,14 @@ class StartWindow(Window):
     configurations and functionality.
     """
 
-    def __init__(self, icon_file, title, *args, **kwargs):
-        super().__init__(icon_file, title, Ui_StartWindow, *args, **kwargs)
+    def __init__(self, icon_file, title, ui_file, *args, **kwargs):
+        super().__init__(icon_file, title, ui_file, *args, **kwargs)
 
         # Config variables
         self.hstretch_factors = loads(config.get("startwindow", "hstretch"))
         print(self.hstretch_factors)
 
         # Window configurations
-        # self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
         self._configure_hsplitters()
 
     def _configure_hsplitters(self):
