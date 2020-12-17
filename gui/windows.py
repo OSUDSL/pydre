@@ -217,6 +217,7 @@ class MainWindow(Window):
         # Launch the project file editor if a project file is selected
         if path_:
             self._launch_pfile_editor(pfile_path=path_)
+            self.ui.menu_bar.setVisible(True)
             self.resize_and_center(width=1100, height=800)
 
     def _handle_close_pfile(self, index):
@@ -227,7 +228,10 @@ class MainWindow(Window):
             index: Index of tab being closed
         """
 
-        # Delete the tab at the specified index
+        # TODO
+        self.pfile_paths.pop(self.ui.pfile_tab.tabText(index))
+
+        # Remove the tab at the specified index
         self.ui.pfile_tab.removeTab(index)
 
         # Handle remaining tabs
@@ -251,7 +255,7 @@ class MainWindow(Window):
         else:
             # Hide menu bar
             self.ui.menu_bar.setVisible(False)
-            
+
             # Switch to startup page
             self.ui.page_stack.setCurrentIndex(0)
             self.resize_and_center(width=700, height=400)
@@ -306,9 +310,6 @@ class MainWindow(Window):
         args:
             pfile_path: Project file path
         """
-
-        # Show menu bar
-        self.ui.menu_bar.setVisible(True)
 
         # Create new tab for the selected project file
         pfile_name = pfile_path.split("/")[-1]
