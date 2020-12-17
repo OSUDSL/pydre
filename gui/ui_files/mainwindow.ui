@@ -400,6 +400,10 @@ font: 75 10pt &quot;Arial&quot;;</string>
      <height>21</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(220, 220, 220);
+</string>
+   </property>
    <widget class="QMenu" name="file_menu">
     <property name="title">
      <string>File</string>
