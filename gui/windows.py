@@ -132,14 +132,14 @@ class MainWindow(Window):
         self.focused_pfile = ""
 
         # Window configurations
-        self._configure_ssplitters()
-        self._configure_hsplitters()
-        self._configure_vsplitters()
         self._configure_shortcuts()
         self._configure_callbacks()
 
-        # TEMP
+        # Startup configurations
         self.ui.menu_bar.setVisible(False)
+        self._configure_ssplitters()
+        self._configure_hsplitters()
+        self._configure_vsplitters()
 
     # ==========================================================================
     # Window configuration methods ---------------------------------------------
@@ -217,7 +217,7 @@ class MainWindow(Window):
         # Launch the project file editor if a project file is selected
         if path_:
             self._launch_pfile_editor(pfile_path=path_)
-            self.resize_and_center(width=1000, height=768)
+            self.resize_and_center(width=1100, height=800)
 
     def _handle_close_pfile(self, index):
         """
@@ -249,9 +249,12 @@ class MainWindow(Window):
             # Set focussed project file based on the current tab
             self.focused_pfile = self.pfile_paths[pfile_name]
         else:
+            # Hide menu bar
+            self.ui.menu_bar.setVisible(False)
+            
             # Switch to startup page
             self.ui.page_stack.setCurrentIndex(0)
-            self.resize_and_center(width=600, height=268)
+            self.resize_and_center(width=700, height=400)
 
     def _handle_run(self):
         """
@@ -303,6 +306,9 @@ class MainWindow(Window):
         args:
             pfile_path: Project file path
         """
+
+        # Show menu bar
+        self.ui.menu_bar.setVisible(True)
 
         # Create new tab for the selected project file
         pfile_name = pfile_path.split("/")[-1]
