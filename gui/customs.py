@@ -4,7 +4,9 @@ Created on: 11/21/2020
 """
 
 from configparser import ConfigParser
+import inspect
 from json import load
+import pydre.metrics as metrics
 from PySide2.QtWidgets import QComboBox, QTreeWidget, QTreeWidgetItem
 
 config = ConfigParser()
@@ -32,6 +34,12 @@ class ProjectTree(QTreeWidget):
         self.setHeaderLabels(self.headers)
         self.setAnimated(animated)
 
+        # FIXME
+        self.methods = [func for func in dir(metrics) if func[0:2] != "__"]
+        # arguments = inspect.getfullargspec(getattr(metrics, methods[0])).args
+        print(self.methods)
+        # print(arguments)
+
     def _build_tree(self, tree, contents, parameter):
         """
         Builds a tree for the specified parameter of the given project file.
@@ -51,7 +59,13 @@ class ProjectTree(QTreeWidget):
             for j in i:
                 text = ["{0}: {1}".format(j, i[j])]
                 leaf = QTreeWidgetItem(branch, text)
-                self.setItemWidget(leaf, 1, QComboBox())
+
+                # FIXME
+                cb = QComboBox()
+                for method in self.methods:
+                    cb.addItem(method)
+
+                self.setItemWidget(leaf, 1, cb)
 
     def build_from_file(self, path):
         """
