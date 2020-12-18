@@ -28,6 +28,10 @@
   <property name="windowTitle">
    <string>PyDre</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../images/icon.png</normaloff>../images/icon.png</iconset>
+  </property>
   <property name="windowOpacity">
    <double>1.000000000000000</double>
   </property>
@@ -203,7 +207,14 @@ padding: 8px;</string>
                </property>
                <column>
                 <property name="text">
-                 <string notr="true">1</string>
+                 <string notr="true">Project</string>
+                </property>
+                <property name="background">
+                 <color>
+                  <red>50</red>
+                  <green>60</green>
+                  <blue>60</blue>
+                 </color>
                 </property>
                </column>
               </widget>
@@ -251,10 +262,10 @@ padding: 8px;</string>
                 <property name="styleSheet">
                  <string notr="true">color: rgb(220, 220, 220);
 background-color: rgb(50, 60, 60);
-padding-left: 10px;
-padding-right: 10px;
-padding-top: 5px;
-padding-bottom: 5px;
+padding-left: 8px;
+padding-right: 8px;
+padding-top: 4px;
+padding-bottom: 4px;
 font: 75 10pt &quot;Arial&quot;;</string>
                 </property>
                 <property name="text">
