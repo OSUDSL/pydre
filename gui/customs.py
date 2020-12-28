@@ -51,13 +51,14 @@ class ProjectTree(QTreeWidget):
         """
 
         # Generate branches for the specified parameter
-        for index, i, in enumerate(contents[parameter]):
-            text = ["{0} {1}".format(self.param_types[parameter], index + 1)]
+        for index, i, in enumerate(contents[parameter]):  # FIXME: Change i
+            text = ["{0}".format(i["name"])]
             branch = QTreeWidgetItem(tree, text)
 
             # Generate leaves for the attributes in each branch
-            for j in i:
-                text = ["{0}: {1}".format(j, i[j])]
+            leaves = [j for j in i if j != "name"]
+            for k in leaves:
+                text = ["{0}: {1}".format(k, i[k])]
                 leaf = QTreeWidgetItem(branch, text)
 
                 # FIXME
