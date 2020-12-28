@@ -66,6 +66,9 @@ class ProjectTree(QTreeWidget):
                 for method in self.methods:
                     cb.addItem(method)
 
+                idx = cb.findText(i["function"])
+                cb.setCurrentIndex(idx)
+
                 self.setItemWidget(leaf, 1, cb)
 
     def build_from_file(self, path):
