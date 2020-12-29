@@ -7,7 +7,7 @@ from configparser import ConfigParser
 import inspect
 from json import load
 import pydre.metrics as metrics
-from PySide2.QtWidgets import QComboBox, QTreeWidget, QTreeWidgetItem
+from PySide2.QtWidgets import QComboBox, QLineEdit, QTreeWidget, QTreeWidgetItem
 
 import pydre
 
@@ -55,6 +55,11 @@ class ProjectTree(QTreeWidget):
         for i in metrics_:
             text = ["{0}".format(i["name"])]
             branch = QTreeWidgetItem(tree, text)
+
+            le = QLineEdit()
+            le.setText(text[0])
+            le.setStyleSheet("border: 1px solid rgb(220, 220, 220);")
+            self.setItemWidget(branch, 0, le)
 
             leaves = [j for j in i if j != "name"]
             for k in leaves:
