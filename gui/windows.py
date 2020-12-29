@@ -317,7 +317,7 @@ class MainWindow(Window):
 
         if pfile_name not in self.pfile_paths:  # FIXME
             self.pfile_paths[pfile_name] = pfile_path
-            pfile_tree = ProjectTree(animated=True)
+            pfile_tree = ProjectTree(c_width=300, animated=True)
             tab_count = self.ui.pfile_tab.count()
             self.ui.pfile_tab.insertTab(tab_count, pfile_tree, pfile_name)
 
