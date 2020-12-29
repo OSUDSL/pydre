@@ -12,6 +12,7 @@ from json import loads
 import logging
 from os import path
 import pydre
+from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QFileDialog, QTreeWidgetItem
 
 config = ConfigParser()
@@ -27,6 +28,9 @@ class MainWindow(Window):
 
     def __init__(self, icon_file, title, ui_file, *args, **kwargs):
         super().__init__(icon_file, title, ui_file, *args, **kwargs)
+
+        # FIXME
+        self.ui.setWindowIcon(QIcon("./images/icon.png"))
 
         # Config variables
         self.sstretch_factors = loads(config.get("startwindow", "sstretch"))
