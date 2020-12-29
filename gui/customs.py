@@ -69,6 +69,24 @@ class ProjectTree(QTreeWidget):
                 cb.setCurrentIndex(idx)
                 self.setItemWidget(leaf, 1, cb)
 
+    def _build_rois(self, tree, rois):
+        """
+        FIXME
+        """
+
+        for i in rois:
+            text = ["{0}".format(i["type"])]
+            branch = QTreeWidgetItem(tree, text)
+
+            leaves = [j for j in i if j != "type"]
+            for k in leaves:
+                text = ["{0}:".format(k)]
+                leaf = QTreeWidgetItem(branch, text)
+
+                cb = QComboBox()
+
+                self.setItemWidget(leaf, 1, cb)
+
     def _build_tree(self, tree, contents, parameter):
         """
         Builds a tree for the specified parameter of the given project file.
@@ -85,26 +103,6 @@ class ProjectTree(QTreeWidget):
             print(c)
             if c == "metrics":
                 self._build_metrics(tree, contents[c])
-
-        # for index, i, in enumerate(contents[parameter]):  # FIXME: Change i
-        #     text = ["{0}".format(i["name"])]
-        #     branch = QTreeWidgetItem(tree, text)
-        #
-        #     # Generate leaves for the attributes in each branch
-        #     leaves = [j for j in i if j != "name"]
-        #     for k in leaves:
-        #         text = ["{0}:".format(k)]
-        #         leaf = QTreeWidgetItem(branch, text)
-        #
-        #         # FIXME
-        #         cb = QComboBox()
-        #         for method in self.methods:
-        #             cb.addItem(method)
-        #
-        #         idx = cb.findText(i["function"])
-        #         cb.setCurrentIndex(idx)
-        #
-        #         self.setItemWidget(leaf, 1, cb)
 
     def build_from_file(self, path):
         """
@@ -123,6 +121,8 @@ class ProjectTree(QTreeWidget):
             tree = QTreeWidgetItem(self, [i])
             if i == "metrics":
                 self._build_metrics(tree, contents[i])
+            elif i == "rois":
+                self._build_rois(tree, contents[i])
 
     def build_from_dict(self, contents):
         """
