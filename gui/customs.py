@@ -18,7 +18,7 @@ class ProjectTree(QTreeWidget):
     Custom tree widget for building, displaying, and editing project file trees.
     """
 
-    def __init__(self, headers=None, animated=False, *args, **kwargs):
+    def __init__(self, c_width, headers=None, animated=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Config variables
@@ -31,6 +31,7 @@ class ProjectTree(QTreeWidget):
             self.headers = headers
 
         # Widget configurations
+        self.setColumnWidth(0, c_width)
         self.setHeaderLabels(self.headers)
         self.setAnimated(animated)
 
@@ -58,7 +59,7 @@ class ProjectTree(QTreeWidget):
             # Generate leaves for the attributes in each branch
             leaves = [j for j in i if j != "name"]
             for k in leaves:
-                text = ["{0}: {1}".format(k, i[k])]
+                text = ["{0}:".format(k)]
                 leaf = QTreeWidgetItem(branch, text)
 
                 # FIXME
