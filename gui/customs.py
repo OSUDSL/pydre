@@ -40,12 +40,34 @@ class ProjectTree(QTreeWidget):
         # FIXME
         self.methods = metrics.metricsList
         arguments = inspect.getfullargspec(self.methods["colMean"]).args
-        print(self.methods)
-        print(arguments)
-        print(type(arguments[0]))
-        if isinstance(arguments[0], str):
-            print("test1")
-        print("{0}: {1}".format(arguments[2], type(arguments[2])))
+        # print(self.methods)
+        # print(arguments)
+        # print(type(arguments[0]))
+        # if isinstance(arguments[0], str):
+        #     print("test1")
+        # print("{0}: {1}".format(arguments[2], type(arguments[2])))
+
+    def _build_metrics(self, tree, metrics_):
+        """
+        FIXME
+        """
+
+        for i in metrics_:
+            text = ["{0}".format(i["name"])]
+            branch = QTreeWidgetItem(tree, text)
+
+            leaves = [j for j in i if j != "name"]
+            for k in leaves:
+                text = ["{0}:".format(k)]
+                leaf = QTreeWidgetItem(branch, text)
+
+                cb = QComboBox()
+                for method in self.methods:
+                    cb.addItem(method)
+
+                idx = cb.findText(i["function"])
+                cb.setCurrentIndex(idx)
+                self.setItemWidget(leaf, 1, cb)
 
     def _build_tree(self, tree, contents, parameter):
         """
@@ -58,25 +80,31 @@ class ProjectTree(QTreeWidget):
         """
 
         # Generate branches for the specified parameter
-        for index, i, in enumerate(contents[parameter]):  # FIXME: Change i
-            text = ["{0}".format(i["name"])]
-            branch = QTreeWidgetItem(tree, text)
+        print(contents)
+        for c in contents:
+            print(c)
+            if c == "metrics":
+                self._build_metrics(tree, contents[c])
 
-            # Generate leaves for the attributes in each branch
-            leaves = [j for j in i if j != "name"]
-            for k in leaves:
-                text = ["{0}:".format(k)]
-                leaf = QTreeWidgetItem(branch, text)
-
-                # FIXME
-                cb = QComboBox()
-                for method in self.methods:
-                    cb.addItem(method)
-
-                idx = cb.findText(i["function"])
-                cb.setCurrentIndex(idx)
-
-                self.setItemWidget(leaf, 1, cb)
+        # for index, i, in enumerate(contents[parameter]):  # FIXME: Change i
+        #     text = ["{0}".format(i["name"])]
+        #     branch = QTreeWidgetItem(tree, text)
+        #
+        #     # Generate leaves for the attributes in each branch
+        #     leaves = [j for j in i if j != "name"]
+        #     for k in leaves:
+        #         text = ["{0}:".format(k)]
+        #         leaf = QTreeWidgetItem(branch, text)
+        #
+        #         # FIXME
+        #         cb = QComboBox()
+        #         for method in self.methods:
+        #             cb.addItem(method)
+        #
+        #         idx = cb.findText(i["function"])
+        #         cb.setCurrentIndex(idx)
+        #
+        #         self.setItemWidget(leaf, 1, cb)
 
     def build_from_file(self, path):
         """
@@ -93,7 +121,8 @@ class ProjectTree(QTreeWidget):
         # Generate tree for each parameter type
         for i in contents:
             tree = QTreeWidgetItem(self, [i])
-            self._build_tree(tree, contents, i)
+            if i == "metrics":
+                self._build_metrics(tree, contents[i])
 
     def build_from_dict(self, contents):
         """
