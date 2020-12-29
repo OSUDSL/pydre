@@ -9,6 +9,8 @@ from json import load
 import pydre.metrics as metrics
 from PySide2.QtWidgets import QComboBox, QTreeWidget, QTreeWidgetItem
 
+import pydre
+
 config = ConfigParser()
 config.read("./config_files/config.ini")
 
@@ -36,10 +38,14 @@ class ProjectTree(QTreeWidget):
         self.setAnimated(animated)
 
         # FIXME
-        self.methods = [func for func in dir(metrics) if func[0:2] != "__"]
-        # arguments = inspect.getfullargspec(getattr(metrics, methods[0])).args
+        self.methods = metrics.metricsList
+        arguments = inspect.getfullargspec(self.methods["colMean"]).args
         print(self.methods)
-        # print(arguments)
+        print(arguments)
+        print(type(arguments[0]))
+        if isinstance(arguments[0], str):
+            print("test1")
+        print("{0}: {1}".format(arguments[2], type(arguments[2])))
 
     def _build_tree(self, tree, contents, parameter):
         """
