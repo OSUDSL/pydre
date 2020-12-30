@@ -60,7 +60,7 @@
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_10">
         <item>
-         <widget class="QSplitter" name="ssplitter">
+         <widget class="QSplitter" name="shsplitter">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -189,14 +189,14 @@ padding: 8px;</string>
       <widget class="QWidget" name="page_2">
        <layout class="QVBoxLayout" name="verticalLayout_11">
         <item>
-         <widget class="QSplitter" name="vsplitter">
+         <widget class="QSplitter" name="mvsplitter">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
           <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_9">
             <item>
-             <widget class="QSplitter" name="hsplitter">
+             <widget class="QSplitter" name="mhsplitter">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
