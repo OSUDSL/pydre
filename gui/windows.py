@@ -30,9 +30,9 @@ class MainWindow(Window):
         super().__init__(icon_file, title, ui_file, *args, **kwargs)
 
         # Config variables
-        self.shstretch_factors = loads(config.get("startwindow", "sstretch"))
-        self.mhstretch_factors = loads(config.get("mainwindow", "hstretch"))
-        self.mvstretch_factors = loads(config.get("mainwindow", "vstretch"))
+        self.shstretch_factors = loads(config.get("splitters", "shstretch"))
+        self.mhstretch_factors = loads(config.get("splitters", "mhstretch"))
+        self.mvstretch_factors = loads(config.get("splitters", "mvstretch"))
         self.file_types = dict(config.items("files"))
         self.param_types = dict(config.items("parameters"))
 
@@ -223,7 +223,7 @@ class MainWindow(Window):
     # Reference methods --------------------------------------------------------
     # ==========================================================================
 
-    def _open_file(self, file_type=None):
+    def _open_file(self, type_=None):
         """
         Launches a file selection dialog based on the given file type and
         returns the file path if a file is selected.
@@ -238,9 +238,10 @@ class MainWindow(Window):
         dir_ = path.dirname(path.dirname(inspect.getfile(pydre)))
 
         # Get the file path and filter
-        file = QFileDialog.getOpenFileName(self, "Add file", dir_, file_type)
+        text = "Add file"  # FIXME
+        path_, filter_ = QFileDialog.getOpenFileName(self, text, dir_, type_)
 
-        return file[0]
+        return path_
 
     def _launch_pfile_editor(self, pfile_path):
         """
