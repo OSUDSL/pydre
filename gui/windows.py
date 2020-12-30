@@ -30,6 +30,9 @@ class MainWindow(Window):
         super().__init__(icon_file, title, ui_file, *args, **kwargs)
 
         # Config variables
+        self.app_icon = config.get("icons", "app")
+        self.app_title = config.get("titles", "app")
+        self.explorer_title = config.get("titles", "explorer")
         self.shstretch_factors = loads(config.get("splitters", "shstretch"))
         self.mhstretch_factors = loads(config.get("splitters", "mhstretch"))
         self.mvstretch_factors = loads(config.get("splitters", "mvstretch"))
@@ -99,8 +102,8 @@ class MainWindow(Window):
         Configures general window settings.
         """
 
-        self.ui.setWindowIcon(QIcon("./images/icon.png"))
-        self.ui.setWindowTitle("Pydre")
+        self.ui.setWindowIcon(QIcon(self.app_icon))
+        self.ui.setWindowTitle(self.app_title)
         self.ui.menu_bar.setVisible(False)
 
     def _set_start_splitters(self):
