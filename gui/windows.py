@@ -29,13 +29,10 @@ class MainWindow(Window):
     def __init__(self, icon_file, title, ui_file, *args, **kwargs):
         super().__init__(icon_file, title, ui_file, *args, **kwargs)
 
-        # FIXME
-        self.ui.setWindowIcon(QIcon("./images/icon.png"))
-
         # Config variables
-        self.sstretch_factors = loads(config.get("startwindow", "sstretch"))
-        self.hstretch_factors = loads(config.get("mainwindow", "hstretch"))
-        self.vstretch_factors = loads(config.get("mainwindow", "vstretch"))
+        self.shstretch_factors = loads(config.get("startwindow", "sstretch"))
+        self.mhstretch_factors = loads(config.get("mainwindow", "hstretch"))
+        self.mvstretch_factors = loads(config.get("mainwindow", "vstretch"))
         self.file_types = dict(config.items("files"))
         self.param_types = dict(config.items("parameters"))
 
@@ -43,48 +40,17 @@ class MainWindow(Window):
         self.pfile_paths = {}
         self.focused_pfile = ""
 
-        # Window configurations
+        # Application configurations
         self._configure_shortcuts()
         self._configure_callbacks()
 
         # Startup configurations
-        self.ui.menu_bar.setVisible(False)
-        self._configure_ssplitters()
-        self._configure_hsplitters()
-        self._configure_vsplitters()
+        self._configure_window()
+        self._configure_splitters()
 
     # ==========================================================================
     # Window configuration methods ---------------------------------------------
     # ==========================================================================
-
-    def _configure_ssplitters(self):
-        """
-        Configures start-page splitters based on config file settings
-        """
-        ssplitter_count = self.ui.ssplitter.count()
-        for i in range(ssplitter_count):
-            stretch_factor = self.sstretch_factors[i]
-            self.ui.ssplitter.setStretchFactor(i, stretch_factor)
-
-    def _configure_hsplitters(self):
-        """
-        Configures horizontal splitters based on config file settings.
-        """
-
-        hsplitter_count = self.ui.hsplitter.count()
-        for i in range(hsplitter_count):
-            stretch_factor = self.hstretch_factors[i]
-            self.ui.hsplitter.setStretchFactor(i, stretch_factor)
-
-    def _configure_vsplitters(self):
-        """
-        Configures vertical splitters based on config file settings.
-        """
-
-        vsplitter_count = self.ui.vsplitter.count()
-        for i in range(vsplitter_count):
-            stretch_factor = self.vstretch_factors[i]
-            self.ui.vsplitter.setStretchFactor(i, stretch_factor)
 
     def _configure_shortcuts(self):
         """
@@ -95,24 +61,85 @@ class MainWindow(Window):
         self.ui.new_action.setShortcut("Ctrl+N")
         self.ui.open_action.setShortcut("Ctrl+O")
 
+    def _set_mb_callbacks(self):
+        """
+        Sets all menu bar action callbacks.
+        """
+
+        self.ui.open_action.triggered.connect(self._handle_open_pfile)
+        self.ui.run_action.triggered.connect(self._handle_run)
+
+    def _set_button_callbacks(self):
+        """
+        Sets all button callbacks.
+        """
+
+        self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
+        self.ui.cancel_btn.clicked.connect(self._handle_cancel)
+
+    def _set_widget_callbacks(self):
+        """
+        Sets all miscellaneous widget callbacks.
+        """
+
+        self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
+        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_close_pfile)
+
     def _configure_callbacks(self):
         """
         Configures callback functionality for widget events.
         """
 
-        # Menu bar action callbacks
-        self.ui.new_action.triggered.connect(
-            partial(print, "DEBUG: New..."))  # FIXME
-        self.ui.open_action.triggered.connect(self._handle_open_pfile)
-        self.ui.run_action.triggered.connect(self._handle_run)
+        self._set_mb_callbacks()
+        self._set_button_callbacks()
+        self._set_widget_callbacks()
 
-        # Button callbacks
-        self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
-        self.ui.cancel_btn.clicked.connect(self._handle_cancel)
+    def _configure_window(self):
+        """
+        Configures general window settings.
+        """
 
-        # Tab widget callbacks
-        self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
-        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_close_pfile)
+        self.ui.setWindowIcon(QIcon("./images/icon.png"))
+        self.ui.setWindowTitle("Pydre")
+        self.ui.menu_bar.setVisible(False)
+
+    def _set_start_splitters(self):
+        """
+        Sets the initial splitter width for splitters on the startup window page
+        based on config file settings.
+        """
+
+        # Configure horizontal splitters
+        shsplitter_count = self.ui.shsplitter.count()
+        for i in range(shsplitter_count):
+            stretch_factor = self.shstretch_factors[i]
+            self.ui.shsplitter.setStretchFactor(i, stretch_factor)
+
+    def _set_main_splitters(self):
+        """
+        Set the initial splitter width for splitters on the main window page
+        based on config file settings.
+        """
+
+        # Configure horizontal splitters
+        mhsplitter_count = self.ui.mhsplitter.count()
+        for i in range(mhsplitter_count):
+            stretch_factor = self.mhstretch_factors[i]
+            self.ui.mhsplitter.setStretchFactor(i, stretch_factor)
+
+        # Configure vertical splitters
+        mvsplitter_count = self.ui.mvsplitter.count()
+        for i in range(mvsplitter_count):
+            stretch_factor = self.mvstretch_factors[i]
+            self.ui.mvsplitter.setStretchFactor(i, stretch_factor)
+
+    def _configure_splitters(self):
+        """
+        Configures all splitter widgets.
+        """
+
+        self._set_start_splitters()
+        self._set_main_splitters()
 
     # ==========================================================================
     # Handler methods ----------------------------------------------------------
