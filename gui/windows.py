@@ -5,7 +5,6 @@
 
 from configparser import ConfigParser
 import inspect
-from functools import partial
 from gui.customs import ProjectTree
 from gui.templates import Window
 from json import loads
@@ -13,7 +12,7 @@ import logging
 from os import path
 import pydre
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QFileDialog, QTreeWidgetItem
+from PySide2.QtWidgets import QFileDialog
 
 config = ConfigParser()
 config.read("./config_files/config.ini")
@@ -36,6 +35,7 @@ class MainWindow(Window):
         self.shstretch_factors = loads(config.get("splitters", "shstretch"))
         self.mhstretch_factors = loads(config.get("splitters", "mhstretch"))
         self.mvstretch_factors = loads(config.get("splitters", "mvstretch"))
+        self.c_width = int(config.get("trees", "c_width"))
         self.file_types = dict(config.items("files"))
         self.param_types = dict(config.items("parameters"))
 
@@ -161,7 +161,7 @@ class MainWindow(Window):
 
         # Launch the project file editor if a project file is selected
         if path_:
-            self._launch_pfile_editor(pfile_path=path_)
+            self._launch_pfile_editor(path_=path_)
             self.ui.menu_bar.setVisible(True)
             self.resize_and_center(width=1100, height=800)
 
@@ -180,7 +180,7 @@ class MainWindow(Window):
         self.ui.pfile_tab.removeTab(index)
 
         # Handle remaining tabs
-        self._handle_tab_change(index - 1)
+        self._handle_tab_change(index - 1)  # FIXME: THIS IS STILL AN ISSUE
 
     def _handle_tab_change(self, index):
         """
@@ -254,7 +254,7 @@ class MainWindow(Window):
         TODO
         """
 
-        pfile_tree = ProjectTree(c_width=300, animated=True)  # FIXME
+        pfile_tree = ProjectTree(c_width=self.c_width, animated=True)
         pfile_tree.build_from_file(path=path_)
         self.pfile_paths[name] = pfile_tree
 
