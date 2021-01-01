@@ -39,6 +39,9 @@ class MainWindow(Window):
         self.file_types = dict(config.items("files"))
         self.param_types = dict(config.items("parameters"))
 
+        # FIXME
+        self.pfile_widgets = {}
+
         # Class variables
         self.pfile_paths = {}
         self.focused_pfile = ""
@@ -258,9 +261,10 @@ class MainWindow(Window):
         pfile_name = pfile_path.split("/")[-1]
         self.ui.run_action.setText("Run '{0}'".format(pfile_name))
 
-        if pfile_name not in self.pfile_paths:  # FIXME
+        if pfile_name not in self.pfile_paths:
             self.pfile_paths[pfile_name] = pfile_path
             pfile_tree = ProjectTree(c_width=300, animated=True)
+            self.pfile_widgets[pfile_name] = pfile_tree
             tab_count = self.ui.pfile_tab.count()
             self.ui.pfile_tab.insertTab(tab_count, pfile_tree, pfile_name)
 
@@ -269,7 +273,5 @@ class MainWindow(Window):
             self.ui.page_stack.setCurrentIndex(1)
             self.ui.pfile_tab.setCurrentIndex(tab_count)
         else:
-            tab = self.ui.pfile_tab.findChild(QTreeWidgetItem, pfile_name)
-            index = self.ui.pfile_tab.indexOf(tab)
-            print(index)
-            self.ui.pfile_tab.setCurrentIndex(index - 1)
+            tab = self.ui.pfile_tab.indexOf(self.pfile_widgets[pfile_name])
+            self.ui.pfile_tab.setCurrentIndex(tab)
