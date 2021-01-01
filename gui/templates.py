@@ -18,15 +18,15 @@ class Window(QMainWindow):
     Parent window class that configures window UI, icon, and title if given.
     """
 
-    def __init__(self, icon_file, title, window_ui, *args, **kwargs):
+    def __init__(self, icon, title, ui_file, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Window configurations
-        self.setWindowIcon(QIcon(icon_file))
+        self.setWindowIcon(QIcon(icon))
         self.setWindowTitle(title)
 
         # UI configurations
-        self.ui_file = QFile(window_ui)
+        self.ui_file = QFile(ui_file)
         self.ui_file.open(QFile.ReadOnly)
         self.ui = loader.load(self.ui_file)
 
