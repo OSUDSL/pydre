@@ -180,7 +180,7 @@ class MainWindow(Window):
         self.ui.pfile_tab.removeTab(index)
 
         # Handle remaining tabs
-        self._handle_tab_change(index)
+        self._handle_tab_change(index - 1)
 
     def _handle_tab_change(self, index):
         """
