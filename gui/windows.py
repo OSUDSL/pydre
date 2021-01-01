@@ -30,8 +30,6 @@ class MainWindow(Window):
         super().__init__(icon_file, title, ui_file, *args, **kwargs)
 
         # Config variables
-        self.app_icon = config.get("icons", "app")
-        self.app_title = config.get("titles", "app")
         self.explorer_title = config.get("titles", "explorer")
         self.shstretch_factors = loads(config.get("splitters", "shstretch"))
         self.mhstretch_factors = loads(config.get("splitters", "mhstretch"))
@@ -41,6 +39,8 @@ class MainWindow(Window):
         self.param_types = dict(config.items("parameters"))
 
         # Class variables
+        self.app_icon = icon_file
+        self.app_title = title
         self.pfile_widgets = {}
         self.pfile_paths = {}
         self.focused_pfile = ""
