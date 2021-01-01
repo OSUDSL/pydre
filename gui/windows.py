@@ -244,12 +244,23 @@ class MainWindow(Window):
         dir_ = path.dirname(path.dirname(inspect.getfile(pydre)))
 
         # Get the file path and filter
-        text = "Add file"  # FIXME
+        text = self.explorer_title
         path_, filter_ = QFileDialog.getOpenFileName(self, text, dir_, type_)
 
         return path_
 
-    def _launch_pfile_editor(self, pfile_path):
+    def _create_project_tree(self, name, path_):
+        """
+        TODO
+        """
+
+        pfile_tree = ProjectTree(c_width=300, animated=True)  # FIXME
+        pfile_tree.build_from_file(path=path_)
+        self.pfile_paths[name] = pfile_tree
+
+        return pfile_tree
+
+    def _launch_pfile_editor(self, path_):
         """
         Configures and shows the project file editor in a new tab.
 
@@ -257,21 +268,29 @@ class MainWindow(Window):
             pfile_path: Project file path
         """
 
-        # Create new tab for the selected project file
-        pfile_name = pfile_path.split("/")[-1]
-        self.ui.run_action.setText("Run '{0}'".format(pfile_name))
+        pfile_name = path_.split("/")[-1]
+
+        # Set the menu bar run action to the selected project file
+        self.ui.run_action.setText("Run '{0}'".format(pfile_name))  # FIXME: FIX VARIABLE NAMES
 
         if pfile_name not in self.pfile_paths:
-            self.pfile_paths[pfile_name] = pfile_path
-            pfile_tree = ProjectTree(c_width=300, animated=True)
-            self.pfile_widgets[pfile_name] = pfile_tree
-            tab_count = self.ui.pfile_tab.count()
-            self.ui.pfile_tab.insertTab(tab_count, pfile_tree, pfile_name)
+            # Open the project file in a new tab
 
-            # Build and display the project file editor
-            pfile_tree.build_from_file(path=pfile_path)
+            # Add project file to currently-open project files dict
+            self.pfile_paths[pfile_name] = path_
+
+            # Create a ProjectTree widget for the selected project file
+            tree = self._create_project_tree(name=pfile_name, path_=path_)
+
+            # Create a new tab for the selected project file
+            tab_count = self.ui.pfile_tab.count()
+            self.ui.pfile_tab.insertTab(tab_count, tree, pfile_name)
+
+            # Display the project file editor for the selected project file
             self.ui.page_stack.setCurrentIndex(1)
             self.ui.pfile_tab.setCurrentIndex(tab_count)
         else:
+            # Switch to the selected project file tab
+
             tab = self.ui.pfile_tab.indexOf(self.pfile_widgets[pfile_name])
             self.ui.pfile_tab.setCurrentIndex(tab)
