@@ -80,7 +80,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
              </widget>
             </item>
             <item>
-             <widget class="QListWidget" name="listWidget_2">
+             <widget class="QListWidget" name="recent_files">
               <property name="styleSheet">
                <string notr="true">background-color: rgb(220, 220, 220);</string>
               </property>

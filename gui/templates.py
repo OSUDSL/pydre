@@ -4,7 +4,7 @@
 # """
 
 import logging
-from PySide2.QtCore import QFile
+from PySide2.QtCore import QFile, QPoint
 from PySide2.QtGui import QIcon
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QDesktopWidget, QMainWindow, QWidget

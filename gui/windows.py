@@ -38,6 +38,13 @@ class MainWindow(Window):
         self.file_types = dict(config.items("files"))
         self.param_types = dict(config.items("parameters"))
 
+        # FIXME
+        self.recent = config.get("files", "recent").split(",")
+        print(self.recent)
+
+        for file in self.recent:
+            self.ui.recent_files.addItem(file)
+
         # Class variables
         self.app_icon = icon_file
         self.app_title = title
@@ -163,7 +170,7 @@ class MainWindow(Window):
 
             self._launch_pfile_editor(path_)
             self.ui.menu_bar.setVisible(True)
-            self.resize_and_center(1100, 800)  # FIXME
+            self.resize_and_center(1100, 800)
 
     def _handle_close_pfile(self, idx):
         """
@@ -207,7 +214,7 @@ class MainWindow(Window):
             # Switch to startup page
             self.ui.page_stack.setCurrentIndex(0)
             self.ui.menu_bar.setVisible(False)
-            self.resize_and_center(700, 400)  # FIXME
+            self.resize_and_center(700, 400)
 
     def _handle_run(self):
         """
@@ -263,7 +270,7 @@ class MainWindow(Window):
         """
 
         # Create project file tree
-        tree = ProjectTree(self.c_width, True)
+        tree = ProjectTree(self.c_width, animated=True)
         tree.build_from_file(path_)
         self.pfile_paths[name] = tree
 
@@ -281,6 +288,20 @@ class MainWindow(Window):
         """
 
         name = path_.split("/")[-1]
+
+        # FIXME
+        if "" in self.recent:
+            self.recent.remove("")
+        elif name in self.recent:
+            self.recent.remove(name)
+
+        self.recent.append(name)
+
+        ls = ','.join(self.recent)
+        config.set("files", "recent", ls)
+
+        with open("./config_files/config.ini", "w") as configfile:
+            config.write(configfile)
 
         # Set the run action text based on the selected project file
         self.ui.run_action.setText("Run '{0}'".format(name))
