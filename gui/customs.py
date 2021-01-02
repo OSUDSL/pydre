@@ -109,7 +109,7 @@ class ProjectTree(QTreeWidget):
             if c == "metrics":
                 self._build_metrics(tree, contents[c])
 
-    def build_from_file(self, path):
+    def build_from_file(self, path_):
         """
         Unloads contents of the given project file and builds a tree for each of
         its parameters.
@@ -119,7 +119,7 @@ class ProjectTree(QTreeWidget):
         """
 
         # Load project file contents
-        contents = load(open(path))
+        contents = load(open(path_))
 
         # Generate tree for each parameter type
         for i in contents:

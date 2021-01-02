@@ -21,7 +21,7 @@ class Application(QApplication):
     def __init__(self, window, icon_file, title, ui_file, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.app = window(icon_file=icon_file, title=title, ui_file=ui_file)
+        self.app = window(icon_file, title, ui_file)
         self.app.start()
 
 
