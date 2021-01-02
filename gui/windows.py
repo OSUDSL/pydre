@@ -161,9 +161,9 @@ class MainWindow(Window):
         if path_:
             """Launch the project file editor if a project file is selected"""
 
-            self._launch_pfile_editor(path_=path_)
+            self._launch_pfile_editor(path_)
             self.ui.menu_bar.setVisible(True)
-            self.resize_and_center(width=1100, height=800)  # FIXME
+            self.resize_and_center(1100, 800)  # FIXME
 
     def _handle_close_pfile(self, idx):
         """
@@ -207,7 +207,7 @@ class MainWindow(Window):
             # Switch to startup page
             self.ui.page_stack.setCurrentIndex(0)
             self.ui.menu_bar.setVisible(False)
-            self.resize_and_center(width=700, height=400)  # FIXME
+            self.resize_and_center(700, 400)  # FIXME
 
     def _handle_run(self):
         """
@@ -263,8 +263,8 @@ class MainWindow(Window):
         """
 
         # Create project file tree
-        tree = ProjectTree(c_width=self.c_width, animated=True)
-        tree.build_from_file(path=path_)
+        tree = ProjectTree(self.c_width, True)
+        tree.build_from_file(path_)
         self.pfile_paths[name] = tree
 
         # Open the project file tree in a new tab
@@ -292,7 +292,7 @@ class MainWindow(Window):
             self.pfile_paths[name] = path_
 
             # Create a ProjectTree widget for the selected project file
-            self._create_project_tree(name=name, path_=path_)
+            self._create_project_tree(name, path_)
 
             # Display the project file editor for the selected project file
             self.ui.page_stack.setCurrentIndex(1)
