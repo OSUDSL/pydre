@@ -42,7 +42,7 @@ class MainWindow(Window):
         self.recent = config.get("files", "recent").split(",")
         print(self.recent)
 
-        for file in self.recent:
+        for file in reversed(self.recent):
             self.ui.recent_files.addItem(file)
 
         # Class variables
