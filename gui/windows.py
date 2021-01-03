@@ -40,7 +40,6 @@ class MainWindow(Window):
 
         # FIXME
         self.recent = config.get("files", "recent").split(",")
-        print(self.recent)
 
         for file in reversed(self.recent):
             self.ui.recent_files.addItem(file)
@@ -210,6 +209,12 @@ class MainWindow(Window):
             self.focused_pfile = self.pfile_paths[pfile]
         else:
             """Handle no remaining tabs"""
+
+            # FIXME
+            self.recent = config.get("files", "recent").split(",")
+            self.ui.recent_files.clear()
+            for file in reversed(self.recent):
+                self.ui.recent_files.addItem(file)
 
             # Switch to startup page
             self.ui.page_stack.setCurrentIndex(0)
