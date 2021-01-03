@@ -35,13 +35,15 @@ class MainWindow(Window):
         self.mhstretch_factors = loads(config.get("splitters", "mhstretch"))
         self.mvstretch_factors = loads(config.get("splitters", "mvstretch"))
         self.c_width = int(config.get("trees", "c_width"))
-        self.file_types = dict(config.items("files"))
+        self.file_types = dict(config.items("types"))
         self.param_types = dict(config.items("parameters"))
 
         # FIXME
-        self.recent = config.get("files", "recent").split(",")
+        self.recent = config.get("recent", "names").split(",")
+        self.paths = config.get("recent", "paths").split(",")
 
-        for file in reversed(self.recent):
+        names = [name for name in self.recent if name != ""]
+        for file in names:
             self.ui.recent_files.addItem(file)
 
         # Class variables
@@ -79,6 +81,8 @@ class MainWindow(Window):
 
         self.ui.open_action.triggered.connect(self._handle_open_pfile)
         self.ui.run_action.triggered.connect(self._handle_run)
+
+        self.ui.recent_files.itemDoubleClicked.connect(self._handle_selected_pfile)
 
     def _set_button_callbacks(self):
         """
@@ -171,6 +175,17 @@ class MainWindow(Window):
             self.ui.menu_bar.setVisible(True)
             self.resize_and_center(1100, 800)
 
+    def _handle_selected_pfile(self):
+        """
+        FIXME
+        """
+
+        idx = self.ui.recent_files.currentRow()
+        path_ = self.paths[idx]
+        self._launch_pfile_editor(path_)
+        self.ui.menu_bar.setVisible(True)
+        self.resize_and_center(1100, 800)
+
     def _handle_close_pfile(self, idx):
         """
         Handles closing a project file tab.
@@ -211,9 +226,10 @@ class MainWindow(Window):
             """Handle no remaining tabs"""
 
             # FIXME
-            self.recent = config.get("files", "recent").split(",")
+            self.recent = config.get("recent", "names").split(",")
             self.ui.recent_files.clear()
-            for file in reversed(self.recent):
+            names = [name for name in self.recent if name != ""]
+            for file in names:
                 self.ui.recent_files.addItem(file)
 
             # Switch to startup page
@@ -295,15 +311,17 @@ class MainWindow(Window):
         name = path_.split("/")[-1]
 
         # FIXME
-        if "" in self.recent:
-            self.recent.remove("")
-        elif name in self.recent:
+        if name in self.recent:
             self.recent.remove(name)
+            self.paths.remove(path_)
 
-        self.recent.append(name)
+        self.recent.insert(0, name)
+        self.paths.insert(0, path_)
 
         ls = ','.join(self.recent)
-        config.set("files", "recent", ls)
+        config.set("recent", "names", ls)
+        ls = ','.join(self.paths)
+        config.set("recent", "paths", ls)
 
         with open("./config_files/config.ini", "w") as configfile:
             config.write(configfile)
