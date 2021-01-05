@@ -3,8 +3,8 @@
 # Created on: 11/13/2020
 # """
 
-from configparser import ConfigParser
 import inspect
+from gui.config import Config
 from gui.customs import ProjectTree
 from gui.templates import Window
 from json import loads
@@ -14,7 +14,7 @@ import pydre
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QFileDialog
 
-config = ConfigParser()
+config = Config()
 config.read("./config_files/config.ini")
 
 logger = logging.getLogger("PydreLogger")
@@ -37,14 +37,8 @@ class MainWindow(Window):
         self.c_width = int(config.get("trees", "c_width"))
         self.file_types = dict(config.items("types"))
         self.param_types = dict(config.items("parameters"))
-
-        # FIXME
-        self.recent = config.get("recent", "names").split(",")
-        self.paths = config.get("recent", "paths").split(",")
-
-        names = [name for name in self.recent if name != ""]
-        for file in names:
-            self.ui.recent_files.addItem(file)
+        self.recent_names = config.get("recent", "names").split(",")
+        self.recent_paths = config.get("recent", "paths").split(",")
 
         # Class variables
         self.app_icon = icon_file
@@ -109,6 +103,15 @@ class MainWindow(Window):
         self._set_button_callbacks()
         self._set_widget_callbacks()
 
+    def _set_recent_files(self):
+        """
+        Sets the files to be displayed in the recent files QListWidget.
+        """
+
+        names = [name for name in self.recent_names if name != ""]
+        for name in names:
+            self.ui.recent_files.addItem(name)
+
     def _configure_window(self):
         """
         Configures general window settings.
@@ -117,6 +120,7 @@ class MainWindow(Window):
         self.ui.setWindowIcon(QIcon(self.app_icon))
         self.ui.setWindowTitle(self.app_title)
         self.ui.menu_bar.setVisible(False)
+        self._set_recent_files()
 
     def _set_start_splitters(self):
         """
@@ -181,7 +185,7 @@ class MainWindow(Window):
         """
 
         idx = self.ui.recent_files.currentRow()
-        path_ = self.paths[idx]
+        path_ = self.recent_paths[idx]
         self._launch_pfile_editor(path_)
         self.ui.menu_bar.setVisible(True)
         self.resize_and_center(1100, 800)
@@ -226,9 +230,9 @@ class MainWindow(Window):
             """Handle no remaining tabs"""
 
             # FIXME
-            self.recent = config.get("recent", "names").split(",")
+            self.recent_names = config.get("recent", "names").split(",")
             self.ui.recent_files.clear()
-            names = [name for name in self.recent if name != ""]
+            names = [name for name in self.recent_names if name != ""]
             for file in names:
                 self.ui.recent_files.addItem(file)
 
@@ -300,6 +304,30 @@ class MainWindow(Window):
         self.ui.pfile_tab.insertTab(tab_count, tree, name)
         self.ui.pfile_tab.setCurrentIndex(tab_count)
 
+    def _add_to_recent(self, name, path_):
+        """
+        Adds the given project file name and path to the recent files lists in
+        the config file.
+
+        args:
+            name: Project file name
+            path_: Project file path
+        """
+
+        # Remove the given name and path if they are already saved
+        if name in self.recent_names:
+            self.recent_names.remove(name)
+            self.recent_paths.remove(path_)
+
+        # Insert the given name and path at the beginning of the respective list
+        self.recent_names.insert(0, name)
+        self.recent_paths.insert(0, path_)
+
+        # Set and add write lists in the config file
+        config.set("recent", "names", ",".join(self.recent_names))
+        config.set("recent", "paths", ",".join(self.recent_paths))
+        config.update()
+
     def _launch_pfile_editor(self, path_):
         """
         Configures and shows the project file editor in a new tab.
@@ -310,21 +338,8 @@ class MainWindow(Window):
 
         name = path_.split("/")[-1]
 
-        # FIXME
-        if name in self.recent:
-            self.recent.remove(name)
-            self.paths.remove(path_)
-
-        self.recent.insert(0, name)
-        self.paths.insert(0, path_)
-
-        ls = ','.join(self.recent)
-        config.set("recent", "names", ls)
-        ls = ','.join(self.paths)
-        config.set("recent", "paths", ls)
-
-        with open("./config_files/config.ini", "w") as configfile:
-            config.write(configfile)
+        # Update recent files with the given file
+        self._add_to_recent(name, path_)
 
         # Set the run action text based on the selected project file
         self.ui.run_action.setText("Run '{0}'".format(name))
