@@ -3,15 +3,13 @@ Created by: Craig Fouts
 Created on: 11/21/2020
 """
 
-from configparser import ConfigParser
+from gui.config import Config
 import inspect
 from json import load
 import pydre.metrics as metrics
 from PySide2.QtWidgets import QComboBox, QLineEdit, QTreeWidget, QTreeWidgetItem
 
-import pydre
-
-config = ConfigParser()
+config = Config()
 config.read("./config_files/config.ini")
 
 
