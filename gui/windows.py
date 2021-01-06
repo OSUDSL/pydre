@@ -108,6 +108,7 @@ class MainWindow(Window):
         Sets the files to be displayed in the recent files QListWidget.
         """
 
+        self.ui.recent_files.clear()
         names = [name for name in self.recent_names if name != ""]
         for name in names:
             self.ui.recent_files.addItem(name)
@@ -181,11 +182,14 @@ class MainWindow(Window):
 
     def _handle_selected_pfile(self):
         """
-        FIXME
+        Handles selecting a project file from the recent files menu.
         """
 
+        # Get the selected project file path
         idx = self.ui.recent_files.currentRow()
         path_ = self.recent_paths[idx]
+
+        # Launch the project file editor
         self._launch_pfile_editor(path_)
         self.ui.menu_bar.setVisible(True)
         self.resize_and_center(1100, 800)
@@ -229,14 +233,8 @@ class MainWindow(Window):
         else:
             """Handle no remaining tabs"""
 
-            # FIXME
-            self.recent_names = config.get("recent", "names").split(",")
-            self.ui.recent_files.clear()
-            names = [name for name in self.recent_names if name != ""]
-            for file in names:
-                self.ui.recent_files.addItem(file)
-
             # Switch to startup page
+            self._set_recent_files()
             self.ui.page_stack.setCurrentIndex(0)
             self.ui.menu_bar.setVisible(False)
             self.resize_and_center(700, 400)

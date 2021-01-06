@@ -187,23 +187,42 @@ padding: 8px;</string>
        </layout>
       </widget>
       <widget class="QWidget" name="page_2">
-       <layout class="QVBoxLayout" name="verticalLayout_11">
+       <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
          <widget class="QSplitter" name="mvsplitter">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
-          <widget class="QWidget" name="layoutWidget">
-           <layout class="QVBoxLayout" name="verticalLayout_9">
-            <item>
-             <widget class="QSplitter" name="mhsplitter">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
+          <widget class="QSplitter" name="mhsplitter">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <widget class="QWidget" name="">
+            <layout class="QVBoxLayout" name="verticalLayout_8">
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="styleSheet">
+                <string notr="true">color: rgb(220, 220, 220);
+background-color: rgb(50, 60, 60);
+padding-left: 8px;
+padding-right: 8px;
+padding-top: 4px;
+padding-bottom: 4px;
+font: 75 10pt &quot;Arial&quot;;</string>
+               </property>
+               <property name="text">
+                <string>Project</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QTreeWidget" name="treeWidget">
                <property name="styleSheet">
                 <string notr="true">background-color: rgb(220, 220, 220);
 </string>
+               </property>
+               <property name="headerHidden">
+                <bool>true</bool>
                </property>
                <column>
                 <property name="text">
@@ -218,40 +237,30 @@ padding: 8px;</string>
                 </property>
                </column>
               </widget>
-              <widget class="QTabWidget" name="pfile_tab">
-               <property name="focusPolicy">
-                <enum>Qt::TabFocus</enum>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background-color: rgb(220, 220, 220);
+             </item>
+            </layout>
+           </widget>
+           <widget class="QTabWidget" name="pfile_tab">
+            <property name="focusPolicy">
+             <enum>Qt::TabFocus</enum>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(220, 220, 220);
 </string>
-               </property>
-               <property name="tabShape">
-                <enum>QTabWidget::Rounded</enum>
-               </property>
-               <property name="currentIndex">
-                <number>-1</number>
-               </property>
-               <property name="tabsClosable">
-                <bool>true</bool>
-               </property>
-               <property name="movable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </widget>
-            </item>
-            <item>
-             <widget class="Line" name="line_2">
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
+            </property>
+            <property name="tabShape">
+             <enum>QTabWidget::Rounded</enum>
+            </property>
+            <property name="currentIndex">
+             <number>-1</number>
+            </property>
+            <property name="tabsClosable">
+             <bool>true</bool>
+            </property>
+            <property name="movable">
+             <bool>true</bool>
+            </property>
+           </widget>
           </widget>
           <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -293,6 +302,16 @@ font: 75 10pt &quot;Arial&quot;;</string>
             </item>
            </layout>
           </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="line_2">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
          </widget>
         </item>
        </layout>
