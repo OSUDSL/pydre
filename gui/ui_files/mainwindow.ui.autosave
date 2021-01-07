@@ -36,7 +36,7 @@
    <double>1.000000000000000</double>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">background-color: rgb(70, 80, 80);</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -52,10 +52,10 @@
        <bool>true</bool>
       </property>
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true">background-color: rgb(70, 80, 80);</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -69,8 +69,8 @@
             <item>
              <widget class="QLabel" name="label_4">
               <property name="styleSheet">
-               <string notr="true">color: black;
-background-color: rgb(220, 220, 220);
+               <string notr="true">color: rgb(220, 220, 220);
+background-color: rgb(50, 60, 60);
 padding: 8px;
 font: 75 10pt &quot;Arial&quot;;</string>
               </property>
@@ -82,7 +82,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
             <item>
              <widget class="QListWidget" name="recent_files">
               <property name="styleSheet">
-               <string notr="true"/>
+               <string notr="true">background-color: rgb(220, 220, 220);</string>
               </property>
              </widget>
             </item>
@@ -128,7 +128,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
               <item>
                <widget class="QPushButton" name="open_pfile_btn">
                 <property name="styleSheet">
-                 <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
+                 <string notr="true">background-color: rgb(220, 220, 220);
+font: 75 10pt &quot;Arial&quot;;</string>
                 </property>
                 <property name="text">
                  <string>Open project file</string>
@@ -138,8 +139,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
               <item>
                <widget class="QLabel" name="label_2">
                 <property name="styleSheet">
-                 <string notr="true">color: black;
-background-color: rgb(220, 220, 220);
+                 <string notr="true">color: rgb(220, 220, 220);
+background-color: rgb(50, 60, 60);
 font: 75 10pt &quot;Arial&quot;;
 padding: 8px;</string>
                 </property>
@@ -196,12 +197,13 @@ padding: 8px;</string>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <widget class="QWidget" name="layoutWidget">
+           <widget class="QWidget" name="">
             <layout class="QVBoxLayout" name="verticalLayout_8">
              <item>
               <widget class="QLabel" name="label_6">
                <property name="styleSheet">
-                <string notr="true">background-color: rgb(220, 220, 220);
+                <string notr="true">color: rgb(220, 220, 220);
+background-color: rgb(50, 60, 60);
 padding-left: 8px;
 padding-right: 8px;
 padding-top: 4px;
@@ -216,7 +218,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
              <item>
               <widget class="QTreeWidget" name="treeWidget">
                <property name="styleSheet">
-                <string notr="true"/>
+                <string notr="true">background-color: rgb(220, 220, 220);
+</string>
                </property>
                <property name="headerHidden">
                 <bool>true</bool>
@@ -242,7 +245,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
              <enum>Qt::TabFocus</enum>
             </property>
             <property name="styleSheet">
-             <string notr="true"/>
+             <string notr="true">background-color: rgb(220, 220, 220);
+</string>
             </property>
             <property name="tabShape">
              <enum>QTabWidget::Rounded</enum>
@@ -261,21 +265,12 @@ font: 75 10pt &quot;Arial&quot;;</string>
           <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
-             <widget class="Line" name="line_2">
-              <property name="styleSheet">
-               <string notr="true"/>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
              <layout class="QHBoxLayout" name="horizontalLayout_4">
               <item>
                <widget class="QLabel" name="label_5">
                 <property name="styleSheet">
-                 <string notr="true">background-color: rgb(220, 220, 220);
+                 <string notr="true">color: rgb(220, 220, 220);
+background-color: rgb(50, 60, 60);
 padding-left: 8px;
 padding-right: 8px;
 padding-top: 4px;
@@ -290,7 +285,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
               <item>
                <widget class="QLineEdit" name="lineEdit_2">
                 <property name="styleSheet">
-                 <string notr="true"/>
+                 <string notr="true">background-color: rgb(220, 220, 220);
+</string>
                 </property>
                </widget>
               </item>
@@ -299,12 +295,23 @@ font: 75 10pt &quot;Arial&quot;;</string>
             <item>
              <widget class="QTextBrowser" name="textBrowser">
               <property name="styleSheet">
-               <string notr="true"/>
+               <string notr="true">background-color: rgb(220, 220, 220);
+</string>
               </property>
              </widget>
             </item>
            </layout>
           </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="line_2">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
          </widget>
         </item>
        </layout>
@@ -314,11 +321,9 @@ font: 75 10pt &quot;Arial&quot;;</string>
         <item>
          <widget class="QLabel" name="pfile_label">
           <property name="styleSheet">
-           <string notr="true">background-color: rgb(220, 220, 220);
-padding-left: 8px;
-padding-right: 8px;
-padding-top: 4px;
-padding-bottom: 4px;
+           <string notr="true">color: rgb(220, 220, 220);
+background-color: rgb(50, 60, 60);
+padding: 8px;
 font: 75 10pt &quot;Arial&quot;;</string>
           </property>
           <property name="text">
@@ -336,11 +341,9 @@ font: 75 10pt &quot;Arial&quot;;</string>
         <item>
          <widget class="QLabel" name="label">
           <property name="styleSheet">
-           <string notr="true">background-color: rgb(220, 220, 220);
-padding-left: 8px;
-padding-right: 8px;
-padding-top: 4px;
-padding-bottom: 4px;
+           <string notr="true">color: rgb(220, 220, 220);
+background-color: rgb(50, 60, 60);
+padding: 8px;
 font: 75 10pt &quot;Arial&quot;;</string>
           </property>
           <property name="text">
@@ -353,7 +356,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
           <item>
            <widget class="QListWidget" name="listWidget">
             <property name="styleSheet">
-             <string notr="true"/>
+             <string notr="true">background-color: rgb(220, 220, 220);
+</string>
             </property>
            </widget>
           </item>
@@ -362,7 +366,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
             <item>
              <widget class="QPushButton" name="pushButton">
               <property name="styleSheet">
-               <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
+               <string notr="true">background-color: rgb(220, 220, 220);
+font: 75 10pt &quot;Arial&quot;;</string>
               </property>
               <property name="text">
                <string>Add file</string>
@@ -372,7 +377,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
             <item>
              <widget class="QPushButton" name="pushButton_2">
               <property name="styleSheet">
-               <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
+               <string notr="true">background-color: rgb(220, 220, 220);
+font: 75 10pt &quot;Arial&quot;;</string>
               </property>
               <property name="text">
                <string>Remove</string>
@@ -406,11 +412,9 @@ font: 75 10pt &quot;Arial&quot;;</string>
         <item>
          <widget class="QLabel" name="label_3">
           <property name="styleSheet">
-           <string notr="true">background-color: rgb(220, 220, 220);
-padding-left: 8px;
-padding-right: 8px;
-padding-top: 4px;
-padding-bottom: 4px;
+           <string notr="true">color: rgb(220, 220, 220);
+background-color: rgb(50, 60, 60);
+padding: 8px;
 font: 75 10pt &quot;Arial&quot;;</string>
           </property>
           <property name="text">
@@ -421,7 +425,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
         <item>
          <widget class="QLineEdit" name="lineEdit">
           <property name="styleSheet">
-           <string notr="true"/>
+           <string notr="true">background-color: rgb(220, 220, 220);
+</string>
           </property>
          </widget>
         </item>
@@ -437,7 +442,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
           <item>
            <widget class="QPushButton" name="cancel_btn">
             <property name="styleSheet">
-             <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
+             <string notr="true">background-color: rgb(220, 220, 220);
+font: 75 10pt &quot;Arial&quot;;</string>
             </property>
             <property name="text">
              <string>Cancel</string>
@@ -450,7 +456,8 @@ font: 75 10pt &quot;Arial&quot;;</string>
              <bool>false</bool>
             </property>
             <property name="styleSheet">
-             <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
+             <string notr="true">background-color: rgb(220, 220, 220);
+font: 75 10pt &quot;Arial&quot;;</string>
             </property>
             <property name="text">
              <string>Run</string>

@@ -233,6 +233,9 @@ class MainWindow(Window):
         else:
             """Handle no remaining tabs"""
 
+            # FIXME
+            self.ui.pfile_label.setText("-")
+
             # Switch to startup page
             self._set_recent_files()
             self.ui.page_stack.setCurrentIndex(0)
