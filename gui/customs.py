@@ -26,7 +26,7 @@ class ProjectTree(QTreeWidget):
 
         # Class variables
         if headers is None:
-            self.headers = ["Project parameters", ""]
+            self.headers = ["", ""]
         else:
             self.headers = headers
 
@@ -49,6 +49,8 @@ class ProjectTree(QTreeWidget):
         """
         FIXME
         """
+
+        # FIXME: CUSTOM WIDGETS FOR EACH LEAF
 
         for i in metrics_:
             text = ["{0}".format(i["name"])]
