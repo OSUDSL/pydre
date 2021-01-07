@@ -557,7 +557,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
   </action>
   <action name="run_action">
    <property name="text">
-    <string>Run -</string>
+    <string>Run</string>
    </property>
   </action>
   <action name="actionClose">
