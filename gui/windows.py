@@ -233,9 +233,6 @@ class MainWindow(Window):
         else:
             """Handle no remaining tabs"""
 
-            # FIXME
-            self.ui.pfile_label.setText("-")
-
             # Switch to startup page
             self._set_recent_files()
             self.ui.page_stack.setCurrentIndex(0)
@@ -249,7 +246,7 @@ class MainWindow(Window):
 
         # Set the project file label based on the project file being run
         pfile = self.focused_pfile
-        self.ui.pfile_label.setText("Project file: '{0}'".format(pfile))
+        self.ui.pfile_label.setText("Project file: '{0}'".format(pfile))  # FIXME: SHORTEN
 
         # Switch to run page
         self.ui.page_stack.setCurrentIndex(2)
@@ -258,6 +255,9 @@ class MainWindow(Window):
         """
         Handles cancel button callback on run page.
         """
+
+        # FIXME
+        self.ui.pfile_label.setText("")
 
         # Switch to editor page
         self.ui.page_stack.setCurrentIndex(1)
