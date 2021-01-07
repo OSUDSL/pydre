@@ -298,7 +298,7 @@ class MainWindow(Window):
         # Create project file tree
         tree = ProjectTree(self.c_width, animated=True)
         tree.build_from_file(path_)
-        self.pfile_paths[name] = tree
+        self.pfile_paths[name] = path_
 
         # Open the project file tree in a new tab
         tab_count = self.ui.pfile_tab.count()
