@@ -259,7 +259,7 @@ class MainWindow(Window):
         Handles cancel button callback on run page.
         """
 
-        # FIXME
+        # Reset project file label text
         self.ui.pfile_label.setText("")
 
         # Switch to editor page
