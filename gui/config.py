@@ -14,8 +14,8 @@ class Config(ConfigParser):
     Custom config class for convenience methods.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.module_path = path.dirname(inspect.getfile(gui))
         self.config_path = self.module_path + r"./config_files/config.ini"
