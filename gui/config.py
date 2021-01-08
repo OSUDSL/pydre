@@ -4,6 +4,9 @@
 # """
 
 from configparser import ConfigParser
+import gui
+import inspect
+from os import path
 
 
 class Config(ConfigParser):
@@ -11,10 +14,16 @@ class Config(ConfigParser):
     Custom config class for convenience methods.
     """
 
+    def __init__(self):
+        super().__init__()
+
+        self.module_path = path.dirname(inspect.getfile(gui))
+        self.config_path = self.module_path + r"./config_files/config.ini"
+
     def update(self):
         """
         Updates the config file with any changes stored in the config variable.
         """
 
-        with open("./config_files/config.ini", "w") as configfile:
+        with open(self.config_path, "w") as configfile:
             self.write(configfile)
