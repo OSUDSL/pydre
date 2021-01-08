@@ -10,6 +10,7 @@ from json import load
 from os import path
 import pydre.metrics as metrics
 from PySide2.QtWidgets import QComboBox, QLineEdit, QTreeWidget, QTreeWidgetItem
+from typing import get_type_hints
 
 config = Config()
 module_path = path.dirname(inspect.getfile(gui))
@@ -42,12 +43,12 @@ class ProjectTree(QTreeWidget):
         # FIXME
         self.methods = metrics.metricsList
         arguments = inspect.getfullargspec(self.methods["colMean"]).args
-        # print(self.methods)
-        # print(arguments)
-        # print(type(arguments[0]))
-        # if isinstance(arguments[0], str):
-        #     print("test1")
-        # print("{0}: {1}".format(arguments[2], type(arguments[2])))
+        print(self.methods)
+        print(arguments)
+        print(type(arguments[0]))
+        if isinstance(arguments[0], str):
+            print("test1")
+        print("{0}: {1}".format(arguments[2], get_type_hints(self.methods["colMean"])))
 
     def _build_metrics(self, tree, metrics_):
         """
