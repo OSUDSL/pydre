@@ -4,6 +4,7 @@
 # """
 
 import inspect
+import gui
 from gui.config import Config
 from gui.customs import ProjectTree
 from gui.templates import Window
@@ -15,7 +16,9 @@ from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QFileDialog
 
 config = Config()
-config.read("./config_files/config.ini")
+module_path = path.dirname(inspect.getfile(gui))
+config_path = module_path + r"/config_files/config.ini"
+config.read(config_path)
 
 logger = logging.getLogger("PydreLogger")
 
@@ -245,8 +248,8 @@ class MainWindow(Window):
         """
 
         # Set the project file label based on the project file being run
-        pfile = self.focused_pfile
-        self.ui.pfile_label.setText("Project file: '{0}'".format(pfile))  # FIXME: SHORTEN
+        text = "Project file: '{0}'".format(self.focused_pfile)
+        self.ui.pfile_label.setText(text)
 
         # Switch to run page
         self.ui.page_stack.setCurrentIndex(2)

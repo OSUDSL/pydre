@@ -3,14 +3,18 @@ Created by: Craig Fouts
 Created on: 11/21/2020
 """
 
+import gui
 from gui.config import Config
 import inspect
 from json import load
+from os import path
 import pydre.metrics as metrics
 from PySide2.QtWidgets import QComboBox, QLineEdit, QTreeWidget, QTreeWidgetItem
 
 config = Config()
-config.read("./config_files/config.ini")
+module_path = path.dirname(inspect.getfile(gui))
+config_path = module_path + r"/config_files/config.ini"
+config.read(config_path)
 
 
 class ProjectTree(QTreeWidget):
