@@ -30,8 +30,7 @@ def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
     return timestepID
 
 
-def findFirstTimeOutside(drivedata: pydre.core.DriveData,
-                         area: list[float] = (0, 0, 10000, 10000)):
+def findFirstTimeOutside(drivedata: pydre.core.DriveData):
     timeAtEnd = 0
     for d in drivedata.data:
         if d.position >= pos:
