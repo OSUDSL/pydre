@@ -9,7 +9,8 @@ import inspect
 from json import load
 from os import path
 import pydre.metrics as metrics
-from PySide2.QtWidgets import QComboBox, QLineEdit, QTreeWidget, QTreeWidgetItem
+from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
+    QTreeWidget, QTreeWidgetItem, QWidget
 from typing import get_type_hints
 
 config = Config()
@@ -36,8 +37,7 @@ class ProjectTree(QTreeWidget):
             self.headers = headers
 
         # Widget configurations
-        self.setColumnWidth(0, c_width)
-        self.setHeaderLabels(self.headers)
+        self.setHeaderHidden(True)
         self.setAnimated(animated)
 
         # FIXME
@@ -73,8 +73,12 @@ class ProjectTree(QTreeWidget):
 
             leaves = [j for j in i if j != "name"]
             for k in leaves:
-                text = ["{0}:".format(k)]
-                leaf = QTreeWidgetItem(branch, text)
+                leaf = QTreeWidgetItem(branch)
+
+                widget = QWidget()
+                layout = QHBoxLayout()
+
+                label = QLabel("{0}:".format(k))
 
                 cb = QComboBox()
                 for method in self.methods:
@@ -82,7 +86,12 @@ class ProjectTree(QTreeWidget):
 
                 idx = cb.findText(i["function"])
                 cb.setCurrentIndex(idx)
-                self.setItemWidget(leaf, 1, cb)
+
+                layout.addWidget(label)
+                layout.addWidget(cb)
+                widget.setLayout(layout)
+
+                self.setItemWidget(leaf, 0, widget)
 
     def _build_rois(self, tree, rois):
         """
