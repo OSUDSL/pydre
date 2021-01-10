@@ -41,6 +41,10 @@ class ProjectTree(QTreeWidget):
         self.setAnimated(animated)
 
         # FIXME
+        stylesheet = ("QTreeView::item:hover { color: black; background-color: white; } QTreeView::item:!hover { background-color: white; } QTreeView::item:focus { color: black; background-color: white; }")
+        self.setStyleSheet(stylesheet)
+
+        # FIXME
         self.methods = metrics.metricsList
         arguments = inspect.getfullargspec(self.methods["colMean"]).args
         print(self.methods)
@@ -63,7 +67,8 @@ class ProjectTree(QTreeWidget):
 
             le = QLineEdit()
             le.setText(text[0])
-            le.setStyleSheet("border: 1px solid rgb(220, 220, 220);")
+            stylesheet = "QLineEdit { border: 1px white; }"
+            le.setStyleSheet(stylesheet)
             self.setItemWidget(branch, 0, le)
 
             leaves = [j for j in i if j != "name"]
