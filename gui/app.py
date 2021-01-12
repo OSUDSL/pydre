@@ -35,7 +35,7 @@ def start():
     Starts the application with default config settings.
     """
 
-    app_icon = module_path + r"/images/icon.png"
+    app_icon = module_path + r"/images/icon.png"  # FIXME save relative path to config file
     app_title = config.get("titles", "app")
     app_ui = module_path + r"/ui_files/mainwindow.ui"
     app = Application(MainWindow, app_icon, app_title, app_ui, sys.argv)
