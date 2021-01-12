@@ -9,8 +9,10 @@ import inspect
 from json import load
 from os import path
 import pydre.metrics as metrics
-from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
-    QSizePolicy, QSpinBox, QTextEdit, QTreeWidget, QTreeWidgetItem, QWidget
+from PySide2.QtGui import Qt
+from PySide2.QtWidgets import QAbstractItemView, QComboBox, QHBoxLayout, \
+    QLabel, QLineEdit, QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, \
+    QWidget
 from typing import get_type_hints
 
 config = Config()
@@ -31,11 +33,15 @@ class ProjectTree(QTreeWidget):
         self.param_types = dict(config.items("parameters"))
 
         # Widget configurations
-        self.setHeaderHidden(True)
         self.setAnimated(animated)
+        self.setHeaderHidden(True)
+        self.setFocusPolicy(Qt.NoFocus)
 
-        # FIXME
+        # FIXME check border
         stylesheet = (
+            "QTreeView {"
+            "border: none;"
+            "}"
             "QTreeView::item:hover {"
             "color: black;"
             "background-color: white;"
