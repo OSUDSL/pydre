@@ -10,7 +10,7 @@ from json import load
 from os import path
 import pydre.metrics as metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
-    QTreeWidget, QTreeWidgetItem, QWidget
+    QSizePolicy, QSpinBox, QTextEdit, QTreeWidget, QTreeWidgetItem, QWidget
 from typing import get_type_hints
 
 config = Config()
@@ -54,12 +54,12 @@ class ProjectTree(QTreeWidget):
         # FIXME
         self.methods = metrics.metricsList
         arguments = inspect.getfullargspec(self.methods["colMean"]).args
-        print(self.methods)
-        print(arguments)
-        print(type(arguments[0]))
-        if isinstance(arguments[0], str):
-            print("test1")
-        print("{0}: {1}".format(arguments[2], get_type_hints(self.methods["colMean"])))
+        # print(self.methods)
+        # print(arguments)
+        # print(type(arguments[0]))
+        # if isinstance(arguments[0], str):
+        #     print("test1")
+        # print("{0}: {1}".format(arguments[2], get_type_hints(self.methods["colMean"])))
 
     def _build_metrics(self, tree, metrics_):
         """
@@ -87,15 +87,23 @@ class ProjectTree(QTreeWidget):
 
                 label = QLabel("{0}:".format(k))
 
-                cb = QComboBox()
-                for method in self.methods:
-                    cb.addItem(method)
-
-                idx = cb.findText(i["function"])
-                cb.setCurrentIndex(idx)
+                types = get_type_hints(self.methods[i["function"]])
+                if k == "function":
+                    wg = QComboBox()
+                    for method in self.methods:
+                        wg.addItem(method)
+                    idx = wg.findText(i[k])
+                    wg.setCurrentIndex(idx)
+                elif types[k] == float:
+                    wg = QSpinBox()
+                    wg.setValue(i[k])
+                elif types[k] == str:
+                    wg = QLineEdit()
+                    wg.setText(i[k])
+                    wg.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
 
                 layout.addWidget(label)
-                layout.addWidget(cb)
+                layout.addWidget(wg)
                 widget.setLayout(layout)
 
                 self.setItemWidget(leaf, 0, widget)
