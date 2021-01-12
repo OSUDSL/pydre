@@ -24,17 +24,11 @@ class ProjectTree(QTreeWidget):
     Custom tree widget for building, displaying, and editing project file trees.
     """
 
-    def __init__(self, headers=None, animated=False, *args, **kwargs):
+    def __init__(self, animated=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Config variables
         self.param_types = dict(config.items("parameters"))
-
-        # Class variables
-        if headers is None:
-            self.headers = ["", ""]
-        else:
-            self.headers = headers
 
         # Widget configurations
         self.setHeaderHidden(True)
