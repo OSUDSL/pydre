@@ -24,7 +24,7 @@ class ProjectTree(QTreeWidget):
     Custom tree widget for building, displaying, and editing project file trees.
     """
 
-    def __init__(self, c_width, headers=None, animated=False, *args, **kwargs):
+    def __init__(self, headers=None, animated=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Config variables
@@ -41,7 +41,20 @@ class ProjectTree(QTreeWidget):
         self.setAnimated(animated)
 
         # FIXME
-        stylesheet = ("QTreeView::item:hover { color: black; background-color: white; } QTreeView::item:!hover { background-color: white; } QTreeView::item:focus { color: black; background-color: white; }")
+        stylesheet = (
+            "QTreeView::item:hover {"
+            "color: black;"
+            "background-color: white;"
+            "}"
+            "QTreeView::item:!hover {"
+            "background-color: white;"
+            "}"
+            "QTreeView::item:focus {"
+            "color: black;"
+            "background-color: white;"
+            "border: 1px solid white;"
+            "}"
+        )
         self.setStyleSheet(stylesheet)
 
         # FIXME

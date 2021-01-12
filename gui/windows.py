@@ -37,7 +37,6 @@ class MainWindow(Window):
         self.shstretch_factors = loads(config.get("splitters", "shstretch"))
         self.mhstretch_factors = loads(config.get("splitters", "mhstretch"))
         self.mvstretch_factors = loads(config.get("splitters", "mvstretch"))
-        self.c_width = int(config.get("trees", "c_width"))
         self.file_types = dict(config.items("types"))
         self.param_types = dict(config.items("parameters"))
         self.recent_names = config.get("recent", "names").split(",")
@@ -299,7 +298,7 @@ class MainWindow(Window):
         """
 
         # Create project file tree
-        tree = ProjectTree(self.c_width, animated=True)
+        tree = ProjectTree(animated=True)
         tree.build_from_file(path_)
         self.pfile_paths[name] = path_
 
