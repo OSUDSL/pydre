@@ -107,19 +107,15 @@ class ProjectTree(QTreeWidget):
         self.param_types = dict(config.items("parameters"))
 
         # Class variables
+        stylesheet_path = module_path + r"/stylesheets/project_tree.css"
+        self.stylesheet = open(stylesheet_path).read()
         self.methods = metrics.metricsList
 
         # Widget configurations
+        self.setStyleSheet(self.stylesheet)
         self.setAnimated(animated)
         self.setHeaderHidden(True)
         self.setFocusPolicy(Qt.NoFocus)
-
-        # FIXME
-        stylesheet = open("./stylesheets/project_tree.css").read()
-        self.setStyleSheet(stylesheet)
-
-        # FIXME
-        self.methods = metrics.metricsList
 
 
     def _build_combo_box(self):
