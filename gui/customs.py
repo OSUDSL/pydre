@@ -109,7 +109,6 @@ class ProjectTree(QTreeWidget):
         # Class variables
         stylesheet_path = module_path + r"/stylesheets/project_tree.css"
         self.stylesheet = open(stylesheet_path).read()
-        self.methods = metrics.metricsList
 
         # Widget configurations
         self.setStyleSheet(self.stylesheet)
@@ -117,48 +116,78 @@ class ProjectTree(QTreeWidget):
         self.setHeaderHidden(True)
         self.setFocusPolicy(Qt.NoFocus)
 
+        # FIXME
+        self. leaf_widgets = {
+            float: LeafWidget.spin_box,
+            str: LeafWidget.line_edit
+        }
 
-    def _build_combo_box(self):
+    def _build_branch(self, tree, name):
         """
         TODO
         """
 
-        idx = list(metrics.metricsList.keys()).index()
-        return LeafWidget.combo_box()
+        branch = QTreeWidgetItem(tree, [name])
+
+        le = QLineEdit()
+        le.setText(name)
+
+        self.setItemWidget(branch, 0, le)
+
+        return branch
+
+    def _build_combo_box(self, metric, attribute):
+        """
+        TODO
+        """
+
+        idx = list(metrics.metricsList.keys()).index(metric[attribute])
+        widget = LeafWidget.combo_box(attribute, metrics.metricsList, idx)
+
+        return widget
+
+    def _build_line_edit(self, metric, attribute):
+        """
+        TODO
+        """
+
+        widget = LeafWidget.line_edit(attribute, metric[attribute])
+        widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+
+        return widget
+
+    def _build_leaf(self, branch, metric, attribute, type_=None):
+        """
+        TODO
+        """
+
+        leaf = QTreeWidgetItem(branch)
+
+        if attribute == "function":
+            widget = self._build_combo_box(metric, attribute)
+        elif type_ == float:
+            widget = LeafWidget.spin_box(attribute, metric[attribute])
+        else:
+            widget = self._build_line_edit(metric, attribute)
+
+        self.setItemWidget(leaf, 0, widget)
+
+        return leaf
 
     def _build_metrics(self, tree, metrics_):
         """
         TODO
         """
 
-        # FIXME: CUSTOM WIDGETS FOR EACH LEAF
-
-        for i in metrics_:
-            text = ["{0}".format(i["name"])]
-            branch = QTreeWidgetItem(tree, text)
-
-            le = QLineEdit()
-            le.setText(text[0])
-            stylesheet = "QLineEdit { border: 1px white; }"
-            le.setStyleSheet(stylesheet)
-            self.setItemWidget(branch, 0, le)
-
-            types = get_type_hints(self.methods[i["function"]])
-
-            leaves = [j for j in i if j != "name"]
-            for k in leaves:
-                leaf = QTreeWidgetItem(branch)
-
-                if k == "function":
-                    idx = list(self.methods.keys()).index(i[k])
-                    widget = LeafWidget.combo_box(k, self.methods, idx)
-                elif types[k] == float:
-                    widget = LeafWidget.spin_box(k, i[k])
+        for metric in metrics_:
+            branch = self._build_branch(tree, metric["name"])
+            types = get_type_hints(metrics.metricsList[metric["function"]])
+            attributes = [att for att in metric if att != "name"]
+            for attribute in attributes:
+                if attribute == "function":
+                    self._build_leaf(branch, metric, attribute)
                 else:
-                    widget = LeafWidget.line_edit(k, i[k])
-                    widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-
-                self.setItemWidget(leaf, 0, widget)
+                    self._build_leaf(branch, metric, attribute, types[attribute])
 
     def _build_rois(self, tree, rois):
         """
