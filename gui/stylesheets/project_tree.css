@@ -14,3 +14,8 @@ QTreeView::item:focus
     color: black;
     background-color: white;
 }
+
+QLineEdit
+{
+    border: 1px white;
+}
