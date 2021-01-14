@@ -106,38 +106,33 @@ class ProjectTree(QTreeWidget):
         # Config variables
         self.param_types = dict(config.items("parameters"))
 
+        # Class variables
+        self.methods = metrics.metricsList
+
         # Widget configurations
         self.setAnimated(animated)
         self.setHeaderHidden(True)
         self.setFocusPolicy(Qt.NoFocus)
 
-        # FIXME check border
-        stylesheet = (
-            "QTreeView {"
-            "border: none;"
-            "}"
-            "QTreeView::item:hover {"
-            "color: black;"
-            "background-color: white;"
-            "}"
-            "QTreeView::item:!hover {"
-            "background-color: white;"
-            "}"
-            "QTreeView::item:focus {"
-            "color: black;"
-            "background-color: white;"
-            "border: 1px solid white;"
-            "}"
-        )
+        # FIXME
+        stylesheet = open("./stylesheets/project_tree.css").read()
         self.setStyleSheet(stylesheet)
 
         # FIXME
         self.methods = metrics.metricsList
 
 
+    def _build_combo_box(self):
+        """
+        TODO
+        """
+
+        idx = list(metrics.metricsList.keys()).index()
+        return LeafWidget.combo_box()
+
     def _build_metrics(self, tree, metrics_):
         """
-        FIXME
+        TODO
         """
 
         # FIXME: CUSTOM WIDGETS FOR EACH LEAF
@@ -169,34 +164,9 @@ class ProjectTree(QTreeWidget):
 
                 self.setItemWidget(leaf, 0, widget)
 
-                # widget = QWidget()
-                # layout = QHBoxLayout()
-                #
-                # label = QLabel("{0}:".format(k))
-                #
-                # if k == "function":
-                #     wg = QComboBox()
-                #     for method in self.methods:
-                #         wg.addItem(method)
-                #     idx = wg.findText(i[k])
-                #     wg.setCurrentIndex(idx)
-                # elif types[k] == float:
-                #     wg = QSpinBox()
-                #     wg.setValue(i[k])
-                # elif types[k] == str:
-                #     wg = QLineEdit()
-                #     wg.setText(i[k])
-                #     wg.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-                #
-                # layout.addWidget(label)
-                # layout.addWidget(wg)
-                # widget.setLayout(layout)
-                #
-                # self.setItemWidget(leaf, 0, widget)
-
     def _build_rois(self, tree, rois):
         """
-        FIXME
+        TODO
         """
 
         for i in rois:
@@ -212,22 +182,39 @@ class ProjectTree(QTreeWidget):
 
                 self.setItemWidget(leaf, 1, cb)
 
-    def _build_tree(self, tree, contents, parameter):
+    # def _build_tree(self, tree, contents, parameter):
+    #     """
+    #     Builds a tree for the specified parameter of the given project file.
+    #
+    #     args:
+    #         tree: Parent tree widget item
+    #         contents: Dictionary of the contents of the project file
+    #         parameter: Specified parameter for which the tree is being built
+    #     """
+    #
+    #     # Generate branches for the specified parameter
+    #     print(contents)
+    #     for c in contents:
+    #         print(c)
+    #         if c == "metrics":
+    #             self._build_metrics(tree, contents[c])
+
+    def build_from_dict(self, contents):
         """
-        Builds a tree for the specified parameter of the given project file.
+        Builds a tree for each of the parameters in the given project file
+        dictionary.
 
         args:
-            tree: Parent tree widget item
-            contents: Dictionary of the contents of the project file
-            parameter: Specified parameter for which the tree is being built
+            contents: Dictionary of the contents of a project file
         """
 
-        # Generate branches for the specified parameter
-        print(contents)
-        for c in contents:
-            print(c)
-            if c == "metrics":
-                self._build_metrics(tree, contents[c])
+        # Generate tree for each parameter type
+        for i in contents:
+            tree = QTreeWidgetItem(self, [i])
+            if i == "metrics":
+                self._build_metrics(tree, contents[i])
+            elif i == "rois":
+                self._build_rois(tree, contents[i])
 
     def build_from_file(self, path_):
         """
@@ -242,23 +229,4 @@ class ProjectTree(QTreeWidget):
         contents = load(open(path_))
 
         # Generate tree for each parameter type
-        for i in contents:
-            tree = QTreeWidgetItem(self, [i])
-            if i == "metrics":
-                self._build_metrics(tree, contents[i])
-            elif i == "rois":
-                self._build_rois(tree, contents[i])
-
-    def build_from_dict(self, contents):
-        """
-        Builds a tree for each of the parameters in the given project file
-        dictionary.
-
-        args:
-            contents: Dictionary of the contents of a project file
-        """
-
-        # Generate tree for each parameter type
-        for i in contents:
-            tree = QTreeWidgetItem(self, [i])
-            self._build_tree(tree, contents, i)
+        self.build_from_dict(contents)
