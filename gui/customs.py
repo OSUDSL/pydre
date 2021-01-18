@@ -10,9 +10,8 @@ from json import load
 from os import path
 import pydre.metrics as metrics
 from PySide2.QtGui import Qt
-from PySide2.QtWidgets import QAbstractItemView, QComboBox, QHBoxLayout, \
-    QLabel, QLineEdit, QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, \
-    QWidget
+from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
+    QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
 from typing import get_type_hints
 
 config = Config()
@@ -26,38 +25,37 @@ class LeafWidget(QWidget):
     Custom leaf widget for displaying and editing project file parameters.
     """
 
-    @staticmethod
-    def combo_box(text, items, idx=None):
+    def __init__(self, layout=QHBoxLayout, items=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.layout = layout()
+        self.items = items
+
+    def combo_box(self, text, value=None):
         """
         TODO
         """
-
-        widget = QWidget()
-        layout = QHBoxLayout()
 
         label = QLabel("{0}:".format(text))
         cb = QComboBox()
 
-        for item in items:
+        for item in self.items:
             cb.addItem(item)
 
-        if idx is not None:
+        if value is not None:
+            idx = list(self.items.keys()).index(value)
             cb.setCurrentIndex(idx)
 
-        layout.addWidget(label)
-        layout.addWidget(cb)
-        widget.setLayout(layout)
+        self.layout.addWidget(label)
+        self.layout.addWidget(cb)
+        self.setLayout(self.layout)
 
-        return widget
+        return self
 
-    @staticmethod
-    def spin_box(text, value=None):
+    def spin_box(self, text, value=None):
         """
         TODO
         """
-
-        widget = QWidget()
-        layout = QHBoxLayout()
 
         label = QLabel("{0}:".format(text))
         sb = QSpinBox()
@@ -65,20 +63,16 @@ class LeafWidget(QWidget):
         if value is not None:
             sb.setValue(value)
 
-        layout.addWidget(label)
-        layout.addWidget(sb)
-        widget.setLayout(layout)
+        self.layout.addWidget(label)
+        self.layout.addWidget(sb)
+        self.setLayout(self.layout)
 
-        return widget
+        return self
 
-    @staticmethod
-    def line_edit(text, value=None):
+    def line_edit(self, text, value=None):
         """
         TODO
         """
-
-        widget = QWidget()
-        layout = QHBoxLayout()
 
         label = QLabel("{0}:".format(text))
         le = QLineEdit()
@@ -88,11 +82,11 @@ class LeafWidget(QWidget):
 
         le.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
 
-        layout.addWidget(label)
-        layout.addWidget(le)
-        widget.setLayout(layout)
+        self.layout.addWidget(label)
+        self.layout.addWidget(le)
+        self.setLayout(self.layout)
 
-        return widget
+        return self
 
 
 class ProjectTree(QTreeWidget):
@@ -107,20 +101,27 @@ class ProjectTree(QTreeWidget):
         self.param_types = dict(config.items("parameters"))
 
         # Class variables
-        stylesheet_path = module_path + r"/stylesheets/project_tree.css"
-        self.stylesheet = open(stylesheet_path).read()
+        self.metrics = metrics.metricsList
+        self.widgets_by_type = {
+            None: lambda t, v: LeafWidget(items=self.metrics).combo_box(t, v),
+            float: lambda t, v: LeafWidget().spin_box(t, v),
+            str: lambda t, v: LeafWidget().line_edit(t, v)
+        }
 
         # Widget configurations
-        self.setStyleSheet(self.stylesheet)
         self.setAnimated(animated)
         self.setHeaderHidden(True)
         self.setFocusPolicy(Qt.NoFocus)
+        self._configure_style()
 
-        # FIXME
-        self. leaf_widgets = {
-            float: LeafWidget.spin_box,
-            str: LeafWidget.line_edit
-        }
+    def _configure_style(self):
+        """
+        TODO
+        """
+
+        stylesheet_path = module_path + r"/stylesheets/project_tree.css"
+        stylesheet = open(stylesheet_path).read()
+        self.setStyleSheet(stylesheet)
 
     def _build_branch(self, tree, name):
         """
@@ -128,33 +129,11 @@ class ProjectTree(QTreeWidget):
         """
 
         branch = QTreeWidgetItem(tree, [name])
-
-        le = QLineEdit()
-        le.setText(name)
-
-        self.setItemWidget(branch, 0, le)
+        widget = QLineEdit()
+        widget.setText(name)
+        self.setItemWidget(branch, 0, widget)
 
         return branch
-
-    def _build_combo_box(self, metric, attribute):
-        """
-        TODO
-        """
-
-        idx = list(metrics.metricsList.keys()).index(metric[attribute])
-        widget = LeafWidget.combo_box(attribute, metrics.metricsList, idx)
-
-        return widget
-
-    def _build_line_edit(self, metric, attribute):
-        """
-        TODO
-        """
-
-        widget = LeafWidget.line_edit(attribute, metric[attribute])
-        widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-
-        return widget
 
     def _build_leaf(self, branch, metric, attribute, type_=None):
         """
@@ -162,14 +141,7 @@ class ProjectTree(QTreeWidget):
         """
 
         leaf = QTreeWidgetItem(branch)
-
-        if attribute == "function":
-            widget = self._build_combo_box(metric, attribute)
-        elif type_ == float:
-            widget = LeafWidget.spin_box(attribute, metric[attribute])
-        else:
-            widget = self._build_line_edit(metric, attribute)
-
+        widget = self.widgets_by_type[type_](attribute, metric[attribute])
         self.setItemWidget(leaf, 0, widget)
 
         return leaf
@@ -180,14 +152,17 @@ class ProjectTree(QTreeWidget):
         """
 
         for metric in metrics_:
+            # Generate a branch for each metric
             branch = self._build_branch(tree, metric["name"])
-            types = get_type_hints(metrics.metricsList[metric["function"]])
-            attributes = [att for att in metric if att != "name"]
-            for attribute in attributes:
-                if attribute == "function":
-                    self._build_leaf(branch, metric, attribute)
-                else:
-                    self._build_leaf(branch, metric, attribute, types[attribute])
+
+            # Get argument types for the current metric function
+            types = get_type_hints(self.metrics[metric["function"]])
+
+            # Generate a leaf for each metric argument
+            arguments = [arg for arg in metric if arg != "name"]
+            for argument in arguments:
+                type_ = types[argument] if argument != "function" else None
+                self._build_leaf(branch, metric, argument, type_)
 
     def _build_rois(self, tree, rois):
         """
@@ -207,23 +182,6 @@ class ProjectTree(QTreeWidget):
 
                 self.setItemWidget(leaf, 1, cb)
 
-    # def _build_tree(self, tree, contents, parameter):
-    #     """
-    #     Builds a tree for the specified parameter of the given project file.
-    #
-    #     args:
-    #         tree: Parent tree widget item
-    #         contents: Dictionary of the contents of the project file
-    #         parameter: Specified parameter for which the tree is being built
-    #     """
-    #
-    #     # Generate branches for the specified parameter
-    #     print(contents)
-    #     for c in contents:
-    #         print(c)
-    #         if c == "metrics":
-    #             self._build_metrics(tree, contents[c])
-
     def build_from_dict(self, contents):
         """
         Builds a tree for each of the parameters in the given project file
@@ -233,7 +191,7 @@ class ProjectTree(QTreeWidget):
             contents: Dictionary of the contents of a project file
         """
 
-        # Generate tree for each parameter type
+        # Generate a tree for each parameter type
         for i in contents:
             tree = QTreeWidgetItem(self, [i])
             if i == "metrics":
