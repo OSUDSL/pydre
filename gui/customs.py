@@ -39,8 +39,12 @@ class LeafWidget(QWidget):
         label = QLabel("{0}:".format(text))
         cb = QComboBox()
 
-        for item in self.items:
-            cb.addItem(item)
+        if self.items is not None:
+            for item in self.items:
+                cb.addItem(item)
+        else:
+            # TODO: Add log message here
+            print("Items list required at initialization for combo box")
 
         if value is not None:
             idx = list(self.items.keys()).index(value)
@@ -119,8 +123,8 @@ class ProjectTree(QTreeWidget):
         TODO
         """
 
-        stylesheet_path = path.join(PROJECT_PATH, "stylesheets/project_tree.css")
-        stylesheet = open(stylesheet_path).read()
+        style_path = path.join(PROJECT_PATH, "stylesheets/project_tree.css")
+        stylesheet = open(style_path).read()
         self.setStyleSheet(stylesheet)
 
     def _build_branch(self, tree, name):
