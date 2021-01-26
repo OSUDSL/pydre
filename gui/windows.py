@@ -74,17 +74,17 @@ class MainWindow(Window):
         Sets all menu bar action callbacks.
         """
 
-        self.ui.open_action.triggered.connect(self._handle_open_pfile)
+        self.ui.open_action.triggered.connect(self._handle_open)
         self.ui.run_action.triggered.connect(self._handle_run)
 
-        self.ui.recent_files.itemDoubleClicked.connect(self._handle_selected_pfile)
+        self.ui.recent_files.itemDoubleClicked.connect(self._handle_select)
 
     def _set_button_callbacks(self):
         """
         Sets all button callbacks.
         """
 
-        self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
+        self.ui.open_pfile_btn.clicked.connect(self._handle_open)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
 
     def _set_widget_callbacks(self):
@@ -93,7 +93,7 @@ class MainWindow(Window):
         """
 
         self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
-        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_close_pfile)
+        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_close)
 
     def _configure_callbacks(self):
         """
@@ -166,7 +166,7 @@ class MainWindow(Window):
     # Handler methods ----------------------------------------------------------
     # ==========================================================================
 
-    def _handle_open_pfile(self):
+    def _handle_open(self):
         """
         Handles opening a project file in a new tab.
         """
@@ -177,11 +177,11 @@ class MainWindow(Window):
         if path_:
             """Launch the project file editor if a project file is selected"""
 
-            self._launch_pfile_editor(path_)
+            self._launch_editor(path_)
             self.ui.menu_bar.setVisible(True)
             self.resize_and_center(1100, 800)
 
-    def _handle_selected_pfile(self):
+    def _handle_select(self):
         """
         Handles selecting a project file from the recent files menu.
         """
@@ -192,11 +192,11 @@ class MainWindow(Window):
         path_ = path.join(path.dirname(PROJECT_PATH), relative_path)
 
         # Launch the project file editor
-        self._launch_pfile_editor(path_)
+        self._launch_editor(path_)
         self.ui.menu_bar.setVisible(True)
         self.resize_and_center(1100, 800)
 
-    def _handle_close_pfile(self, idx):
+    def _handle_close(self, idx):
         """
         Handles closing a project file tab.
 
@@ -333,7 +333,7 @@ class MainWindow(Window):
         config.set("recent", "paths", ",".join(self.recent_paths))
         config.update()
 
-    def _launch_pfile_editor(self, path_):
+    def _launch_editor(self, path_):
         """
         Configures and shows the project file editor in a new tab.
 
