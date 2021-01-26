@@ -4,21 +4,20 @@
 # """
 
 import inspect
-import gui
 from gui.config import Config
 from gui.customs import ProjectTree
 from gui.templates import Window
 from json import loads
 import logging
-from os import path
+from os import path, sep
 import pydre
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QFileDialog
 
 config = Config()
-module_path = path.dirname(inspect.getfile(gui))
-config_path = module_path + r"/config_files/config.ini"
-config.read(config_path)
+PROJECT_PATH = path.dirname(path.abspath(__file__))
+CONFIG_PATH = path.join(PROJECT_PATH, "config_files/config.ini")
+config.read(CONFIG_PATH)
 
 logger = logging.getLogger("PydreLogger")
 
@@ -189,7 +188,8 @@ class MainWindow(Window):
 
         # Get the selected project file path
         idx = self.ui.recent_files.currentRow()
-        path_ = self.recent_paths[idx]
+        relative_path = self.recent_paths[idx]
+        path_ = path.join(path.dirname(PROJECT_PATH), relative_path)
 
         # Launch the project file editor
         self._launch_pfile_editor(path_)
@@ -286,7 +286,7 @@ class MainWindow(Window):
         title = self.explorer_title
         path_, filter_ = QFileDialog.getOpenFileName(self, title, dir_, type_)
 
-        return path_
+        return path.abspath(path_)
 
     def _create_project_tree(self, name, path_):
         """
@@ -317,14 +317,16 @@ class MainWindow(Window):
             path_: Project file path
         """
 
+        relative_path = path.join(*path_.split(sep)[-2:])
+
         # Remove the given name and path if they are already saved
         if name in self.recent_names:
             self.recent_names.remove(name)
-            self.recent_paths.remove(path_)
+            self.recent_paths.remove(relative_path)
 
         # Insert the given name and path at the beginning of the respective list
         self.recent_names.insert(0, name)
-        self.recent_paths.insert(0, path_)
+        self.recent_paths.insert(0, relative_path)
 
         # Set and add write lists in the config file
         config.set("recent", "names", ",".join(self.recent_names))
@@ -339,7 +341,7 @@ class MainWindow(Window):
             path_: Project file path
         """
 
-        name = path_.split("/")[-1]
+        name = path_.split(sep)[-1]
 
         # Update recent files with the given file
         self._add_to_recent(name, path_)

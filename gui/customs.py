@@ -3,7 +3,7 @@ Created by: Craig Fouts
 Created on: 11/21/2020
 """
 
-import gui
+import pydre
 from gui.config import Config
 import inspect
 from json import load
@@ -15,9 +15,9 @@ from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
 from typing import get_type_hints
 
 config = Config()
-module_path = path.dirname(inspect.getfile(gui))
-config_path = module_path + r"/config_files/config.ini"
-config.read(config_path)
+PROJECT_PATH = path.dirname(path.abspath(__file__))
+CONFIG_PATH = path.join(PROJECT_PATH, "config_files/config.ini")
+config.read(CONFIG_PATH)
 
 
 class LeafWidget(QWidget):
@@ -119,7 +119,7 @@ class ProjectTree(QTreeWidget):
         TODO
         """
 
-        stylesheet_path = module_path + r"/stylesheets/project_tree.css"
+        stylesheet_path = path.join(PROJECT_PATH, "stylesheets/project_tree.css")
         stylesheet = open(stylesheet_path).read()
         self.setStyleSheet(stylesheet)
 
@@ -201,7 +201,7 @@ class ProjectTree(QTreeWidget):
 
     def build_from_file(self, path_):
         """
-        Unloads contents of the given project file and builds a tree for each of
+        Loads contents of the given project file and builds a tree for each of
         its parameters.
 
         args:
