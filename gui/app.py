@@ -4,17 +4,15 @@
 # """
 
 from configparser import ConfigParser
-import gui
 from gui.windows import MainWindow
-import inspect
 from os import path
 from PySide2.QtWidgets import QApplication
 import sys
 
 config = ConfigParser()
-module_path = path.dirname(inspect.getfile(gui))
-config_path = module_path + r"/config_files/config.ini"
-config.read(config_path)
+PROJECT_PATH = path.dirname(path.abspath(__file__))
+CONFIG_PATH = path.join(PROJECT_PATH, "config_files/config.ini")
+config.read(CONFIG_PATH)
 
 
 class Application(QApplication):
@@ -35,9 +33,9 @@ def start():
     Starts the application with default config settings.
     """
 
-    app_icon = module_path + r"/images/icon.png"  # FIXME save relative path to config file
+    app_icon = path.join(PROJECT_PATH, "images/icon.png")
     app_title = config.get("titles", "app")
-    app_ui = module_path + r"/ui_files/mainwindow.ui"
+    app_ui = path.join(PROJECT_PATH, "ui_files/mainwindow.ui")
     app = Application(MainWindow, app_icon, app_title, app_ui, sys.argv)
     app.exec_()
 
