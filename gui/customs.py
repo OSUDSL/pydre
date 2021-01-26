@@ -3,9 +3,7 @@ Created by: Craig Fouts
 Created on: 11/21/2020
 """
 
-import pydre
 from gui.config import Config
-import inspect
 from json import load
 from os import path
 import pydre.metrics as metrics
