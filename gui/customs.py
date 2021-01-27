@@ -6,7 +6,6 @@ Created on: 11/21/2020
 from gui.config import Config
 from json import load
 from os import path
-import pydre.metrics as metrics
 from PySide2.QtGui import Qt
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
@@ -96,14 +95,15 @@ class ProjectTree(QTreeWidget):
     Custom tree widget for building, displaying, and editing project file trees.
     """
 
-    def __init__(self, animated=False, *args, **kwargs):
+    def __init__(self, file, metrics, animated=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Config variables
         self.param_types = dict(config.items("parameters"))
 
         # Class variables
-        self.metrics = metrics.metricsList
+        self.pfile = file
+        self.metrics = metrics
         self.widgets_by_type = {
             None: lambda t, v: LeafWidget(items=self.metrics).combo_box(t, v),
             float: lambda t, v: LeafWidget().spin_box(t, v),
@@ -115,6 +115,9 @@ class ProjectTree(QTreeWidget):
         self.setHeaderHidden(True)
         self.setFocusPolicy(Qt.NoFocus)
         self._configure_style()
+
+        # Build project tree
+        self._build_tree()
 
     def _configure_style(self):
         """
@@ -184,24 +187,7 @@ class ProjectTree(QTreeWidget):
 
                 self.setItemWidget(leaf, 1, cb)
 
-    def build_from_dict(self, contents):
-        """
-        Builds a tree for each of the parameters in the given project file
-        dictionary.
-
-        args:
-            contents: Dictionary of the contents of a project file
-        """
-
-        # Generate a tree for each parameter type
-        for i in contents:
-            tree = QTreeWidgetItem(self, [i])
-            if i == "metrics":
-                self._build_metrics(tree, contents[i])
-            elif i == "rois":
-                self._build_rois(tree, contents[i])
-
-    def build_from_file(self, path_):
+    def _build_tree(self):
         """
         Loads contents of the given project file and builds a tree for each of
         its parameters.
@@ -211,7 +197,12 @@ class ProjectTree(QTreeWidget):
         """
 
         # Load project file contents
-        contents = load(open(path_))
+        contents = load(open(self.pfile))
 
         # Generate tree for each parameter type
-        self.build_from_dict(contents)
+        for i in contents:
+            tree = QTreeWidgetItem(self, [i])
+            if i == "metrics":
+                self._build_metrics(tree, contents[i])
+            elif i == "rois":
+                self._build_rois(tree, contents[i])
