@@ -11,6 +11,7 @@ from json import loads
 import logging
 from os import path, sep
 import pydre
+from pydre import metrics
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QFileDialog
 
@@ -298,8 +299,7 @@ class MainWindow(Window):
         """
 
         # Create project file tree
-        tree = ProjectTree(animated=True)
-        tree.build_from_file(path_)
+        tree = ProjectTree(path_, metrics.metricsList, True)
         self.pfile_paths[name] = path_
 
         # Open the project file tree in a new tab
