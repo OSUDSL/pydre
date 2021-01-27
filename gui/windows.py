@@ -247,7 +247,7 @@ class MainWindow(Window):
         """
 
         # Set the project file label based on the project file being run
-        text = "Project file: '{0}'".format(self.focused_pfile)
+        text = "Project file: {0}".format(self.focused_pfile)
         self.ui.pfile_label.setText(text)
 
         # Switch to run page
