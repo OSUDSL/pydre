@@ -4,7 +4,7 @@ Created on: 11/21/2020
 """
 
 from gui.config import Config
-from json import load
+from json import dump, load
 from os import path
 from PySide2.QtGui import Qt
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
@@ -104,6 +104,7 @@ class ProjectTree(QTreeWidget):
         # Class variables
         self.pfile = file
         self.metrics = metrics
+        self.contents = load(open(self.pfile))
         self.widgets_by_type = {
             None: lambda t, v: LeafWidget(items=self.metrics).combo_box(t, v),
             float: lambda t, v: LeafWidget().spin_box(t, v),
@@ -196,13 +197,20 @@ class ProjectTree(QTreeWidget):
             path: Project file path
         """
 
-        # Load project file contents
-        contents = load(open(self.pfile))
+        print(self.contents)
 
         # Generate tree for each parameter type
-        for i in contents:
+        for i in self.contents:
             tree = QTreeWidgetItem(self, [i])
             if i == "metrics":
-                self._build_metrics(tree, contents[i])
+                self._build_metrics(tree, self.contents[i])
             elif i == "rois":
-                self._build_rois(tree, contents[i])
+                self._build_rois(tree, self.contents[i])
+
+    def _save_file(self):
+        """
+        TODO
+        """
+
+        with open(self.file, "w") as file:
+            print(self.file)
