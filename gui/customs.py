@@ -110,7 +110,7 @@ class ProjectTree(QTreeWidget):
             float: lambda t, v: LeafWidget().spin_box(t, v),
             str: lambda t, v: LeafWidget().line_edit(t, v)
         }
-        self.active_widgets = []
+        self.active_widgets = {}
 
         # Widget configurations
         self.setAnimated(animated)
@@ -139,6 +139,10 @@ class ProjectTree(QTreeWidget):
         widget = QLineEdit()
         widget.setText(name)
         self.setItemWidget(branch, 0, widget)
+
+        # FIXME
+        self.active_widgets[name] = widget
+        widget.textChanged.connect(self._save_file)
 
         return branch
 
@@ -209,5 +213,5 @@ class ProjectTree(QTreeWidget):
         TODO
         """
 
-        with open(self.file, "w") as file:
-            print(self.contents)
+        # with open(self.file, "w") as file:
+        print(self.contents)
