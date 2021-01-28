@@ -110,6 +110,7 @@ class ProjectTree(QTreeWidget):
             float: lambda t, v: LeafWidget().spin_box(t, v),
             str: lambda t, v: LeafWidget().line_edit(t, v)
         }
+        self.active_widgets = []
 
         # Widget configurations
         self.setAnimated(animated)
@@ -190,16 +191,12 @@ class ProjectTree(QTreeWidget):
 
     def _build_tree(self):
         """
-        Loads contents of the given project file and builds a tree for each of
-        its parameters.
+        Builds a tree for each of the class project file's parameter types.
 
         args:
             path: Project file path
         """
 
-        print(self.contents)
-
-        # Generate tree for each parameter type
         for i in self.contents:
             tree = QTreeWidgetItem(self, [i])
             if i == "metrics":
@@ -213,4 +210,4 @@ class ProjectTree(QTreeWidget):
         """
 
         with open(self.file, "w") as file:
-            print(self.file)
+            print(self.contents)
