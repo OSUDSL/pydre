@@ -140,10 +140,6 @@ class ProjectTree(QTreeWidget):
         widget.setText(name)
         self.setItemWidget(branch, 0, widget)
 
-        # FIXME
-        self.active_widgets[name] = widget
-        widget.textChanged.connect(self._save_file)
-
         return branch
 
     def _build_leaf(self, branch, metric, attribute, type_=None):
