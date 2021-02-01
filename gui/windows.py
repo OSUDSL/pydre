@@ -242,6 +242,13 @@ class MainWindow(Window):
             self.ui.menu_bar.setVisible(False)
             self.resize_and_center(700, 400)
 
+    def _handle_save(self):
+        """
+        TODO
+        """
+
+
+
     def _handle_run(self):
         """
         Handles menu bar run action based on the current focussed project file.
@@ -299,7 +306,8 @@ class MainWindow(Window):
         """
 
         # Create project file tree
-        tree = ProjectTree(path_, metrics.metricsList, True)
+        tree = ProjectTree(path_, metrics.metricsList, True)  # FIXME: Make class variable and add generate_from_file to ProjectTree
+        self.pfile_widgets[name] = tree
         self.pfile_paths[name] = path_
 
         # Open the project file tree in a new tab
