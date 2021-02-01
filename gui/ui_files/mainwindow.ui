@@ -485,7 +485,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
     <addaction name="new_action"/>
     <addaction name="open_action"/>
     <addaction name="separator"/>
-    <addaction name="actionSave"/>
+    <addaction name="save_action"/>
     <addaction name="actionSave_as"/>
     <addaction name="actionSave_all"/>
     <addaction name="actionRevert_FILE_NAME"/>
@@ -605,9 +605,12 @@ font: 75 10pt &quot;Arial&quot;;</string>
     <string>Find...</string>
    </property>
   </action>
-  <action name="actionSave">
+  <action name="save_action">
    <property name="text">
     <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionSave_as">

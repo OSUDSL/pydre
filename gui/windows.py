@@ -7,7 +7,7 @@ import inspect
 from gui.config import Config
 from gui.customs import ProjectTree
 from gui.templates import Window
-from json import loads
+from json import dump, loads
 import logging
 from os import path, sep
 import pydre
@@ -76,6 +76,7 @@ class MainWindow(Window):
         """
 
         self.ui.open_action.triggered.connect(self._handle_open)
+        self.ui.save_action.triggered.connect(self._handle_save)
         self.ui.run_action.triggered.connect(self._handle_run)
 
         self.ui.recent_files.itemDoubleClicked.connect(self._handle_select)
@@ -247,7 +248,12 @@ class MainWindow(Window):
         TODO
         """
 
+        # TODO: Should this be in customs.py?
 
+        print(self.ui.pfile_tab.currentWidget().get_contents())
+        name = self.pfile_widgets[self.ui.pfile_tab.currentWidget()]
+        with open(self.pfile_paths[name], "w") as file:
+            dump(self.ui.pfile_tab.currentWidget().get_contents(), file, indent=4)
 
     def _handle_run(self):
         """
@@ -306,8 +312,8 @@ class MainWindow(Window):
         """
 
         # Create project file tree
-        tree = ProjectTree(path_, metrics.metricsList, True)  # FIXME: Make class variable and add generate_from_file to ProjectTree
-        self.pfile_widgets[name] = tree
+        tree = ProjectTree(path_, metrics.metricsList, True)
+        self.pfile_widgets[tree] = name  # FIXME?
         self.pfile_paths[name] = path_
 
         # Open the project file tree in a new tab
