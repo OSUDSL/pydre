@@ -110,7 +110,7 @@ class ProjectTree(QTreeWidget):
             float: lambda t, v: LeafWidget().spin_box(t, v),
             str: lambda t, v: LeafWidget().line_edit(t, v)
         }
-        self.active_widgets = {}
+        self.trees = []
 
         # Widget configurations
         self.setAnimated(animated)
@@ -130,7 +130,7 @@ class ProjectTree(QTreeWidget):
         stylesheet = open(style_path).read()
         self.setStyleSheet(stylesheet)
 
-    def _build_branch(self, tree, name):
+    def _build_branch(self, tree, name, idx):
         """
         TODO
         """
@@ -139,6 +139,9 @@ class ProjectTree(QTreeWidget):
         widget = QLineEdit()
         widget.setText(name)
         self.setItemWidget(branch, 0, widget)
+
+        # TODO
+        widget.textChanged.connect(lambda e: self._update_name(e, idx))
 
         return branch
 
@@ -160,7 +163,8 @@ class ProjectTree(QTreeWidget):
 
         for metric in metrics_:
             # Generate a branch for each metric
-            branch = self._build_branch(tree, metric["name"])
+            idx = metrics_.index(metric)
+            branch = self._build_branch(tree, metric["name"], idx)
 
             # Get argument types for the current metric function
             types = get_type_hints(self.metrics[metric["function"]])
@@ -203,11 +207,29 @@ class ProjectTree(QTreeWidget):
                 self._build_metrics(tree, self.contents[i])
             elif i == "rois":
                 self._build_rois(tree, self.contents[i])
+            self.trees.append(tree)
 
-    def _save_file(self):
+    def _update_name(self, e, idx):
         """
         TODO
         """
 
-        # with open(self.file, "w") as file:
+        print(e)
+        print(idx)
         print(self.contents)
+        self.contents["metrics"][idx]["name"] = e
+        print(self.contents)
+
+    def build_from_file(self, file):
+        """
+        TODO
+        """
+
+
+
+    def get_contents(self):
+        """
+        TODO
+        """
+
+        return self.contents
