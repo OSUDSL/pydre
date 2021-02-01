@@ -249,6 +249,7 @@ class MainWindow(Window):
         """
 
         # TODO: Should this be in customs.py?
+        # TODO: Add log message on save
 
         print(self.ui.pfile_tab.currentWidget().get_contents())
         name = self.pfile_widgets[self.ui.pfile_tab.currentWidget()]
