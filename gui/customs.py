@@ -104,6 +104,7 @@ class ProjectTree(QTreeWidget):
         # Class variables
         self.pfile = file
         self.metrics = metrics
+        self.default_contents = load(open(self.pfile))  # TODO: Better name
         self.contents = load(open(self.pfile))
         self.widgets_by_type = {
             None: lambda t, v: LeafWidget(items=self.metrics).combo_box(t, v),
@@ -214,18 +215,26 @@ class ProjectTree(QTreeWidget):
         TODO
         """
 
-        print(e)
-        print(idx)
-        print(self.contents)
+        # print(e)
+        # print(idx)
+        # print(self.contents)
         self.contents["metrics"][idx]["name"] = e
-        print(self.contents)
+        # print(self.contents)
 
     def build_from_file(self, file):
         """
         TODO
         """
 
+    def compare_contents(self):
+        """
+        TODO
+        """
 
+        print(self.default_contents)
+        print(self.contents)
+
+        return self.default_contents == self.contents
 
     def get_contents(self):
         """

@@ -1,12 +1,12 @@
-# """
-# Created by: Craig Fouts
-# Created on: 11/13/2020
-# """
+"""
+Created by: Craig Fouts
+Created on: 11/13/2020
+"""
 
 import inspect
 from gui.config import Config
 from gui.customs import ProjectTree
-from gui.templates import Window
+from gui.templates import Window, Popup
 from json import dump, loads
 import logging
 from os import path, sep
@@ -56,6 +56,9 @@ class MainWindow(Window):
         # Window configurations
         self._configure_window()
         self._configure_splitters()
+
+        # FIXME
+        self.popup = Popup(icon_file="lol", title="title")
 
     # ==========================================================================
     # Window configuration methods ---------------------------------------------
@@ -206,16 +209,23 @@ class MainWindow(Window):
             idx: Index of tab being closed
         """
 
-        # Remove the project file from the paths dict
-        pfile = self.ui.pfile_tab.tabText(idx)
-        self.pfile_paths.pop(pfile)
+        # TODO
+        widget = self.ui.pfile_tab.widget(idx)
+        print(widget.compare_contents())  # FIXME
 
-        # Remove the tab at the specified index
-        self.ui.pfile_tab.removeTab(idx)
+        if widget.compare_contents():
+            # Remove the project file from the paths dict
+            pfile = self.ui.pfile_tab.tabText(idx)
+            self.pfile_paths.pop(pfile)
 
-        # Handle any remaining tabs
-        tab_count = self.ui.pfile_tab.count()
-        self._handle_tab_change(tab_count - 1)
+            # Remove the tab at the specified index
+            self.ui.pfile_tab.removeTab(idx)
+
+            # Handle any remaining tabs
+            tab_count = self.ui.pfile_tab.count()
+            self._handle_tab_change(tab_count - 1)
+        else:
+            self.popup.show()
 
     def _handle_tab_change(self, idx):
         """
