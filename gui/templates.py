@@ -1,3 +1,8 @@
+"""
+Created by: Craig Fouts
+Created on: 2/4/2021
+"""
+
 # """
 # Created by: Craig Fouts
 # Created on: 11/13/2020
@@ -59,19 +64,20 @@ class Window(QMainWindow):
         self.ui.show()
 
 
-class Popup(QWidget):
+class Popup(QWidget):  # FIXME: Something about a loose object?
     """
     Parent popup class that configures popup UI, icon, title, and geometry.
     """
 
-    def __init__(self, icon_file, title, popup_ui=None, *args, **kwargs):
+    def __init__(self, icon_file, title, ui_file=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Window configurations
-        self.setWindowIcon(QIcon(icon_file))
+        # self.setWindowIcon(QIcon(icon_file))
         self.setWindowTitle(title)
 
         # UI configurations
-        if popup_ui:
-            self.ui = popup_ui()
-            self.ui.setupUi(self)
+        # self.ui_file = QFile(ui_file)
+        # self.ui_file.open(QFile.ReadOnly)
+        # self.ui = loader.load(self.ui_file)
+
