@@ -10,6 +10,7 @@ from gui.templates import Window, Popup
 from json import dump, loads
 import logging
 from os import path, sep
+from popups import SavePopup
 import pydre
 from pydre import metrics
 from PySide2.QtGui import QIcon
@@ -57,8 +58,8 @@ class MainWindow(Window):
         self._configure_window()
         self._configure_splitters()
 
-        # FIXME
-        self.popup = Popup(icon_file="lol", title="title")
+        # TODO
+        self.savepopup = SavePopup(icon_file, title)
 
     # ==========================================================================
     # Window configuration methods ---------------------------------------------
@@ -214,6 +215,7 @@ class MainWindow(Window):
         print(widget.compare_contents())  # FIXME
 
         if widget.compare_contents():
+            # TODO: Add a setter method to project tree
             # Remove the project file from the paths dict
             pfile = self.ui.pfile_tab.tabText(idx)
             self.pfile_paths.pop(pfile)
@@ -225,7 +227,7 @@ class MainWindow(Window):
             tab_count = self.ui.pfile_tab.count()
             self._handle_tab_change(tab_count - 1)
         else:
-            self.popup.show()
+            self.savepopup.start()
 
     def _handle_tab_change(self, idx):
         """

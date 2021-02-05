@@ -3,11 +3,6 @@ Created by: Craig Fouts
 Created on: 2/4/2021
 """
 
-# """
-# Created by: Craig Fouts
-# Created on: 11/13/2020
-# """
-
 import logging
 from PySide2.QtCore import QFile
 from PySide2.QtGui import QIcon
@@ -64,7 +59,7 @@ class Window(QMainWindow):
         self.ui.show()
 
 
-class Popup(QWidget):  # FIXME: Something about a loose object?
+class Popup(QWidget):
     """
     Parent popup class that configures popup UI, icon, title, and geometry.
     """
@@ -73,11 +68,18 @@ class Popup(QWidget):  # FIXME: Something about a loose object?
         super().__init__(*args, **kwargs)
 
         # Window configurations
-        # self.setWindowIcon(QIcon(icon_file))
+        self.setWindowIcon(QIcon(icon_file))
         self.setWindowTitle(title)
 
         # UI configurations
-        # self.ui_file = QFile(ui_file)
-        # self.ui_file.open(QFile.ReadOnly)
-        # self.ui = loader.load(self.ui_file)
+        self.ui_file = QFile(ui_file)
+        self.ui_file.open(QFile.ReadOnly)
+        self.ui = loader.load(self.ui_file)
+
+    def start(self):
+        """
+        TODO
+        """
+
+        self.ui.show()
 
