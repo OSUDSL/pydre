@@ -21,14 +21,14 @@ class Window(QMainWindow):
     def __init__(self, icon_file, title, ui_file, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Window configurations
-        self.setWindowIcon(QIcon(icon_file))
-        self.setWindowTitle(title)
-
         # UI configurations
         self.ui_file = QFile(ui_file)
         self.ui_file.open(QFile.ReadOnly)
         self.ui = loader.load(self.ui_file)
+
+        # Window configurations
+        self.ui.setWindowIcon(QIcon(icon_file))
+        self.ui.setWindowTitle(title)
 
     def resize_and_center(self, width, height):
         """
@@ -67,14 +67,14 @@ class Popup(QWidget):
     def __init__(self, icon_file, title, ui_file=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Window configurations
-        self.setWindowIcon(QIcon(icon_file))
-        self.setWindowTitle(title)
-
         # UI configurations
         self.ui_file = QFile(ui_file)
         self.ui_file.open(QFile.ReadOnly)
         self.ui = loader.load(self.ui_file)
+
+        # Window configurations
+        self.ui.setWindowIcon(QIcon(icon_file))
+        self.ui.setWindowTitle(title)
 
     def start(self):
         """
