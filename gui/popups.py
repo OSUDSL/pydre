@@ -16,7 +16,7 @@ class SavePopup(Popup):
     TODO
     """
 
-    def __init__(self, icon_file, title, *args, **kwargs):  # FIXME: Icon and title not appearing (check in main too)
-        self.ui_file = path.join(PROJECT_PATH, "ui_files/savepopup.ui")
-        super().__init__(icon_file, title, self.ui_file, *args, **kwargs)
+    def __init__(self, icon_file, title, ui_file, *args, **kwargs):
+        super().__init__(icon_file, title, ui_file, *args, **kwargs)
+
 

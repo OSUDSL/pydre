@@ -58,8 +58,8 @@ class MainWindow(Window):
         self._configure_window()
         self._configure_splitters()
 
-        # TODO
-        self.savepopup = SavePopup(icon_file, title)
+        # FIXME
+        self.savepopup = SavePopup(icon_file, title, path.join(PROJECT_PATH, "ui_files/savepopup.ui"))
 
     # ==========================================================================
     # Window configuration methods ---------------------------------------------
