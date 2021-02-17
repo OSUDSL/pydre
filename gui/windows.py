@@ -58,8 +58,8 @@ class MainWindow(Window):
         self._configure_window()
         self._configure_splitters()
 
-        # FIXME
-        self.savepopup = SavePopup(icon_file, title, path.join(PROJECT_PATH, "ui_files/savepopup.ui"))
+        # FIXME: I don't plan on keeping the method parameter here
+        self.savepopup = SavePopup()
 
     # ==========================================================================
     # Window configuration methods ---------------------------------------------
@@ -202,6 +202,23 @@ class MainWindow(Window):
         self.ui.menu_bar.setVisible(True)
         self.resize_and_center(1100, 800)
 
+    def _close(self, idx):
+        """
+        TEMP
+        """
+        # TODO: Add a setter method to project tree
+        # Remove the project file from the paths dict
+        pfile = self.ui.pfile_tab.tabText(idx)
+        self.pfile_paths.pop(pfile)
+
+        # Remove the tab at the specified index
+        self.ui.pfile_tab.removeTab(idx)
+
+        # Handle any remaining tabs
+        tab_count = self.ui.pfile_tab.count()
+        self._handle_tab_change(tab_count - 1)
+
+    # FIXME: This is very much a temporary solution
     def _handle_close(self, idx):
         """
         Handles closing a project file tab.
@@ -215,19 +232,10 @@ class MainWindow(Window):
         print(widget.compare_contents())  # FIXME
 
         if widget.compare_contents():
-            # TODO: Add a setter method to project tree
-            # Remove the project file from the paths dict
-            pfile = self.ui.pfile_tab.tabText(idx)
-            self.pfile_paths.pop(pfile)
-
-            # Remove the tab at the specified index
-            self.ui.pfile_tab.removeTab(idx)
-
-            # Handle any remaining tabs
-            tab_count = self.ui.pfile_tab.count()
-            self._handle_tab_change(tab_count - 1)
+            self._close(idx)
         else:
-            self.savepopup.start()
+            args = (self._handle_save, lambda: self._close(idx))
+            self.savepopup.show_(*args)
 
     def _handle_tab_change(self, idx):
         """
@@ -263,7 +271,8 @@ class MainWindow(Window):
         # TODO: Should this be in customs.py?
         # TODO: Add log message on save
 
-        print(self.ui.pfile_tab.currentWidget().get_contents())
+        # TODO: Really need a setter method here
+
         name = self.pfile_widgets[self.ui.pfile_tab.currentWidget()]
         with open(self.pfile_paths[name], "w") as file:
             dump(self.ui.pfile_tab.currentWidget().get_contents(), file, indent=4)

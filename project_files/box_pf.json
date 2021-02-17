@@ -1,23 +1,22 @@
 {
-   
     "metrics": [
-    	{
-            "name": "StandardDeviation",
-    		"function": "boxMetrics",
-    		"cutoff": 2,
-			"stat": "sd"
-    	},
-		{
+        {
+            "name": "StandardDeviat",
+            "function": "boxMetrics",
+            "cutoff": 2,
+            "stat": "sd"
+        },
+        {
             "name": "IdentifiedBoxWithin2Seconds",
-    		"function": "boxMetrics",
-    		"cutoff": 2,
-			"stat": "count"
-    	},
-		{
+            "function": "boxMetrics",
+            "cutoff": 2,
+            "stat": "count"
+        },
+        {
             "name": "Mean",
-    		"function": "boxMetrics",
-    		"cutoff": 2,
-			"stat": "mean"
-    	}
+            "function": "boxMetrics",
+            "cutoff": 2,
+            "stat": "mean"
+        }
     ]
- }
+}
