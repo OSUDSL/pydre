@@ -271,6 +271,8 @@ class MainWindow(Window):
 
         # TODO: Really need a setter method here
 
+        list(self.pfile_widgets.values())[idx].update_contents()
+
         name = self.ui.pfile_tab.tabText(idx)
 
         with open(self.pfile_paths[name], "w") as file:
