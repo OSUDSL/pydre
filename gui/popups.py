@@ -32,6 +32,8 @@ class SavePopup(Popup):
         FIXME
         """
 
+        self.ui.save_btn.clicked.disconnect()
+        self.ui.dsave_btn.clicked.disconnect()
         self.ui.close()
         close()
 
@@ -43,11 +45,12 @@ class SavePopup(Popup):
         save()
         self._close(close)
 
-    def show_(self, save, close):
+    def show_(self, save, close, name):
         """
         FIXME
         """
 
+        self.ui.label.setText("{0} has not been saved.".format(name))
         self.ui.save_btn.clicked.connect(lambda: self._save(save, close))
         self.ui.dsave_btn.clicked.connect(lambda: self._close(close))
 
