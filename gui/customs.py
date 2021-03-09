@@ -3,6 +3,7 @@ Created by: Craig Fouts
 Created on: 11/21/2020
 """
 
+import copy
 from gui.config import Config
 from json import dump, load
 from os import path
@@ -105,7 +106,7 @@ class ProjectTree(QTreeWidget):
         self.pfile = file
         self.metrics = metrics
         self.default_contents = load(open(self.pfile))  # TODO: Better name
-        self.contents = load(open(self.pfile))
+        self.contents = copy.deepcopy(self.default_contents)
         self.widgets_by_type = {
             None: lambda t, v: LeafWidget(items=self.metrics).combo_box(t, v),
             float: lambda t, v: LeafWidget().spin_box(t, v),
@@ -242,3 +243,10 @@ class ProjectTree(QTreeWidget):
         """
 
         return self.contents
+
+    def update_contents(self):
+        """
+        TODO
+        """
+
+        self.default_contents = copy.deepcopy(self.contents)
