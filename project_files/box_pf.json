@@ -1,7 +1,7 @@
 {
     "metrics": [
         {
-            "name": "StandardDeviat",
+            "name": "StandardDeviation",
             "function": "boxMetrics",
             "cutoff": 2,
             "stat": "sd"

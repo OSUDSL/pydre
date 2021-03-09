@@ -231,8 +231,8 @@ class ProjectTree(QTreeWidget):
         TODO
         """
 
-        print(self.default_contents)
-        print(self.contents)
+        # print(self.default_contents)
+        # print(self.contents)
 
         return self.default_contents == self.contents
 

@@ -209,14 +209,11 @@ class MainWindow(Window):
         # TODO: Add a setter method to project tree
         # Remove the project file from the paths dict
         pfile = self.ui.pfile_tab.tabText(idx)
+        self.pfile_widgets.pop(pfile)
         self.pfile_paths.pop(pfile)
 
         # Remove the tab at the specified index
         self.ui.pfile_tab.removeTab(idx)
-
-        # Handle any remaining tabs
-        tab_count = self.ui.pfile_tab.count()
-        self._handle_tab_change(tab_count - 1)
 
     # FIXME: This is very much a temporary solution
     def _handle_close(self, idx):
@@ -227,14 +224,15 @@ class MainWindow(Window):
             idx: Index of tab being closed
         """
 
+        # TODO: Add get and set name for widgets
+
         # TODO
         widget = self.ui.pfile_tab.widget(idx)
-        print(widget.compare_contents())  # FIXME
 
         if widget.compare_contents():
             self._close(idx)
         else:
-            args = (self._handle_save, lambda: self._close(idx))
+            args = (lambda: self._handle_save(idx), lambda: self._close(idx), self.ui.pfile_tab.tabText(idx))
             self.savepopup.show_(*args)
 
     def _handle_tab_change(self, idx):
@@ -263,7 +261,7 @@ class MainWindow(Window):
             self.ui.menu_bar.setVisible(False)
             self.resize_and_center(700, 400)
 
-    def _handle_save(self):
+    def _handle_save(self, idx):
         """
         TODO
         """
@@ -273,7 +271,8 @@ class MainWindow(Window):
 
         # TODO: Really need a setter method here
 
-        name = self.pfile_widgets[self.ui.pfile_tab.currentWidget()]
+        name = self.ui.pfile_tab.tabText(idx)
+
         with open(self.pfile_paths[name], "w") as file:
             dump(self.ui.pfile_tab.currentWidget().get_contents(), file, indent=4)
 
@@ -335,7 +334,7 @@ class MainWindow(Window):
 
         # Create project file tree
         tree = ProjectTree(path_, metrics.metricsList, True)
-        self.pfile_widgets[tree] = name  # FIXME?
+        self.pfile_widgets[name] = tree
         self.pfile_paths[name] = path_
 
         # Open the project file tree in a new tab
@@ -399,5 +398,5 @@ class MainWindow(Window):
         else:
             """Switch to the selected project file tab if it is already open"""
 
-            tab = self.ui.pfile_tab.indexOf(self.pfile_widgets[name])
+            tab = self.ui.pfile_tab.indexOf(name)
             self.ui.pfile_tab.setCurrentIndex(tab)
