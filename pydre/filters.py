@@ -88,14 +88,6 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeC
 
 
 
-# def numberSwitchBlocks(dt):
-#     #dt.set_index('timedelta', inplace=True)
-#     blocks = (dt != dt.shift()).TaskStatus.cumsum()
-#     blocks[dt.TaskStatus == 0] = None
-#     dt["taskblocks"] = blocks
-#     dt = dt.reset_index()
-#     return dt
-
 
 filtersList = {}
 filtersColNames = {}
