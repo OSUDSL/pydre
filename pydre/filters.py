@@ -27,7 +27,7 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
         dt = dt.reset_index()
     return drivedata
 
-def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
+def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
 
     copy = pydre.core.DriveData.__init__(drivedata, drivedata.SubjectID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
@@ -54,7 +54,8 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeC
 
     # adjust for 100ms latency
         dt['gaze'] = dt['gaze'].shift(-6)
-        dt['timedelta'] = pandas.to_timedelta(dt[timeColName], unit="s")
+        dt['timedelta'] = pandas.to_timedelta(dt[timeColName].astype(float), unit="s")
+        # dt['timedelta'] = pandas.to_timedelta(dt[timeColName]) # removed the unit due to crash "valueerror" unit must not be specified if input contains a str
         dt.set_index('timedelta', inplace=True)
 
     # filter out noise from the gaze column

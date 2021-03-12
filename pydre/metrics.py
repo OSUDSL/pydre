@@ -625,7 +625,7 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
 def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     numofglances = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("VidTime", "gaze", "gazenum", "TaskFail"))  # drop other columns
+        df = pandas.DataFrame(d, columns=("DatTime", "gaze", "gazenum", "TaskNum"))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
@@ -633,9 +633,9 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
 
         # construct table with columns [glanceduration, glancelocation, error]
         gr = df.groupby('gazenum', sort=False)
-        durations = gr['VidTime'].max() - gr['VidTime'].min()
+        durations = gr['DatTime'].max() - gr['DatTime'].min()
         locations = gr['gaze'].first()
-        error_list = gr['TaskFail'].any()
+        error_list = gr['TaskNum'].any()
 
         glancelist = pandas.DataFrame({'duration': durations, 'locations': locations, 'errors': error_list})
         glancelist['locations'].fillna('offroad', inplace=True)
@@ -647,9 +647,9 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         # print(glancelist)
 
         glancelist_aug = glancelist
-        glancelist_aug['TaskID'] = d["TaskID"].min()
+        glancelist_aug['TaskNum'] = d["TaskNum"].min()
         glancelist_aug['taskblock'] = d["taskblocks"].min()
-        glancelist_aug['Subject'] = d["ParticipantID"].min()
+        glancelist_aug['Subject'] = d["PartID"].min()
 
         appendDFToCSV_void(glancelist_aug, "glance_list.csv")
 
@@ -660,7 +660,7 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
 
 
         total_time_onroad_glances = glancelist[(glancelist['locations'] == 'offroad')]['duration'].sum()
-        percent_onroad = total_time_onroad_glances / len(df['VidTime']) #what to use here?
+        percent_onroad = total_time_onroad_glances / len(glancelist)
 
         mean_time_offroad_glances = glancelist[(glancelist['locations'] == 'offroad')]['duration'].mean()
         mean_time_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].mean()
@@ -750,7 +750,7 @@ registerMetric('ecoCar', ecoCar)
 registerMetric('tbiReaction', tbiReaction)
 registerMetric('errorPresses', numOfErrorPresses)
 registerMetric('crossCorrelate', crossCorrelate)
-registerMetric('hondaGaze', speedbumpHondaGaze, ['percent_onroad', 'avg_offroad', 'avg_onroad'])
+registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['percent_onroad', 'avg_offroad', 'avg_onroad'])
 registerMetric('gazes', gazeNHTSA,
                ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
 
