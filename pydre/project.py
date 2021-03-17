@@ -65,54 +65,54 @@ class Project():
 		Returns:
 			A list of pandas DataFrames containing the data for each region of interest
 		"""
-		roi_type = roi['type']
-		if roi_type == "time":
-			logger.info("Processing ROI file " + roi['filename'])
-			roi_obj = pydre.rois.TimeROI(roi['filename'])
-			return roi_obj.split(dataset)
-		elif roi_type == "rect":
-			logger.info("Processing ROI file " + roi['filename'])
-			roi_obj = pydre.rois.SpaceROI(roi['filename'])
-			return roi_obj.split(dataset)
-		elif roi_type == "column":
-			logger.info("Processing ROI column " + roi['columnname'])
-			roi_obj = pydre.rois.ColumnROI(roi['columnname'])
-			return roi_obj.split(dataset)
-		else:
-			return []
+        roi_type = roi['type']
+        if roi_type == "time":
+            logger.info("Processing ROI file " + roi['filename'])
+            roi_obj = pydre.rois.TimeROI(roi['filename'])
+            return roi_obj.split(dataset)
+        elif roi_type == "rect":
+            logger.info("Processing ROI file " + roi['filename'])
+            roi_obj = pydre.rois.SpaceROI(roi['filename'])
+            return roi_obj.split(dataset)
+        elif roi_type == "column":
+            logger.info("Processing ROI column " + roi['columnname'])
+            roi_obj = pydre.rois.ColumnROI(roi['columnname'])
+            return roi_obj.split(dataset)
+        else:
+            return []
 
-	def processFilter(self, filter, dataset):
-			"""
-			Handles running any filter definition
+    def processFilter(self, filter, dataset):
+        """
+        Handles running any filter definition
 
-			Args:
-				filter: A dict containing the type of a filter and the parameters to process it
+        Args:
+            filter: A dict containing the type of a filter and the parameters to process it
 
-			Returns:
-				A list of values with the results
-			"""
+        Returns:
+            A list of values with the results
+        """
 
-			try:
-				func_name = filter.pop('function')
-				filter_func = pydre.filters.filtersList[func_name]
-				report_name = filter.pop('name')
-				col_names = pydre.filters.filtersColNames[func_name]
-			except KeyError as e:
-				logger.warning(
-					"Filter definitions require both \"name\" and \"function\". Malformed filters definition: missing " + str(
-						e))
-				sys.exit(1)
+        try:
+            func_name = filter.pop('function')
+            filter_func = pydre.filters.filtersList[func_name]
+            report_name = filter.pop('name')
+            col_names = pydre.filters.filtersColNames[func_name]
+        except KeyError as e:
+            logger.warning(
+                "Filter definitions require both \"name\" and \"function\". Malformed filters definition: missing " + str(
+                    e))
+            sys.exit(1)
 
-			if len(col_names) > 1:
-				x = [filter_func(d, **filter) for d in dataset]
-				report = pandas.DataFrame(x, columns=col_names)
-			else:
-				report = pandas.DataFrame([filter_func(d, **filter) for d in dataset], columns=[report_name, ])
+        if len(col_names) > 1:
+            x = [filter_func(d, **filter) for d in dataset]
+            report = pandas.DataFrame(x, columns=col_names)
+        else:
+            report = pandas.DataFrame([filter_func(d, **filter) for d in dataset], columns=[report_name, ])
 
-			return report
+        return report
 
-	def processMetric(self, metric, dataset):
-		"""
+    def processMetric(self, metric, dataset):
+        """
 		Handles running any metric definition
 
 		Args:
@@ -122,92 +122,97 @@ class Project():
 			A list of values with the results
 		"""
 
-		try:
-			func_name = metric.pop('function')
-			metric_func = pydre.metrics.metricsList[func_name]
-			report_name = metric.pop('name')
-			col_names = pydre.metrics.metricsColNames[func_name]
-		except KeyError as e:
-			logger.warning("Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(e))
-			sys.exit(1)
+        try:
+            func_name = metric.pop('function')
+            metric_func = pydre.metrics.metricsList[func_name]
+            report_name = metric.pop('name')
+            col_names = pydre.metrics.metricsColNames[func_name]
+        except KeyError as e:
+            logger.warning(
+                "Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(
+                    e))
+            sys.exit(1)
 
-		if len(col_names) > 1:
-			x = [metric_func(d, **metric) for d in dataset]
-			report = pandas.DataFrame(x, columns=col_names)
-		else:
-			report = pandas.DataFrame([metric_func(d, **metric) for d in dataset], columns=[report_name,])
+        if len(col_names) > 1:
+            x = [metric_func(d, **metric) for d in dataset]
+            report = pandas.DataFrame(x, columns=col_names)
+        else:
+            report = pandas.DataFrame([metric_func(d, **metric) for d in dataset], columns=[report_name, ])
 
-		return report
+        return report
 
-	def loadFileList(self, datafiles):
-		"""
+    def loadFileList(self, datafiles):
+        """
 		Args:
 			datafiles: a list of filename strings (SimObserver .dat files)
 
 		Loads all datafiles into the project raw data list.
 		Before loading, the internal list is cleared.
 		"""
-		self.raw_data = []
-		for datafile in datafiles:
-			logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
-			self.raw_data.append(self.__loadSingleFile(datafile))
+        self.raw_data = []
+        for datafile in datafiles:
+            logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
+            self.raw_data.append(self.__loadSingleFile(datafile))
 
-#NEED TO EDIT TO RUN FILTERS
-	def run(self, datafiles):
-		"""
+
+    def run(self, datafiles):
+        """
 		Args:
 			datafiles: a list of filename strings (SimObserver .dat files)
 
 		Load all files in datafiles, then process the rois and metrics
 		"""
 
-		self.loadFileList(datafiles)
-		data_set = []
-		if 'rois' in self.definition:
-			for roi in self.definition['rois']:
-				data_set.extend(self.processROI(roi, self.raw_data))
-		else:
-			# no ROIs to process, but that's OK
-			logger.warning("No ROIs, processing raw data.")
-			data_set = self.raw_data
 
-		logger.info("number of datafiles: {}, number of rois: {}".format(len(datafiles), len(data_set)))
+
+        self.loadFileList(datafiles)
+        data_set = []
+
+        for filter in self.definition['filters']:
+            data_set.extend(self.processFilter(filter, self.raw_data))
+            # self.processFilter(filter, data_set)
 
 
 
+        if 'rois' in self.definition:
+            for roi in self.definition['rois']:
+                data_set.extend(self.processROI(roi, self.raw_data))
+        else:
+            # no ROIs to process, but that's OK
+            logger.warning("No ROIs, processing raw data.")
+            data_set = self.raw_data
 
-		for filter in self.definition['filters']:
-			processed_filter = self.processFilter(filter, data_set)
-		result_data = processed_filter
+        logger.info("number of datafiles: {}, number of rois: {}".format(len(datafiles), len(data_set)))
 
-
-		result_data = pandas.DataFrame()
-		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
-		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
-		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
-
-		processed_metrics = [result_data]  # might need to move to line 180
-
-# 
-
-		for metric in self.definition['metrics']:
-			processed_metric = self.processMetric(metric, data_set)
-			processed_metrics.append(processed_metric)
-		result_data = pandas.concat(processed_metrics, axis=1)
-		self.results = result_data
-		return result_data
+        # for filter in self.definition['filters']:
+        #     self.processFilter(filter, data_set)
 
 
+        result_data = pandas.DataFrame()
+        result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
+        result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
+        result_data['ROI'] = pandas.Series([d.roi for d in data_set])
 
-	def save(self, outfilename="out.csv"):
-		"""
+        processed_metrics = [result_data]
+
+
+
+        for metric in self.definition['metrics']:
+            processed_metric = self.processMetric(metric, data_set)
+            processed_metrics.append(processed_metric)
+        result_data = pandas.concat(processed_metrics, axis=1)
+        self.results = result_data
+        return result_data
+
+    def save(self, outfilename="out.csv"):
+        """
 		Args:
 			outfilename: filename to output csv data to.
 
 		The filename specified will be overwritten automatically.
 		"""
-		
-		try:
-			self.results.to_csv(outfilename, index=False)
-		except AttributeError:
-			logger.error("Results not computed yet")
+
+        try:
+            self.results.to_csv(outfilename, index=False)
+        except AttributeError:
+            logger.error("Results not computed yet")
