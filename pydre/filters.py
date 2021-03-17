@@ -21,7 +21,7 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
     for d in drivedata.data:
         dt = pandas.DataFrame(d)
     #dt.set_index('timedelta', inplace=True)
-        blocks = (dt != dt.shift()).TaskStatus.cumsum()
+        blocks = ((dt != dt.shift()).TaskStatus.cumsum())/2
         blocks[dt.TaskStatus == 0] = None
         dt["taskblocks"] = blocks
         dt = dt.reset_index()
