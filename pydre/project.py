@@ -11,51 +11,52 @@ import pydre.filters
 import pathlib
 
 import logging
+
 logger = logging.getLogger('PydreLogger')
 
 
 class Project():
 
-	def __init__(self, projectfilename):
-		self.project_filename = projectfilename
+    def __init__(self, projectfilename):
+        self.project_filename = projectfilename
 
-		# This will suppress the unnecessary SettingWithCopy Warning.
-		pandas.options.mode.chained_assignment = None
+        # This will suppress the unnecessary SettingWithCopy Warning.
+        pandas.options.mode.chained_assignment = None
 
-		self.definition = None
-		with open(self.project_filename) as project_file:
-			try:
-				self.definition = json.load(project_file)
-			except json.decoder.JSONDecodeError as e:
-				# The exact location of the error according to the exception, is a little wonky. Amongst all the text
-				# 	editors used, the line number was consistently 1 more than the actual location of the syntax error.
-				# 	Hence, the "e.lineno -1" in the logger error below.
+        self.definition = None
+        with open(self.project_filename) as project_file:
+            try:
+                self.definition = json.load(project_file)
+            except json.decoder.JSONDecodeError as e:
+                # The exact location of the error according to the exception, is a little wonky. Amongst all the text
+                # 	editors used, the line number was consistently 1 more than the actual location of the syntax error.
+                # 	Hence, the "e.lineno -1" in the logger error below.
 
-				logger.error("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
-							+ str(e.lineno - 1) + ".")
-				# exited as a general error because it is seemingly best suited for the problem encountered
-				sys.exit(1)
+                logger.error("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
+                             + str(e.lineno - 1) + ".")
+                # exited as a general error because it is seemingly best suited for the problem encountered
+                sys.exit(1)
 
-		self.data = []
+        self.data = []
 
-	def __loadSingleFile(self, filename):
-		"""Load a single .dat file (whitespace delmited csv) into a DriveData object"""
-		# Could cache this re, probably affect performance
-		d = pandas.read_csv(filename, sep='\s+', na_values='.')
-		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
-		match = datafile_re.search(filename)
-		if match:
-			experiment_name, subject_id, drive_id = match.groups()
-		else:
-			logger.warning("Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat")
-			experiment_name = pathlib.Path(filename).stem
-			subject_id = 1
-			drive_id = 1
-		return pydre.core.DriveData(SubjectID=int(subject_id), DriveID=int(drive_id),
-									roi=None, data=d, sourcefilename=filename)
+    def __loadSingleFile(self, filename):
+        """Load a single .dat file (whitespace delmited csv) into a DriveData object"""
+        # Could cache this re, probably affect performance
+        d = pandas.read_csv(filename, sep='\s+', na_values='.')
+        datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
+        match = datafile_re.search(filename)
+        if match:
+            experiment_name, subject_id, drive_id = match.groups()
+        else:
+            logger.warning("Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat")
+            experiment_name = pathlib.Path(filename).stem
+            subject_id = 1
+            drive_id = 1
+        return pydre.core.DriveData(PartID=int(subject_id), DriveID=int(drive_id),
+                                    roi=None, data=d, sourcefilename=filename)
 
-	def processROI(self, roi, dataset):
-		"""
+    def processROI(self, roi, dataset):
+        """
 		Handles running region of interest definitions for a dataset
 
 		Args:
@@ -66,6 +67,7 @@ class Project():
 			A list of pandas DataFrames containing the data for each region of interest
 		"""
         roi_type = roi['type']
+        print(roi_type)
         if roi_type == "time":
             logger.info("Processing ROI file " + roi['filename'])
             roi_obj = pydre.rois.TimeROI(roi['filename'])
@@ -169,12 +171,12 @@ class Project():
         data_set = []
 
         for filter in self.definition['filters']:
-            data_set.extend(self.processFilter(filter, self.raw_data))
-            # self.processFilter(filter, data_set)
+             self.processFilter(filter, self.raw_data)
 
 
 
         if 'rois' in self.definition:
+            print(self.definition['rois'])
             for roi in self.definition['rois']:
                 data_set.extend(self.processROI(roi, self.raw_data))
         else:
@@ -187,7 +189,7 @@ class Project():
         # for filter in self.definition['filters']:
         #     self.processFilter(filter, data_set)
 
-
+        print(data_set)
         result_data = pandas.DataFrame()
         result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
         result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
