@@ -27,6 +27,17 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
         dt = dt.reset_index()
     return drivedata
 
+def removeTaskFails(drivedata: pydre.core.DriveData,):
+    for d in drivedata.data:
+        dt = pandas.DataFrame(d)
+        index_names = dt[dt['TaskStatus'] == 1].index
+
+        # drop these row indexes
+        # from dataFrame
+        dt.drop(index_names, inplace=True)
+
+    return drivedata
+
 def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
 
     copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
@@ -104,3 +115,4 @@ def registerFilter(name, function, columnnames=None):
 
 registerFilter('smoothGazeData', smoothGazeData)
 registerFilter('numberSwitchBlocks', numberSwitchBlocks)
+registerFilter('removeTaskFails', removeTaskFails)
