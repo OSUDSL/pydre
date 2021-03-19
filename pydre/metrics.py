@@ -671,24 +671,6 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         return [percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
     return [None, None, None]
 
-def getTaskNum(drivedata: pydre.core.DriveData):
-    taskNum = 0
-    for d in drivedata.data:
-        df = pandas.DataFrame(d)
-        taskNum = df.TaskNum.mode()
-    return taskNum
-
-metricsList = {}
-metricsColNames = {}
-
-
-def registerMetric(name, function, columnnames=None):
-    metricsList[name] = function
-    if columnnames:
-        metricsColNames[name] = columnnames
-    else:
-        metricsColNames[name] = [name, ]
-
 
 #not working
 def addVelocities(drivedata: pydre.core.DriveData):
@@ -734,6 +716,31 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
             return cor
         else:
             return 0.0
+
+
+def getTaskNum(drivedata: pydre.core.DriveData):
+    # taskNum = 0
+    # for d in drivedata.data:
+    #     df = pandas.DataFrame(d)
+    #     taskNum = df['TaskNum'].mode()
+    # return taskNum
+    modes = []
+    for d in drivedata.data:
+        modes = d['TaskNum']
+        modes.append(modes.mode())
+    return pandas.Series(modes).mode()
+
+metricsList = {}
+metricsColNames = {}
+
+
+def registerMetric(name, function, columnnames=None):
+    metricsList[name] = function
+    if columnnames:
+        metricsColNames[name] = columnnames
+    else:
+        metricsColNames[name] = [name, ]
+
 
 
 
