@@ -671,7 +671,12 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         return [percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
     return [None, None, None]
 
-
+def getTaskNum(drivedata: pydre.core.DriveData):
+    taskNum = 0
+    for d in drivedata.data:
+        df = pandas.DataFrame(d)
+        taskNum = df.TaskNum.mode()
+    return taskNum
 
 metricsList = {}
 metricsColNames = {}
@@ -751,6 +756,5 @@ registerMetric('tbiReaction', tbiReaction)
 registerMetric('errorPresses', numOfErrorPresses)
 registerMetric('crossCorrelate', crossCorrelate)
 registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['percent_onroad', 'avg_offroad', 'avg_onroad'])
-registerMetric('gazes', gazeNHTSA,
-               ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
-
+registerMetric('gazes', gazeNHTSA, ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
+registerMetric('getTaskNum', getTaskNum)
