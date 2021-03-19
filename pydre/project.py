@@ -67,7 +67,6 @@ class Project():
 			A list of pandas DataFrames containing the data for each region of interest
 		"""
         roi_type = roi['type']
-        print(roi_type)
         if roi_type == "time":
             logger.info("Processing ROI file " + roi['filename'])
             roi_obj = pydre.rois.TimeROI(roi['filename'])
@@ -156,7 +155,6 @@ class Project():
             logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
 
-
     def run(self, datafiles):
         """
 		Args:
@@ -165,18 +163,13 @@ class Project():
 		Load all files in datafiles, then process the rois and metrics
 		"""
 
-
-
         self.loadFileList(datafiles)
         data_set = []
 
         for filter in self.definition['filters']:
-             self.processFilter(filter, self.raw_data)
-
-
+            self.processFilter(filter, self.raw_data)
 
         if 'rois' in self.definition:
-            print(self.definition['rois'])
             for roi in self.definition['rois']:
                 data_set.extend(self.processROI(roi, self.raw_data))
         else:
@@ -188,16 +181,14 @@ class Project():
 
         # for filter in self.definition['filters']:
         #     self.processFilter(filter, data_set)
-
-        print(data_set)
         result_data = pandas.DataFrame()
         result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
         result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
         result_data['ROI'] = pandas.Series([d.roi for d in data_set])
+        # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
+        # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
 
         processed_metrics = [result_data]
-
-
 
         for metric in self.definition['metrics']:
             processed_metric = self.processMetric(metric, data_set)
