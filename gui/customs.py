@@ -123,6 +123,8 @@ class ProjectTree(QTreeWidget):
         # Build project tree
         self._build_tree()
 
+        print("Contents: ", self.contents)
+
     def _configure_style(self):
         """
         TODO
@@ -132,7 +134,7 @@ class ProjectTree(QTreeWidget):
         stylesheet = open(style_path).read()
         self.setStyleSheet(stylesheet)
 
-    def _build_branch(self, tree, name, idx):
+    def _build_metrics_branch(self, tree, name, idx):
         """
         TODO
         """
@@ -143,11 +145,11 @@ class ProjectTree(QTreeWidget):
         self.setItemWidget(branch, 0, widget)
 
         # TODO
-        widget.textChanged.connect(lambda e: self._update_name(e, idx))
+        widget.textChanged.connect(lambda e: self._update_metrics_name(e, idx))
 
         return branch
 
-    def _build_leaf(self, branch, metric, attribute, type_=None):
+    def _build_metrics_leaf(self, branch, metric, attribute, type_=None):
         """
         TODO
         """
@@ -166,7 +168,7 @@ class ProjectTree(QTreeWidget):
         for metric in metrics_:
             # Generate a branch for each metric
             idx = metrics_.index(metric)
-            branch = self._build_branch(tree, metric["name"], idx)
+            branch = self._build_metrics_branch(tree, metric["name"], idx)
 
             # Get argument types for the current metric function
             types = get_type_hints(self.metrics[metric["function"]])
@@ -175,25 +177,47 @@ class ProjectTree(QTreeWidget):
             arguments = [arg for arg in metric if arg != "name"]
             for argument in arguments:
                 type_ = types[argument] if argument != "function" else None
-                self._build_leaf(branch, metric, argument, type_)
+                self._build_metrics_leaf(branch, metric, argument, type_)
+
+    def _build_rois_branch(self, tree, name, idx):
+        """
+        TODO
+        """
+
+        branch = QTreeWidgetItem(tree, [name])
+        widget = QLineEdit()
+        widget.setText(name)
+        self.setItemWidget(branch, 0, widget)
+
+        widget.textChanged.connect(lambda e: self._update_rois_type(e, idx))
+
+        return branch
+
+    def _build_rois_leaf(self, branch, roi, attribute):
+        """
+        TODO
+        """
+
+        leaf = QTreeWidgetItem(branch)
+        widget = self.widgets_by_type[str](attribute, roi[attribute])
+        self.setItemWidget(leaf, 0, widget)
+
+        return leaf
 
     def _build_rois(self, tree, rois):
         """
         TODO
         """
 
-        for i in rois:
-            text = ["{0}".format(i["type"])]
-            branch = QTreeWidgetItem(tree, text)
+        for roi in rois:
+            # Generate a branch for each roi
+            idx = rois.index(roi)
+            branch = self._build_rois_branch(tree, roi["type"], idx)
 
-            leaves = [j for j in i if j != "type"]
-            for k in leaves:
-                text = ["{0}:".format(k)]
-                leaf = QTreeWidgetItem(branch, text)
-
-                cb = QComboBox()
-
-                self.setItemWidget(leaf, 1, cb)
+            # Generate leaves for the current roi
+            attributes = [attr for attr in roi if attr != "type"]
+            for attribute in attributes:
+                self._build_rois_leaf(branch, roi, attribute)
 
     def _build_tree(self):
         """
@@ -211,16 +235,19 @@ class ProjectTree(QTreeWidget):
                 self._build_rois(tree, self.contents[i])
             self.trees.append(tree)
 
-    def _update_name(self, e, idx):
+    def _update_metrics_name(self, e, idx):
         """
         TODO
         """
 
-        # print(e)
-        # print(idx)
-        # print(self.contents)
         self.contents["metrics"][idx]["name"] = e
-        # print(self.contents)
+
+    def _update_rois_type(self, e, idx):
+        """
+        TODO
+        """
+
+        self.contents["rois"][idx]["type"] = e
 
     def build_from_file(self, file):
         """
