@@ -183,7 +183,6 @@ class ProjectTree(QTreeWidget):
 
             # Generate a leaf for each metric argument
             arguments = [arg for arg in metric if arg != "name"]
-            print(metric, arguments)
             for argument in arguments:
                 type_ = types[argument] if argument != "function" else None
                 self._build_metrics_leaf(branch, metric, idx, argument, type_)
