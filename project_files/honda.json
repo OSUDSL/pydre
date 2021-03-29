@@ -20,6 +20,14 @@
         {
             "name": "speedbumpHondaGaze",
             "function": "speedbumpHondaGaze"
-        }
+        },
+      {
+            "name": "getTaskNum",
+            "function": "getTaskNum"
+        },
+      {
+            "name": "errorPresses",
+            "function": "errorPresses"
+      }
     ]
  }
