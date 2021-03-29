@@ -642,9 +642,6 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         glancelist['locations'].replace(['car.WindScreen', 'car.dashPlane', 'None'], ['onroad', 'offroad', 'offroad'],
                                         inplace=True)
 
-        # print(d.columns.values)
-        # print("Task {}, Trial {}".format(d["TaskID"].min(), d["taskblocks"].min()))
-        # print(glancelist)
 
         glancelist_aug = glancelist
         glancelist_aug['TaskNum'] = d["TaskNum"].min()
@@ -665,8 +662,6 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         mean_time_offroad_glances = glancelist[(glancelist['locations'] == 'offroad')]['duration'].mean()
         mean_time_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].mean()
 
-        # print(">2s glances: {}, num glances: {}, total time glances: {}, mean time glances {}".format(
-        #	num_over_2s_offroad_glances, num_offroad_glances, total_time_offroad_glances, mean_time_offroad_glances))
 
         return [percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
     return [None, None, None]
@@ -724,7 +719,6 @@ def getTaskNum(drivedata: pydre.core.DriveData):
         df = pandas.DataFrame(d)
         taskNum = df['TaskNum'].mode()
         if(len(taskNum)>0):
-            print(taskNum)
             return taskNum[0]
         else:
             return None
