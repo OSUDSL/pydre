@@ -15,7 +15,7 @@
         {
             "name": "SDVelocity",
             "function": "colSD",
-            "cutoff": 0,
+            "cutoff": 7,
             "var": "Velocity"
         },
         {

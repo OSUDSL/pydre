@@ -55,3 +55,14 @@ class SavePopup(Popup):
         self.ui.dsave_btn.clicked.connect(lambda: self._close(close))
 
         self.ui.show()
+
+
+class FunctionPopup(Popup):
+    """
+    TODO
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.icon_file = path.join(PROJECT_PATH, "images/icon.png")
+        self.title = config.get("titles", "app")
+        self.ui_file = path.join(PROJECT_PATH, "ui_files/")  # FIXME
