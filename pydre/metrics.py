@@ -361,7 +361,7 @@ def firstOccurance(df: pandas.DataFrame, condition):
 def numOfErrorPresses(drivedata: pydre.core.DriveData):
     presses = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "TaskFail"))  # drop other columns
+        df = pandas.DataFrame(d, columns=("DatTime", "TaskFail"))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
         p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
         print(p)
@@ -719,16 +719,16 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
 
 
 def getTaskNum(drivedata: pydre.core.DriveData):
-    # taskNum = 0
-    # for d in drivedata.data:
-    #     df = pandas.DataFrame(d)
-    #     taskNum = df['TaskNum'].mode()
-    # return taskNum
-    modes = []
+    taskNum = 0
     for d in drivedata.data:
-        modes = d['TaskNum']
-        modes.append(modes.mode())
-    return pandas.Series(modes).mode()
+        df = pandas.DataFrame(d)
+        taskNum = df['TaskNum'].mode()
+        if(len(taskNum)>0):
+            print(taskNum)
+            return taskNum[0]
+        else:
+            return None
+
 
 metricsList = {}
 metricsColNames = {}
