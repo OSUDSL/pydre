@@ -145,7 +145,8 @@ class ProjectTree(QTreeWidget):
         self.setItemWidget(branch, 0, widget)
 
         # TODO
-        widget.textChanged.connect(lambda e: self._update_metric(e, idx, "name"))
+        widget.textChanged.connect(
+            lambda e: self._update_metric(e, idx, "name"))
 
         return branch
 
@@ -158,11 +159,14 @@ class ProjectTree(QTreeWidget):
         widget = self.widgets_by_type[type_](attribute, metric[attribute])
 
         if type_ is None:
-            widget.children()[2].currentIndexChanged.connect(lambda e: self._update_metric(widget.children()[2].itemText(e), idx, attribute))
+            widget.children()[2].currentIndexChanged.connect(
+                lambda e: self._update_metric(widget.children()[2].itemText(e), idx, attribute))
         elif type_ == float:
-            widget.children()[2].valueChanged.connect(lambda e: self._update_metric(e, idx, attribute))
+            widget.children()[2].valueChanged.connect(
+                lambda e: self._update_metric(e, idx, attribute))
         elif type_ == str:
-            widget.children()[2].textChanged.connect(lambda e: self._update_metric(e, idx, attribute))
+            widget.children()[2].textChanged.connect(
+                lambda e: self._update_metric(e, idx, attribute))
 
         self.setItemWidget(leaf, 0, widget)
 
@@ -209,7 +213,8 @@ class ProjectTree(QTreeWidget):
         leaf = QTreeWidgetItem(branch)
         widget = self.widgets_by_type[str](attribute, roi[attribute])
 
-        widget.children()[2].textChanged.connect(lambda e: self._update_roi(e, idx, attribute))
+        widget.children()[2].textChanged.connect(
+            lambda e: self._update_roi(e, idx, attribute))
 
         self.setItemWidget(leaf, 0, widget)
 

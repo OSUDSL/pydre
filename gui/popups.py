@@ -6,6 +6,7 @@ Created on: 2/4/2021
 from gui.config import Config
 from gui.templates import Popup
 from os import path
+from PySide2.QtWidgets import QMessageBox
 
 config = Config()
 PROJECT_PATH = path.dirname(path.abspath(__file__))
@@ -57,7 +58,7 @@ class SavePopup(Popup):
         self.ui.show()
 
 
-class FunctionPopup(Popup):
+class FunctionPopup(QMessageBox):
     """
     TODO
     """
@@ -66,3 +67,7 @@ class FunctionPopup(Popup):
         self.icon_file = path.join(PROJECT_PATH, "images/icon.png")
         self.title = config.get("titles", "app")
         self.ui_file = path.join(PROJECT_PATH, "ui_files/")  # FIXME
+        super().__init__(*args, **kwargs)
+
+        self.setWindowTitle(self.title)
+        self.setText("Function popup test")
