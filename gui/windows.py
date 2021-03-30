@@ -6,11 +6,11 @@ Created on: 11/13/2020
 import inspect
 from gui.config import Config
 from gui.customs import ProjectTree
-from gui.templates import Window, Popup
+from gui.popups import FunctionPopup, SavePopup
+from gui.templates import Window
 from json import dump, loads
 import logging
 from os import path, sep
-from popups import SavePopup
 import pydre
 from pydre import metrics
 from PySide2.QtGui import QIcon
@@ -90,7 +90,8 @@ class MainWindow(Window):
         Sets all button callbacks.
         """
 
-        self.ui.open_pfile_btn.clicked.connect(self._handle_open)
+        # self.ui.open_pfile_btn.clicked.connect(self._handle_open)
+        self.ui.open_pfile_btn.clicked.connect(lambda: FunctionPopup().exec_())
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
 
     def _set_widget_callbacks(self):
@@ -232,7 +233,8 @@ class MainWindow(Window):
         if widget.compare_contents():
             self._close(idx)
         else:
-            args = (lambda: self._handle_save(idx), lambda: self._close(idx), self.ui.pfile_tab.tabText(idx))
+            args = (lambda: self._handle_save(idx), lambda: self._close(
+                idx), self.ui.pfile_tab.tabText(idx))
             self.savepopup.show_(*args)
 
     def _handle_tab_change(self, idx):

@@ -34,8 +34,8 @@ def start():
     """
 
     app_icon = path.join(PROJECT_PATH, "images/icon.png")
-    app_title = config.get("titles", "app")
-    app_ui = path.join(PROJECT_PATH, "ui_files/mainwindow.ui")  # FIXME: Move paths to config
+    app_title = config.get("titles", "app")  # FIXME: Move paths to config
+    app_ui = path.join(PROJECT_PATH, "ui_files/mainwindow.ui")
     app = Application(MainWindow, app_icon, app_title, app_ui, sys.argv)
     app.exec_()
 
