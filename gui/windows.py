@@ -90,8 +90,7 @@ class MainWindow(Window):
         Sets all button callbacks.
         """
 
-        # self.ui.open_pfile_btn.clicked.connect(self._handle_open)
-        self.ui.open_pfile_btn.clicked.connect(lambda: FunctionPopup().exec_())
+        self.ui.open_pfile_btn.clicked.connect(self._handle_open)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
 
     def _set_widget_callbacks(self):
