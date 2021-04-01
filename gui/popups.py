@@ -6,6 +6,7 @@ Created on: 2/4/2021
 from gui.config import Config
 from gui.templates import Popup
 from os import path
+from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMessageBox
 
 config = Config()
@@ -69,5 +70,9 @@ class FunctionPopup(QMessageBox):
         self.ui_file = path.join(PROJECT_PATH, "ui_files/")  # FIXME
         super().__init__(*args, **kwargs)
 
+        self.setWindowIcon(QIcon(self.icon_file))
         self.setWindowTitle(self.title)
-        self.setText("Function popup test")
+        self.setIcon(QMessageBox.Warning)
+        self.setText("Changing this attribute may change others.\nContinue?")
+        self.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+        self.setDetailedText("test")
