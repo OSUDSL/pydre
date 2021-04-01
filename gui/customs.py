@@ -4,6 +4,7 @@ Created on: 11/21/2020
 """
 
 import copy
+from gui.popups import FunctionPopup
 from gui.config import Config
 from json import dump, load
 from os import path
@@ -160,7 +161,7 @@ class ProjectTree(QTreeWidget):
 
         if type_ is None:
             widget.children()[2].currentIndexChanged.connect(
-                lambda e: self._update_metric(widget.children()[2].itemText(e), idx, attribute))
+                lambda e: self._update_metric_function(widget.children()[2].itemText(e), idx, attribute))
         elif type_ == float:
             widget.children()[2].valueChanged.connect(
                 lambda e: self._update_metric(e, idx, attribute))
@@ -257,6 +258,15 @@ class ProjectTree(QTreeWidget):
         """
 
         self.contents["metrics"][idx][attribute] = e
+
+    def _update_metric_function(self, e, idx, attribute):
+        """
+        TODO
+        """
+
+        popup = FunctionPopup()
+        popup.buttonClicked.connect(lambda i: print(i.text()))
+        popup.exec_()
 
     def _update_roi(self, e, idx, attribute):
         """
