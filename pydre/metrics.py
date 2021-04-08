@@ -656,15 +656,15 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         num_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].count()
 
 
-        total_time_onroad_glances = glancelist[(glancelist['locations'] == 'offroad')]['duration'].sum()
+        total_time_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].sum()
         percent_onroad = total_time_onroad_glances / (df['DatTime'].max() - df['DatTime'].min())
 
         mean_time_offroad_glances = glancelist[(glancelist['locations'] == 'offroad')]['duration'].mean()
         mean_time_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].mean()
 
 
-        return [percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
-    return [None, None, None]
+        return [total_time_onroad_glances, percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
+    return [None, None, None, None]
 
 
 #not working
