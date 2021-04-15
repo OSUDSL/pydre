@@ -201,7 +201,7 @@ def brakeJerk(drivedata: pydre.core.DriveData, cutoff=0):
     t = []
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("SimTime", "LonAccel"))  # drop other columns
-        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         a.append = df.LonAccel
         t.append = df.simTime
     jerk = np.gradient(a, np.gradient(t))
@@ -220,7 +220,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff=0):
     out = []
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("SimTime", "Steer"))  # drop other columns
-        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
             continue
@@ -301,7 +301,7 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff=0, stat="count"):
     hitButton = 0;
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("SimTime", "FeedbackButton", "BoxAppears"))  # drop other columns
-        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
             continue
         boxAppearsdf = df['BoxAppears']
@@ -362,7 +362,7 @@ def numOfErrorPresses(drivedata: pydre.core.DriveData):
     presses = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("DatTime", "TaskFail"))  # drop other columns
-        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
         print(p)
         presses += p
@@ -398,7 +398,7 @@ def tbiReaction(drivedata: pydre.core.DriveData, type="brake", index=0):
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
         "SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"))
-        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
             continue
 
@@ -446,7 +446,7 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode="1", stat="mean"):
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer",
                                           "AutonomousDriving"))  # drop other columns
-        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
             continue
@@ -576,7 +576,7 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
     numofglances = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("VidTime", "gaze", "gazenum", "TaskFail"))  # drop other columns
-        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
             continue
@@ -626,7 +626,7 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     numofglances = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("DatTime", "gaze", "gazenum", "TaskNum"))  # drop other columns
-        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1], how='any'))  # remove nans and drop duplicates
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
             continue
@@ -756,6 +756,6 @@ registerMetric('ecoCar', ecoCar)
 registerMetric('tbiReaction', tbiReaction)
 registerMetric('errorPresses', numOfErrorPresses)
 registerMetric('crossCorrelate', crossCorrelate)
-registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['percent_onroad', 'avg_offroad', 'avg_onroad'])
+registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
 registerMetric('gazes', gazeNHTSA, ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
 registerMetric('getTaskNum', getTaskNum)
