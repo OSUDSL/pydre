@@ -91,7 +91,7 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0,
     total_time = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
-        "SimTime", "Velocity"))  # drop other columns
+            "SimTime", "Velocity"))  # drop other columns
         if df.shape[0] < 2:
             continue
         df['Duration'] = pandas.Series(np.gradient(df.SimTime.values),
@@ -112,7 +112,7 @@ def lanePosition(drivedata: pydre.core.DriveData, laneInfo: str = "sdlp",
                  car_width: float = 2.1):
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
-        "SimTime", "Lane", "LaneOffset"))  # drop other columns
+            "SimTime", "Lane", "LaneOffset"))  # drop other columns
         LPout = None
         if (df.size > 0):
             if (laneInfo in ["mean", "Mean"]):
@@ -214,7 +214,7 @@ def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
     t = []
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
-        "SimTime", "LonAccel"))  # drop other columns
+            "SimTime", "LonAccel"))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1],
                                                         how='any'))  # remove nans and drop duplicates
         a.append = df.LonAccel
@@ -235,7 +235,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     out = []
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
-        "SimTime", "Steer"))  # drop other columns
+            "SimTime", "Steer"))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1],
                                                         how='any'))  # remove nans and drop duplicates
 
@@ -255,8 +255,8 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
         # calculate predicted angle
         pAngle = (2.5 * df.Steer.values[3:, ]) - (
-                    2 * df.Steer.values[2:-1, ]) - (
-                             0.5 * df.Steer.values[1:-2, ])
+            2 * df.Steer.values[2:-1, ]) - (
+            0.5 * df.Steer.values[1:-2, ])
 
         # calculate error
         error = df.Steer.values[3:, ] - pAngle
@@ -301,7 +301,7 @@ def tailgatingTime(drivedata: pydre.core.DriveData, cutoff: float = 2):
         # this ensures we don't get screwy data from merged files
         tail_data = table[
             (table.HeadwayTime > 0) & (table.HeadwayTime < cutoff) & (
-                        abs(table.delta_t) < .5)]
+                abs(table.delta_t) < .5)]
         tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
     return tail_time
 
@@ -317,7 +317,7 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
         # this ensures we don't get screwy data from merged files
         tail_data = table[
             (table.HeadwayTime > 0) & (table.HeadwayTime < cutoff) & (
-                        abs(table.delta_t) < .5)]
+                abs(table.delta_t) < .5)]
         tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
         total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
     return tail_time / total_time
@@ -328,10 +328,10 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0,
     total_boxclicks = pandas.Series()
     time_boxappeared = 0.0
     time_buttonclicked = 0.0
-    hitButton = 0;
+    hitButton = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
-        "SimTime", "FeedbackButton", "BoxAppears"))  # drop other columns
+            "SimTime", "FeedbackButton", "BoxAppears"))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1],
                                                         how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
@@ -342,14 +342,14 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0,
         indicesBoxOn = boxOndf[boxOndf.values > .5].index[0:]
         indicesBoxOff = boxOndf[boxOndf.values < 0.0].index[0:]
         feedbackButtondf = df['FeedbackButton']
-        reactionTimeList = list();
+        reactionTimeList = list()
         for counter in range(0, len(indicesBoxOn)):
             boxOn = int(indicesBoxOn[counter])
             boxOff = int(indicesBoxOff[counter])
             startTime = simTimedf.loc[boxOn]
             buttonClickeddf = feedbackButtondf.loc[boxOn:boxOff].diff(1)
             buttonClickedIndices = buttonClickeddf[
-                                       buttonClickeddf.values > .5].index[0:]
+                buttonClickeddf.values > .5].index[0:]
 
             if (len(buttonClickedIndices) > 0):
                 indexClicked = int(buttonClickedIndices[0])
@@ -358,19 +358,19 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0,
                 reactionTimeList.append(reactionTime)
             else:
                 if (counter < len(indicesBoxOn) - 1):
-                    endIndex = counter + 1;
+                    endIndex = counter + 1
                     endOfBox = int(indicesBoxOn[endIndex])
                     buttonClickeddf = feedbackButtondf.loc[
-                                      boxOn:endOfBox - 1].diff(1)
+                        boxOn:endOfBox - 1].diff(1)
                     buttonClickedIndices = buttonClickeddf[
-                                               buttonClickeddf.values > .5].index[
-                                           0:]
+                        buttonClickeddf.values > .5].index[
+                        0:]
                     if (len(buttonClickedIndices) > 0):
                         indexClicked = int(buttonClickedIndices[0])
                         clickTime = simTimedf.loc[indexClicked]
                         reactionTime = clickTime - startTime
                         reactionTimeList.append(reactionTime)
-            sum = feedbackButtondf.loc[boxOn:boxOff].sum();
+            sum = feedbackButtondf.loc[boxOn:boxOff].sum()
             if sum > 0.000:
                 hitButton = hitButton + 1
         if stat == "count":
@@ -398,7 +398,7 @@ def numOfErrorPresses(drivedata: pydre.core.DriveData):
     presses = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
-        "SimTime", "TaskFail"))  # drop other columns
+            "SimTime", "TaskFail"))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1],
                                                         how='any'))  # remove nans and drop duplicates
         p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
@@ -456,11 +456,11 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake",
                 startBrake = df["Brake"].loc[start]
                 # check maximum of 10 seconds from hazard activation
                 reactionTime = firstOccurance(df, (
-                            simtime > startTime)  # after the starting of the hazard
-                                              & (
-                                                          simtime < startTime + 10)  # before 10 seconds after the hazard
-                                              & (df[
-                                                     "Brake"] > startBrake + 0.5))
+                    simtime > startTime)  # after the starting of the hazard
+                    & (
+                    simtime < startTime + 10)  # before 10 seconds after the hazard
+                    & (df[
+                        "Brake"] > startBrake + 0.5))
                 if reactionTime:
                     print(
                         "hazard {} reactiontime {}".format(hazardIndex,
@@ -476,10 +476,10 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake",
             if start:
                 startTime = df["SimTime"].loc[start]
                 reactionTime = firstOccurance(df, (
-                            simtime > startTime)  # after the starting of the hazard
-                                              & (
-                                                          simtime < startTime + 10)  # before 10 seconds after the hazard
-                                              & (throttlediff > throttlesd))
+                    simtime > startTime)  # after the starting of the hazard
+                    & (
+                    simtime < startTime + 10)  # before 10 seconds after the hazard
+                    & (throttlediff > throttlesd))
                 if reactionTime:
                     print(
                         "hazard {} reactiontime {}".format(hazardIndex,
@@ -500,8 +500,8 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1",
     event = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
-        "SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer",
-        "AutonomousDriving"))  # drop other columns
+            "SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer",
+            "AutonomousDriving"))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1],
                                                         how='any'))  # remove nans and drop duplicates
 
@@ -526,9 +526,9 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1",
 
             warningOn = int(indicesToggleOn[counter])
             startWarning = simTimedf.loc[warningOn]
-            ## End time (start of warning time plus 15 seconds)
+            # End time (start of warning time plus 15 seconds)
             warningPlus15 = df[(df.SimTime >= startWarning) & (
-                        df.SimTime <= startWarning + 15)]
+                df.SimTime <= startWarning + 15)]
             indWarning = warningPlus15.index[0:]
 
             warningOff = int(indWarning[-1])
@@ -537,7 +537,7 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1",
             if (failureCodedf.loc[warningOn] == int(FailCode)):
 
                 rtList = list()
-                ## Compare brake, throttle & steer
+                # Compare brake, throttle & steer
 
                 # Brake Reaction
                 brakeDuringWarning = brakedf.loc[warningOn:warningOff]
@@ -553,14 +553,14 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1",
                 if (reaction_Brake > 0):
                     rtList.append(reaction_Brake)
 
-                ## Throttle Reaction
+                # Throttle Reaction
                 throttleDuringWarning = throttledf.loc[warningOn:warningOff]
                 reaction_throttle = 0
                 initial_throttle = throttleDuringWarning.iloc[0]
                 thresholdThrottle = 2
                 throttleVector = throttleDuringWarning[
                     throttleDuringWarning >= (
-                                initial_throttle + thresholdThrottle)]
+                        initial_throttle + thresholdThrottle)]
                 if (len(throttleVector > 0)):
                     throttleValue = throttleVector.iloc[0]
                     indexT = throttleVector.index[0]
@@ -568,7 +568,7 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1",
                 if (reaction_throttle > 0):
                     rtList.append(reaction_throttle)
 
-                ## Steer Reaction
+                # Steer Reaction
                 steerDuringWarning = steerdf.loc[warningOn:warningOff]
                 reaction_steer = 0
                 thresholdSteer = 2
@@ -588,11 +588,11 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1",
 
                 # Reaction By Toggling Autonomous Back On
                 autonomousDuringWarning = autonomousToggledf.loc[
-                                          warningOn:warningOff]
+                    warningOn:warningOff]
                 reaction_autonomous = 0
                 autonomousOndf = autonomousDuringWarning.diff(1)
                 autonomousToggleOn = autonomousOndf[
-                                         autonomousOndf.values > .5].index[0:]
+                    autonomousOndf.values > .5].index[0:]
                 if (len(autonomousToggleOn) > 0):
                     indexA = int(autonomousToggleOn[0])
                     reaction_autonomous = simTimedf[indexA] - startWarning
@@ -646,7 +646,7 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
     numofglances = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
-        "VidTime", "gaze", "gazenum", "TaskFail"))  # drop other columns
+            "VidTime", "gaze", "gazenum", "TaskFail"))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0, 1],
                                                         how='any'))  # remove nans and drop duplicates
 
@@ -684,17 +684,20 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
 
         num_over_2s_offroad_glances = glancelist[(glancelist['duration'] > 2) &
                                                  (glancelist[
-                                                      'locations'] == 'offroad')][
+                                                     'locations'] == 'offroad')][
             'duration'].count()
 
         num_offroad_glances = \
-        glancelist[(glancelist['locations'] == 'offroad')]['duration'].count()
+            glancelist[(glancelist['locations'] == 'offroad')
+                       ]['duration'].count()
 
         total_time_offroad_glances = \
-        glancelist[(glancelist['locations'] == 'offroad')]['duration'].sum()
+            glancelist[(glancelist['locations'] == 'offroad')
+                       ]['duration'].sum()
 
         mean_time_offroad_glances = \
-        glancelist[(glancelist['locations'] == 'offroad')]['duration'].mean()
+            glancelist[(glancelist['locations'] == 'offroad')
+                       ]['duration'].mean()
 
         # print(">2s glances: {}, num glances: {}, total time glances: {}, mean time glances {}".format(
         #	num_over_2s_offroad_glances, num_offroad_glances, total_time_offroad_glances, mean_time_offroad_glances))
@@ -718,7 +721,7 @@ def registerMetric(name, function, columnnames: str = None):
 
 # not working
 def addVelocities(drivedata: pydre.core.DriveData):
-    df = pandas.DataFrame;
+    df = pandas.DataFrame
     for d in drivedata.data:
         df = pandas.DataFrame(d)
         # add column with ownship velocity
