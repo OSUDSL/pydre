@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__)))
@@ -10,6 +11,8 @@ import pydre.core
 import os.path
 import glob
 import logging
+
+
 
 #logging.basicConfig(level=logging.INFO)
 
@@ -41,6 +44,8 @@ p = pydre.project.Project(args.projectfile)
 # test the data files
 
 filelist = glob.glob(os.path.join(os.getcwd(), args.datafile))
+
+
 p.run(filelist)
 p.save(args.outputfile)
 

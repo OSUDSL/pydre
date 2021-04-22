@@ -17,8 +17,8 @@ logger = logging.getLogger('PydreLogger')
 def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
     copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
-
-    for d in drivedata.data:
+    data = drivedata.data
+    for d in data:
         dt = pandas.DataFrame(d)
         #dt.set_index('timedelta', inplace=True)
         blocks = ((dt != dt.shift()).TaskStatus.cumsum())/2
@@ -33,8 +33,11 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
 
     copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
-
-    for d in drivedata.data:
+    
+    
+    
+    data = drivedata.data
+    for d in data:
         dt = pandas.DataFrame(d)
 
         cat_type = CategoricalDtype(categories=['None', 'localCS.dashPlane', 'localCS.WindScreen', 'onroad', 'offroad'])
@@ -63,6 +66,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
     # filter out noise from the gaze column
     # SAE J2396 defines fixations as at least 0.2 seconds,
         min_delta = pandas.to_timedelta(0.2, unit='s')
+        
     # so we ignore changes in gaze that are less than that
 
     # find list of runs
@@ -75,12 +79,23 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
         print("{} gazes before removing transitions".format(n))
         short_gaze_count = 0
         dt.set_index('gazenum')
-        for x in trange(durations.index.min(), durations.index.max()):
-            if durations.loc[x] < min_delta:
-                short_gaze_count += 1
-                # dt['gaze'].where(dt['gazenum'] != x, inplace=True)
-                # dt.loc[x,'gaze']  = np.nan
-                dt.loc[dt['gazenum'] == x, 'gaze'] = np.nan
+        
+        
+        durations.sort_values(ascending=True)
+
+        index = 1
+        while (durations.loc[index] < min_delta):
+            # apply the code below to all rows < min_delta
+            short_gaze_count += 1
+            dt.loc[dt['gazenum'] == index, 'gaze'] = np.nan
+            index += 1
+
+        #for x in trange(durations.index.min(), durations.index.max()):
+            #if durations.loc[x] < min_delta:
+                #short_gaze_count += 1
+                 # dt['gaze'].where(dt['gazenum'] != x, inplace=True)
+                 # dt.loc[x,'gaze']  = np.nan
+                #dt.loc[dt['gazenum'] == x, 'gaze'] = np.nan
         dt.reset_index()
         print("{} transition gazes out of {} gazes total.".format(short_gaze_count, n))
         dt['gaze'].fillna(method='bfill', inplace=True)
