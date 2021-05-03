@@ -723,6 +723,26 @@ def getTaskNum(drivedata: pydre.core.DriveData):
         else:
             return None
 
+def modifiedSDLP(drivedata: pydre.core.DriveData):
+    b, a = signal.butter(2, 0.1, 'high', analog=False, output='ba') # define butterWorthFilter
+    
+    # the output parameter can also be set to 'sos'. Under this case, signal.sosfilt(s, array) or 
+    # signal.sosfiltfilt(s, array) should be used. ba and sos give same results so I'll use ba here
+    
+    # s = signal.butter(2, 0.1, 'high', analog=False, output='sos')
+
+    for d in drivedata.data:
+        df = pandas.DataFrame(d, columns=("LaneOffset"))
+        filteredLP = signal.lfilter(b, a, df.LaneOffset) # filtered lateral Position
+        
+        # signal.filtfilt() applies the filter twice (forward & backward) while signal.lfilter applies
+        # the filter once. 
+        
+        #filteredLP = signal.filtfilt(b, a, df.LaneOffset) 
+
+        out = np.std(filteredLP)
+    return out    
+
 
 metricsList = {}
 metricsColNames = {}
@@ -734,6 +754,7 @@ def registerMetric(name, function, columnnames=None):
         metricsColNames[name] = columnnames
     else:
         metricsColNames[name] = [name, ]
+
 
 
 
@@ -759,3 +780,5 @@ registerMetric('crossCorrelate', crossCorrelate)
 registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
 registerMetric('gazes', gazeNHTSA, ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
 registerMetric('getTaskNum', getTaskNum)
+registerMetric('modifiedSDLP', modifiedSDLP)
+
