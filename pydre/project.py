@@ -165,14 +165,16 @@ class Project():
 
         self.loadFileList(datafiles)
         data_set = []
+        
+        if 'filters' in self.definition: 
+            progressBar = tqdm(total=len(self.definition)) #print progress bar
 
-        progressBar = tqdm(total=len(self.definition)) #print progress bar
+            for filter in self.definition['filters']:
+                self.processFilter(filter, self.raw_data)
+                progressBar.update(1)  # let the bar moves forward
+            progressBar.update(1)
+            progressBar.close() # close progress bar
 
-        for filter in self.definition['filters']:
-            self.processFilter(filter, self.raw_data)
-            progressBar.update(1)  # let the bar moves forward
-        progressBar.update(1)
-        progressBar.close() # close progress bar
 
         if 'rois' in self.definition:
             for roi in self.definition['rois']:
