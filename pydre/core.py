@@ -87,8 +87,8 @@ def mergeBySpace(tomerge: list):
 
 class DriveData:
 
-	def __init__(self, SubjectID: int, DriveID,	roi: str, data,	sourcefilename):
-		self.SubjectID = SubjectID
+	def __init__(self, PartID: int, DriveID,	roi: str, data,	sourcefilename):
+		self.PartID = PartID
 		if type(DriveID) is not list:
 			DriveID = [DriveID, ]
 		self.DriveID = DriveID
