@@ -365,9 +365,8 @@ def numOfErrorPresses(drivedata: pydre.core.DriveData):
     presses = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("SimTime", "TaskFail"))  # drop other columns
-        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=[0], how='any'))  # remove nans and drop duplicates
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
-        print(p)
         presses += p
     return presses
 
