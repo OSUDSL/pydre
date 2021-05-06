@@ -54,12 +54,14 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeC
 
     # adjust for 100ms latency
         dt['gaze'] = dt['gaze'].shift(-6)
-        dt['timedelta'] = pandas.to_timedelta(dt[timeColName], unit="s")
+        dt['timedelta'] = pandas.to_timedelta(dt[timeColName].astype(float), unit="s")
+        # dt['timedelta'] = pandas.to_timedelta(dt[timeColName]) # removed the unit due to crash "valueerror" unit must not be specified if input contains a str
         dt.set_index('timedelta', inplace=True)
 
     # filter out noise from the gaze column
     # SAE J2396 defines fixations as at least 0.2 seconds,
         min_delta = pandas.to_timedelta(0.2, unit='s')
+        
     # so we ignore changes in gaze that are less than that
 
     # find list of runs
@@ -72,12 +74,23 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeC
         print("{} gazes before removing transitions".format(n))
         short_gaze_count = 0
         dt.set_index('gazenum')
-        for x in trange(durations.index.min(), durations.index.max()):
-            if durations.loc[x] < min_delta:
-                short_gaze_count += 1
-                # dt['gaze'].where(dt['gazenum'] != x, inplace=True)
-                # dt.loc[x,'gaze']  = np.nan
-                dt.loc[dt['gazenum'] == x, 'gaze'] = np.nan
+        
+        
+        durations.sort_values(ascending=True)
+
+        index = 1
+        while (durations.loc[index] < min_delta):
+            # apply the code below to all rows < min_delta
+            short_gaze_count += 1
+            dt.loc[dt['gazenum'] == index, 'gaze'] = np.nan
+            index += 1
+
+        #for x in trange(durations.index.min(), durations.index.max()):
+            #if durations.loc[x] < min_delta:
+                #short_gaze_count += 1
+                 # dt['gaze'].where(dt['gazenum'] != x, inplace=True)
+                 # dt.loc[x,'gaze']  = np.nan
+                #dt.loc[dt['gazenum'] == x, 'gaze'] = np.nan
         dt.reset_index()
         print("{} transition gazes out of {} gazes total.".format(short_gaze_count, n))
         dt['gaze'].fillna(method='bfill', inplace=True)

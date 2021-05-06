@@ -157,6 +157,5 @@ class ColumnROI():
 				for i in raw_data[self.roi_column].unique():
 					region_data = raw_data[raw_data[self.roi_column] == i]
 					if len(region_data.index) > 0:
-						print("empty region " + str(i))
-						return_list.append(pydre.core.DriveData(ddata.SubjectID, ddata.DriveID, i, region_data, ddata.sourcefilename))
+						return_list.append(pydre.core.DriveData(ddata.PartID, ddata.DriveID, i, region_data, ddata.sourcefilename))
 		return return_list
