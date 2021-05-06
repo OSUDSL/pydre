@@ -105,10 +105,10 @@ class Project():
             sys.exit(1)
 
         if len(col_names) > 1:
-            x = [filter_func(d, **filter) for d in dataset]
+            x = [filter_func(d, **filter) for d in tqdm(dataset, desc=func_name)]
             report = pandas.DataFrame(x, columns=col_names)
         else:
-            report = pandas.DataFrame([filter_func(d, **filter) for d in dataset], columns=[report_name, ])
+            report = pandas.DataFrame([filter_func(d, **filter) for d in tqdm(dataset, desc=func_name)], columns=[report_name, ])
 
         return report
 
@@ -151,7 +151,7 @@ class Project():
 		Before loading, the internal list is cleared.
 		"""
         self.raw_data = []
-        for datafile in datafiles:
+        for datafile in tqdm(datafiles, desc="Loading files"):
             logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
 
@@ -166,13 +166,13 @@ class Project():
         self.loadFileList(datafiles)
         data_set = []
 
-        progressBar = tqdm(total=len(self.definition)) #print progress bar
+        #progressBar = tqdm(total=len(self.definition)) #print progress bar
 
         for filter in self.definition['filters']:
             self.processFilter(filter, self.raw_data)
-            progressBar.update(1)  # let the bar moves forward
-        progressBar.update(1)
-        progressBar.close() # close progress bar
+            #progressBar.update(1)  # let the bar moves forward
+        #progressBar.update(1)
+        #progressBar.close() # close progress bar
 
         if 'rois' in self.definition:
             for roi in self.definition['rois']:
