@@ -15,24 +15,29 @@ logger = logging.getLogger('PydreLogger')
 # filters defined here take a DriveData object and return an updated DriveData object
 
 def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
-    copy = pydre.core.DriveData.__init__(drivedata, drivedata.SubjectID, drivedata.DriveID, drivedata.roi,
+    copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
 
     for d in drivedata.data:
         dt = pandas.DataFrame(d)
-    #dt.set_index('timedelta', inplace=True)
-        blocks = (dt != dt.shift()).TaskStatus.cumsum()
+        #dt.set_index('timedelta', inplace=True)
+        blocks = ((dt != dt.shift()).TaskStatus.cumsum())/2
         blocks[dt.TaskStatus == 0] = None
         dt["taskblocks"] = blocks
         dt = dt.reset_index()
     return drivedata
 
-def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
 
-    copy = pydre.core.DriveData.__init__(drivedata, drivedata.SubjectID, drivedata.DriveID, drivedata.roi,
+
+def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
+
+    copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
-
-    for d in drivedata.data:
+    
+    
+    
+    data = drivedata.data
+    for d in data:
         dt = pandas.DataFrame(d)
 
         cat_type = CategoricalDtype(categories=['None', 'localCS.dashPlane', 'localCS.WindScreen', 'onroad', 'offroad'])
@@ -55,13 +60,11 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeC
     # adjust for 100ms latency
         dt['gaze'] = dt['gaze'].shift(-6)
         dt['timedelta'] = pandas.to_timedelta(dt[timeColName].astype(float), unit="s")
-        # dt['timedelta'] = pandas.to_timedelta(dt[timeColName]) # removed the unit due to crash "valueerror" unit must not be specified if input contains a str
         dt.set_index('timedelta', inplace=True)
 
     # filter out noise from the gaze column
     # SAE J2396 defines fixations as at least 0.2 seconds,
         min_delta = pandas.to_timedelta(0.2, unit='s')
-        
     # so we ignore changes in gaze that are less than that
 
     # find list of runs
@@ -100,14 +103,6 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="VidTime", gazeC
 
 
 
-
-# def numberSwitchBlocks(dt):
-#     #dt.set_index('timedelta', inplace=True)
-#     blocks = (dt != dt.shift()).TaskStatus.cumsum()
-#     blocks[dt.TaskStatus == 0] = None
-#     dt["taskblocks"] = blocks
-#     dt = dt.reset_index()
-#     return dt
 
 
 filtersList = {}
