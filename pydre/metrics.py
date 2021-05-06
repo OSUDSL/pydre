@@ -1,14 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import annotations # needed for python < 3.9
 
 import pandas
 import pydre.core
 import numpy
+
 import numpy as np
 import math
 import logging
 import scipy
 from scipy import signal
+
 
 import ctypes
 
@@ -679,6 +682,60 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
         else:
             return 0.0
 
+def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
+    numofglances = 0
+    for d in drivedata.data:
+        df = pandas.DataFrame(d, columns=("DatTime", "gaze", "gazenum", "TaskNum"))  # drop other columns
+        df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
+
+        if (len(df) == 0):
+            continue
+
+        # construct table with columns [glanceduration, glancelocation, error]
+        gr = df.groupby('gazenum', sort=False)
+        durations = gr['DatTime'].max() - gr['DatTime'].min()
+        locations = gr['gaze'].first()
+        error_list = gr['TaskNum'].any()
+
+        glancelist = pandas.DataFrame({'duration': durations, 'locations': locations, 'errors': error_list})
+        glancelist['locations'].fillna('offroad', inplace=True)
+        glancelist['locations'].replace(['car.WindScreen', 'car.dashPlane', 'None'], ['onroad', 'offroad', 'offroad'],
+                                        inplace=True)
+
+
+        glancelist_aug = glancelist
+        glancelist_aug['TaskNum'] = d["TaskNum"].min()
+        glancelist_aug['taskblock'] = d["taskblocks"].min()
+        glancelist_aug['Subject'] = d["PartID"].min()
+
+        appendDFToCSV_void(glancelist_aug, "glance_list.csv")
+
+        # table constructed, now find metrics
+
+
+        num_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].count()
+
+
+        total_time_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].sum()
+        percent_onroad = total_time_onroad_glances / (df['DatTime'].max() - df['DatTime'].min())
+
+        mean_time_offroad_glances = glancelist[(glancelist['locations'] == 'offroad')]['duration'].mean()
+        mean_time_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].mean()
+
+
+        return [total_time_onroad_glances, percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
+    return [None, None, None, None]
+
+def getTaskNum(drivedata: pydre.core.DriveData):
+    taskNum = 0
+    for d in drivedata.data:
+        df = pandas.DataFrame(d)
+        taskNum = df['TaskNum'].mode()
+        if(len(taskNum)>0):
+            return taskNum[0]
+        else:
+            return None
+
 
 
 registerMetric('colMean', colMean)
@@ -699,7 +756,7 @@ registerMetric('ecoCar', ecoCar)
 registerMetric('tbiReaction', tbiReaction)
 registerMetric('errorPresses', numOfErrorPresses)
 registerMetric('crossCorrelate', crossCorrelate)
-
+registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
 registerMetric('gazes', gazeNHTSA,
                ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
-
+registerMetric('getTaskNum', getTaskNum)
