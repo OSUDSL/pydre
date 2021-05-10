@@ -1,21 +1,13 @@
-QTreeView
-{
-    border: none;
+QTreeView {
+	border: none;
 }
 
-QTreeView::item:hover
-{
-    color: black;
-    background-color: white;
+QTreeView::item:hover {
+	color: black;
+	background-color: white;
 }
 
-QTreeView::item:focus
-{
-    color: black;
-    background-color: white;
-}
-
-QLineEdit
-{
-    border: 1px white;
+QTreeView::item:focus {
+	color: black;
+	background-color: white;
 }

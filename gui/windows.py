@@ -1,405 +1,219 @@
-"""
+'''
 Created by: Craig Fouts
 Created on: 11/13/2020
-"""
+'''
 
 import inspect
+import json
+import logging
+import os
+import pydre
 from gui.config import Config
 from gui.customs import ProjectTree
-from gui.popups import FunctionPopup, SavePopup
+from gui.popups import SavePopup
 from gui.templates import Window
-from json import dump, loads
-import logging
-from os import path, sep
-import pydre
-from pydre import metrics
-from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QFileDialog
 
 config = Config()
-PROJECT_PATH = path.dirname(path.abspath(__file__))
-CONFIG_PATH = path.join(PROJECT_PATH, "config_files/config.ini")
+PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
+CONFIG_PATH = os.path.join(PROJECT_PATH, 'config_files/config.ini')
 config.read(CONFIG_PATH)
 
-logger = logging.getLogger("PydreLogger")
+logger = logging.getLogger('PydreLogger')
 
 
 class MainWindow(Window):
-    """
-    Primary window class that handles all tasks related to main window
+    '''Primary window class that handles all tasks related to the main window
     configurations and functionality.
-    """
 
-    def __init__(self, icon_file, title, ui_file, *args, **kwargs):
-        super().__init__(icon_file, title, ui_file, *args, **kwargs)
+    '''
 
-        # Config variables
-        self.explorer_title = config.get("titles", "explorer")
-        self.shstretch_factors = loads(config.get("splitters", "shstretch"))
-        self.mhstretch_factors = loads(config.get("splitters", "mhstretch"))
-        self.mvstretch_factors = loads(config.get("splitters", "mvstretch"))
-        self.file_types = dict(config.items("types"))
-        self.param_types = dict(config.items("parameters"))
-        self.recent_names = config.get("recent", "names").split(",")
-        self.recent_paths = config.get("recent", "paths").split(",")
+    def __init__(self, *args, **kwargs):
+        ui_path = config.get('UI Files', 'main')
+        ui_path = os.path.join(PROJECT_PATH, ui_path)
+        super().__init__(ui_path, *args, **kwargs)
 
-        # Class variables
-        self.app_icon = icon_file
-        self.app_title = title
-        self.pfile_widgets = {}
-        self.pfile_paths = {}
-        self.focused_pfile = ""
-
-        # Application configurations
-        self._configure_shortcuts()
-        self._configure_callbacks()
-
-        # Window configurations
+        self.project_files = {}
+        self.save_popup = SavePopup()
         self._configure_window()
-        self._configure_splitters()
-
-        # FIXME: I don't plan on keeping the method parameter here
-        self.savepopup = SavePopup()
-
-    # ==========================================================================
-    # Window configuration methods ---------------------------------------------
-    # ==========================================================================
-
-    def _configure_shortcuts(self):
-        """
-        Configures keyboard shortcuts for widgets events.
-        """
-
-        # Menu bar action shortcuts
-        self.ui.new_action.setShortcut("Ctrl+N")
-        self.ui.open_action.setShortcut("Ctrl+O")
-
-    def _set_mb_callbacks(self):
-        """
-        Sets all menu bar action callbacks.
-        """
-
-        self.ui.open_action.triggered.connect(self._handle_open)
-        self.ui.save_action.triggered.connect(self._handle_save)
-        self.ui.run_action.triggered.connect(self._handle_run)
-
-        self.ui.recent_files.itemDoubleClicked.connect(self._handle_select)
-
-    def _set_button_callbacks(self):
-        """
-        Sets all button callbacks.
-        """
-
-        self.ui.open_pfile_btn.clicked.connect(self._handle_open)
-        self.ui.cancel_btn.clicked.connect(self._handle_cancel)
-
-    def _set_widget_callbacks(self):
-        """
-        Sets all miscellaneous widget callbacks.
-        """
-
-        self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
-        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_close)
-
-    def _configure_callbacks(self):
-        """
-        Configures callback functionality for widget events.
-        """
-
-        self._set_mb_callbacks()
-        self._set_button_callbacks()
-        self._set_widget_callbacks()
-
-    def _set_recent_files(self):
-        """
-        Sets the files to be displayed in the recent files QListWidget.
-        """
-
-        self.ui.recent_files.clear()
-        names = [name for name in self.recent_names if name != ""]
-        for name in names:
-            self.ui.recent_files.addItem(name)
 
     def _configure_window(self):
-        """
-        Configures general window settings.
-        """
+        '''Configures initial window settings.
 
-        self.ui.setWindowIcon(QIcon(self.app_icon))
-        self.ui.setWindowTitle(self.app_title)
+        '''
+
+        self._configure_callbacks()
+        self._configure_splitters()
+        self._configure_recent_files()
         self.ui.menu_bar.setVisible(False)
-        self._set_recent_files()
 
-    def _set_start_splitters(self):
-        """
-        Sets the initial splitter width for splitters on the startup window page
-        based on config file settings.
-        """
+    def _configure_callbacks(self):
+        '''Configures callback functionality for actions and widgets. 
 
-        # Configure horizontal splitters
-        shsplitter_count = self.ui.shsplitter.count()
-        for i in range(shsplitter_count):
-            stretch_factor = self.shstretch_factors[i]
-            self.ui.shsplitter.setStretchFactor(i, stretch_factor)
+        '''
 
-    def _set_main_splitters(self):
-        """
-        Set the initial splitter width for splitters on the main window page
-        based on config file settings.
-        """
-
-        # Configure horizontal splitters
-        mhsplitter_count = self.ui.mhsplitter.count()
-        for i in range(mhsplitter_count):
-            stretch_factor = self.mhstretch_factors[i]
-            self.ui.mhsplitter.setStretchFactor(i, stretch_factor)
-
-        # Configure vertical splitters
-        mvsplitter_count = self.ui.mvsplitter.count()
-        for i in range(mvsplitter_count):
-            stretch_factor = self.mvstretch_factors[i]
-            self.ui.mvsplitter.setStretchFactor(i, stretch_factor)
+        self.ui.open_act.triggered.connect(self._handle_open_pfile)
+        self.ui.save_act.triggered.connect(self._handle_save)
+        self.ui.recent_files_lst.itemDoubleClicked.connect(self._handle_select)
+        self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
+        self.ui.file_tab.currentChanged.connect(self._handle_tab_change)
+        self.ui.file_tab.tabCloseRequested.connect(self._handle_tab_close)
 
     def _configure_splitters(self):
-        """
-        Configures all splitter widgets.
-        """
+        '''Configures the initial stretch factors for splitter widgets. 
 
-        self._set_start_splitters()
-        self._set_main_splitters()
+        '''
 
-    # ==========================================================================
-    # Handler methods ----------------------------------------------------------
-    # ==========================================================================
+        self.ui.start_hsplitter.setStretchFactor(0, 4)
+        self.ui.start_hsplitter.setStretchFactor(1, 7)
+        self.ui.main_hsplitter.setStretchFactor(0, 2)
+        self.ui.main_hsplitter.setStretchFactor(1, 7)
+        self.ui.main_vsplitter.setStretchFactor(0, 7)
+        self.ui.main_vsplitter.setStretchFactor(1, 2)
 
-    def _handle_open(self):
-        """
-        Handles opening a project file in a new tab.
-        """
+    def _configure_recent_files(self):
+        '''Configures the recent files list displayed on the start page.
 
-        # Launch the file explorer for the project file type
-        path_ = self._open_file(self.file_types["project"])
+        '''
 
-        if path_:
-            """Launch the project file editor if a project file is selected"""
-
-            self._launch_editor(path_)
-            self.ui.menu_bar.setVisible(True)
-            self.resize_and_center(1100, 800)
+        self.ui.recent_files_lst.clear()
+        recent_names = config.get('Recent Files', 'names').split(',')
+        for file in filter(lambda f: f != '', recent_names):
+            self.ui.recent_files_lst.addItem(file)
 
     def _handle_select(self):
-        """
-        Handles selecting a project file from the recent files menu.
-        """
+        '''Handles selecting a file from the recent files list. 
 
-        # Get the selected project file path
-        idx = self.ui.recent_files.currentRow()
-        relative_path = self.recent_paths[idx]
-        path_ = path.join(path.dirname(PROJECT_PATH), relative_path)
+        '''
 
-        # Launch the project file editor
-        self._launch_editor(path_)
-        self.ui.menu_bar.setVisible(True)
+        directory = os.path.dirname(PROJECT_PATH)
+        recent_paths = config.get('Recent Files', 'paths').split(',')
+        index = self.ui.recent_files_lst.currentRow()
+        file_path = os.path.join(directory, recent_paths[index])
+        self._launch_editor(file_path)
+
+    def _handle_open_pfile(self):
+        '''Handles opening a project file in a new tab.
+
+        '''
+
+        file_type = config.get('File Types', 'project')
+        file_path = self._open_file(file_type)
+        self._launch_editor(file_path) if file_path else None
+
+    def _open_file(self, filter=None):  # TODO: MOVE TO UTILITY CLASS
+        '''Launches a file selection dialog based on the given file type and
+        returns a file path if one is selected. 
+
+        '''
+
+        title = "Open File"
+        directory = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
+        path_, _ = QFileDialog.getOpenFileName(self, title, directory, filter)
+        return os.path.abspath(path_)
+
+    def _launch_editor(self, file_path):
+        '''Configures and shows a file editor in a new tab. 
+
+        '''
+
+        file_name = file_path.split(os.sep)[-1]
+        self._add_to_recent(file_name, file_path)
+        if file_name not in self.project_files:
+            project_tree = self._create_project_tree(file_name, file_path)
+            self.project_files[file_name] = [file_path, project_tree]
+        else:
+            index = self.ui.file_tab.indexOf(file_name)
+            self.ui.file_tab.setCurrentIndex(index)
+        self.switch_to_editor()
+
+    def _add_to_recent(self, file_name, file_path):
+        '''Adds the given project file name and path to the recent files lists
+        in the configuration file. 
+
+        '''
+
+        relative_path = os.path.join(*file_path.split(os.sep)[-2:])
+        recent_names = config.get('Recent Files', 'names').split(',')
+        recent_paths = config.get('Recent Files', 'paths').split(',')
+        if file_name in recent_names:
+            recent_names.remove(file_name)
+            recent_paths.remove(relative_path)
+        recent_names.insert(0, file_name)
+        recent_paths.insert(0, relative_path)
+        config.set('Recent Files', 'names', ','.join(recent_names))
+        config.set('Recent Files', 'paths', ','.join(recent_paths))
+
+    def _create_project_tree(self, file_name, file_path):
+        '''Creates and displays a FileTree widget for the given file. 
+
+        '''
+
+        project_tree = ProjectTree(file_path)
+        index = self.ui.file_tab.count()
+        self.ui.file_tab.insertTab(index, project_tree, file_name)
+        self.ui.file_tab.setCurrentIndex(index)
+        return project_tree
+
+    def _handle_save(self, index):
+        '''TODO
+
+        '''
+
+        file_name = self.ui.file_tab.tabText(index)
+        with open(self.project_files[file_name][0], 'w') as file:
+            contents = self.ui.file_tab.currentWidget().get_contents()
+            json.dump(contents, file, indent=4)
+
+    def _handle_tab_change(self, index):
+        '''Handles functionality that occurs when a tab is opened, closed, or
+        selected. 
+
+        '''
+
+        if self.ui.file_tab.count() > 0:
+            file_name = self.ui.file_tab.tabText(index)
+            self.ui.run_act.setText(f"Run '{file_name}'")
+        else:
+            self.switch_to_start()
+
+    def _handle_tab_close(self, index):
+        '''TODO
+
+        '''
+
+        if self.ui.file_tab.currentWidget().changed():
+            file_name = self.ui.file_tab.tabText(index)
+            text = f"{file_name} " + config.get('Popup Text', 'save')
+            def callback(e): return self._handle_close(index, e)
+            self.save_popup.show_(text, callback)
+        else:
+            self._handle_close(index, False)
+
+    def _handle_close(self, index, save):
+        '''TODO
+
+        '''
+
+        self._handle_save(index) if save else None
+        self.project_files.pop(self.ui.file_tab.tabText(index))
+        self.ui.file_tab.removeTab(index)
+
+    def switch_to_start(self):
+        '''Swithes to the start page (page 1 / 3). 
+
+        '''
+
+        self.resize_and_center(700, 400)
+        self.ui.menu_bar.setVisible(False)
+        self._configure_recent_files()
+        self.ui.page_stack.setCurrentIndex(0)
+
+    def switch_to_editor(self):
+        '''Switches to the editor page (page 2 / 3). 
+
+        '''
+
         self.resize_and_center(1100, 800)
-
-    def _close(self, idx):
-        """
-        TEMP
-        """
-        # TODO: Add a setter method to project tree
-        # Remove the project file from the paths dict
-        pfile = self.ui.pfile_tab.tabText(idx)
-        self.pfile_widgets.pop(pfile)
-        self.pfile_paths.pop(pfile)
-
-        # Remove the tab at the specified index
-        self.ui.pfile_tab.removeTab(idx)
-
-    # FIXME: This is very much a temporary solution
-    def _handle_close(self, idx):
-        """
-        Handles closing a project file tab.
-
-        args:
-            idx: Index of tab being closed
-        """
-
-        # TODO: Add get and set name for widgets
-
-        # TODO
-        widget = self.ui.pfile_tab.widget(idx)
-
-        if widget.compare_contents():
-            self._close(idx)
-        else:
-            args = (lambda: self._handle_save(idx), lambda: self._close(
-                idx), self.ui.pfile_tab.tabText(idx))
-            self.savepopup.show_(*args)
-
-    def _handle_tab_change(self, idx):
-        """
-        Handles general project file tab changes.
-
-        args:
-            idx: Index of tab being changed/selected
-        """
-
-        if self.ui.pfile_tab.count() > 0:
-            """Handle a new tab focus if remaining tabs exist"""
-
-            # Set the run action text based on the current tab
-            pfile = self.ui.pfile_tab.tabText(idx)
-            self.ui.run_action.setText("Run '{0}'".format(pfile))
-
-            # Set the focussed project file based on the current tab
-            self.focused_pfile = self.pfile_paths[pfile]
-        else:
-            """Handle no remaining tabs"""
-
-            # Switch to startup page
-            self._set_recent_files()
-            self.ui.page_stack.setCurrentIndex(0)
-            self.ui.menu_bar.setVisible(False)
-            self.resize_and_center(700, 400)
-
-    def _handle_save(self, idx):
-        """
-        TODO
-        """
-
-        # TODO: Should this be in customs.py?
-        # TODO: Add log message on save
-
-        # TODO: Really need a setter method here
-
-        list(self.pfile_widgets.values())[idx].update_contents()
-
-        name = self.ui.pfile_tab.tabText(idx)
-
-        with open(self.pfile_paths[name], "w") as file:
-            dump(self.ui.pfile_tab.currentWidget().get_contents(), file, indent=4)
-
-    def _handle_run(self):
-        """
-        Handles menu bar run action based on the current focussed project file.
-        """
-
-        # Set the project file label based on the project file being run
-        text = "Project file: {0}".format(self.focused_pfile)
-        self.ui.pfile_label.setText(text)
-
-        # Switch to run page
-        self.ui.page_stack.setCurrentIndex(2)
-
-    def _handle_cancel(self):
-        """
-        Handles cancel button callback on run page.
-        """
-
-        # Reset project file label text
-        self.ui.pfile_label.setText("")
-
-        # Switch to editor page
+        self.ui.menu_bar.setVisible(True)
         self.ui.page_stack.setCurrentIndex(1)
-
-    # ==========================================================================
-    # Reference methods --------------------------------------------------------
-    # ==========================================================================
-
-    def _open_file(self, type_=None):
-        """
-        Launches a file selection dialog based on the given file type and
-        returns the file path if a file is selected.
-
-        args:
-            type_: Optional file type of the desired file
-
-        returns: Path of the selected file or None if no file is selected
-        """
-
-        # Target directory for the file selection dialog
-        dir_ = path.dirname(path.dirname(inspect.getfile(pydre)))
-
-        # Get the file path and filter
-        title = self.explorer_title
-        path_, filter_ = QFileDialog.getOpenFileName(self, title, dir_, type_)
-
-        return path.abspath(path_)
-
-    def _create_project_tree(self, name, path_):
-        """
-        Creates and displays a ProjectTree widget for the given project file.
-
-        args:
-            name: Project file name
-            path_: Project file path
-        """
-
-        # Create project file tree
-        tree = ProjectTree(path_, metrics.metricsList, True)
-        self.pfile_widgets[name] = tree
-        self.pfile_paths[name] = path_
-
-        # Open the project file tree in a new tab
-        tab_count = self.ui.pfile_tab.count()
-        self.ui.pfile_tab.insertTab(tab_count, tree, name)
-        self.ui.pfile_tab.setCurrentIndex(tab_count)
-
-    def _add_to_recent(self, name, path_):
-        """
-        Adds the given project file name and path to the recent files lists in
-        the config file.
-
-        args:
-            name: Project file name
-            path_: Project file path
-        """
-
-        relative_path = path.join(*path_.split(sep)[-2:])
-
-        # Remove the given name and path if they are already saved
-        if name in self.recent_names:
-            self.recent_names.remove(name)
-            self.recent_paths.remove(relative_path)
-
-        # Insert the given name and path at the beginning of the respective list
-        self.recent_names.insert(0, name)
-        self.recent_paths.insert(0, relative_path)
-
-        # Set and add write lists in the config file
-        config.set("recent", "names", ",".join(self.recent_names))
-        config.set("recent", "paths", ",".join(self.recent_paths))
-        config.update()
-
-    def _launch_editor(self, path_):
-        """
-        Configures and shows the project file editor in a new tab.
-
-        args:
-            path_: Project file path
-        """
-
-        name = path_.split(sep)[-1]
-
-        # Update recent files with the given file
-        self._add_to_recent(name, path_)
-
-        # Set the run action text based on the selected project file
-        self.ui.run_action.setText("Run '{0}'".format(name))
-
-        if name not in self.pfile_paths:
-            """Open the project file in a new tab if it is not yet open"""
-
-            # Add project file to currently-open project files dict
-            self.pfile_paths[name] = path_
-
-            # Create a ProjectTree widget for the selected project file
-            self._create_project_tree(name, path_)
-
-            # Display the project file editor for the selected project file
-            self.ui.page_stack.setCurrentIndex(1)
-        else:
-            """Switch to the selected project file tab if it is already open"""
-
-            tab = self.ui.pfile_tab.indexOf(name)
-            self.ui.pfile_tab.setCurrentIndex(tab)

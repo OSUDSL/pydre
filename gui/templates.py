@@ -18,17 +18,13 @@ class Window(QMainWindow):
     Parent window class that configures window UI, icon, and title if given.
     """
 
-    def __init__(self, icon_file, title, ui_file, *args, **kwargs):
+    def __init__(self, ui_file, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # UI configurations
         self.ui_file = QFile(ui_file)
         self.ui_file.open(QFile.ReadOnly)
         self.ui = loader.load(self.ui_file)
-
-        # Window configurations
-        self.ui.setWindowIcon(QIcon(icon_file))
-        self.ui.setWindowTitle(title)
 
     def resize_and_center(self, width, height):
         """
@@ -82,4 +78,3 @@ class Popup(QWidget):
         """
 
         self.ui.show()
-
