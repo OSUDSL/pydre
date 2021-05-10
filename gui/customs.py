@@ -207,7 +207,7 @@ class MetricsTree(QTreeWidget):
         self._configure_leaf(branch, index, 'function')
         for argument in filter(lambda a: a != 'drivedata', types.keys()):
             type_ = types[argument]
-            self.metrics[index][argument] = '-' if type_ is str else 0
+            self.metrics[index][argument] = "" if type_ is str else 0
             self._configure_leaf(branch, index, argument)
 
     def get_collection(self):
