@@ -174,7 +174,8 @@ class Project():
                 progressBar.update(1)  # let the bar moves forward
             progressBar.update(1)
             progressBar.close() # close progress bar
-
+        else: 
+            logger.warning("No filters found.")
 
         if 'rois' in self.definition:
             for roi in self.definition['rois']:
