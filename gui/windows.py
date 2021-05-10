@@ -217,3 +217,12 @@ class MainWindow(Window):
         self.resize_and_center(1100, 800)
         self.ui.menu_bar.setVisible(True)
         self.ui.page_stack.setCurrentIndex(1)
+
+    def switch_to_run(self):
+        '''TODO
+
+        '''
+
+        self.resize_and_center(1100, 800)
+        self.ui.menu_bar.setVisible(True)
+        self.ui.page_stack.setCurrentIndex(2)
