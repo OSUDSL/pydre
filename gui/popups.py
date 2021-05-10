@@ -15,64 +15,81 @@ CONFIG_PATH = path.join(PROJECT_PATH, "config_files/config.ini")
 config.read(CONFIG_PATH)
 
 
-class SavePopup(Popup):
-    """
-    TODO
-    """
+class SavePopup(QMessageBox):
+    '''TODO
+
+    '''
 
     def __init__(self, *args, **kwargs):
-        self.icon_file = path.join(PROJECT_PATH, "images/icon.png")
-        self.title = config.get("titles", "app")
-        self.ui_file = path.join(PROJECT_PATH, "ui_files/savepopup.ui")
-        super().__init__(self.icon_file, self.title, self.ui_file, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        # TODO
-        self.ui.cancel_btn.clicked.connect(self.ui.close)
+        self._configure_popup()
 
-    def _close(self, close):
-        """
-        FIXME
-        """
+    def _configure_popup(self):
+        '''TODO
 
-        self.ui.save_btn.clicked.disconnect()
-        self.ui.dsave_btn.clicked.disconnect()
-        self.ui.close()
-        close()
+        '''
 
-    def _save(self, save, close):
-        """
-        FIXME
-        """
+        self.setIcon(QMessageBox.Warning)
+        buttons = QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
+        self.setStandardButtons(buttons)
+        self.setDefaultButton(QMessageBox.Yes)
 
-        save()
-        self._close(close)
+    def _callback(self, callback, e):
+        '''TODO
 
-    def show_(self, save, close, name):
-        """
-        FIXME
-        """
+        '''
 
-        self.ui.label.setText("{0} has not been saved.".format(name))
-        self.ui.save_btn.clicked.connect(lambda: self._save(save, close))
-        self.ui.dsave_btn.clicked.connect(lambda: self._close(close))
+        if e.text() == '&Yes':
+            callback(True)
+        elif e.text() == '&No':
+            callback(False)
 
-        self.ui.show()
+    def show_(self, text, callback):
+        '''TODO
+
+        '''
+
+        self.setText(text)
+        self.buttonClicked.connect(lambda e: self._callback(callback, e))
+        self.show()
 
 
 class FunctionPopup(QMessageBox):
-    """
-    TODO
-    """
+    '''TODO
+
+    '''
 
     def __init__(self, *args, **kwargs):
-        self.icon_file = path.join(PROJECT_PATH, "images/icon.png")
-        self.title = config.get("titles", "app")
-        self.ui_file = path.join(PROJECT_PATH, "ui_files/")  # FIXME
         super().__init__(*args, **kwargs)
 
-        self.setWindowIcon(QIcon(self.icon_file))
-        self.setWindowTitle(self.title)
+        self._configure_popup()
+
+    def _configure_popup(self):
+        '''TODO
+
+        '''
+
         self.setIcon(QMessageBox.Warning)
-        self.setText("Changing this attribute may change others.\nContinue?")
-        self.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
-        self.setDetailedText("test")
+        buttons = QMessageBox.Yes | QMessageBox.No
+        self.setStandardButtons(buttons)
+        self.setDefaultButton(QMessageBox.Yes)
+
+    def _callback(self, callback, e):
+        '''TODO
+
+        '''
+
+        if e.text() == '&Yes':
+            callback(True)
+        elif e.text() == '&No':
+            callback(False)
+
+    def show_(self, text, callback):
+        '''TODO
+
+        '''
+
+        self.setText(text)
+        self.buttonClicked.connect(lambda e: self._callback(callback, e))
+        self.show()

@@ -9,8 +9,8 @@
         {
             "name": "MeanVelocity",
             "function": "colMean",
-            "cutoff": 0,
-            "var": "Velocity"
+            "var": "Velocity",
+            "cutoff": 0
         },
         {
             "name": "SDVelocity",
