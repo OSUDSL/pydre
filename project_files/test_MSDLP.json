@@ -3,6 +3,10 @@
     	{
             "name": "modifiedSDLP",
     		"function": "modifiedSDLP",
+    		"offset": "RoadOffset", 
+    		"samplingFrequency": "60",
+    		"noisy": "false",
+    		"filtfilt": "false"
     	}
     ]
  }
