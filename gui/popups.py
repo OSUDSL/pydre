@@ -44,6 +44,7 @@ class SavePopup(QMessageBox):
             callback(True)
         elif e.text() == '&No':
             callback(False)
+        self.buttonClicked.disconnect()
 
     def show_(self, text, callback):
         '''TODO
@@ -84,6 +85,7 @@ class FunctionPopup(QMessageBox):
             callback(True)
         elif e.text() == '&No':
             callback(False)
+        self.buttonClicked.disconnect()
 
     def show_(self, text, callback):
         '''TODO
