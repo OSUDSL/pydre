@@ -104,16 +104,49 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff=20, percentage=False)
     return out
 
 # Parameters:
+
 # Offset: the name of the specific column in the datafile, could be LaneOffset or RoadOffset
-def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_width=3.65, car_width=2.1, offset="LaneOffset"):
+
+# noisy: If this is set to 'true', a low pass filter with 5 Hz cut off frequency will be applied, according to documentation
+# The document doesn't specify the order of filter so I'll use 1st order here
+
+# filfilt: if this is set to 'true', the filter will be applied twice, once forward and once backwards. This gives better results
+# when testing with a sin signal, but I'm not sure if that leads to a risk or not so I'll keep that as an option
+
+# noisy and filtfilt are NOT case sensitive and are meaningful only when calculating MSDLP
+def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_width=3.65, car_width=2.1, offset="LaneOffset", noisy="false", filtfilt="false"):
     for d in drivedata.data:
         print("1")
-        df = pandas.DataFrame(d, columns=("SimTime", "Lane", offset))  # drop other columns
+        df = pandas.DataFrame(d, columns=("SimTime", "DatTime", "Lane", offset))  # drop other columns
         LPout = None
         if (df.size > 0):
             if (laneInfo in ["mean", "Mean"]):
                 # mean lane position
                 LPout = np.mean((df[offset]))  # abs to give mean lane "error"
+            elif (laneInfo in ["msdlp", "MSDLP"]):
+                samplingFrequency = 1 / np.mean(np.diff(df.DatTime)) # calculate sampling drequency based on DatTime
+                # samplingFrequency = 1 / np.mean(np.diff(df.SimTime))
+                
+                sos = signal.butter(2, 0.1, 'high', analog=False, output='sos', fs=float(samplingFrequency)) # define butterWorthFilter
+                # the output parameter can also be set to 'ba'. Under this case, signal.lfilter(b, a, array) or 
+                # signal.filtfilt(b, a, array) should be used. sos is recommanded for general purpose filtering
+
+                data = df[offset]
+                if (noisy.lower() == "true"):
+                    sosLow = signal.butter(1, 5, 'low', analog=False, output='sos', fs=float(samplingFrequency))
+                    data = signal.sosfilt(sosLow, data)
+                    # apply a low pass filter to reduce the noise
+
+                filteredLP = None
+                if (filtfilt.lower() == "true"):
+                    filteredLP = signal.sosfiltfilt(sos, data) # apply the filter twice
+                else:
+                    filteredLP = signal.sosfilt(sos, data) # apply the filter once
+                # signal.sosfiltfilt() applies the filter twice (forward & backward) while signal.sosfilt applies
+                # the filter once. 
+        
+                LPout = np.std(filteredLP)
+
             elif (laneInfo in ["sdlp", "SDLP"]):
                 LPout = np.std(df[offset])
                 # Just cause I've been staring at this a while and want to get some code down:
@@ -723,47 +756,7 @@ def getTaskNum(drivedata: pydre.core.DriveData):
         if(len(taskNum)>0):
             return taskNum[0]
         else:
-            return None
-
-# Parameters:
-
-# Offset: the name of the specific column in the datafile, could be LaneOffset or RoadOffset
-
-# noisy: If this is set to 'true', a low pass filter with 5 Hz cut off frequency will be applied, according to documentation
-# The document doesn't specify the order of filter so I'll use 1st order here
-
-# filfilt: if this is set to 'true', the filter will be applied twice, once forward and once backwards. This gives better results
-# when testing with a sin signal, but I'm not sure if that leads to a risk or not so I'll keep that as an option
-
-# noisy and filtfilt are NOT case sensitive
-
-# samplingFrequency: sampling freuqnecy of the sim
-def modifiedSDLP(drivedata: pydre.core.DriveData, offset="LaneOffset", noisy="false", filtfilt="false", samplingFrequency=60):
-    #print(noisy.lower() == "true")
-    #print(filtfilt.lower() == "true")
-    sos = signal.butter(2, 0.1, 'high', analog=False, output='sos', fs=float(samplingFrequency)) # define butterWorthFilter
-    
-    # the output parameter can also be set to 'ba'. Under this case, signal.lfilter(b, a, array) or 
-    # signal.filtfilt(b, a, array) should be used. sos is recommanded for general purpose filtering
-    
-
-    for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "Lane", offset))
-        data = df[offset]
-        if (noisy.lower() == "true"):
-            sosLow = signal.butter(1, 5, 'low', analog=False, output='sos', fs=float(samplingFrequency))
-            data = signal.sosfilt(sosLow, data)
-
-        filteredLP = None
-        if (filtfilt.lower() == "true"):
-            filteredLP = signal.sosfiltfilt(sos, data)
-        else:
-            filteredLP = signal.sosfilt(sos, data) 
-        # signal.sosfiltfilt() applies the filter twice (forward & backward) while signal.sosfilt applies
-        # the filter once. 
-        
-        out = np.std(filteredLP)
-    return out    
+            return None  
 
 
 metricsList = {}
@@ -802,5 +795,5 @@ registerMetric('crossCorrelate', crossCorrelate)
 registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
 registerMetric('gazes', gazeNHTSA, ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
 registerMetric('getTaskNum', getTaskNum)
-registerMetric('modifiedSDLP', modifiedSDLP)
+
 
