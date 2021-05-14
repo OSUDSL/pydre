@@ -1,7 +1,7 @@
-"""
+'''
 Created by: Craig Fouts
 Created on: 2/4/2021
-"""
+'''
 
 from gui.config import Config
 from gui.templates import Popup
