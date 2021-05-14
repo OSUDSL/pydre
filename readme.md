@@ -132,3 +132,9 @@ Contains all functions for getting data metrics out of the DraveData DataFrames.
     - data: the DriveData to be analyzed.
     - cutoff: Smallest amount of jerk to be counted
     - stat: statistic to compute, either "count" for the number of times the participant identified the box within 2 seconds, "mean" for their mean reaction time, or "sd" for the standard deviation of their reaction time. Used for Anna's hearing impaired study.
+
+# pydre GUI
+
+To run the GUI:
+    1. Navigate to the pydre directory (NOT the GUI directory)
+    2. Run: py -m gui.app
