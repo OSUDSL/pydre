@@ -4,14 +4,12 @@ Created on: 2/4/2021
 '''
 
 from gui.config import Config
-from gui.templates import Popup
 from os import path
-from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMessageBox
 
 config = Config()
 PROJECT_PATH = path.dirname(path.abspath(__file__))
-CONFIG_PATH = path.join(PROJECT_PATH, "config_files/config.ini")
+CONFIG_PATH = path.join(PROJECT_PATH, 'config_files/config.ini')
 config.read(CONFIG_PATH)
 
 
