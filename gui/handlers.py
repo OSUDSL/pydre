@@ -12,7 +12,7 @@ logger = logging.getLogger('PydreLogger')
 
 
 class Pydre:
-    '''Pydre handler that mediates all pydre functionality accessed by the GUI.
+    '''PyDre handler that mediates all pydre functionality accessed by the GUI.
 
     '''
 
