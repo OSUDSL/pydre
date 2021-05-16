@@ -57,6 +57,7 @@ class MainWindow(Window):
         self.ui.run_act.triggered.connect(self._handle_run_act)
         self.ui.recent_files_lst.itemDoubleClicked.connect(self._handle_select)
         self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
+        self.ui.cancel_btn.clicked.connect(self._handle_cancel)
         self.ui.file_tab.currentChanged.connect(self._handle_tab_change)
         self.ui.file_tab.tabCloseRequested.connect(self._handle_tab_close)
 
@@ -155,6 +156,13 @@ class MainWindow(Window):
         self.ui.file_tab.insertTab(index, project_tree, file_name)
         self.ui.file_tab.setCurrentIndex(index)
         return project_tree
+
+    def _handle_cancel(self):
+        '''TODO
+
+        '''
+
+        self.switch_to_editor()
 
     def _handle_save(self, index):
         '''TODO
