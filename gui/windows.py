@@ -239,7 +239,7 @@ class MainWindow(Window):
         self.ui.page_stack.setCurrentIndex(1)
 
     def switch_to_run(self):
-        '''TODO
+        '''Switches to the run page (page 3 / 3).
 
         '''
 
