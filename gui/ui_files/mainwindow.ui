@@ -312,7 +312,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
       <widget class="QWidget" name="page_3">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QLabel" name="pfile_label">
+         <widget class="QLabel" name="pfile_lbl">
           <property name="styleSheet">
            <string notr="true">background-color: rgb(220, 220, 220);
 padding-left: 8px;
