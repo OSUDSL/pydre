@@ -140,3 +140,4 @@ To run the GUI:
 
 -   Navigate to the pydre directory (NOT the GUI directory)
 -   Run: py -m gui.app
+-   If missing libraries run: pip install -r requirements.txt
