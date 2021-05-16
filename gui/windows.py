@@ -54,6 +54,7 @@ class MainWindow(Window):
 
         self.ui.open_act.triggered.connect(self._handle_open_pfile)
         self.ui.save_act.triggered.connect(self._handle_save)
+        self.ui.run_act.triggered.connect(self._handle_run_act)
         self.ui.recent_files_lst.itemDoubleClicked.connect(self._handle_select)
         self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
         self.ui.file_tab.currentChanged.connect(self._handle_tab_change)
@@ -164,6 +165,17 @@ class MainWindow(Window):
         with open(self.project_files[file_name][0], 'w') as file:
             contents = self.ui.file_tab.currentWidget().get_contents()
             json.dump(contents, file, indent=4)
+
+    def _handle_run_act(self):
+        '''TODO
+
+        '''
+
+        index = self.ui.file_tab.currentIndex()
+        pfile_name = self.ui.file_tab.tabText(index)
+        pfile_path = self.project_files[pfile_name][0]
+        self.ui.pfile_lbl.setText(pfile_path)
+        self.switch_to_run()
 
     def _handle_tab_change(self, index):
         '''Handles functionality that occurs when a tab is opened, closed, or
