@@ -5,3 +5,4 @@ tests/MergeTools/test_dats_to_merge/*/*Drive_0.dat
 build
 dist
 gui/config_files/config.ini
+env
