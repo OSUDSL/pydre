@@ -371,6 +371,9 @@ font: 75 10pt &quot;Arial&quot;;</string>
             </item>
             <item>
              <widget class="QPushButton" name="pushButton_2">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="styleSheet">
                <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
               </property>
