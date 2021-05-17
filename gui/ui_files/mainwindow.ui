@@ -422,7 +422,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QLineEdit" name="ofile_inp">
           <property name="styleSheet">
            <string notr="true"/>
           </property>

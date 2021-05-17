@@ -10,6 +10,7 @@ import os
 import pydre
 from gui.config import Config
 from gui.customs import ProjectTree
+from gui.handlers import Pydre
 from gui.popups import SavePopup
 from gui.templates import Window
 from PySide2.QtWidgets import QFileDialog
@@ -61,6 +62,7 @@ class MainWindow(Window):
         self.ui.data_lst.model().rowsRemoved.connect(self._toggle_run_btn)
         self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
+        self.ui.run_btn.clicked.connect(self._handle_run)
         self.ui.add_btn.clicked.connect(self._handle_add_dfile)
         self.ui.remove_btn.clicked.connect(self._handle_remove_dfile)
         self.ui.file_tab.currentChanged.connect(self._handle_tab_change)
@@ -182,6 +184,19 @@ class MainWindow(Window):
         self._toggle_run_btn()
         self.switch_to_editor()
 
+    def _handle_run(self):
+        '''TODO
+
+        '''
+
+        project_file = self.ui.pfile_lbl.text()
+        print(project_file)
+        count = self.ui.data_lst.count()
+        data_files = [self.ui.data_lst.item(i).text() for i in range(count)]
+        print(data_files)
+        output_file = self.ui.ofile_inp.displayText()
+        Pydre.run(project_file, data_files, output_file)
+
     def _handle_add_dfile(self):
         '''TODO
 
@@ -260,16 +275,16 @@ class MainWindow(Window):
 
         '''
 
-        dfile_count = len(self.ui.data_lst.selectedItems())
-        self.ui.remove_btn.setEnabled(True if dfile_count > 0 else False)
+        count = len(self.ui.data_lst.selectedItems())
+        self.ui.remove_btn.setEnabled(True if count > 0 else False)
 
     def _toggle_run_btn(self):
         '''TODO
 
         '''
 
-        dfile_count = self.ui.data_lst.count()
-        self.ui.run_btn.setEnabled(True if dfile_count > 0 else False)
+        count = self.ui.data_lst.count()
+        self.ui.run_btn.setEnabled(True if count > 0 else False)
 
     def switch_to_start(self):
         '''Swithes to the start page (page 1 / 3).
