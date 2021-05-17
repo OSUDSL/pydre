@@ -56,11 +56,13 @@ class MainWindow(Window):
         self.ui.save_act.triggered.connect(self._handle_save)
         self.ui.run_act.triggered.connect(self._handle_run_act)
         self.ui.recent_lst.itemDoubleClicked.connect(self._handle_select_pfile)
+        self.ui.data_lst.itemSelectionChanged.connect(self._toggle_remove_btn)
         self.ui.data_lst.model().rowsInserted.connect(self._toggle_run_btn)
         self.ui.data_lst.model().rowsRemoved.connect(self._toggle_run_btn)
         self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
         self.ui.add_btn.clicked.connect(self._handle_add_dfile)
+        self.ui.remove_btn.clicked.connect(self._handle_remove_dfile)
         self.ui.file_tab.currentChanged.connect(self._handle_tab_change)
         self.ui.file_tab.tabCloseRequested.connect(self._handle_tab_close)
 
@@ -189,6 +191,14 @@ class MainWindow(Window):
         for path_ in file_paths:
             self.ui.data_lst.addItem(path_)
 
+    def _handle_remove_dfile(self):
+        '''TODO
+
+        '''
+
+        row = self.ui.data_lst.currentRow()
+        self.ui.data_lst.takeItem(row)
+
     def _handle_save(self, index):
         '''TODO
 
@@ -248,6 +258,9 @@ class MainWindow(Window):
         '''TODO
 
         '''
+
+        dfile_count = len(self.ui.data_lst.selectedItems())
+        self.ui.remove_btn.setEnabled(True if dfile_count > 0 else False)
 
     def _toggle_run_btn(self):
         '''TODO
