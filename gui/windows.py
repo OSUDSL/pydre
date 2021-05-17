@@ -34,8 +34,8 @@ class MainWindow(Window):
         ui_path = os.path.join(PROJECT_PATH, ui_path)
         super().__init__(ui_path, *args, **kwargs)
 
-        self.project_files = {}
         self.save_popup = SavePopup()
+        self.project_files = {}
         self._configure_window()
 
     def _configure_window(self):
