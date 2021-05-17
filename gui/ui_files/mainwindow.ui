@@ -80,7 +80,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
              </widget>
             </item>
             <item>
-             <widget class="QListWidget" name="recent_files_lst">
+             <widget class="QListWidget" name="recent_lst">
               <property name="styleSheet">
                <string notr="true"/>
               </property>
@@ -351,7 +351,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
-           <widget class="QListWidget" name="listWidget">
+           <widget class="QListWidget" name="data_lst">
             <property name="styleSheet">
              <string notr="true"/>
             </property>
@@ -360,7 +360,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="add_btn">
               <property name="styleSheet">
                <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
               </property>
@@ -370,7 +370,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_2">
+             <widget class="QPushButton" name="remove_btn">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -448,7 +448,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_4">
+           <widget class="QPushButton" name="run_btn">
             <property name="enabled">
              <bool>false</bool>
             </property>
