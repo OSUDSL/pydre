@@ -93,3 +93,44 @@ class FunctionPopup(QMessageBox):
         self.setText(text)
         self.buttonClicked.connect(lambda e: self._callback(callback, e))
         self.show()
+
+
+class OutputPopup(QMessageBox):
+    '''TODO
+
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._configure_popup()
+
+    def _configure_popup(self):
+        '''TODO
+
+        '''
+
+        self.setIcon(QMessageBox.Warning)
+        buttons = QMessageBox.Yes | QMessageBox.No
+        self.setStandardButtons(buttons)
+        self.setdefaultButton(QMessageBox.Yes)
+
+    def _callback(self, callback, e):
+        '''TODO
+
+        '''
+
+        if e.text() == '&Yes':
+            callback(True)
+        elif e.text() == '&No':
+            callback(False)
+        self.buttonClicked.disconnect()
+
+    def show_(self, text, callback):
+        '''TODO
+
+        '''
+
+        self.setText(text)
+        self.buttonClicked.connect(lambda e: self._callback(callback, e))
+        self.show()
