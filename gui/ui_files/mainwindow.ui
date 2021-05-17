@@ -237,7 +237,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
              </item>
             </layout>
            </widget>
-           <widget class="QTabWidget" name="file_tab">
+           <widget class="QTabWidget" name="pfile_tab">
             <property name="focusPolicy">
              <enum>Qt::TabFocus</enum>
             </property>
