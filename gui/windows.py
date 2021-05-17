@@ -179,6 +179,7 @@ class MainWindow(Window):
         '''
 
         self.ui.data_lst.clear()
+        self._toggle_run_btn()
         self.switch_to_editor()
 
     def _handle_add_dfile(self):
