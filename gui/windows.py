@@ -44,25 +44,26 @@ class MainWindow(Window):
 
         self._configure_callbacks()
         self._configure_splitters()
-        self._configure_recent_files()
+        self._configure_recent()
         self.ui.menu_bar.setVisible(False)
 
     def _configure_callbacks(self):
-        '''Configures callback functionality for actions and widgets. 
+        '''Configures callback functionality for actions and widgets.
 
         '''
 
         self.ui.open_act.triggered.connect(self._handle_open_pfile)
         self.ui.save_act.triggered.connect(self._handle_save)
         self.ui.run_act.triggered.connect(self._handle_run_act)
-        self.ui.recent_files_lst.itemDoubleClicked.connect(self._handle_select)
+        self.ui.recent_lst.itemDoubleClicked.connect(self._handle_select_pfile)
         self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
+        self.ui.add_btn.clicked.connect(self._handle_add_dfile)
         self.ui.file_tab.currentChanged.connect(self._handle_tab_change)
         self.ui.file_tab.tabCloseRequested.connect(self._handle_tab_close)
 
     def _configure_splitters(self):
-        '''Configures the initial stretch factors for splitter widgets. 
+        '''Configures the initial stretch factors for splitter widgets.
 
         '''
 
@@ -73,24 +74,24 @@ class MainWindow(Window):
         self.ui.main_vsplitter.setStretchFactor(0, 7)
         self.ui.main_vsplitter.setStretchFactor(1, 2)
 
-    def _configure_recent_files(self):
+    def _configure_recent(self):
         '''Configures the recent files list displayed on the start page.
 
         '''
 
-        self.ui.recent_files_lst.clear()
+        self.ui.recent_lst.clear()
         recent_names = config.get('Recent Files', 'names').split(',')
         for file in filter(lambda f: f != '', recent_names):
-            self.ui.recent_files_lst.addItem(file)
+            self.ui.recent_lst.addItem(file)
 
-    def _handle_select(self):
-        '''Handles selecting a file from the recent files list. 
+    def _handle_select_pfile(self):
+        '''Handles selecting a file from the recent files list.
 
         '''
 
         directory = os.path.dirname(PROJECT_PATH)
         recent_paths = config.get('Recent Files', 'paths').split(',')
-        index = self.ui.recent_files_lst.currentRow()
+        index = self.ui.recent_lst.currentRow()
         file_path = os.path.join(directory, recent_paths[index])
         self._launch_editor(file_path) if file_path else None
 
@@ -105,7 +106,7 @@ class MainWindow(Window):
 
     def _open_file(self, filter=None):  # TODO: MOVE TO UTILITY CLASS
         '''Launches a file selection dialog based on the given file type and
-        returns a file path if one is selected. 
+        returns a file path if one is selected.
 
         '''
 
@@ -114,8 +115,19 @@ class MainWindow(Window):
         path_, _ = QFileDialog.getOpenFileName(self, title, directory, filter)
         return os.path.abspath(path_) if path_ else None
 
+    def _open_files(self, filter=None):  # TODO: MOVE TO UTILITY CLASS
+        '''Launches a file selection dialog based on the given file type and
+        returns a list of file paths if one or more is selected.
+
+        '''
+
+        title = "Open File"
+        directory = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
+        paths, _ = QFileDialog.getOpenFileNames(self, title, directory, filter)
+        return [os.path.abspath(path_) for path_ in paths]
+
     def _launch_editor(self, file_path):
-        '''Configures and shows a file editor in a new tab. 
+        '''Configures and shows a file editor in a new tab.
 
         '''
 
@@ -131,7 +143,7 @@ class MainWindow(Window):
 
     def _add_to_recent(self, file_name, file_path):
         '''Adds the given project file name and path to the recent files lists
-        in the configuration file. 
+        in the configuration file.
 
         '''
 
@@ -147,7 +159,7 @@ class MainWindow(Window):
         config.set('Recent Files', 'paths', ','.join(recent_paths))
 
     def _create_project_tree(self, file_name, file_path):
-        '''Creates and displays a FileTree widget for the given file. 
+        '''Creates and displays a FileTree widget for the given file.
 
         '''
 
@@ -162,7 +174,18 @@ class MainWindow(Window):
 
         '''
 
+        self.ui.data_lst.clear()
         self.switch_to_editor()
+
+    def _handle_add_dfile(self):
+        '''TODO
+
+        '''
+
+        file_type = config.get('File Types', 'data')
+        file_paths = self._open_files(file_type)
+        for path_ in file_paths:
+            self.ui.data_lst.addItem(path_)
 
     def _handle_save(self, index):
         '''TODO
@@ -187,7 +210,7 @@ class MainWindow(Window):
 
     def _handle_tab_change(self, index):
         '''Handles functionality that occurs when a tab is opened, closed, or
-        selected. 
+        selected.
 
         '''
 
@@ -220,7 +243,7 @@ class MainWindow(Window):
         self.ui.file_tab.removeTab(index)
 
     def switch_to_start(self):
-        '''Swithes to the start page (page 1 / 3). 
+        '''Swithes to the start page (page 1 / 3).
 
         '''
 
@@ -230,7 +253,7 @@ class MainWindow(Window):
         self.ui.page_stack.setCurrentIndex(0)
 
     def switch_to_editor(self):
-        '''Switches to the editor page (page 2 / 3). 
+        '''Switches to the editor page (page 2 / 3).
 
         '''
 
