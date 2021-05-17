@@ -113,7 +113,7 @@ class OutputPopup(QMessageBox):
         self.setIcon(QMessageBox.Warning)
         buttons = QMessageBox.Yes | QMessageBox.No
         self.setStandardButtons(buttons)
-        self.setdefaultButton(QMessageBox.Yes)
+        self.setDefaultButton(QMessageBox.Yes)
 
     def _callback(self, callback, e):
         '''TODO

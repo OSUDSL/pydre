@@ -11,7 +11,7 @@ import pydre
 from gui.config import Config
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
-from gui.popups import SavePopup
+from gui.popups import OutputPopup, SavePopup
 from gui.templates import Window
 from PySide2.QtWidgets import QFileDialog
 
@@ -35,6 +35,7 @@ class MainWindow(Window):
         super().__init__(ui_path, *args, **kwargs)
 
         self.save_popup = SavePopup()
+        self.output_popup = OutputPopup()
         self.project_files = {}
         self._configure_window()
 
@@ -87,7 +88,7 @@ class MainWindow(Window):
         self.ui.add_btn.clicked.connect(self._handle_add_dfile)
         self.ui.remove_btn.clicked.connect(self._handle_remove_dfile)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
-        self.ui.run_btn.clicked.connect(self._handle_run)
+        self.ui.run_btn.clicked.connect(self._handle_run_click)
 
     def _configure_splitters(self):
         '''Configures the initial stretch factors for splitter widgets.
@@ -277,6 +278,18 @@ class MainWindow(Window):
         self.ui.data_lst.clear()
         self._toggle_run_btn()
         self.switch_to_editor()
+
+    def _handle_run_click(self):
+        '''TODO
+
+        '''
+
+        if self.ui.ofile_inp.text().strip():
+            self._handle_run()
+        else:
+            text = config.get('Popup Text', 'output')
+            def callback(e): return self._handle_run() if e else None
+            self.output_popup.show_(text, callback)
 
     def _handle_run(self):
         '''TODO
