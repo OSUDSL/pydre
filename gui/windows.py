@@ -53,20 +53,41 @@ class MainWindow(Window):
 
         '''
 
+        self._configure_action_callbacks()
+        self._configure_widget_callbacks()
+        self._configure_button_callbacks()
+
+    def _configure_action_callbacks(self):
+        '''TODO
+
+        '''
+
         self.ui.open_act.triggered.connect(self._handle_open_pfile)
         self.ui.save_act.triggered.connect(self._handle_save)
         self.ui.run_act.triggered.connect(self._handle_run_act)
+
+    def _configure_widget_callbacks(self):
+        '''TODO
+
+        '''
+
         self.ui.recent_lst.itemDoubleClicked.connect(self._handle_select_pfile)
+        self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
+        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_tab_close)
         self.ui.data_lst.itemSelectionChanged.connect(self._toggle_remove_btn)
         self.ui.data_lst.model().rowsInserted.connect(self._toggle_run_btn)
         self.ui.data_lst.model().rowsRemoved.connect(self._toggle_run_btn)
+
+    def _configure_button_callbacks(self):
+        '''TODO
+
+        '''
+
         self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
-        self.ui.cancel_btn.clicked.connect(self._handle_cancel)
-        self.ui.run_btn.clicked.connect(self._handle_run)
         self.ui.add_btn.clicked.connect(self._handle_add_dfile)
         self.ui.remove_btn.clicked.connect(self._handle_remove_dfile)
-        self.ui.file_tab.currentChanged.connect(self._handle_tab_change)
-        self.ui.file_tab.tabCloseRequested.connect(self._handle_tab_close)
+        self.ui.cancel_btn.clicked.connect(self._handle_cancel)
+        self.ui.run_btn.clicked.connect(self._handle_run)
 
     def _configure_splitters(self):
         '''Configures the initial stretch factors for splitter widgets.
@@ -106,9 +127,9 @@ class MainWindow(Window):
 
         '''
 
-        file_type = config.get('File Types', 'project')
-        file_path = self._open_file(file_type)
-        self._launch_editor(file_path) if file_path else None
+        pfile_type = config.get('File Types', 'project')
+        pfile_path = self._open_file(pfile_type)
+        self._launch_editor(pfile_path) if pfile_path else None
 
     def _open_file(self, filter=None):  # TODO: MOVE TO UTILITY CLASS
         '''Launches a file selection dialog based on the given file type and
@@ -132,48 +153,121 @@ class MainWindow(Window):
         paths, _ = QFileDialog.getOpenFileNames(self, title, directory, filter)
         return [os.path.abspath(path_) for path_ in paths]
 
-    def _launch_editor(self, file_path):
+    def _launch_editor(self, pfile_path):
         '''Configures and shows a file editor in a new tab.
 
         '''
 
-        file_name = file_path.split(os.sep)[-1]
-        self._add_to_recent(file_name, file_path)
-        if file_name not in self.project_files:
-            project_tree = self._create_project_tree(file_name, file_path)
-            self.project_files[file_name] = [file_path, project_tree]
+        pfile_name = pfile_path.split(os.sep)[-1]
+        self._add_to_recent(pfile_name, pfile_path)
+        if pfile_name not in self.project_files:
+            project_tree = self._create_project_tree(pfile_name, pfile_path)
+            self.project_files[pfile_name] = [pfile_path, project_tree]
         else:
-            index = self.ui.file_tab.indexOf(file_name)
+            index = self.ui.file_tab.indexOf(pfile_name)
             self.ui.file_tab.setCurrentIndex(index)
         self.switch_to_editor()
 
-    def _add_to_recent(self, file_name, file_path):
+    def _add_to_recent(self, pfile_name, pfile_path):
         '''Adds the given project file name and path to the recent files lists
         in the configuration file.
 
         '''
 
-        relative_path = os.path.join(*file_path.split(os.sep)[-2:])
+        relative_path = os.path.join(*pfile_path.split(os.sep)[-2:])
         recent_names = config.get('Recent Files', 'names').split(',')
         recent_paths = config.get('Recent Files', 'paths').split(',')
-        if file_name in recent_names:
-            recent_names.remove(file_name)
+        if pfile_name in recent_names:
+            recent_names.remove(pfile_name)
             recent_paths.remove(relative_path)
-        recent_names.insert(0, file_name)
+        recent_names.insert(0, pfile_name)
         recent_paths.insert(0, relative_path)
         config.set('Recent Files', 'names', ','.join(recent_names))
         config.set('Recent Files', 'paths', ','.join(recent_paths))
 
-    def _create_project_tree(self, file_name, file_path):
+    def _create_project_tree(self, pfile_name, pfile_path):
         '''Creates and displays a FileTree widget for the given file.
 
         '''
 
-        project_tree = ProjectTree(file_path)
-        index = self.ui.file_tab.count()
-        self.ui.file_tab.insertTab(index, project_tree, file_name)
-        self.ui.file_tab.setCurrentIndex(index)
+        project_tree = ProjectTree(pfile_path)
+        index = self.ui.pfile_tab.count()
+        self.ui.pfile_tab.insertTab(index, project_tree, pfile_name)
+        self.ui.pfile_tab.setCurrentIndex(index)
         return project_tree
+
+    def _handle_add_dfile(self):
+        '''TODO
+
+        '''
+
+        dfile_type = config.get('File Types', 'data')
+        dfile_paths = self._open_files(dfile_type)
+        for path_ in dfile_paths:
+            self.ui.data_lst.addItem(path_)
+
+    def _handle_remove_dfile(self):
+        '''TODO
+
+        '''
+
+        row = self.ui.data_lst.currentRow()
+        self.ui.data_lst.takeItem(row)
+
+    def _handle_save(self, index):
+        '''TODO
+
+        '''
+
+        pfile_name = self.ui.pfile_tab.tabText(index)
+        with open(self.project_files[pfile_name][0], 'w') as pfile:
+            contents = self.ui.pfile_tab.currentWidget().get_contents()
+            json.dump(contents, pfile, indent=4)
+
+    def _handle_run_act(self):
+        '''TODO
+
+        '''
+
+        index = self.ui.pfile_tab.currentIndex()
+        pfile_name = self.ui.pfile_tab.tabText(index)
+        pfile_path = self.project_files[pfile_name][0]
+        self.ui.pfile_lbl.setText(pfile_path)
+        self.switch_to_run()
+
+    def _handle_tab_change(self, index):
+        '''Handles functionality that occurs when a tab is opened, closed, or
+        selected.
+
+        '''
+
+        if self.ui.pfile_tab.count() > 0:
+            pfile_name = self.ui.pfile_tab.tabText(index)
+            self.ui.run_act.setText(f"Run '{pfile_name}'")
+        else:
+            self.switch_to_start()
+
+    def _handle_tab_close(self, index):
+        '''TODO
+
+        '''
+
+        if self.ui.pfile_tab.currentWidget().changed():
+            pfile_name = self.ui.pfile_tab.tabText(index)
+            text = f"{pfile_name} " + config.get('Popup Text', 'save')
+            def callback(e): return self._handle_close(index, e)
+            self.save_popup.show_(text, callback)
+        else:
+            self._handle_close(index, False)
+
+    def _handle_close(self, index, save):
+        '''TODO
+
+        '''
+
+        self._handle_save(index) if save else None
+        self.project_files.pop(self.ui.pfile_tab.tabText(index))
+        self.ui.pfile_tab.removeTab(index)
 
     def _handle_cancel(self):
         '''TODO
@@ -190,85 +284,10 @@ class MainWindow(Window):
         '''
 
         project_file = self.ui.pfile_lbl.text()
-        print(project_file)
         count = self.ui.data_lst.count()
         data_files = [self.ui.data_lst.item(i).text() for i in range(count)]
-        print(data_files)
         output_file = self.ui.ofile_inp.displayText()
         Pydre.run(project_file, data_files, output_file)
-
-    def _handle_add_dfile(self):
-        '''TODO
-
-        '''
-
-        file_type = config.get('File Types', 'data')
-        file_paths = self._open_files(file_type)
-        for path_ in file_paths:
-            self.ui.data_lst.addItem(path_)
-
-    def _handle_remove_dfile(self):
-        '''TODO
-
-        '''
-
-        row = self.ui.data_lst.currentRow()
-        self.ui.data_lst.takeItem(row)
-
-    def _handle_save(self, index):
-        '''TODO
-
-        '''
-
-        file_name = self.ui.file_tab.tabText(index)
-        with open(self.project_files[file_name][0], 'w') as file:
-            contents = self.ui.file_tab.currentWidget().get_contents()
-            json.dump(contents, file, indent=4)
-
-    def _handle_run_act(self):
-        '''TODO
-
-        '''
-
-        index = self.ui.file_tab.currentIndex()
-        pfile_name = self.ui.file_tab.tabText(index)
-        pfile_path = self.project_files[pfile_name][0]
-        self.ui.pfile_lbl.setText(pfile_path)
-        self.switch_to_run()
-
-    def _handle_tab_change(self, index):
-        '''Handles functionality that occurs when a tab is opened, closed, or
-        selected.
-
-        '''
-
-        if self.ui.file_tab.count() > 0:
-            file_name = self.ui.file_tab.tabText(index)
-            self.ui.run_act.setText(f"Run '{file_name}'")
-        else:
-            self.switch_to_start()
-
-    def _handle_tab_close(self, index):
-        '''TODO
-
-        '''
-
-        if self.ui.file_tab.currentWidget().changed():
-            file_name = self.ui.file_tab.tabText(index)
-            text = f"{file_name} " + config.get('Popup Text', 'save')
-            def callback(e): return self._handle_close(index, e)
-            self.save_popup.show_(text, callback)
-        else:
-            self._handle_close(index, False)
-
-    def _handle_close(self, index, save):
-        '''TODO
-
-        '''
-
-        self._handle_save(index) if save else None
-        self.project_files.pop(self.ui.file_tab.tabText(index))
-        self.ui.file_tab.removeTab(index)
 
     def _toggle_remove_btn(self):
         '''TODO
@@ -293,7 +312,7 @@ class MainWindow(Window):
 
         self.resize_and_center(700, 400)
         self.ui.menu_bar.setVisible(False)
-        self._configure_recent_files()
+        self._configure_recent()
         self.ui.page_stack.setCurrentIndex(0)
 
     def switch_to_editor(self):
