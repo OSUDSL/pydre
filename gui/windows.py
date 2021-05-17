@@ -92,7 +92,7 @@ class MainWindow(Window):
         recent_paths = config.get('Recent Files', 'paths').split(',')
         index = self.ui.recent_files_lst.currentRow()
         file_path = os.path.join(directory, recent_paths[index])
-        self._launch_editor(file_path)
+        self._launch_editor(file_path) if file_path else None
 
     def _handle_open_pfile(self):
         '''Handles opening a project file in a new tab.
@@ -112,7 +112,7 @@ class MainWindow(Window):
         title = "Open File"
         directory = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
         path_, _ = QFileDialog.getOpenFileName(self, title, directory, filter)
-        return os.path.abspath(path_)
+        return os.path.abspath(path_) if path_ else None
 
     def _launch_editor(self, file_path):
         '''Configures and shows a file editor in a new tab. 
