@@ -56,6 +56,8 @@ class MainWindow(Window):
         self.ui.save_act.triggered.connect(self._handle_save)
         self.ui.run_act.triggered.connect(self._handle_run_act)
         self.ui.recent_lst.itemDoubleClicked.connect(self._handle_select_pfile)
+        self.ui.data_lst.model().rowsInserted.connect(self._toggle_run_btn)
+        self.ui.data_lst.model().rowsRemoved.connect(self._toggle_run_btn)
         self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
         self.ui.add_btn.clicked.connect(self._handle_add_dfile)
@@ -241,6 +243,19 @@ class MainWindow(Window):
         self._handle_save(index) if save else None
         self.project_files.pop(self.ui.file_tab.tabText(index))
         self.ui.file_tab.removeTab(index)
+
+    def _toggle_remove_btn(self):
+        '''TODO
+
+        '''
+
+    def _toggle_run_btn(self):
+        '''TODO
+
+        '''
+
+        dfile_count = self.ui.data_lst.count()
+        self.ui.run_btn.setEnabled(True if dfile_count > 0 else False)
 
     def switch_to_start(self):
         '''Swithes to the start page (page 1 / 3).
