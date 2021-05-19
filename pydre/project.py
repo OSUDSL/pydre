@@ -48,7 +48,8 @@ class Project():
         if match:
             experiment_name, subject_id, drive_id = match.groups()
         else:
-            logger.warning("Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat")
+            logger.warning(
+                "Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat")
             experiment_name = pathlib.Path(filename).stem
             subject_id = 1
             drive_id = 1
@@ -57,15 +58,15 @@ class Project():
 
     def processROI(self, roi, dataset):
         """
-		Handles running region of interest definitions for a dataset
+                Handles running region of interest definitions for a dataset
 
-		Args:
-			roi: A dict containing the type of a roi and the filename of the data used to process it
-			dataset: a list of pandas dataframes containing the source data to partition
+                Args:
+                        roi: A dict containing the type of a roi and the filename of the data used to process it
+                        dataset: a list of pandas dataframes containing the source data to partition
 
-		Returns:
-			A list of pandas DataFrames containing the data for each region of interest
-		"""
+                Returns:
+                        A list of pandas DataFrames containing the data for each region of interest
+                """
         roi_type = roi['type']
         if roi_type == "time":
             logger.info("Processing ROI file " + roi['filename'])
@@ -105,23 +106,25 @@ class Project():
             sys.exit(1)
 
         if len(col_names) > 1:
-            x = [filter_func(d, **filter) for d in tqdm(dataset, desc=func_name)]
+            x = [filter_func(d, **filter)
+                 for d in tqdm(dataset, desc=func_name)]
             report = pandas.DataFrame(x, columns=col_names)
         else:
-            report = pandas.DataFrame([filter_func(d, **filter) for d in tqdm(dataset, desc=func_name)], columns=[report_name, ])
+            report = pandas.DataFrame([filter_func(
+                d, **filter) for d in tqdm(dataset, desc=func_name)], columns=[report_name, ])
 
         return report
 
     def processMetric(self, metric, dataset):
         """
-		Handles running any metric definition
+                Handles running any metric definition
 
-		Args:
-			metric: A dict containing the type of a metric and the parameters to process it
+                Args:
+                        metric: A dict containing the type of a metric and the parameters to process it
 
-		Returns:
-			A list of values with the results
-		"""
+                Returns:
+                        A list of values with the results
+                """
 
         try:
             func_name = metric.pop('function')
@@ -138,41 +141,39 @@ class Project():
             x = [metric_func(d, **metric) for d in dataset]
             report = pandas.DataFrame(x, columns=col_names)
         else:
-            report = pandas.DataFrame([metric_func(d, **metric) for d in dataset], columns=[report_name, ])
+            report = pandas.DataFrame(
+                [metric_func(d, **metric) for d in dataset], columns=[report_name, ])
 
         return report
 
     def loadFileList(self, datafiles):
         """
-		Args:
-			datafiles: a list of filename strings (SimObserver .dat files)
+                Args:
+                        datafiles: a list of filename strings (SimObserver .dat files)
 
-		Loads all datafiles into the project raw data list.
-		Before loading, the internal list is cleared.
-		"""
+                Loads all datafiles into the project raw data list.
+                Before loading, the internal list is cleared.
+                """
         self.raw_data = []
         for datafile in tqdm(datafiles, desc="Loading files"):
-            logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
+            logger.info("Loading file #{}: {}".format(
+                len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
 
     def run(self, datafiles):
         """
-		Args:
-			datafiles: a list of filename strings (SimObserver .dat files)
+                Args:
+                        datafiles: a list of filename strings (SimObserver .dat files)
 
-		Load all files in datafiles, then process the rois and metrics
-		"""
+                Load all files in datafiles, then process the rois and metrics
+                """
 
         self.loadFileList(datafiles)
         data_set = []
 
-        #progressBar = tqdm(total=len(self.definition)) #print progress bar
-
-        for filter in self.definition['filters']:
-            self.processFilter(filter, self.raw_data)
-            #progressBar.update(1)  # let the bar moves forward
-        #progressBar.update(1)
-        #progressBar.close() # close progress bar
+        if 'filters' in self.definition:
+            for filter in self.definition['filters']:
+                self.processFilter(filter, self.raw_data)
 
         if 'rois' in self.definition:
             for roi in self.definition['rois']:
@@ -182,7 +183,8 @@ class Project():
             logger.warning("No ROIs, processing raw data.")
             data_set = self.raw_data
 
-        logger.info("number of datafiles: {}, number of rois: {}".format(len(datafiles), len(data_set)))
+        logger.info("number of datafiles: {}, number of rois: {}".format(
+            len(datafiles), len(data_set)))
 
         # for filter in self.definition['filters']:
         #     self.processFilter(filter, data_set)
@@ -204,11 +206,11 @@ class Project():
 
     def save(self, outfilename="out.csv"):
         """
-		Args:
-			outfilename: filename to output csv data to.
+                Args:
+                        outfilename: filename to output csv data to.
 
-		The filename specified will be overwritten automatically.
-		"""
+                The filename specified will be overwritten automatically.
+                """
 
         try:
             self.results.to_csv(outfilename, index=False)
