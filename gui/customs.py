@@ -26,7 +26,7 @@ class WidgetFactory:
     '''
 
     @staticmethod
-    def combo_box(value, callback, items):
+    def combo_box(value, cb, items):
         '''TODO
 
         '''
@@ -36,22 +36,22 @@ class WidgetFactory:
             combo_box.addItem(item)
         index = items.index(value)
         combo_box.setCurrentIndex(index)
-        combo_box.activated.connect(lambda i: callback(combo_box.itemText(i)))
+        combo_box.activated.connect(lambda i: cb(combo_box.itemText(i)))
         return combo_box
 
     @staticmethod
-    def spin_box(value, callback):
+    def spin_box(value, cb):
         '''TODO
 
         '''
 
         spin_box = QSpinBox()
         spin_box.setValue(value)
-        spin_box.valueChanged.connect(callback)
+        spin_box.valueChanged.connect(cb)
         return spin_box
 
     @staticmethod
-    def line_edit(value, callback, border=True):
+    def line_edit(value, cb, border=True):
         '''TODO
 
         '''
@@ -60,7 +60,7 @@ class WidgetFactory:
         line_edit.setText(value)
         if not border:
             line_edit.setStyleSheet('border: none;')
-        line_edit.textChanged.connect(callback)
+        line_edit.textChanged.connect(cb)
         return line_edit
 
 
@@ -83,33 +83,33 @@ class LeafWidget(QWidget):
         self.layout.addWidget(widget)
         self.setLayout(self.layout)
 
-    def combo_box(self, items, text, value, callback):
+    def combo_box(self, items, text, value, cb):
         '''TODO
 
         '''
 
         label = QLabel(text)
-        combo_box = WidgetFactory.combo_box(value, callback, items)
+        combo_box = WidgetFactory.combo_box(value, cb, items)
         self._configure_layout(label, combo_box)
         return self
 
-    def spin_box(self, text, value, callback):
+    def spin_box(self, text, value, cb):
         '''TODO
 
         '''
 
         label = QLabel(text)
-        spin_box = WidgetFactory.spin_box(value, callback)
+        spin_box = WidgetFactory.spin_box(value, cb)
         self._configure_layout(label, spin_box)
         return self
 
-    def line_edit(self, text, value, callback):
+    def line_edit(self, text, value, cb):
         '''TODO
 
         '''
 
         label = QLabel(text)
-        line_edit = WidgetFactory.line_edit(value, callback)
+        line_edit = WidgetFactory.line_edit(value, cb)
         line_edit.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self._configure_layout(label, line_edit)
         return self
@@ -152,8 +152,8 @@ class MetricsTree(QTreeWidget):
         branch = QTreeWidgetItem(self.tree)
         metric = self.metrics[index]
         self.branches[metric['name']] = branch
-        def callback(e): return self._update_metric(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(metric['name'], callback, False)
+        def cb(e): return self._update_metric(index, 'name', e)
+        line_edit = WidgetFactory.line_edit(metric['name'], cb, False)
         for attribute in filter(lambda a: a != 'name', metric):
             self._configure_leaf(branch, index, attribute)
         self.root.setItemWidget(branch, 0, line_edit)
@@ -168,8 +168,8 @@ class MetricsTree(QTreeWidget):
         function = metrics.metricsList[metric['function']]
         types = typing.get_type_hints(function)
         type_ = types[attribute] if attribute != 'function' else None
-        def callback(e): return self._update_metric(index, attribute, e)
-        widget = self.widgets[type_](attribute, metric[attribute], callback)
+        def cb(e): return self._update_metric(index, attribute, e)
+        widget = self.widgets[type_](attribute, metric[attribute], cb)
         self.root.setItemWidget(leaf, 0, widget)
 
     def _update_metric(self, index, attribute, value):
@@ -179,8 +179,8 @@ class MetricsTree(QTreeWidget):
 
         if attribute == 'function':
             text = config.get('Popup Text', 'function')
-            def callback(e): return self._handle_update(index, value, e)
-            self.function_popup.show_(text, callback)
+            def cb(e): return self._handle_update(index, value, e)
+            self.function_popup.show_(text, cb)
         else:
             self.metrics[index][attribute] = value
 
@@ -248,8 +248,8 @@ class RoisTree(QTreeWidget):
         branch = QTreeWidgetItem(self.tree)
         roi = self.rois[index]
         self.branches[roi['type']] = branch
-        def callback(value): return self._update_roi(index, attribute, value)
-        line_edit = WidgetFactory.line_edit(roi['type'], callback, False)
+        def cb(e): return self._update_roi(index, attribute, e)
+        line_edit = WidgetFactory.line_edit(roi['type'], cb, False)
         for attribute in filter(lambda a: a != 'type', roi):
             self._configure_leaf(branch, index, attribute)
         self.root.setItemWidget(branch, 0, line_edit)
@@ -261,8 +261,8 @@ class RoisTree(QTreeWidget):
 
         leaf = QTreeWidgetItem(branch)
         roi = self.rois[index]
-        def callback(e): return self._update_roi(index, attribute, e)
-        line_edit = LeafWidget().line_edit(attribute, roi[attribute], callback)
+        def cb(e): return self._update_roi(index, attribute, e)
+        line_edit = LeafWidget().line_edit(attribute, roi[attribute], cb)
         self.root.setItemWidget(leaf, 0, line_edit)
 
     def _update_roi(self, index, attribute, value):
@@ -280,6 +280,68 @@ class RoisTree(QTreeWidget):
         return self.rois
 
 
+class FiltersTree(QTreeWidget):
+    '''TODO
+
+    '''
+
+    def __init__(self, root, filters, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.root = root
+        self.filters = filters
+        self.tree = QTreeWidgetItem(self.root, ['filters'])
+        self.branches = {}
+        self._configure_widget()
+
+    def _configure_widget(self):
+        '''TODO
+
+        '''
+
+        for index in range(len(self.filters)):
+            self._configure_branch(index)
+
+    def _configure_branch(self, index):
+        '''TODO
+
+        '''
+
+        branch = QTreeWidgetItem(self.tree)
+        filter_ = self.filters[index]
+        self.branches[filter_['name']] = branch
+        def cb(e): return self._update_filters(index, attribute, e)
+        line_edit = WidgetFactory.line_edit(filter_['name'], cb, False)
+        for attribute in filter(lambda a: a != 'name', filter_):
+            self._configure_leaf(branch, index, attribute)
+        self.root.setItemWidget(branch, 0, line_edit)
+
+    def _configure_leaf(self, branch, index, attribute):
+        '''TODO
+
+        '''
+
+        leaf = QTreeWidgetItem(branch)
+        filter_ = self.filters[index]
+        def cb(e): return self._update_filters(index, attribute, e)
+        line_edit = LeafWidget().line_edit(attribute, filter_[attribute], cb)
+        self.root.setItemWidget(leaf, 0, line_edit)
+
+    def _update_filters(self, index, attribute, value):
+        '''TODO
+
+        '''
+
+        self.filters[index][attribute] = value
+
+    def get_collection(self):
+        '''TODO
+
+        '''
+
+        return self.filters
+
+
 class ProjectTree(QTreeWidget):
     '''Custom tree widget for displaying and editing project files.
 
@@ -293,7 +355,8 @@ class ProjectTree(QTreeWidget):
         self.mutable_copy = copy.deepcopy(self.contents)
         self.trees = {
             'metrics': lambda r, c: MetricsTree(r, c),
-            'rois': lambda r, c: RoisTree(r, c)
+            'rois': lambda r, c: RoisTree(r, c),
+            'filters': lambda r, c: FiltersTree(r, c)
         }
         self.subtrees = {}
         self._configure_widget()
