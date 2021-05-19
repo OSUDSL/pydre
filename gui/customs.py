@@ -9,7 +9,7 @@ import os
 import typing
 from gui.config import Config
 from gui.popups import FunctionPopup
-from pydre import metrics
+from pydre import filters, metrics
 from PySide2.QtGui import Qt
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
@@ -285,13 +285,20 @@ class FiltersTree(QTreeWidget):
 
     '''
 
-    def __init__(self, root, filters, *args, **kwargs):
+    def __init__(self, root, filters_, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.root = root
-        self.filters = filters
+        self.filters = filters_
         self.tree = QTreeWidgetItem(self.root, ['filters'])
+        items = list(filters.filtersList.keys())
+        self.widgets = {
+            None: lambda t, v, c: LeafWidget().combo_box(items, t, v, c),
+            float: lambda t, v, c: LeafWidget().spin_box(t, v, c),
+            str: lambda t, v, c: LeafWidget().line_edit(t, v, c)
+        }
         self.branches = {}
+        self.function_popup = FunctionPopup()
         self._configure_widget()
 
     def _configure_widget(self):
@@ -310,7 +317,7 @@ class FiltersTree(QTreeWidget):
         branch = QTreeWidgetItem(self.tree)
         filter_ = self.filters[index]
         self.branches[filter_['name']] = branch
-        def cb(e): return self._update_filters(index, attribute, e)
+        def cb(e): return self._update_filters(index, 'name', e)
         line_edit = WidgetFactory.line_edit(filter_['name'], cb, False)
         for attribute in filter(lambda a: a != 'name', filter_):
             self._configure_leaf(branch, index, attribute)
@@ -323,16 +330,50 @@ class FiltersTree(QTreeWidget):
 
         leaf = QTreeWidgetItem(branch)
         filter_ = self.filters[index]
-        def cb(e): return self._update_filters(index, attribute, e)
-        line_edit = LeafWidget().line_edit(attribute, filter_[attribute], cb)
-        self.root.setItemWidget(leaf, 0, line_edit)
+        function = filters.filtersList[filter_['function']]
+        types = typing.get_type_hints(function)
+        type_ = types[attribute] if attribute != 'function' else None
+        def cb(e): return self._update_filter(index, attribute, e)
+        widget = self.widgets[type_](attribute, filter_[attribute], cb)
+        self.root.setItemWidget(leaf, 0, widget)
 
-    def _update_filters(self, index, attribute, value):
+    def _update_filter(self, index, attribute, value):
         '''TODO
 
         '''
 
-        self.filters[index][attribute] = value
+        if attribute == 'function':
+            text = config.get('Popup Text', 'function')
+            def cb(e): return self._handle_update(index, value, e)
+            self.function_popup.show_(text, cb)
+        else:
+            self.filters[index][attribute] = value
+
+    def _handle_update(self, index, value, update):
+        '''TODO
+
+        '''
+
+        if not update:
+            value = self.filters[index]['function']
+        self._update_filter_function(index, value)
+
+    def _update_filter_function(self, index, value):
+        '''TODO
+
+        '''
+
+        filter_ = self.filters[index]
+        self.filters[index] = {'name': filter_['name'], 'function': value}
+        branch = self.branches[self.filters[index]['name']]
+        branch.takeChildren()
+        function = filters.filtersList[self.filters[index]['function']]
+        types = typing.get_type_hints(function)
+        self._configure_leaf(branch, index, 'function')
+        for argument in filter(lambda a: a != 'drivedata', types.keys()):
+            type_ = types[argument]
+            self.filters[index][argument] = "" if type_ is str else 0
+            self._configure_leaf(branch, index, argument)
 
     def get_collection(self):
         '''TODO
