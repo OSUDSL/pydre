@@ -108,9 +108,10 @@ class MainWindow(Window):
         '''
 
         self.ui.recent_lst.clear()
-        recent_names = config.get('Recent Files', 'names').split(',')
-        for file in filter(lambda f: f != '', recent_names):
-            self.ui.recent_lst.addItem(file)
+        recent_pfiles = config.get('Recent Files', 'paths').split(',')
+        for path_ in filter(lambda f: f != '', recent_pfiles):
+            _, name = os.path.split(path_)
+            self.ui.recent_lst.addItem(name)
 
     def _handle_select_pfile(self):
         '''Handles selecting a file from the recent files list.
@@ -160,7 +161,7 @@ class MainWindow(Window):
         '''
 
         pfile_name = pfile_path.split(os.sep)[-1]
-        self._add_to_recent(pfile_name, pfile_path)
+        self._add_to_recent(pfile_path)
         if pfile_name not in self.project_files:
             project_tree = self._create_project_tree(pfile_name, pfile_path)
             self.project_files[pfile_name] = [pfile_path, project_tree]
@@ -169,22 +170,17 @@ class MainWindow(Window):
             self.ui.file_tab.setCurrentIndex(index)
         self.switch_to_editor()
 
-    def _add_to_recent(self, pfile_name, pfile_path):
+    def _add_to_recent(self, pfile_path):
         '''Adds the given project file name and path to the recent files lists
         in the configuration file.
 
         '''
 
         relative_path = os.path.join(*pfile_path.split(os.sep)[-2:])
-        recent_names = config.get('Recent Files', 'names').split(',')
-        recent_paths = config.get('Recent Files', 'paths').split(',')
-        if pfile_name in recent_names:
-            recent_names.remove(pfile_name)
-            recent_paths.remove(relative_path)
-        recent_names.insert(0, pfile_name)
-        recent_paths.insert(0, relative_path)
-        config.set('Recent Files', 'names', ','.join(recent_names))
-        config.set('Recent Files', 'paths', ','.join(recent_paths))
+        recent = config.get('Recent Files', 'paths').split(',')
+        recent.remove(relative_path) if relative_path in recent else None
+        recent.insert(0, relative_path)
+        config.set('Recent Files', 'paths', ','.join(recent))
         config.update()
 
     def _create_project_tree(self, pfile_name, pfile_path):
