@@ -185,6 +185,7 @@ class MainWindow(Window):
         recent_paths.insert(0, relative_path)
         config.set('Recent Files', 'names', ','.join(recent_names))
         config.set('Recent Files', 'paths', ','.join(recent_paths))
+        config.update()
 
     def _create_project_tree(self, pfile_name, pfile_path):
         '''Creates and displays a FileTree widget for the given file.
