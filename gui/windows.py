@@ -13,7 +13,7 @@ from gui.customs import ProjectTree
 from gui.handlers import Pydre
 from gui.popups import OutputPopup, SavePopup
 from gui.templates import Window
-from PySide2.QtWidgets import QFileDialog
+from PySide2.QtWidgets import QFileDialog, QProgressBar, QStatusBar
 
 config = Config()
 PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +38,17 @@ class MainWindow(Window):
         self.output_popup = OutputPopup()
         self.project_files = {}
         self._configure_window()
+
+        # Temporary progress bar stuff
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(100)
+        self.ui.status_bar.hide()
+
+    def _create_progress_bar(self):
+        self.ui.status_bar.show()
+        self.progress_bar.setValue(10)
+        self.ui.status_bar.addWidget(self.progress_bar, 1)
 
     def _configure_window(self):
         '''Configures initial window settings.
@@ -293,6 +304,8 @@ class MainWindow(Window):
 
         '''
 
+        self._create_progress_bar()
+
         project_file = self.ui.pfile_lbl.text()
         count = self.ui.data_lst.count()
         data_files = [self.ui.data_lst.item(i).text() for i in range(count)]
@@ -322,6 +335,7 @@ class MainWindow(Window):
 
         self.resize_and_center(700, 400)
         self.ui.menu_bar.setVisible(False)
+        self.ui.status_bar.hide()
         self._configure_recent()
         self.ui.page_stack.setCurrentIndex(0)
 
@@ -332,6 +346,7 @@ class MainWindow(Window):
 
         self.resize_and_center(1100, 800)
         self.ui.menu_bar.setVisible(True)
+        self.ui.status_bar.hide()
         self.ui.page_stack.setCurrentIndex(1)
 
     def switch_to_run(self):
@@ -341,4 +356,5 @@ class MainWindow(Window):
 
         self.resize_and_center(1100, 800)
         self.ui.menu_bar.setVisible(True)
+        self.ui.status_bar.hide()
         self.ui.page_stack.setCurrentIndex(2)
