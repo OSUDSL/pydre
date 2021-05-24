@@ -8,12 +8,13 @@ import json
 import logging
 import os
 import pydre
+import time
 from gui.config import Config
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
 from gui.popups import OutputPopup, SavePopup
 from gui.templates import Window
-from PySide2.QtWidgets import QFileDialog, QProgressBar, QStatusBar
+from PySide2.QtWidgets import QFileDialog, QProgressBar
 
 config = Config()
 PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -47,7 +48,7 @@ class MainWindow(Window):
 
     def _create_progress_bar(self):
         self.ui.status_bar.show()
-        self.progress_bar.setValue(10)
+        self.progress_bar.setValue(0)
         self.ui.status_bar.addWidget(self.progress_bar, 1)
 
     def _configure_window(self):
@@ -310,7 +311,7 @@ class MainWindow(Window):
         count = self.ui.data_lst.count()
         data_files = [self.ui.data_lst.item(i).text() for i in range(count)]
         output_file = self.ui.ofile_inp.displayText()
-        Pydre.run(project_file, data_files, output_file)
+        Pydre.run(project_file, data_files, output_file, self.progress_bar)
 
     def _toggle_remove_btn(self):
         '''TODO

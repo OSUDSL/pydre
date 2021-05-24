@@ -17,14 +17,14 @@ class Pydre:
     '''
 
     @staticmethod
-    def run(project_file, data_files, output_file):
+    def run(project_file, data_files, output_file, progress_bar):
         '''Runs PyDre conversion and saves the resulting output file.
 
         '''
 
         pydre_path = os.path.dirname(inspect.getfile(pydre))
         file_list = [os.path.join(pydre_path, file) for file in data_files]
-        project = pydre.project.Project(project_file)
+        project = pydre.project.Project(project_file, progress_bar)
         output_file = "out.csv" if not output_file.strip() else output_file
         project.run(file_list)
         project.save(output_file)
