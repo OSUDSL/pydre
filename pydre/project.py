@@ -11,14 +11,16 @@ import pydre.filters
 import pathlib
 from tqdm import tqdm
 import logging
+from PySide2.QtGui import QGuiApplication
 
 logger = logging.getLogger('PydreLogger')
 
 
 class Project():
 
-    def __init__(self, projectfilename):
+    def __init__(self, projectfilename, progressbar):
         self.project_filename = projectfilename
+        self.progress_bar = progressbar
 
         # This will suppress the unnecessary SettingWithCopy Warning.
         pandas.options.mode.chained_assignment = None
@@ -105,13 +107,23 @@ class Project():
                     e))
             sys.exit(1)
 
+        x = []
         if len(col_names) > 1:
-            x = [filter_func(d, **filter)
-                 for d in tqdm(dataset, desc=func_name)]
+            for d in tqdm(dataset, desc=func_name):
+                x.append(d)
+                value = self.progress_bar.value() + 100.0 / len(dataset)
+                print(value)
+                self.progress_bar.setValue(value)
+                QGuiApplication.processEvents()
             report = pandas.DataFrame(x, columns=col_names)
         else:
-            report = pandas.DataFrame([filter_func(
-                d, **filter) for d in tqdm(dataset, desc=func_name)], columns=[report_name, ])
+            for d in tqdm(dataset, desc=func_name):
+                x.append(filter_func(d, **filter))
+                value = self.progress_bar.value() + 100.0 / len(dataset)
+                print(value)
+                self.progress_bar.setValue(value)
+                QGuiApplication.processEvents()
+            report = pandas.DataFrame(x, columns=[report_name, ])
 
         return report
 
@@ -159,6 +171,10 @@ class Project():
             logger.info("Loading file #{}: {}".format(
                 len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
+            value = self.progress_bar.value() + 100.0 / len(datafiles)
+            print(value)
+            self.progress_bar.setValue(value)
+            QGuiApplication.processEvents()
 
     def run(self, datafiles):
         """
