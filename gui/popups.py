@@ -5,7 +5,7 @@ Created on: 2/4/2021
 
 from gui.config import Config
 from os import path
-from PySide2.QtWidgets import QMessageBox
+from PySide2.QtWidgets import QMessageBox, QProgressBar, QProgressDialog
 
 config = Config()
 PROJECT_PATH = path.dirname(path.abspath(__file__))
@@ -133,4 +133,35 @@ class OutputPopup(QMessageBox):
 
         self.setText(text)
         self.buttonClicked.connect(lambda e: self._callback(callback, e))
+        self.show()
+
+
+class ProgressPopup(QProgressDialog):
+    '''TODO
+
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._configure_popup()
+
+    def _configure_popup(self):
+        '''TODO
+
+        '''
+
+        self.setMinimumWidth(400)
+        self.setWindowTitle('PyDre')
+        self.setLabelText('Converting...')
+        self.setMinimum(0)
+        self.setMaximum(100)
+        self.setValue(0)
+        self.setAutoClose(False)
+
+    def show_(self):
+        '''TODO
+
+        '''
+
         self.show()
