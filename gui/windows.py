@@ -12,7 +12,7 @@ import time
 from gui.config import Config
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
-from gui.popups import OutputPopup, SavePopup
+from gui.popups import OutputPopup, ProgressPopup, SavePopup
 from gui.templates import Window
 from PySide2.QtWidgets import QFileDialog, QProgressBar
 
@@ -35,8 +35,8 @@ class MainWindow(Window):
         ui_path = os.path.join(PROJECT_PATH, ui_path)
         super().__init__(ui_path, *args, **kwargs)
 
-        self.save_popup = SavePopup()
         self.output_popup = OutputPopup()
+        self.save_popup = SavePopup()
         self.project_files = {}
         self._configure_window()
 
@@ -305,13 +305,13 @@ class MainWindow(Window):
 
         '''
 
-        self._create_progress_bar()
-
         project_file = self.ui.pfile_lbl.text()
         count = self.ui.data_lst.count()
         data_files = [self.ui.data_lst.item(i).text() for i in range(count)]
         output_file = self.ui.ofile_inp.displayText()
-        Pydre.run(project_file, data_files, output_file, self.progress_bar)
+        progress_popup = ProgressPopup()
+        progress_popup.show_()
+        Pydre.run(project_file, data_files, output_file, progress_popup)
 
     def _toggle_remove_btn(self):
         '''TODO
