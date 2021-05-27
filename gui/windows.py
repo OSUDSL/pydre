@@ -253,8 +253,8 @@ class MainWindow(Window):
         if self.ui.pfile_tab.currentWidget().changed():
             pfile_name = self.ui.pfile_tab.tabText(index)
             text = f"{pfile_name} " + config.get('Popup Text', 'save')
-            def callback(e): return self._handle_close(index, e)
-            SavePopup(parent=self).show_(text, callback)
+            def cb(e): return self._handle_close(index, e)
+            SavePopup(parent=self).show_(text, cb)
         else:
             self._handle_close(index, False)
 
@@ -285,8 +285,8 @@ class MainWindow(Window):
             self._run_pydre()
         else:
             text = config.get('Popup Text', 'output')
-            def callback(e): return self._run_pydre() if e else None
-            OutputPopup(parent=self).show_(text, callback)
+            def cb(e): return self._run_pydre() if e else None
+            OutputPopup(parent=self).show_(text, cb)
 
     def _run_pydre(self):
         '''TODO
