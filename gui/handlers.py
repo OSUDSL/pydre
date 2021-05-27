@@ -27,4 +27,4 @@ class Pydre:
         project = pydre.project.Project(app, project_file, progress_bar)
         output_file = "out.csv" if not output_file.strip() else output_file
         project.run(file_list)
-        project.save(output_file)
+        project.save(os.path.join('output', output_file))
