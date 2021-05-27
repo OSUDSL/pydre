@@ -195,7 +195,6 @@ class FiltersTree(QTreeWidget):
             str: lambda t, v, c: LeafWidget().line_edit(t, v, c)
         }
         self.branches = {}
-        self.function_popup = FunctionPopup()
         self._configure_widget()
 
     def _configure_widget(self):
@@ -242,7 +241,7 @@ class FiltersTree(QTreeWidget):
         if attribute == 'function':
             text = config.get('Popup Text', 'function')
             def cb(e): return self._handle_update(index, value, e)
-            self.function_popup.show_(text, cb)
+            FunctionPopup(parent=self).show_(text, cb)
         else:
             self.filters[index][attribute] = value
 
@@ -298,7 +297,6 @@ class MetricsTree(QTreeWidget):
             str: lambda t, v, c: LeafWidget().line_edit(t, v, c)
         }
         self.branches = {}
-        self.function_popup = FunctionPopup()
         self._configure_widget()
 
     def _configure_widget(self):
@@ -345,7 +343,7 @@ class MetricsTree(QTreeWidget):
         if attribute == 'function':
             text = config.get('Popup Text', 'function')
             def cb(e): return self._handle_update(index, value, e)
-            self.function_popup.show_(text, cb)
+            FunctionPopup(parent=self).show_(text, cb)
         else:
             self.metrics[index][attribute] = value
 
