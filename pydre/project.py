@@ -11,14 +11,14 @@ import pydre.filters
 import pathlib
 from tqdm import tqdm
 import logging
-from PySide2.QtGui import QGuiApplication
 
 logger = logging.getLogger('PydreLogger')
 
 
 class Project():
 
-    def __init__(self, projectfilename, progressbar):
+    def __init__(self, app, projectfilename, progressbar):
+        self.app = app
         self.project_filename = projectfilename
         self.progress_bar = progressbar
 
@@ -114,7 +114,7 @@ class Project():
                 value = self.progress_bar.value() + 100.0 / len(dataset)
                 print(value)
                 self.progress_bar.setValue(value)
-                QGuiApplication.processEvents()
+                self.app.processEvents()
             report = pandas.DataFrame(x, columns=col_names)
         else:
             for d in tqdm(dataset, desc=func_name):
@@ -122,7 +122,7 @@ class Project():
                 value = self.progress_bar.value() + 100.0 / len(dataset)
                 print(value)
                 self.progress_bar.setValue(value)
-                QGuiApplication.processEvents()
+                self.app.processEvents()
             report = pandas.DataFrame(x, columns=[report_name, ])
 
         return report
@@ -174,7 +174,7 @@ class Project():
             value = self.progress_bar.value() + 100.0 / len(datafiles)
             print(value)
             self.progress_bar.setValue(value)
-            QGuiApplication.processEvents()
+            self.app.processEvents()
 
     def run(self, datafiles):
         """

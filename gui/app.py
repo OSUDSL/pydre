@@ -24,7 +24,7 @@ class Application(QApplication):
     def __init__(self, window, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.window = window()
+        self.window = window(self)
         self.window.start()
 
 

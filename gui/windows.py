@@ -30,26 +30,14 @@ class MainWindow(Window):
 
     '''
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, app, *args, **kwargs):
         ui_path = config.get('UI Files', 'main')
         ui_path = os.path.join(PROJECT_PATH, ui_path)
         super().__init__(ui_path, *args, **kwargs)
 
-        self.output_popup = OutputPopup()
-        self.save_popup = SavePopup()
+        self.app = app
         self.project_files = {}
         self._configure_window()
-
-        # Temporary progress bar stuff
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setMinimum(0)
-        self.progress_bar.setMaximum(100)
-        self.ui.status_bar.hide()
-
-    def _create_progress_bar(self):
-        self.ui.status_bar.show()
-        self.progress_bar.setValue(0)
-        self.ui.status_bar.addWidget(self.progress_bar, 1)
 
     def _configure_window(self):
         '''Configures initial window settings.
@@ -100,7 +88,7 @@ class MainWindow(Window):
         self.ui.add_btn.clicked.connect(self._handle_add_dfile)
         self.ui.remove_btn.clicked.connect(self._handle_remove_dfile)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
-        self.ui.run_btn.clicked.connect(self._handle_run_click)
+        self.ui.run_btn.clicked.connect(self._handle_run)
 
     def _configure_splitters(self):
         '''Configures the initial stretch factors for splitter widgets.
@@ -266,7 +254,7 @@ class MainWindow(Window):
             pfile_name = self.ui.pfile_tab.tabText(index)
             text = f"{pfile_name} " + config.get('Popup Text', 'save')
             def callback(e): return self._handle_close(index, e)
-            self.save_popup.show_(text, callback)
+            SavePopup(parent=self).show_(text, callback)
         else:
             self._handle_close(index, False)
 
@@ -288,30 +276,30 @@ class MainWindow(Window):
         self._toggle_run_btn()
         self.switch_to_editor()
 
-    def _handle_run_click(self):
-        '''TODO
-
-        '''
-
-        if self.ui.ofile_inp.text().strip():
-            self._handle_run()
-        else:
-            text = config.get('Popup Text', 'output')
-            def callback(e): return self._handle_run() if e else None
-            self.output_popup.show_(text, callback)
-
     def _handle_run(self):
         '''TODO
 
         '''
 
+        if self.ui.ofile_inp.text().strip():
+            self._run_pydre()
+        else:
+            text = config.get('Popup Text', 'output')
+            def callback(e): return self._run_pydre() if e else None
+            OutputPopup(parent=self).show_(text, callback)
+
+    def _run_pydre(self):
+        '''TODO
+
+        '''
+
+        text = config.get('Popup Text', 'progress')
+        progress = ProgressPopup(self.app, parent=self).show_(text)
         project_file = self.ui.pfile_lbl.text()
         count = self.ui.data_lst.count()
         data_files = [self.ui.data_lst.item(i).text() for i in range(count)]
         output_file = self.ui.ofile_inp.displayText()
-        progress_popup = ProgressPopup()
-        progress_popup.show_()
-        Pydre.run(project_file, data_files, output_file, progress_popup)
+        Pydre.run(self.app, project_file, data_files, output_file, progress)
 
     def _toggle_remove_btn(self):
         '''TODO

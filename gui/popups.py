@@ -52,6 +52,7 @@ class SavePopup(QMessageBox):
         self.setText(text)
         self.buttonClicked.connect(lambda e: self._callback(callback, e))
         self.show()
+        return self
 
 
 class FunctionPopup(QMessageBox):
@@ -93,6 +94,7 @@ class FunctionPopup(QMessageBox):
         self.setText(text)
         self.buttonClicked.connect(lambda e: self._callback(callback, e))
         self.show()
+        return self
 
 
 class OutputPopup(QMessageBox):
@@ -134,6 +136,7 @@ class OutputPopup(QMessageBox):
         self.setText(text)
         self.buttonClicked.connect(lambda e: self._callback(callback, e))
         self.show()
+        return self
 
 
 class ProgressPopup(QProgressDialog):
@@ -141,27 +144,38 @@ class ProgressPopup(QProgressDialog):
 
     '''
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, app, auto_close=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._configure_popup()
+        self.app = app
+        self._configure_popup(auto_close)
 
-    def _configure_popup(self):
+    def _configure_popup(self, auto_close):
         '''TODO
 
         '''
 
-        self.setMinimumWidth(400)
+        self._configure_geometry(500, 170)
         self.setWindowTitle('PyDre')
-        self.setLabelText('Converting...')
         self.setMinimum(0)
         self.setMaximum(100)
         self.setValue(0)
-        self.setAutoClose(False)
+        self.setAutoClose(auto_close)
 
-    def show_(self):
+    def _configure_geometry(self, width, height):
         '''TODO
 
         '''
 
+        self.setMinimumWidth(width)
+        self.setMinimumHeight(height)
+
+    def show_(self, text, _=None):
+        '''TODO
+
+        '''
+
+        self.setLabelText(text)
         self.show()
+        self.app.processEvents()
+        return self
