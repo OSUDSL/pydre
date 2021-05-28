@@ -48,7 +48,6 @@ class MainWindow(Window):
         self._configure_splitters()
         self._configure_recent()
         self.ui.menu_bar.setVisible(False)
-        self.ui.status_bar.hide()
 
     def _configure_callbacks(self):
         '''Configures callback functionality for actions and widgets.
@@ -325,7 +324,6 @@ class MainWindow(Window):
 
         self.resize_and_center(700, 400)
         self.ui.menu_bar.setVisible(False)
-        self.ui.status_bar.hide()
         self._configure_recent()
         self.ui.page_stack.setCurrentIndex(0)
 
@@ -336,7 +334,6 @@ class MainWindow(Window):
 
         self.resize_and_center(1100, 800)
         self.ui.menu_bar.setVisible(True)
-        self.ui.status_bar.hide()
         self.ui.page_stack.setCurrentIndex(1)
 
     def switch_to_run(self):
@@ -346,5 +343,4 @@ class MainWindow(Window):
 
         self.resize_and_center(1100, 800)
         self.ui.menu_bar.setVisible(True)
-        self.ui.status_bar.hide()
         self.ui.page_stack.setCurrentIndex(2)

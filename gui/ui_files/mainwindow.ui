@@ -540,7 +540,6 @@ font: 75 10pt &quot;Arial&quot;;</string>
    <addaction name="view_menu"/>
    <addaction name="run_menu"/>
   </widget>
-  <widget class="QStatusBar" name="status_bar"/>
   <action name="pfile_act">
    <property name="enabled">
     <bool>false</bool>
