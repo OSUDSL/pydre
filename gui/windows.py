@@ -95,7 +95,7 @@ class MainWindow(Window):
 
         '''
 
-        self.ui.start_hsplitter.setStretchFactor(0, 4)
+        self.ui.start_hsplitter.setStretchFactor(0, 5)
         self.ui.start_hsplitter.setStretchFactor(1, 7)
         self.ui.main_hsplitter.setStretchFactor(0, 2)
         self.ui.main_hsplitter.setStretchFactor(1, 7)
