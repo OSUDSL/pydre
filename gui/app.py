@@ -25,8 +25,8 @@ class Application(QApplication):
     def __init__(self, window, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._configure_app()
         self.window = window(self)
+        self._configure_app()
         self.window.start()
 
     def _configure_app(self):
@@ -34,7 +34,7 @@ class Application(QApplication):
 
         '''
 
-        self.setFont(QFont('Lato', 9))
+        self.setFont(QFont('Arial', 10))
 
 
 def start():

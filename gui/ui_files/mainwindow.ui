@@ -82,7 +82,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
             <item>
              <widget class="QListWidget" name="recent_lst">
               <property name="styleSheet">
-               <string notr="true"/>
+               <string notr="true">border: none;</string>
               </property>
              </widget>
             </item>
@@ -216,7 +216,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
              <item>
               <widget class="QTreeWidget" name="treeWidget">
                <property name="styleSheet">
-                <string notr="true"/>
+                <string notr="true">border: none;</string>
                </property>
                <property name="headerHidden">
                 <bool>true</bool>
@@ -299,7 +299,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
             <item>
              <widget class="QTextBrowser" name="textBrowser">
               <property name="styleSheet">
-               <string notr="true"/>
+               <string notr="true">border: none;</string>
               </property>
              </widget>
             </item>
@@ -353,7 +353,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
           <item>
            <widget class="QListWidget" name="data_lst">
             <property name="styleSheet">
-             <string notr="true"/>
+             <string notr="true">border: none;</string>
             </property>
            </widget>
           </item>
