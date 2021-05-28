@@ -7,6 +7,7 @@ import os
 import sys
 from configparser import ConfigParser
 from gui.windows import MainWindow
+from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QApplication
 
 config = ConfigParser()
@@ -24,8 +25,16 @@ class Application(QApplication):
     def __init__(self, window, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self._configure_app()
         self.window = window(self)
         self.window.start()
+
+    def _configure_app(self):
+        '''TODO
+
+        '''
+
+        self.setFont(QFont('Lato', 9))
 
 
 def start():
