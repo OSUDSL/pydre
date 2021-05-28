@@ -10,7 +10,7 @@ import typing
 from gui.config import Config
 from gui.popups import FunctionPopup
 from pydre import filters, metrics
-from PySide2.QtGui import Qt
+from PySide2.QtGui import QFont, Qt
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
 
@@ -74,11 +74,12 @@ class LeafWidget(QWidget):
 
         self.layout = QHBoxLayout()
 
-    def _configure_layout(self, label, widget):
+    def _configure_layout(self, text, widget):
         '''TODO
 
         '''
 
+        label = QLabel(text)
         self.layout.addWidget(label)
         self.layout.addWidget(widget)
         self.setLayout(self.layout)
@@ -88,9 +89,9 @@ class LeafWidget(QWidget):
 
         '''
 
-        label = QLabel(text)
         combo_box = WidgetFactory.combo_box(value, cb, items)
-        self._configure_layout(label, combo_box)
+        combo_box.setFixedHeight(30)
+        self._configure_layout(text, combo_box)
         return self
 
     def spin_box(self, text, value, cb):
@@ -98,9 +99,9 @@ class LeafWidget(QWidget):
 
         '''
 
-        label = QLabel(text)
         spin_box = WidgetFactory.spin_box(value, cb)
-        self._configure_layout(label, spin_box)
+        self._configure_layout(text, spin_box)
+        spin_box.setFixedHeight(30)
         return self
 
     def line_edit(self, text, value, cb):
@@ -108,10 +109,10 @@ class LeafWidget(QWidget):
 
         '''
 
-        label = QLabel(text)
         line_edit = WidgetFactory.line_edit(value, cb)
         line_edit.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        self._configure_layout(label, line_edit)
+        self._configure_layout(text, line_edit)
+        line_edit.setFixedHeight(30)
         return self
 
 
