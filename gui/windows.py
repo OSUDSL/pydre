@@ -8,13 +8,13 @@ import json
 import logging
 import os
 import pydre
-import time
 from gui.config import Config
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
 from gui.popups import OutputPopup, ProgressPopup, SavePopup
 from gui.templates import Window
-from PySide2.QtWidgets import QFileDialog, QProgressBar
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QFileDialog
 
 config = Config()
 PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -31,9 +31,7 @@ class MainWindow(Window):
     '''
 
     def __init__(self, app, *args, **kwargs):
-        ui_path = config.get('UI Files', 'main')
-        ui_path = os.path.join(PROJECT_PATH, ui_path)
-        super().__init__(ui_path, *args, **kwargs)
+        super().__init__('main', *args, **kwargs)
 
         self.app = app
         self.project_files = {}

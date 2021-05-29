@@ -30,7 +30,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../images/icon.png</normaloff>../images/icon.png</iconset>
+    <normaloff>../images/icon.ico</normaloff>../images/icon.ico</iconset>
   </property>
   <property name="windowOpacity">
    <double>1.000000000000000</double>
