@@ -1,3 +1,0 @@
-Subject,DriveID,ROI,total_time_onroad_glance,percent_onroad,avg_offroad,avg_onroad,getTaskNum,errorPresses
-1,[1],1.0,0.06599999999991724,1.0,,0.06599999999991724,0.0,0
-1,[1],2.0,65.80099999999959,0.7821069021668021,0.21455405405404726,0.8892027027026972,0.0,0
