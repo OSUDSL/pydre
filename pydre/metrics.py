@@ -106,27 +106,62 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
         out = time
     return out
 
+# Parameters:
 
-def lanePosition(drivedata: pydre.core.DriveData, laneInfo: str="sdlp", lane: int=2, lane_width: float =3.65, car_width: float =2.1):
+# Offset: the name of the specific column in the datafile, could be LaneOffset or RoadOffset
+
+# noisy: If this is set to 'true', a low pass filter with 5 Hz cut off frequency will be applied, according to documentation
+# The document doesn't specify the order of filter so I'll use 1st order here
+
+# filfilt: if this is set to 'true', the filter will be applied twice, once forward and once backwards. This gives better results
+# when testing with a sin signal, but I'm not sure if that leads to a risk or not so I'll keep that as an option
+
+# noisy and filtfilt are NOT case sensitive and are meaningful only when calculating MSDLP
+def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_width=3.65, car_width=2.1, offset="LaneOffset", noisy="false", filtfilt="false"):
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "Lane", "LaneOffset"))  # drop other columns
+        print("1")
+        df = pandas.DataFrame(d, columns=("SimTime", "DatTime", "Lane", offset))  # drop other columns
         LPout = None
         if (df.size > 0):
             if (laneInfo in ["mean", "Mean"]):
                 # mean lane position
-                LPout = np.mean((df.LaneOffset))  # abs to give mean lane "error"
+                LPout = np.mean((df[offset]))  # abs to give mean lane "error"
+            elif (laneInfo in ["msdlp", "MSDLP"]):
+                samplingFrequency = 1 / np.mean(np.diff(df.DatTime)) # calculate sampling drequency based on DatTime
+                # samplingFrequency = 1 / np.mean(np.diff(df.SimTime))
+                
+                sos = signal.butter(2, 0.1, 'high', analog=False, output='sos', fs=float(samplingFrequency)) # define butterWorthFilter
+                # the output parameter can also be set to 'ba'. Under this case, signal.lfilter(b, a, array) or 
+                # signal.filtfilt(b, a, array) should be used. sos is recommanded for general purpose filtering
+
+                data = df[offset]
+                if (noisy.lower() == "true"):
+                    sosLow = signal.butter(1, 5, 'low', analog=False, output='sos', fs=float(samplingFrequency))
+                    data = signal.sosfilt(sosLow, data)
+                    # apply a low pass filter to reduce the noise
+
+                filteredLP = None
+                if (filtfilt.lower() == "true"):
+                    filteredLP = signal.sosfiltfilt(sos, data) # apply the filter twice
+                else:
+                    filteredLP = signal.sosfilt(sos, data) # apply the filter once
+                # signal.sosfiltfilt() applies the filter twice (forward & backward) while signal.sosfilt applies
+                # the filter once. 
+        
+                LPout = np.std(filteredLP)
+
             elif (laneInfo in ["sdlp", "SDLP"]):
-                LPout = np.std(df.LaneOffset)
+                LPout = np.std(df[offset])
                 # Just cause I've been staring at this a while and want to get some code down:
                 # Explanation behind this: SAE recommends using the unbiased estimator "1/n-1". The numpy code does
                 # not use this, so I wrote up code that can easily be subbed in, if it's determined necessary.
                 """
-				entrynum = len(df.LaneOffset)
+				entrynum = len(df[offset])
 				unbiased_estimator = 1/(entrynum - 1)
-				average = np.mean((df.LaneOffset))
+				average = np.mean((df[offset]))
 				variation = 0
 				for entry in entrynum:
-					variation += (pow(df.LaneOffset[entry] - average, 2))
+					variation += (pow(df[offset][entry] - average, 2))
 				LPout = math.sqrt(unbiased_estimator * variation)
 				"""
             elif (laneInfo in ["exits"]):
@@ -135,7 +170,7 @@ def lanePosition(drivedata: pydre.core.DriveData, laneInfo: str="sdlp", lane: in
                 LPout = 0
                 # tolerance is the maximum allowable offset deviation from 0
                 tolerance = lane_width / 2 - car_width / 2
-                is_violating = abs(df.LaneOffset) > tolerance
+                is_violating = abs(df[offset]) > tolerance
 
                 # Shift the is_violating array and look for differences.
                 shifted = is_violating.shift(1)
@@ -160,7 +195,7 @@ def lanePosition(drivedata: pydre.core.DriveData, laneInfo: str="sdlp", lane: in
             elif laneInfo in ["violation_duration"]:
                 LPout = 0
                 tolerance = lane_width / 2 - car_width / 2
-                violations = df[abs(df.LaneOffset) > tolerance]
+                violations = df[abs(df[offset]) > tolerance]
                 if (violations.size > 0):
                     deltas = violations.diff()
                     deltas.iloc[0] = deltas.iloc[1]
@@ -733,7 +768,8 @@ def getTaskNum(drivedata: pydre.core.DriveData):
         if(len(taskNum)>0):
             return taskNum[0]
         else:
-            return None
+            return None  
+
 
 
 
