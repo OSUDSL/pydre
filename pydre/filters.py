@@ -17,8 +17,8 @@ logger = logging.getLogger('PydreLogger')
 def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
     copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
-    data = drivedata.data
-    for d in data:
+
+    for d in drivedata.data:
         dt = pandas.DataFrame(d)
         #dt.set_index('timedelta', inplace=True)
         blocks = ((dt != dt.shift()).TaskStatus.cumsum())/2
@@ -31,10 +31,8 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
 
 def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
 
-    copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
-                                         drivedata.data, drivedata.sourcefilename)
-    
-    
+    #copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
+    #                                     drivedata.data, drivedata.sourcefilename)
     
     data = drivedata.data
     for d in data:
@@ -54,19 +52,17 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
     # smooth frame blips
         gaze_same = (dt['gaze'].shift(-1) == dt['gaze'].shift(1)) & (dt['gaze'].shift(-2) == dt['gaze'].shift(2)) & (
                 dt['gaze'].shift(-2) == dt['gaze'].shift(-1)) & (dt['gaze'] != dt['gaze'].shift(1))
-        print("{} frame blips".format(gaze_same.sum()))
+        #print("{} frame blips".format(gaze_same.sum()))
         dt.loc[gaze_same, 'gaze'] = dt['gaze'].shift(-1)
 
     # adjust for 100ms latency
         dt['gaze'] = dt['gaze'].shift(-6)
         dt['timedelta'] = pandas.to_timedelta(dt[timeColName].astype(float), unit="s")
-        # dt['timedelta'] = pandas.to_timedelta(dt[timeColName]) # removed the unit due to crash "valueerror" unit must not be specified if input contains a str
         dt.set_index('timedelta', inplace=True)
 
     # filter out noise from the gaze column
     # SAE J2396 defines fixations as at least 0.2 seconds,
         min_delta = pandas.to_timedelta(0.2, unit='s')
-        
     # so we ignore changes in gaze that are less than that
 
     # find list of runs
@@ -76,7 +72,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
         # breakpoint()
         durations = dt.groupby('gazenum')['timedelta'].max() - dt.groupby('gazenum')['timedelta'].min()
 
-        print("{} gazes before removing transitions".format(n))
+        #print("{} gazes before removing transitions".format(n))
         short_gaze_count = 0
         dt.set_index('gazenum')
         
@@ -97,10 +93,10 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
                  # dt.loc[x,'gaze']  = np.nan
                 #dt.loc[dt['gazenum'] == x, 'gaze'] = np.nan
         dt.reset_index()
-        print("{} transition gazes out of {} gazes total.".format(short_gaze_count, n))
+        #print("{} transition gazes out of {} gazes total.".format(short_gaze_count, n))
         dt['gaze'].fillna(method='bfill', inplace=True)
         dt['gazenum'] = (dt['gaze'].shift(1) != dt['gaze']).astype(int).cumsum()
-        print("{} gazes after removing transitions.".format(dt['gazenum'].max()))
+        #print("{} gazes after removing transitions.".format(dt['gazenum'].max()))
     return drivedata
 
 
