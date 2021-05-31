@@ -196,6 +196,7 @@ class FiltersTree(QTreeWidget):
             str: lambda t, v, c: LeafWidget().line_edit(t, v, c)
         }
         self.branches = {}
+        self.values = {}
         self._configure_widget()
 
     def _configure_widget(self):
@@ -298,6 +299,7 @@ class MetricsTree(QTreeWidget):
             str: lambda t, v, c: LeafWidget().line_edit(t, v, c)
         }
         self.branches = {}
+        self.values = {}
         self._configure_widget()
 
     def _configure_widget(self):
@@ -369,9 +371,15 @@ class MetricsTree(QTreeWidget):
         function = metrics.metricsList[self.metrics[index]['function']]
         types = typing.get_type_hints(function)
         self._configure_leaf(branch, index, 'function')
+
+        # TODO: Get this working
+
         for argument in filter(lambda a: a != 'drivedata', types.keys()):
-            type_ = types[argument]
-            self.metrics[index][argument] = "" if type_ is str else 0
+            if argument in metric:
+                self.metrics[index][argument] = metric[argument]
+            else:
+                type_ = types[argument]
+                self.metrics[index][argument] = '' if type_ == str else 0
             self._configure_leaf(branch, index, argument)
 
     def get_collection(self):
