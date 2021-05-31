@@ -43,7 +43,11 @@ def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float]=(0, 
 
 
 def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
-    total = pandas.Series()
+    total = pandas.Series(dtype='float64')
+    # original code here: total = pandas.Series()
+    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
+    # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
+    # Plz change it back to the original code if the current one leads to an issue
     for d in drivedata.data:
         var_dat = d[var]
         total = total.append(var_dat[var_dat >= cutoff])
@@ -51,7 +55,11 @@ def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
 
 
 def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
-    total = pandas.Series()
+    total = pandas.Series(dtype='float64')
+    # original code here: total = pandas.Series()
+    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
+    # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
+    # Plz change it back to the original code if the current one leads to an issue
     for d in drivedata.data:
         var_dat = d[var]
         total = total.append(var_dat[var_dat >= cutoff])
