@@ -34,7 +34,6 @@ class MainWindow(Window):
         super().__init__('main', *args, **kwargs)
 
         self.app = app
-        self.screen_width = QDesktopWidget().availableGeometry().width()
         self.project_files = {}
         self._configure_window()
         self.switch_to_start()
