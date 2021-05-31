@@ -3,8 +3,10 @@ Created by: Craig Fouts
 Created on: 01/05/2021
 '''
 
+import os
 from configparser import ConfigParser
-from os import path
+from pathlib import Path
+from gui.app import CONFIG_PATH
 
 
 class Config(ConfigParser):
@@ -15,14 +17,11 @@ class Config(ConfigParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        project_path = path.dirname(path.abspath(__file__))
-        self.config_path = path.join(project_path, 'config_files/config.ini')
-
     def update(self):
         '''Updates the config file with any changes stored in the config 
         variable.
 
         '''
 
-        with open(self.config_path, 'w') as config_file:
+        with open(CONFIG_PATH, 'w') as config_file:
             self.write(config_file)

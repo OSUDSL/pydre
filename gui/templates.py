@@ -5,15 +5,14 @@ Created on: 2/4/2021
 
 import logging
 import os
-from gui.config import Config
 from PySide2.QtCore import QFile
 from PySide2.QtGui import QIcon
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QDesktopWidget, QMainWindow, QWidget
+from PySide2.QtWidgets import QDesktopWidget, QMainWindow
+from gui.app import CONFIG_PATH, PROJECT_PATH
+from gui.config import Config
 
 config = Config()
-PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
-CONFIG_PATH = os.path.join(PROJECT_PATH, 'config_files/config.ini')
 config.read(CONFIG_PATH)
 
 loader = QUiLoader()

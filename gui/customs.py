@@ -7,16 +7,15 @@ import copy
 import json
 import os
 import typing
-from gui.config import Config
-from gui.popups import FunctionPopup
 from pydre import filters, metrics
-from PySide2.QtGui import QFont, Qt
+from PySide2.QtGui import Qt
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
+from gui.app import CONFIG_PATH, PROJECT_PATH
+from gui.config import Config
+from gui.popups import FunctionPopup
 
 config = Config()
-PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
-CONFIG_PATH = os.path.join(PROJECT_PATH, 'config_files/config.ini')
 config.read(CONFIG_PATH)
 
 

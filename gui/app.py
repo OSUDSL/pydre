@@ -5,13 +5,14 @@ Created on: 9/17/2020
 
 import os
 import sys
-from configparser import ConfigParser
-from gui.windows import MainWindow
+from pathlib import Path
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QApplication
+from gui.config import Config
+from gui.windows import MainWindow
 
-config = ConfigParser()
-PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
+config = Config()
+PROJECT_PATH = Path().resolve()
 CONFIG_PATH = os.path.join(PROJECT_PATH, 'config_files/config.ini')
 config.read(CONFIG_PATH)
 
