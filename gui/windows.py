@@ -49,7 +49,6 @@ class MainWindow(Window):
         self._configure_recent()
         self.ui.menu_bar.setVisible(False)
 
-
     def _configure_callbacks(self):
         '''Configures callback functionality for actions and widgets.
 
@@ -323,8 +322,8 @@ class MainWindow(Window):
 
         '''
 
-        width = self.screen_width / 3.5
-        height = self.screen_height / 3.5
+        width = self.screen_width / 4.5
+        height = self.screen_height / 4
         self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(False)
         self._configure_recent()
@@ -335,7 +334,7 @@ class MainWindow(Window):
 
         '''
 
-        width = self.screen_width / 2
+        width = self.screen_width / 2.5
         height = self.screen_height / 2
         self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(True)
@@ -346,7 +345,7 @@ class MainWindow(Window):
 
         '''
 
-        width = self.screen_width / 2
+        width = self.screen_width / 2.5
         height = self.screen_height / 2
         self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(True)
