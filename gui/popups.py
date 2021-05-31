@@ -3,13 +3,14 @@ Created by: Craig Fouts
 Created on: 2/4/2021
 '''
 
+import os
 from gui.config import Config
-from os import path
+from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMessageBox, QProgressBar, QProgressDialog
 
 config = Config()
-PROJECT_PATH = path.dirname(path.abspath(__file__))
-CONFIG_PATH = path.join(PROJECT_PATH, 'config_files/config.ini')
+PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
+CONFIG_PATH = os.path.join(PROJECT_PATH, 'config_files/config.ini')
 config.read(CONFIG_PATH)
 
 
@@ -28,6 +29,10 @@ class SavePopup(QMessageBox):
 
         '''
 
+        icon_path = os.path.join(PROJECT_PATH, config.get('Icons', 'main'))
+        self.icon = QIcon(icon_path)
+        self.setWindowIcon(self.icon)
+        self.setWindowTitle('PyDre')
         self.setIcon(QMessageBox.Warning)
         buttons = QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
         self.setStandardButtons(buttons)
@@ -63,6 +68,10 @@ class FunctionPopup(QMessageBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        icon_path = os.path.join(PROJECT_PATH, config.get('Icons', 'main'))
+        self.icon = QIcon(icon_path)
+        self.setWindowIcon(self.icon)
+        self.setWindowTitle('PyDre')
         self._configure_popup()
 
     def _configure_popup(self):
@@ -105,6 +114,10 @@ class OutputPopup(QMessageBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        icon_path = os.path.join(PROJECT_PATH, config.get('Icons', 'main'))
+        self.icon = QIcon(icon_path)
+        self.setWindowIcon(self.icon)
+        self.setWindowTitle('PyDre')
         self._configure_popup()
 
     def _configure_popup(self):
