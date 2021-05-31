@@ -8,17 +8,15 @@ import json
 import logging
 import os
 import pydre
+from PySide2.QtWidgets import QFileDialog
+from gui.app import CONFIG_PATH, PROJECT_PATH
 from gui.config import Config
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
 from gui.popups import OutputPopup, ProgressPopup, SavePopup
 from gui.templates import Window
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QDesktopWidget, QFileDialog
 
 config = Config()
-PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
-CONFIG_PATH = os.path.join(PROJECT_PATH, 'config_files/config.ini')
 config.read(CONFIG_PATH)
 
 logger = logging.getLogger('PydreLogger')
