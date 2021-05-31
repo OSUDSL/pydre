@@ -14,7 +14,7 @@ from gui.handlers import Pydre
 from gui.popups import OutputPopup, ProgressPopup, SavePopup
 from gui.templates import Window
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QFileDialog
+from PySide2.QtWidgets import QDesktopWidget, QFileDialog
 
 config = Config()
 PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -34,8 +34,10 @@ class MainWindow(Window):
         super().__init__('main', *args, **kwargs)
 
         self.app = app
+        self.screen_width = QDesktopWidget().availableGeometry().width()
         self.project_files = {}
         self._configure_window()
+        self.switch_to_start()
 
     def _configure_window(self):
         '''Configures initial window settings.
@@ -46,6 +48,7 @@ class MainWindow(Window):
         self._configure_splitters()
         self._configure_recent()
         self.ui.menu_bar.setVisible(False)
+
 
     def _configure_callbacks(self):
         '''Configures callback functionality for actions and widgets.
@@ -320,7 +323,9 @@ class MainWindow(Window):
 
         '''
 
-        self.resize_and_center(700, 400)
+        width = self.screen_width / 3.5
+        height = self.screen_height / 3.5
+        self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(False)
         self._configure_recent()
         self.ui.page_stack.setCurrentIndex(0)
@@ -330,7 +335,9 @@ class MainWindow(Window):
 
         '''
 
-        self.resize_and_center(1100, 800)
+        width = self.screen_width / 2
+        height = self.screen_height / 2
+        self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(True)
         self.ui.page_stack.setCurrentIndex(1)
 
@@ -339,6 +346,8 @@ class MainWindow(Window):
 
         '''
 
-        self.resize_and_center(1100, 800)
+        width = self.screen_width / 2
+        height = self.screen_height / 2
+        self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(True)
         self.ui.page_stack.setCurrentIndex(2)
