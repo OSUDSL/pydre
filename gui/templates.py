@@ -9,8 +9,7 @@ from PySide2.QtCore import QFile
 from PySide2.QtGui import QIcon
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QDesktopWidget, QMainWindow
-from gui.app import CONFIG_PATH, PROJECT_PATH
-from gui.config import Config
+from gui.config import Config, CONFIG_PATH, GUI_PATH
 
 config = Config()
 config.read(CONFIG_PATH)
@@ -27,11 +26,11 @@ class Window(QMainWindow):
     def __init__(self, name, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        ui_path = os.path.join(PROJECT_PATH, config.get('UI Files', name))
+        ui_path = os.path.join(GUI_PATH, config.get('UI Files', name))
         self.ui_file = QFile(ui_path)
         self.ui_file.open(QFile.ReadOnly)
         self.ui = loader.load(self.ui_file)
-        icon_path = os.path.join(PROJECT_PATH, config.get('Icons', name))
+        icon_path = os.path.join(GUI_PATH, config.get('Icons', name))
         self.icon = QIcon(icon_path)
         self.ui.setWindowIcon(self.icon)
         self.screen_width = QDesktopWidget().availableGeometry().width()

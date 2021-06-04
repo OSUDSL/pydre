@@ -9,8 +9,7 @@ import logging
 import os
 import pydre
 from PySide2.QtWidgets import QFileDialog
-from gui.app import CONFIG_PATH, PROJECT_PATH
-from gui.config import Config
+from gui.config import Config, CONFIG_PATH, GUI_PATH
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
 from gui.popups import OutputPopup, ProgressPopup, SavePopup
@@ -115,7 +114,7 @@ class MainWindow(Window):
 
         '''
 
-        directory = os.path.dirname(PROJECT_PATH)
+        directory = os.path.dirname(GUI_PATH)
         recent_paths = config.get('Recent Files', 'paths').split(',')
         index = self.ui.recent_lst.currentRow()
         file_path = os.path.join(directory, recent_paths[index])

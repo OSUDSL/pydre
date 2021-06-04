@@ -8,12 +8,10 @@ import sys
 from pathlib import Path
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QApplication
-from gui.config import Config
+from gui.config import Config, CONFIG_PATH
 from gui.windows import MainWindow
 
 config = Config()
-PROJECT_PATH = Path().resolve()
-CONFIG_PATH = os.path.join(PROJECT_PATH, 'config_files/config.ini')
 config.read(CONFIG_PATH)
 
 
