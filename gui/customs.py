@@ -268,8 +268,18 @@ class FiltersTree(QTreeWidget):
         self._configure_leaf(branch, index, 'function')
         for argument in filter(lambda a: a != 'drivedata', types.keys()):
             type_ = types[argument]
-            self.filters[index][argument] = "" if type_ is str else 0
+            self._update_argument(index, filter_, argument, type_)
             self._configure_leaf(branch, index, argument)
+
+    def _update_argument(self, index, filter_, argument, type_):
+        '''TODO
+
+        '''
+
+        if argument in filter_:
+            self.filters[index][argument] = filter_[argument]
+        else:
+            self.filters[index][argument] = '' if type_ == str else 0
 
     def get_collection(self):
         '''TODO
@@ -369,16 +379,20 @@ class MetricsTree(QTreeWidget):
         function = metrics.metricsList[self.metrics[index]['function']]
         types = typing.get_type_hints(function)
         self._configure_leaf(branch, index, 'function')
-
-        # TODO: Get this working
-
         for argument in filter(lambda a: a != 'drivedata', types.keys()):
-            if argument in metric:
-                self.metrics[index][argument] = metric[argument]
-            else:
-                type_ = types[argument]
-                self.metrics[index][argument] = '' if type_ == str else 0
+            type_ = types[argument]
+            self._update_argument(index, metric, argument, type_)
             self._configure_leaf(branch, index, argument)
+
+    def _update_argument(self, index, metric, argument, type_):
+        '''TODO
+
+        '''
+
+        if argument in metric:
+            self.metrics[index][argument] = metric[argument]
+        else:
+            self.metrics[index][argument] = '' if type_ == str else 0
 
     def get_collection(self):
         '''TODO
