@@ -6,7 +6,10 @@ Created on: 01/05/2021
 import os
 from configparser import ConfigParser
 from pathlib import Path
-from gui.app import CONFIG_PATH
+
+PROJECT_PATH = Path().resolve()
+GUI_PATH = os.path.join(PROJECT_PATH, 'gui')
+CONFIG_PATH = os.path.join(GUI_PATH, 'config_files', 'config.ini')
 
 
 class Config(ConfigParser):

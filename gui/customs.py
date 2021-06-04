@@ -11,8 +11,7 @@ from pydre import filters, metrics
 from PySide2.QtGui import Qt
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
-from gui.app import CONFIG_PATH, PROJECT_PATH
-from gui.config import Config
+from gui.config import Config, CONFIG_PATH, GUI_PATH
 from gui.popups import FunctionPopup
 
 config = Config()
@@ -424,7 +423,7 @@ class ProjectTree(QTreeWidget):
         '''
 
         style_path = config.get('Stylesheets', 'projectTree')
-        style_path = os.path.join(PROJECT_PATH, style_path)
+        style_path = os.path.join(GUI_PATH, style_path)
         stylesheet = open(style_path).read()
         self.setStyleSheet(stylesheet)
         self.setAnimated(True)

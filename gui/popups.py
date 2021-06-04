@@ -6,8 +6,7 @@ Created on: 2/4/2021
 import os
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMessageBox, QProgressDialog
-from gui.app import CONFIG_PATH, PROJECT_PATH
-from gui.config import Config
+from gui.config import Config, CONFIG_PATH, GUI_PATH
 
 config = Config()
 config.read(CONFIG_PATH)
@@ -28,7 +27,7 @@ class SavePopup(QMessageBox):
 
         '''
 
-        icon_path = os.path.join(PROJECT_PATH, config.get('Icons', 'main'))
+        icon_path = os.path.join(GUI_PATH, config.get('Icons', 'main'))
         self.icon = QIcon(icon_path)
         self.setWindowIcon(self.icon)
         self.setWindowTitle('PyDre')
@@ -67,7 +66,7 @@ class FunctionPopup(QMessageBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        icon_path = os.path.join(PROJECT_PATH, config.get('Icons', 'main'))
+        icon_path = os.path.join(GUI_PATH, config.get('Icons', 'main'))
         self.icon = QIcon(icon_path)
         self.setWindowIcon(self.icon)
         self.setWindowTitle('PyDre')
@@ -113,7 +112,7 @@ class OutputPopup(QMessageBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        icon_path = os.path.join(PROJECT_PATH, config.get('Icons', 'main'))
+        icon_path = os.path.join(GUI_PATH, config.get('Icons', 'main'))
         self.icon = QIcon(icon_path)
         self.setWindowIcon(self.icon)
         self.setWindowTitle('PyDre')
