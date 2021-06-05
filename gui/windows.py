@@ -117,6 +117,7 @@ class MainWindow(Window):
         
         entry = self.ui.log_inp.text()
         if entry:
+            logger.info(entry)
             self.ui.log_lst.addItem(entry)
             self.ui.log_lst.scrollToBottom()
             self.ui.log_inp.clear()
