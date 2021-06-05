@@ -300,7 +300,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
              </layout>
             </item>
             <item>
-             <widget class="QTextBrowser" name="textBrowser">
+             <widget class="QListWidget" name="log_lst">
               <property name="styleSheet">
                <string notr="true">border: none;</string>
               </property>
