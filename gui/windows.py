@@ -68,6 +68,7 @@ class MainWindow(Window):
 
         '''
 
+        self.ui.log_inp.returnPressed.connect(self._handle_add_to_log)
         self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
         self.ui.pfile_tab.tabCloseRequested.connect(self._handle_tab_close)
         self.ui.recent_lst.itemDoubleClicked.connect(self._handle_select_pfile)
@@ -108,6 +109,17 @@ class MainWindow(Window):
         for path_ in filter(lambda f: f != '', recent_pfiles):
             _, name = os.path.split(path_)
             self.ui.recent_lst.addItem(name)
+
+    def _handle_add_to_log(self):
+        '''TODO
+
+        '''
+        
+        entry = self.ui.log_inp.text()
+        if entry:
+            self.ui.log_lst.addItem(entry)
+            self.ui.log_lst.scrollToBottom()
+            self.ui.log_inp.clear()
 
     def _handle_select_pfile(self):
         '''Handles selecting a file from the recent files list.
