@@ -288,9 +288,12 @@ font: 75 10pt &quot;Arial&quot;;</string>
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEdit_2">
+               <widget class="QLineEdit" name="log_inp">
                 <property name="styleSheet">
                  <string notr="true"/>
+                </property>
+                <property name="placeholderText">
+                 <string>Custom log message</string>
                 </property>
                </widget>
               </item>
@@ -417,7 +420,7 @@ padding-bottom: 4px;
 font: 75 10pt &quot;Arial&quot;;</string>
           </property>
           <property name="text">
-           <string>Output file (out.csv by default)</string>
+           <string>Output file</string>
           </property>
          </widget>
         </item>
@@ -425,6 +428,9 @@ font: 75 10pt &quot;Arial&quot;;</string>
          <widget class="QLineEdit" name="ofile_inp">
           <property name="styleSheet">
            <string notr="true"/>
+          </property>
+          <property name="placeholderText">
+           <string>out.csv by default</string>
           </property>
          </widget>
         </item>

@@ -68,9 +68,9 @@ class MainWindow(Window):
 
         '''
 
-        self.ui.recent_lst.itemDoubleClicked.connect(self._handle_select_pfile)
         self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
         self.ui.pfile_tab.tabCloseRequested.connect(self._handle_tab_close)
+        self.ui.recent_lst.itemDoubleClicked.connect(self._handle_select_pfile)
         self.ui.data_lst.itemSelectionChanged.connect(self._toggle_remove_btn)
         self.ui.data_lst.model().rowsInserted.connect(self._toggle_run_btn)
         self.ui.data_lst.model().rowsRemoved.connect(self._toggle_run_btn)
