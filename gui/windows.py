@@ -114,7 +114,7 @@ class MainWindow(Window):
         '''TODO
 
         '''
-        
+
         entry = self.ui.log_inp.text()
         if entry:
             logger.info(entry)
@@ -325,6 +325,14 @@ class MainWindow(Window):
 
         count = self.ui.data_lst.count()
         self.ui.run_btn.setEnabled(True if count > 0 else False)
+
+    def add_to_log(self, entry):
+        '''TODO
+
+        '''
+
+        self.ui.log_lst.addItem(entry)
+        self.ui.log_lst.scrollToBottom()
 
     def switch_to_start(self):
         '''Swithes to the start page (page 1 / 3).
