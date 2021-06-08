@@ -9,6 +9,7 @@ from pathlib import Path
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QApplication
 from gui.config import Config, CONFIG_PATH
+from gui.logger import GUIHandler
 from gui.windows import MainWindow
 
 config = Config()
@@ -25,6 +26,7 @@ class Application(QApplication):
         super().__init__(*args, **kwargs)
 
         self.window = window(self)
+        GUIHandler.window = self.window
         self._configure_app()
         self.window.start()
 
