@@ -6,8 +6,10 @@ import pandas as pd
 import re
 import logging
 import shutil
+from gui.logger import GUIHandler
 
 logger = logging.getLogger('PydreLogger')
+logger.addHandler(GUIHandler())
 
 
 class MergeTool():

@@ -3,7 +3,10 @@
 import pandas
 import logging
 import sys
+from gui.logger import GUIHandler
+
 logger = logging.getLogger(__name__)
+logger.addHandler(GUIHandler())
 
 
 def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFrame):
