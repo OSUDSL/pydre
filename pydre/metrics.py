@@ -13,8 +13,10 @@ import scipy
 from scipy import signal
 
 import ctypes
+from gui.logger import GUIHandler
 
 logger = logging.getLogger('PydreLogger')
+logger.addHandler(GUIHandler())
 
 
 # metrics defined here take a list of DriveData objects and return a single floating point value

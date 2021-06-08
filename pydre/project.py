@@ -11,8 +11,10 @@ import pydre.filters
 import pathlib
 from tqdm import tqdm
 import logging
+from gui.logger import GUIHandler
 
 logger = logging.getLogger('PydreLogger')
+logger.addHandler(GUIHandler())
 
 
 class Project():

@@ -9,8 +9,10 @@ import logging
 
 
 import ctypes
+from gui.logger import GUIHandler
 
 logger = logging.getLogger('PydreLogger')
+logger.addHandler(GUIHandler())
 
 # filters defined here take a DriveData object and return an updated DriveData object
 
