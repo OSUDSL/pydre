@@ -259,8 +259,8 @@ class FiltersTree(QTreeWidget):
 
         '''
 
-        filter_ = self.filters[index]
-        self.filters[index] = {'name': filter_['name'], 'function': value}
+        self.values = self.filters[index]
+        self.filters[index] = {'name': self.values['name'], 'function': value}
         branch = self.branches[self.filters[index]['name']]
         branch.takeChildren()
         function = filters.filtersList[self.filters[index]['function']]
@@ -268,16 +268,16 @@ class FiltersTree(QTreeWidget):
         self._configure_leaf(branch, index, 'function')
         for argument in filter(lambda a: a != 'drivedata', types.keys()):
             type_ = types[argument]
-            self._update_argument(index, filter_, argument, type_)
+            self._update_argument(index, self.values, argument, type_)
             self._configure_leaf(branch, index, argument)
 
-    def _update_argument(self, index, filter_, argument, type_):
+    def _update_argument(self, index, values, argument, type_):
         '''TODO
 
         '''
 
-        if argument in filter_:
-            self.filters[index][argument] = filter_[argument]
+        if argument in values:
+            self.filters[index][argument] = values[argument]
         else:
             self.filters[index][argument] = '' if type_ == str else 0
 
@@ -372,8 +372,8 @@ class MetricsTree(QTreeWidget):
 
         '''
 
-        metric = self.metrics[index]
-        self.metrics[index] = {'name': metric['name'], 'function': value}
+        self.values.update(self.metrics[index])
+        self.metrics[index] = {'name': self.values['name'], 'function': value}
         branch = self.branches[self.metrics[index]['name']]
         branch.takeChildren()
         function = metrics.metricsList[self.metrics[index]['function']]
@@ -381,16 +381,16 @@ class MetricsTree(QTreeWidget):
         self._configure_leaf(branch, index, 'function')
         for argument in filter(lambda a: a != 'drivedata', types.keys()):
             type_ = types[argument]
-            self._update_argument(index, metric, argument, type_)
+            self._update_argument(index, self.values, argument, type_)
             self._configure_leaf(branch, index, argument)
 
-    def _update_argument(self, index, metric, argument, type_):
+    def _update_argument(self, index, values, argument, type_):
         '''TODO
 
         '''
 
-        if argument in metric:
-            self.metrics[index][argument] = metric[argument]
+        if argument in values:
+            self.metrics[index][argument] = values[argument]
         else:
             self.metrics[index][argument] = '' if type_ == str else 0
 
