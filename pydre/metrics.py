@@ -19,6 +19,8 @@ logger = logging.getLogger('PydreLogger')
 
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
+
+# not registered & incomplete
 def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
     timestepID = -1
     breakOut = False
@@ -32,7 +34,7 @@ def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
             break
     return timestepID
 
-
+# not registered & incomplete
 def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float]=(0, 0, 10000, 10000)):
     timeAtEnd = 0
     for d in drivedata.data:
@@ -83,14 +85,22 @@ def colMin(drivedata: pydre.core.DriveData, var: str):
 
 
 def meanVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
-    total_vel = pandas.Series()
+    total_vel = pandas.Series(dtype='float64')
+    # original code here: total_Vel = pandas.Series()
+    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
+    # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
+    # Plz change it back to the original code if the current one leads to an issue
     for d in drivedata.data:
         total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
     return numpy.mean(total_vel.values, dtype=np.float64).astype(np.float64)
 
 
 def stdDevVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
-    total_vel = pandas.Series()
+    total_vel = pandas.Series(dtype='float64')
+    # original code here: total_Vel = pandas.Series()
+    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
+    # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
+    # Plz change it back to the original code if the current one leads to an issue
     for d in drivedata.data:
         total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
     return numpy.std(total_vel.values, dtype=np.float64).astype(np.float64)
@@ -261,7 +271,7 @@ def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
             flag = 0
     return count
 
-
+# cutoff doesn't work
 def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     out = []
     for d in drivedata.data:
@@ -341,7 +351,11 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float =2):
 
 
 def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float =0, stat: str ="count"):
-    total_boxclicks = pandas.Series()
+    total_boxclicks = pandas.Series(dtype='float64')
+    # original code here: total_boxclicks = pandas.Series()
+    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
+    # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
+    # Plz change it back to the original code if the current one leads to an issue
     time_boxappeared = 0.0
     time_buttonclicked = 0.0
     hitButton = 0;
