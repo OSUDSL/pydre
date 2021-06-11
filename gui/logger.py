@@ -15,5 +15,6 @@ class GUIHandler(Handler):
 
         '''
 
+        print(record)
         print(f'{record.msg}')
         self.window.add_to_log(record.msg)
