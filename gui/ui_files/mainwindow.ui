@@ -55,7 +55,7 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -279,12 +279,15 @@ font: 75 10pt &quot;Arial&quot;;</string>
                   <string notr="true"/>
                  </property>
                  <property name="text">
-                  <string>Add Item</string>
+                  <string>Add...</string>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="pushButton_2">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="text">
                   <string>Remove</string>
                  </property>
