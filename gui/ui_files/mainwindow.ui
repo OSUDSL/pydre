@@ -245,7 +245,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
                 <enum>Qt::TabFocus</enum>
                </property>
                <property name="styleSheet">
-                <string notr="true"/>
+                <string notr="true">border: none;</string>
                </property>
                <property name="tabShape">
                 <enum>QTabWidget::Rounded</enum>
@@ -274,12 +274,26 @@ font: 75 10pt &quot;Arial&quot;;</string>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="pushButton">
+                <widget class="QPushButton" name="new_roi_btn">
                  <property name="styleSheet">
                   <string notr="true"/>
                  </property>
                  <property name="text">
-                  <string>Add...</string>
+                  <string>New ROI</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="new_filter_btn">
+                 <property name="text">
+                  <string>New Filter</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="new_metric_btn">
+                 <property name="text">
+                  <string>New Metric</string>
                  </property>
                 </widget>
                </item>
