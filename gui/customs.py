@@ -429,6 +429,7 @@ class ProjectTree(QTreeWidget):
         self._configure_settings()
         for collection in self.mutable_copy:
             tree = self.trees[collection](self, self.mutable_copy[collection])
+            print(self.mutable_copy[collection])
             self.subtrees[collection] = tree
 
     def _configure_settings(self):
@@ -467,3 +468,12 @@ class ProjectTree(QTreeWidget):
         if self.mutable_copy != self.contents:
             return True
         return False
+
+    def add_roi(self):
+        '''TODO
+
+        '''
+
+        if 'rois' not in self.subtrees:
+            self.subtrees['rois'] = self.trees['rois'](self, [{'type': ''}])
+        subtree = self.subtrees['rois']
