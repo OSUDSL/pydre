@@ -175,6 +175,13 @@ class RoisTree(QTreeWidget):
 
         return self.rois
 
+    def add_item(self, item):
+        '''TODO
+
+        '''
+
+        print(item)
+
 
 class FiltersTree(QTreeWidget):
     '''TODO
@@ -429,7 +436,6 @@ class ProjectTree(QTreeWidget):
         self._configure_settings()
         for collection in self.mutable_copy:
             tree = self.trees[collection](self, self.mutable_copy[collection])
-            print(self.mutable_copy[collection])
             self.subtrees[collection] = tree
 
     def _configure_settings(self):
