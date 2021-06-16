@@ -43,6 +43,14 @@ def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float]=(0, 
             break
     return timeAtEnd
 
+# helper func - check if a series only contains 0
+def checkSeriesNan(series):
+    count = series.value_counts()
+    if (0 in count):
+        if (count[0] == series.size):
+            return True
+    else:
+        return False
 
 def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     total = pandas.Series(dtype='float64')
@@ -53,6 +61,7 @@ def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     for d in drivedata.data:
         var_dat = d[var]
         total = total.append(var_dat[var_dat >= cutoff])
+    
     return numpy.mean(total.values, dtype=np.float64).astype(np.float64)
 
 
@@ -251,7 +260,7 @@ def roadExitsY(drivedata: pydre.core.DriveData):
             roadOutTime += sum(deltas.SimTime[(deltas.SimTime < .5) & (deltas.SimTime > 0)])
     return roadOutTime
 
-
+# incomplete
 def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
     a = []
     t = []
@@ -658,7 +667,7 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
         glancelist_aug = glancelist
         glancelist_aug['TaskID'] = d["TaskID"].min()
         glancelist_aug['taskblock'] = d["taskblocks"].min()
-        glancelist_aug['Subject'] = d["ParticipantID"].min()
+        glancelist_aug['Subject'] = d["PartID"].min()
 
         appendDFToCSV_void(glancelist_aug, "glance_list.csv")
 
@@ -715,8 +724,9 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
 
     for d in drivedata.data:
         df = pandas.DataFrame(d)
-        if 'OwnshipVelocity' or 'LeadCarVelocity' not in df.columns:
+        if 'OwnshipVelocity' not in df.columns or 'LeadCarVelocity' not in df.columns:
             df = addVelocities(drivedata)
+            print("calling addVelocities()")
 
         v2 = df.LeadCarVelocity
         v1 = df.OwnshipVelocity
@@ -743,21 +753,21 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("DatTime", "gaze", "gazenum", "TaskNum"))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
-
+        
         if (len(df) == 0):
             continue
-
+        
         # construct table with columns [glanceduration, glancelocation, error]
         gr = df.groupby('gazenum', sort=False)
         durations = gr['DatTime'].max() - gr['DatTime'].min()
         locations = gr['gaze'].first()
         error_list = gr['TaskNum'].any()
-
+        
         glancelist = pandas.DataFrame({'duration': durations, 'locations': locations, 'errors': error_list})
         glancelist['locations'].fillna('offroad', inplace=True)
         glancelist['locations'].replace(['car.WindScreen', 'car.dashPlane', 'None'], ['onroad', 'offroad', 'offroad'],
                                         inplace=True)
-
+        
 
         glancelist_aug = glancelist
         glancelist_aug['TaskNum'] = d["TaskNum"].min()
