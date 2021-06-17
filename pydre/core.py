@@ -3,7 +3,7 @@
 import pandas
 import logging
 import sys
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('PydreLogger')
 
 
 def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFrame):
@@ -96,6 +96,6 @@ class DriveData:
 		if type(data) is not list:
 			data = [data, ]
 		self.data = data
-		if type(data) is not list:
+		if type(sourcefilename) is not list:
 			sourcefilename = [sourcefilename, ]
 		self.sourcefilename = sourcefilename
