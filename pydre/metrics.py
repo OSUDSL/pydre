@@ -22,6 +22,9 @@ logger = logging.getLogger('PydreLogger')
 
 # not registered & incomplete
 def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
+    required_col = ["Velocity"]
+    pydre.core.columnException(drivedata, required_col)
+
     timestepID = -1
     breakOut = False
     for d in drivedata.data:
@@ -36,10 +39,13 @@ def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
 
 # not registered & incomplete
 def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float]=(0, 0, 10000, 10000)):
+    required_col = ["SimTime"]
+    pydre.core.columnException(drivedata, required_col)
+
     timeAtEnd = 0
     for d in drivedata.data:
         if d.position >= pos:
-            timeAtEnd = d.simTime
+            timeAtEnd = d.SimTime
             break
     return timeAtEnd
 
@@ -53,6 +59,9 @@ def checkSeriesNan(series):
         return False
 
 def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
+    required_col = [var]
+    pydre.core.columnException(drivedata, required_col)
+
     total = pandas.Series(dtype='float64')
     # original code here: total = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
@@ -66,6 +75,9 @@ def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
 
 
 def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
+    required_col = [var]
+    pydre.core.columnException(drivedata, required_col)
+
     total = pandas.Series(dtype='float64')
     # original code here: total = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
@@ -78,6 +90,9 @@ def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
 
 
 def colMax(drivedata: pydre.core.DriveData, var: str):
+    required_col = [var]
+    pydre.core.columnException(drivedata, required_col)
+
     maxes = []
     for d in drivedata.data:
         var_dat = d[var]
@@ -86,6 +101,9 @@ def colMax(drivedata: pydre.core.DriveData, var: str):
 
 
 def colMin(drivedata: pydre.core.DriveData, var: str):
+    required_col = [var]
+    pydre.core.columnException(drivedata, required_col)
+
     mins = []
     for d in drivedata.data:
         var_dat = d[var]
@@ -94,6 +112,9 @@ def colMin(drivedata: pydre.core.DriveData, var: str):
 
 
 def meanVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
+    required_col = ["Velocity"]
+    pydre.core.columnException(drivedata, required_col)
+
     total_vel = pandas.Series(dtype='float64')
     # original code here: total_Vel = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
@@ -105,6 +126,9 @@ def meanVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
 
 def stdDevVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
+    required_col = ["Velocity"]
+    pydre.core.columnException(drivedata, required_col)
+
     total_vel = pandas.Series(dtype='float64')
     # original code here: total_Vel = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
@@ -116,10 +140,13 @@ def stdDevVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
 
 def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentage: bool = False):
+    required_col = ["SimTime", "Velocity"]
+    pydre.core.columnException(drivedata, required_col)
+
     time = 0
     total_time = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "Velocity"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         if df.shape[0] < 2:
             continue
         df['Duration'] = pandas.Series(np.gradient(df.SimTime.values), index=df.index)
@@ -145,9 +172,12 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
 
 # noisy and filtfilt are NOT case sensitive and are meaningful only when calculating MSDLP
 def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_width=3.65, car_width=2.1, offset="LaneOffset", noisy="false", filtfilt="false"):
+    required_col = ["SimTime", "DatTime", "Lane", offset]
+    pydre.core.columnException(drivedata, required_col)
+
     for d in drivedata.data:
         print("1")
-        df = pandas.DataFrame(d, columns=("SimTime", "DatTime", "Lane", offset))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         LPout = None
         if (df.size > 0):
             if (laneInfo in ["mean", "Mean"]):
@@ -234,11 +264,14 @@ def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_
 
 
 def roadExits(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "RoadOffset", "Velocity"]
+    pydre.core.columnException(drivedata, required_col)
+
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
     # Lane width 3.6m, car width 1.8m
     roadOutTime = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "RoadOffset", "Velocity"))
+        df = pandas.DataFrame(d, columns=required_col)
         outtimes = df[(df.RoadOffset > (7.2)) | (df.RoadOffset < (0)) & (df.Velocity > 1)]
         deltas = outtimes.diff()
         if deltas.shape[0] > 0:
@@ -248,11 +281,14 @@ def roadExits(drivedata: pydre.core.DriveData):
 
 
 def roadExitsY(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "YPos", "Velocity"]
+    pydre.core.columnException(drivedata, required_col)
+
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
     # Lane width 3.6m, car width 1.8m
     roadOutTime = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "YPos", "Velocity"))
+        df = pandas.DataFrame(d, columns=required_col)
         outtimes = df[(df.YPos > (7.2 - 0.9)) | (df.YPos < (0 + 0.9))]
         deltas = outtimes.diff()
         if deltas.shape[0] > 0:
@@ -262,10 +298,13 @@ def roadExitsY(drivedata: pydre.core.DriveData):
 
 # incomplete
 def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
+    required_col = ["SimTime", "LonAccel"]
+    pydre.core.columnException(drivedata, required_col)
+
     a = []
     t = []
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "LonAccel"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         a.append = df.LonAccel
         t.append = df.simTime
@@ -282,9 +321,12 @@ def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
 # cutoff doesn't work
 def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
+    required_col = ["SimTime", "Steer"]
+    pydre.core.columnException(drivedata, required_col)
+
     out = []
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "Steer"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
@@ -360,6 +402,9 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float =2):
 
 
 def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float =0, stat: str ="count"):
+    required_col = ["SimTime", "FeedbackButton", "BoxAppears"]
+    pydre.core.columnException(drivedata, required_col)
+
     total_boxclicks = pandas.Series(dtype='float64')
     # original code here: total_boxclicks = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
@@ -369,7 +414,7 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float =0, stat: str ="co
     time_buttonclicked = 0.0
     hitButton = 0;
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "FeedbackButton", "BoxAppears"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
             continue
@@ -428,9 +473,12 @@ def firstOccurance(df: pandas.DataFrame, condition: str):
 
 
 def numOfErrorPresses(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "TaskFail"]
+    pydre.core.columnException(drivedata, required_col)
+
     presses = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "TaskFail"))  # drop other columns
+        df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
         presses += p
@@ -463,9 +511,11 @@ This results in 8 reaction times per participant.
 
 
 def tbiReaction(drivedata: pydre.core.DriveData, type: str="brake", index: int =0):
+    required_col = ["SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"]
+    pydre.core.columnException(drivedata, required_col)
+
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=(
-        "SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"))
+        df = pandas.DataFrame(d, columns=(required_col))
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
             continue
@@ -510,10 +560,12 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str="brake", index: int =
 
 
 def ecoCar(drivedata: pydre.core.DriveData, FailCode: str ="1", stat: str ="mean"):
+    required_col = ["SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer", "AutonomousDriving"]
+    pydre.core.columnException(drivedata, required_col)
+
     event = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer",
-                                          "AutonomousDriving"))  # drop other columns
+        df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
@@ -641,9 +693,12 @@ def appendDFToCSV_void(df, csvFilePath: str, sep: str =","):
 
 
 def gazeNHTSA(drivedata: pydre.core.DriveData):
+    required_col = ["VidTime", "gaze", "gazenum", "TaskFail", "taskblocks", "PartID"]
+    pydre.core.columnException(drivedata, required_col)
+
     numofglances = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("VidTime", "gaze", "gazenum", "TaskFail"))  # drop other columns
+        df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
@@ -749,9 +804,12 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
             return 0.0
 
 def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
+    required_col = ["DatTime", "gaze", "gazenum", "TaskNum", "taskblocks", "PartID"]
+    pydre.core.columnException(drivedata, required_col)
+            
     numofglances = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("DatTime", "gaze", "gazenum", "TaskNum"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         
         if (len(df) == 0):
@@ -793,6 +851,9 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     return [None, None, None, None]
 
 def getTaskNum(drivedata: pydre.core.DriveData):
+    required_col = ["TaskNum"]
+    pydre.core.columnException(drivedata, required_col)
+
     taskNum = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d)
@@ -801,6 +862,8 @@ def getTaskNum(drivedata: pydre.core.DriveData):
             return taskNum[0]
         else:
             return None  
+
+
 
 
 
