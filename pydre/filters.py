@@ -16,7 +16,11 @@ logger = logging.getLogger('PydreLogger')
 
 def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
     required_col = ["TaskStatus"]
-    pydre.core.columnException(drivedata, required_col)
+    diff = drivedata.checkColumns(required_col)
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
 
     copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
@@ -34,7 +38,11 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
 
 def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
     required_col = [timeColName, gazeColName]
-    pydre.core.columnException(drivedata, required_col)
+    diff = drivedata.checkColumns(required_col)
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
 
     #copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
     #                                     drivedata.data, drivedata.sourcefilename)
