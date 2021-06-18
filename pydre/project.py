@@ -137,6 +137,7 @@ class Project():
                     e))
             sys.exit(1)
 
+
         if len(col_names) > 1:
             x = [metric_func(d, **metric) for d in dataset]
             report = pandas.DataFrame(x, columns=col_names)
@@ -170,37 +171,44 @@ class Project():
 
         self.loadFileList(datafiles)
         data_set = []
+        
+        result_data = None
+        try:
 
-        if 'filters' in self.definition:
-            for filter in self.definition['filters']:
-                self.processFilter(filter, self.raw_data)
+            if 'filters' in self.definition:
+                for filter in self.definition['filters']:
+                    self.processFilter(filter, self.raw_data)
 
-        if 'rois' in self.definition:
-            for roi in self.definition['rois']:
-                data_set.extend(self.processROI(roi, self.raw_data))
-        else:
-            # no ROIs to process, but that's OK
-            logger.warning("No ROIs, processing raw data.")
-            data_set = self.raw_data
+            if 'rois' in self.definition:
+                for roi in self.definition['rois']:
+                    data_set.extend(self.processROI(roi, self.raw_data))
+            else:
+                # no ROIs to process, but that's OK
+                logger.warning("No ROIs, processing raw data.")
+                data_set = self.raw_data
 
-        logger.info("number of datafiles: {}, number of rois: {}".format(
-            len(datafiles), len(data_set)))
+            logger.info("number of datafiles: {}, number of rois: {}".format(
+                len(datafiles), len(data_set)))
 
-        # for filter in self.definition['filters']:
-        #     self.processFilter(filter, data_set)
-        result_data = pandas.DataFrame()
-        result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
-        result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
-        result_data['ROI'] = pandas.Series([d.roi for d in data_set])
-        # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
-        # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
+            # for filter in self.definition['filters']:
+            #     self.processFilter(filter, data_set)
+            result_data = pandas.DataFrame()
+            result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
+            result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
+            result_data['ROI'] = pandas.Series([d.roi for d in data_set])
+            # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
+            # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
+            
 
-        processed_metrics = [result_data]
+            processed_metrics = [result_data]
+        
+            for metric in self.definition['metrics']:
+                processed_metric = self.processMetric(metric, data_set)
+                processed_metrics.append(processed_metric)
+            result_data = pandas.concat(processed_metrics, axis=1)
+        except pydre.core.ColumnsMatchError as e:
+            sys.exit(1)
 
-        for metric in self.definition['metrics']:
-            processed_metric = self.processMetric(metric, data_set)
-            processed_metrics.append(processed_metric)
-        result_data = pandas.concat(processed_metrics, axis=1)
         self.results = result_data
         return result_data
 

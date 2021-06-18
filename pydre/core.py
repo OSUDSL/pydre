@@ -4,8 +4,8 @@ import pandas
 import logging
 import sys
 
-from contextlib import contextmanager
-from inspect import currentframe, getframeinfo
+#from contextlib import contextmanager
+#from inspect import currentframe, getframeinfo
 logger = logging.getLogger(__name__)
 
 
@@ -119,21 +119,25 @@ class DriveData:
 		return difference
 
 # ------ exception handling ------
-@contextmanager
-def disable_exception_traceback():
+
+def funcName(): #:return: name of caller
+    return sys._getframe(1).f_code.co_name
+
+#@contextmanager
+#def disable_exception_traceback():
     """
     All traceback information is suppressed and only the exception type and value are printed
     """
-    default_value = getattr(sys, "tracebacklimit", 1000)  # `1000` is Python's default value
-    sys.tracebacklimit = 0
-    yield
-    sys.tracebacklimit = default_value  # revert changes
+#    default_value = getattr(sys, "tracebacklimit", 1000)  # `1000` is Python's default value
+#    sys.tracebacklimit = 0
+#    yield
+#    sys.tracebacklimit = default_value  # revert changes
 
-def columnException(drivedata, required_col):
-    diff = drivedata.checkColumns(required_col)
-    if (len(diff) > 0):
-        with disable_exception_traceback():
-            raise ColumnsMatchError("Can't find needed columns " + str(diff) + " in data file " + drivedata.sourcefilename)
+#def columnException(drivedata, required_col):
+#    diff = drivedata.checkColumns(required_col)
+#    if (len(diff) > 0):
+#        with disable_exception_traceback():
+#            raise ColumnsMatchError("Can't find needed columns " + str(diff) + " in data file " + drivedata.sourcefilename)
 	
 
 class ColumnsMatchError(Exception):
