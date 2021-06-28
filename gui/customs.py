@@ -481,5 +481,10 @@ class ProjectTree(QTreeWidget):
         '''
 
         if 'rois' not in self.subtrees:
-            self.subtrees['rois'] = self.trees['rois'](self, [{'type': ''}])
-        subtree = self.subtrees['rois']
+            self.subtrees['rois'] = self.trees['rois'](
+                self, [{'type': 'new_ROI'}])
+        branch = self.subtrees['rois']
+        leaf = QTreeWidgetItem(branch)
+        def cb(e): return None  # FIXME
+        line_edit = LeafWidget().line_edit('Test', 'Test', cb)
+        self.setItemWidget(leaf, 0, line_edit)
