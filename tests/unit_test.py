@@ -5,6 +5,8 @@ from pydre import filters
 from pydre import metrics
 import os
 import glob
+import contextlib
+import io
 from tests.sample_pydre import project as samplePD
 import pandas
 import numpy as np
@@ -38,10 +40,11 @@ class TestPydre(unittest.TestCase):
     ac_diff = 0.000001  
     # the acceptable difference between expected & actual results when testing scipy functions
 
+
     def setUp(self):
         # self.whatever to access them in the rest of the script, runs before other scripts
         self.projectlist = ["honda.json"]
-        self.datalist = ["Speedbump_Sub_8_Drive_1.dat"]
+        self.datalist = ["Speedbump_Sub_8_Drive_1.dat", "ColTest_Sub_10_Drive_1.dat"]
         self.zero = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         funcName = ' [ ' + self._testMethodName + ' ] ' # the name of test function that will be executed right after this setUp()
@@ -66,7 +69,7 @@ class TestPydre(unittest.TestCase):
         fullpath = glob.glob(os.path.join(os.getcwd(), "tests/test_datfiles/" ,datafile))
         return fullpath
     
-    # convert a drivedata object to a str, so the outputs are easier to compare under some scenarios
+    # convert a drivedata object to a str
     def dd_to_str(self, drivedata: core.DriveData):
         output = ""
         output += str(drivedata.PartID)
@@ -95,6 +98,17 @@ class TestPydre(unittest.TestCase):
         expected_results = (sample_p.run(self.datafileselect(0))).to_string()
 
         self.assertEqual(finalresults, expected_results)
+
+    def test_columnMatchException_1(self):
+        f = io.StringIO()
+        with self.assertRaises(SystemExit) as cm, contextlib.redirect_stderr(f):
+            desiredproj = self.projectfileselect(0)
+            p = project.Project(desiredproj)
+            result = p.run(self.datafileselect(1))
+        expected_console_output = "Can't find needed columns {'FILTERED_GAZE_OBJ_NAME'} in data file F:\\DSL\\DSL Pydre\\readOnly\\pydre\\tests/test_datfiles/ColTest_Sub_10_Drive_1.dat | function: smoothGazeData"
+        self.assertIn(expected_console_output, f.getvalue())
+        #print(f.getvalue())
+        self.assertEqual(cm.exception.code, 1)
 
     def test_core_sliceByTime_1(self):
         d = {'col1': [1, 2, 3, 4, 5, 6], 'col2': [7, 8, 9, 10, 11, 12]}
