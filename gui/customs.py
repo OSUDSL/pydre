@@ -259,9 +259,19 @@ class FiltersTree(QTreeWidget):
 
         if not update:
             value = self.filters[index]['function']
-        self._update_filter_function(index, value)
+        self.update_filter_function(index, value)
 
-    def _update_filter_function(self, index, value):
+    def _update_argument(self, index, values, argument, type_):
+        '''TODO
+
+        '''
+
+        if argument in values:
+            self.filters[index][argument] = values[argument]
+        else:
+            self.filters[index][argument] = '' if type_ == str else 0
+
+    def update_filter_function(self, index, value):
         '''TODO
 
         '''
@@ -277,16 +287,6 @@ class FiltersTree(QTreeWidget):
             type_ = types[argument]
             self._update_argument(index, self.values, argument, type_)
             self._configure_leaf(branch, index, argument)
-
-    def _update_argument(self, index, values, argument, type_):
-        '''TODO
-
-        '''
-
-        if argument in values:
-            self.filters[index][argument] = values[argument]
-        else:
-            self.filters[index][argument] = '' if type_ == str else 0
 
     def get_collection(self):
         '''TODO
@@ -372,9 +372,19 @@ class MetricsTree(QTreeWidget):
 
         if not update:
             value = self.metrics[index]['function']
-        self._update_metric_function(index, value)
+        self.update_metric_function(index, value)
 
-    def _update_metric_function(self, index, value):
+    def _update_argument(self, index, values, argument, type_):
+        '''TODO
+
+        '''
+
+        if argument in values:
+            self.metrics[index][argument] = values[argument]
+        else:
+            self.metrics[index][argument] = '' if type_ == str else 0
+
+    def update_metric_function(self, index, value):
         '''TODO
 
         '''
@@ -390,16 +400,6 @@ class MetricsTree(QTreeWidget):
             type_ = types[argument]
             self._update_argument(index, self.values, argument, type_)
             self._configure_leaf(branch, index, argument)
-
-    def _update_argument(self, index, values, argument, type_):
-        '''TODO
-
-        '''
-
-        if argument in values:
-            self.metrics[index][argument] = values[argument]
-        else:
-            self.metrics[index][argument] = '' if type_ == str else 0
 
     def get_collection(self):
         '''TODO
@@ -511,6 +511,9 @@ class ProjectTree(QTreeWidget):
         else:
             self.mutable_copy['filters'].append(new_filter)
         self._configure_widget()
+        index = len(self.mutable_copy['filters']) - 1
+        value = new_filter['function']
+        self.subtrees['filters'].update_filter_function(index, value)
 
     def add_metric(self):
         '''TODO
@@ -527,3 +530,6 @@ class ProjectTree(QTreeWidget):
         else:
             self.mutable_copy['metrics'].append(new_metric)
         self._configure_widget()
+        index = len(self.mutable_copy['metrics']) - 1
+        value = new_metric['function']
+        self.subtrees['metrics'].update_metric_function(index, value)
