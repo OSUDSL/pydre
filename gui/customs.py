@@ -426,6 +426,7 @@ class ProjectTree(QTreeWidget):
             'metrics': lambda r, c: MetricsTree(r, c)
         }
         self.subtrees = {}
+        self._configure_settings()
         self._configure_widget()
 
     def _configure_widget(self):
@@ -433,7 +434,6 @@ class ProjectTree(QTreeWidget):
 
         '''
 
-        self._configure_settings()
         for collection in self.mutable_copy:
             tree = self.trees[collection](self, self.mutable_copy[collection])
             self.subtrees[collection] = tree
@@ -480,11 +480,10 @@ class ProjectTree(QTreeWidget):
 
         '''
 
-        if 'rois' not in self.subtrees:
-            self.subtrees['rois'] = self.trees['rois'](
-                self, [{'type': 'new_ROI'}])
-        branch = self.subtrees['rois']
-        leaf = QTreeWidgetItem(branch)
-        def cb(e): return None  # FIXME
-        line_edit = LeafWidget().line_edit('Test', 'Test', cb)
-        self.setItemWidget(leaf, 0, line_edit)
+        self.clear()
+        new_roi = {'type': 'roi_type', 'filename': 'roi_file'}
+        if 'rois' not in self.mutable_copy:
+            self.mutable_copy['rois'] = [new_roi]
+        else:
+            self.mutable_copy['rois'].append(new_roi)
+        self._configure_widget()

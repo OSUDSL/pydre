@@ -269,7 +269,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
                   <string/>
                  </property>
                  <property name="margin">
-                  <number>1</number>
+                  <number>2</number>
                  </property>
                 </widget>
                </item>
