@@ -221,7 +221,10 @@ class MainWindow(Window):
 
         '''
 
-        print('New Filter')
+        index = self.ui.pfile_tab.currentIndex()
+        pfile_name = self.ui.pfile_tab.tabText(index)
+        project_tree = self.project_files[pfile_name][1]
+        project_tree.add_filter()
 
     def _handle_new_metric(self):
         '''TODO
