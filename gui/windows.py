@@ -231,7 +231,10 @@ class MainWindow(Window):
 
         '''
 
-        print('New Metric')
+        index = self.ui.pfile_tab.currentIndex()
+        pfile_name = self.ui.pfile_tab.tabText(index)
+        project_tree = self.project_files[pfile_name][1]
+        project_tree.add_metric()
 
     def _handle_add_dfile(self):
         '''TODO
