@@ -426,6 +426,8 @@ class ProjectTree(QTreeWidget):
             'metrics': lambda r, c: MetricsTree(r, c)
         }
         self.subtrees = {}
+        self.roi_counter = 1
+        self.filter_counter = 1
         self._configure_settings()
         self._configure_widget()
 
@@ -481,9 +483,30 @@ class ProjectTree(QTreeWidget):
         '''
 
         self.clear()
-        new_roi = {'type': 'roi_type', 'filename': 'roi_file'}
+        new_roi = {
+            'type': f'roi_type_{self.roi_counter}', 
+            'filename': 'roi_file'
+        }
+        self.roi_counter += 1
         if 'rois' not in self.mutable_copy:
             self.mutable_copy['rois'] = [new_roi]
         else:
             self.mutable_copy['rois'].append(new_roi)
+        self._configure_widget()
+
+    def add_filter(self):
+        '''TODO
+        
+        '''
+
+        self.clear()
+        new_filter = {
+            'name': f'filter_name_{self.filter_counter}', 
+            'function': list(filters.filtersList.keys())[0]
+        }
+        self.filter_counter += 1
+        if 'filters' not in self.mutable_copy:
+            self.mutable_copy['filters'] = [new_filter]
+        else:
+            self.mutable_copy['filters'].append(new_filter)
         self._configure_widget()
