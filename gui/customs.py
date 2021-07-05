@@ -49,15 +49,13 @@ class WidgetFactory:
         return spin_box
 
     @staticmethod
-    def line_edit(value, cb, border=True):
+    def line_edit(value, cb):
         '''TODO
 
         '''
 
         line_edit = QLineEdit()
         line_edit.setText(value)
-        if not border:
-            line_edit.setStyleSheet('border: none;')
         line_edit.textChanged.connect(cb)
         return line_edit
 
@@ -145,7 +143,7 @@ class RoisTree(QTreeWidget):
         roi = self.rois[index]
         self.branches[roi['type']] = branch
         def cb(e): return self._update_roi(index, attribute, e)
-        line_edit = WidgetFactory.line_edit(roi['type'], cb, False)
+        line_edit = WidgetFactory.line_edit(roi['type'], cb)
         for attribute in filter(lambda a: a != 'type', roi):
             self._configure_leaf(branch, index, attribute)
         self.root.setItemWidget(branch, 0, line_edit)
@@ -221,7 +219,7 @@ class FiltersTree(QTreeWidget):
         filter_ = self.filters[index]
         self.branches[filter_['name']] = branch
         def cb(e): return self._update_filters(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(filter_['name'], cb, False)
+        line_edit = WidgetFactory.line_edit(filter_['name'], cb)
         for attribute in filter(lambda a: a != 'name', filter_):
             self._configure_leaf(branch, index, attribute)
         self.root.setItemWidget(branch, 0, line_edit)
@@ -334,7 +332,7 @@ class MetricsTree(QTreeWidget):
         metric = self.metrics[index]
         self.branches[metric['name']] = branch
         def cb(e): return self._update_metric(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(metric['name'], cb, False)
+        line_edit = WidgetFactory.line_edit(metric['name'], cb)
         for attribute in filter(lambda a: a != 'name', metric):
             self._configure_leaf(branch, index, attribute)
         self.root.setItemWidget(branch, 0, line_edit)
@@ -494,6 +492,7 @@ class ProjectTree(QTreeWidget):
         else:
             self.mutable_copy['rois'].append(new_roi)
         self._configure_widget()
+        rois_tree = self.subtrees['rois']
 
     def add_filter(self):
         '''TODO
@@ -513,7 +512,8 @@ class ProjectTree(QTreeWidget):
         self._configure_widget()
         index = len(self.mutable_copy['filters']) - 1
         value = new_filter['function']
-        self.subtrees['filters'].update_filter_function(index, value)
+        filters_tree = self.subtrees['filters']
+        filters_tree.update_filter_function(index, value)
 
     def add_metric(self):
         '''TODO
@@ -525,6 +525,7 @@ class ProjectTree(QTreeWidget):
             'name': f'new_metric_{self.metric_counter}',
             'function': list(metrics.metricsList.keys())[0]
         }
+        self.metric_counter += 1
         if 'metrics' not in self.mutable_copy:
             self.mutable_copy['metrics'] = [new_metric]
         else:
@@ -532,4 +533,5 @@ class ProjectTree(QTreeWidget):
         self._configure_widget()
         index = len(self.mutable_copy['metrics']) - 1
         value = new_metric['function']
-        self.subtrees['metrics'].update_metric_function(index, value)
+        metrics_tree = self.subtrees['metrics']
+        metrics_tree.update_metric_function(index, value)
