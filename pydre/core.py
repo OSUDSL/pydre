@@ -102,3 +102,19 @@ class DriveData:
 		if type(data) is not list:
 			sourcefilename = [sourcefilename, ]
 		self.sourcefilename = sourcefilename
+
+	def checkColumns(self, col):
+		expected_col = col
+		difference = []
+		for df in self.data:
+			df_col = (df.columns).tolist()
+			if (len(expected_col) != len(df_col)):
+				logger.error("The numbers of columns do not match")
+				difference = set(expected_col) - set(df_col)
+				break
+			elif (expected_col.sort() != df_col.sort()):
+				logger.error("Columns do not match")
+				difference = set(expected_col) - set(df_col)
+				break
+		return difference
+
