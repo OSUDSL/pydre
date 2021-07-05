@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import pydre
+import time
 from PySide2.QtWidgets import QFileDialog
 from gui.config import Config, CONFIG_PATH, GUI_PATH
 from gui.customs import ProjectTree
@@ -119,10 +120,13 @@ class MainWindow(Window):
 
         '''
 
+        level = self.ui.level_box.currentText()
         entry = self.ui.log_inp.text()
         if entry:
-            logger.info(entry)
-            self.ui.log_lst.addItem(entry)
+            now = time.localtime()
+            now_time = time.strftime('%H:%M:%S', now)
+            msg = f'{now_time} - {level}: {entry}'
+            self.ui.log_lst.addItem(msg)
             self.ui.log_lst.scrollToBottom()
             self.ui.log_inp.clear()
 

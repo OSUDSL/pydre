@@ -358,6 +358,35 @@ font: 75 10pt &quot;Arial&quot;;</string>
                </widget>
               </item>
               <item>
+               <widget class="QComboBox" name="level_box">
+                <item>
+                 <property name="text">
+                  <string>DEBUG</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>INFO</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>WARNING</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ERROR</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>CRITICAL</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item>
                <widget class="QLineEdit" name="log_inp">
                 <property name="styleSheet">
                  <string notr="true"/>
