@@ -221,7 +221,6 @@ class ErrorPopup(QMessageBox):
         
         '''
 
-        self.setLabelText(text)
-        self.who()
-        self.app.processEvents()
+        self.setText(text)
+        self.show()
         return self

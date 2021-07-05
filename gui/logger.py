@@ -21,5 +21,6 @@ class GUIHandler(Handler):
         level = record.levelname
         msg = f'{now_time} - {level}: {record.msg}'
         self.window.add_to_log(msg)
-        if level == 'ERROR' and 'columns' in msg.lower():
-            print('error')
+        if level not in ('DEBUG', 'INFO', 'WARNING'):
+            error_msg = f'{level}: {record.msg}'
+            self.window.show_error(error_msg)
