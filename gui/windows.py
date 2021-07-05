@@ -85,6 +85,7 @@ class MainWindow(Window):
         self.ui.new_roi_btn.clicked.connect(self._handle_new_roi)
         self.ui.new_filter_btn.clicked.connect(self._handle_new_filter)
         self.ui.new_metric_btn.clicked.connect(self._handle_new_metric)
+        self.ui.remove_item_btn.clicked.connect(self._handle_remove_item)
         self.ui.add_btn.clicked.connect(self._handle_add_dfile)
         self.ui.remove_btn.clicked.connect(self._handle_remove_dfile)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
@@ -235,6 +236,16 @@ class MainWindow(Window):
         pfile_name = self.ui.pfile_tab.tabText(index)
         project_tree = self.project_files[pfile_name][1]
         project_tree.add_metric()
+    
+    def _handle_remove_item(self):
+        '''TODO
+        
+        '''
+
+        index = self.ui.pfile_tab.currentIndex()
+        pfile_name = self.ui.pfile_tab.tabText(index)
+        project_tree = self.project_files[pfile_name][1]
+        project_tree.remove_selected()
 
     def _handle_add_dfile(self):
         '''TODO
