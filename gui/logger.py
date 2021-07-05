@@ -18,5 +18,8 @@ class GUIHandler(Handler):
 
         now = time.localtime()
         now_time = time.strftime('%H:%M:%S', now)
-        msg = f'{now_time} - {record.levelname}: {record.msg}'
+        level = record.levelname
+        msg = f'{now_time} - {level}: {record.msg}'
         self.window.add_to_log(msg)
+        if level == 'ERROR' and 'columns' in msg.lower():
+            print('error')

@@ -190,3 +190,38 @@ class ProgressPopup(QProgressDialog):
         self.show()
         self.app.processEvents()
         return self
+
+
+class ErrorPopup(QMessageBox):
+    '''TODO
+    
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        icon_path = os.path.join(GUI_PATH, config.get('Icons', 'main'))
+        self.icon = QIcon(icon_path)
+        self.setWindowIcon(self.icon)
+        self.setWindowTitle('PyDre')
+        self._configure_popup()
+
+    def _configure_popup(self):
+        '''TODO
+        
+        '''
+
+        self.setIcon(QMessageBox.Critical)
+        buttons = QMessageBox.Ok
+        self.setStandardButtons(buttons)
+        self.setDefaultButton(QMessageBox.Ok)
+
+    def show_(self, text, _=None):
+        '''TODO
+        
+        '''
+
+        self.setLabelText(text)
+        self.who()
+        self.app.processEvents()
+        return self
