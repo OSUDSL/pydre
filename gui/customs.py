@@ -535,3 +535,12 @@ class ProjectTree(QTreeWidget):
         value = new_metric['function']
         metrics_tree = self.subtrees['metrics']
         metrics_tree.update_metric_function(index, value)
+
+    def remove_selected(self):
+        '''TODO
+        
+        '''
+
+        root = self.invisibleRootItem()
+        for item in self.selectedItems():
+            (item.parent() or root).removeChild(item)
