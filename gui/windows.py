@@ -13,7 +13,7 @@ from PySide2.QtWidgets import QFileDialog
 from gui.config import Config, CONFIG_PATH, GUI_PATH
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
-from gui.popups import OutputPopup, ProgressPopup, SavePopup
+from gui.popups import ErrorPopup, OutputPopup, ProgressPopup, SavePopup
 from gui.templates import Window
 
 config = Config()
@@ -381,6 +381,13 @@ class MainWindow(Window):
 
         self.ui.log_lst.addItem(entry)
         self.ui.log_lst.scrollToBottom()
+
+    def show_error(self, error):
+        '''TODO
+        
+        '''
+
+        ErrorPopup(parent=self).show_(error)
 
     def switch_to_start(self):
         '''Swithes to the start page (page 1 / 3).
