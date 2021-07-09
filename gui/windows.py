@@ -240,10 +240,10 @@ class MainWindow(Window):
         pfile_name = self.ui.pfile_tab.tabText(index)
         project_tree = self.project_files[pfile_name][1]
         project_tree.add_metric()
-    
+
     def _handle_remove_item(self):
         '''TODO
-        
+
         '''
 
         index = self.ui.pfile_tab.currentIndex()
@@ -307,7 +307,7 @@ class MainWindow(Window):
 
         '''
 
-        if self.ui.pfile_tab.currentWidget().changed():
+        if self.ui.pfile_tab.widget(index).changed():
             pfile_name = self.ui.pfile_tab.tabText(index)
             text = f"{pfile_name} " + config.get('Popup Text', 'save')
             def cb(e): return self._handle_close(index, e)
@@ -384,7 +384,7 @@ class MainWindow(Window):
 
     def show_error(self, error):
         '''TODO
-        
+
         '''
 
         ErrorPopup(parent=self).show_(error)
