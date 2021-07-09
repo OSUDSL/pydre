@@ -543,4 +543,5 @@ class ProjectTree(QTreeWidget):
 
         root = self.invisibleRootItem()
         for item in self.selectedItems():
+            print(item.text(0))
             (item.parent() or root).removeChild(item)
