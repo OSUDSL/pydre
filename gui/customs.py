@@ -417,6 +417,14 @@ class MetricsTree(QTreeWidget):
 
         return self.metrics
 
+    def expand(self):
+        '''TODO
+        
+        '''
+
+        print('test')
+        self.expandToDepth(0)
+
 
 class ProjectTree(QTreeWidget):
     '''Custom tree widget for displaying and editing project files.
@@ -461,7 +469,6 @@ class ProjectTree(QTreeWidget):
         self.setStyleSheet(stylesheet)
         self.setAnimated(True)
         self.setHeaderHidden(True)
-        self.setFocusPolicy(Qt.NoFocus)
 
     def get_contents(self):
         '''TODO
@@ -546,6 +553,7 @@ class ProjectTree(QTreeWidget):
         value = new_metric['function']
         metrics_tree = self.subtrees['metrics']
         metrics_tree.update_metric_function(index, value)
+        metrics_tree.expand()
 
     def remove_selected(self):
         '''TODO
