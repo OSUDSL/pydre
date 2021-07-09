@@ -454,7 +454,7 @@ class ProjectTree(QTreeWidget):
 
         '''
 
-        for collection in self.items_copy:
+        for collection in sorted(self.items_copy):
             tree = self.trees[collection](self, self.items_copy[collection])
             self.subtrees[collection] = tree
         self.expandToDepth(0)
