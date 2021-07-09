@@ -117,7 +117,7 @@ class LeafWidget(QWidget):
 
     def text(self):
         '''TODO
-        
+
         '''
 
         return self.text_
@@ -419,7 +419,7 @@ class MetricsTree(QTreeWidget):
 
     def expand(self):
         '''TODO
-        
+
         '''
 
         print('test')
@@ -457,7 +457,7 @@ class ProjectTree(QTreeWidget):
         for collection in self.mutable_copy:
             tree = self.trees[collection](self, self.mutable_copy[collection])
             self.subtrees[collection] = tree
-        self.expandToDepth(0)   
+        self.expandToDepth(0)
 
     def _configure_settings(self):
         '''TODO
@@ -502,7 +502,7 @@ class ProjectTree(QTreeWidget):
 
         self.clear()
         new_roi = {
-            'type': f'new_roi_{self.roi_counter}', 
+            'type': f'new_roi_{self.roi_counter}',
             'filename': 'roi_file'
         }
         self.roi_counter += 1
@@ -511,16 +511,16 @@ class ProjectTree(QTreeWidget):
         else:
             self.mutable_copy['rois'].append(new_roi)
         self._configure_widget()
-        rois_tree = self.subtrees['rois']
+        # rois_tree = self.subtrees['rois']
 
     def add_filter(self):
         '''TODO
-        
+
         '''
 
         self.clear()
         new_filter = {
-            'name': f'new_filter_{self.filter_counter}', 
+            'name': f'new_filter_{self.filter_counter}',
             'function': list(filters.filtersList.keys())[0]
         }
         self.filter_counter += 1
@@ -536,7 +536,7 @@ class ProjectTree(QTreeWidget):
 
     def add_metric(self):
         '''TODO
-        
+
         '''
 
         self.clear()
@@ -557,7 +557,7 @@ class ProjectTree(QTreeWidget):
 
     def remove_selected(self):
         '''TODO
-        
+
         '''
 
         root = self.invisibleRootItem()
@@ -569,6 +569,12 @@ class ProjectTree(QTreeWidget):
             elif type(item_widget) == QLineEdit:
                 parent = item.parent().text(0)
                 name = item_widget.text()
-                self.mutable_copy[parent] = [i for i in 
-                    self.mutable_copy[parent] if i['name'] != name]
+                if 'name' in self.mutable_copy[parent][0].keys():
+                    self.mutable_copy[parent] = [
+                        i for i in self.mutable_copy[parent] if i['name'] != name
+                    ]
+                else:
+                    self.mutable_copy[parent] = [
+                        i for i in self.mutable_copy[parent] if i['type'] != name
+                    ]
                 (item.parent() or root).removeChild(item)
