@@ -435,8 +435,8 @@ class ProjectTree(QTreeWidget):
         super().__init__(*args, **kwargs)
 
         self.project_file = project_file
-        self.contents = json.load(open(self.project_file))
-        self.mutable_copy = copy.deepcopy(self.contents)
+        self.items_ = json.load(open(self.project_file))
+        self.items_copy = copy.deepcopy(self.items_)
         self.trees = {
             'rois': lambda r, c: RoisTree(r, c),
             'filters': lambda r, c: FiltersTree(r, c),
@@ -454,8 +454,8 @@ class ProjectTree(QTreeWidget):
 
         '''
 
-        for collection in self.mutable_copy:
-            tree = self.trees[collection](self, self.mutable_copy[collection])
+        for collection in self.items_copy:
+            tree = self.trees[collection](self, self.items_copy[collection])
             self.subtrees[collection] = tree
         self.expandToDepth(0)
 
@@ -477,21 +477,21 @@ class ProjectTree(QTreeWidget):
         '''
 
         self.update_contents()
-        return self.contents
+        return self.items_
 
     def update_contents(self):
         '''TODO
 
         '''
 
-        self.contents = self.mutable_copy
+        self.items_ = self.items_copy
 
     def changed(self):
         '''TODO
 
         '''
 
-        if self.mutable_copy != self.contents:
+        if self.items_copy != self.items_:
             return True
         return False
 
@@ -506,10 +506,10 @@ class ProjectTree(QTreeWidget):
             'filename': 'roi_file'
         }
         self.roi_counter += 1
-        if 'rois' not in self.mutable_copy:
-            self.mutable_copy['rois'] = [new_roi]
+        if 'rois' not in self.items_copy:
+            self.items_copy['rois'] = [new_roi]
         else:
-            self.mutable_copy['rois'].append(new_roi)
+            self.items_copy['rois'].append(new_roi)
         self._configure_widget()
         # rois_tree = self.subtrees['rois']
 
@@ -524,12 +524,12 @@ class ProjectTree(QTreeWidget):
             'function': list(filters.filtersList.keys())[0]
         }
         self.filter_counter += 1
-        if 'filters' not in self.mutable_copy:
-            self.mutable_copy['filters'] = [new_filter]
+        if 'filters' not in self.items_copy:
+            self.items_copy['filters'] = [new_filter]
         else:
-            self.mutable_copy['filters'].append(new_filter)
+            self.items_copy['filters'].append(new_filter)
         self._configure_widget()
-        index = len(self.mutable_copy['filters']) - 1
+        index = len(self.items_copy['filters']) - 1
         value = new_filter['function']
         filters_tree = self.subtrees['filters']
         filters_tree.update_filter_function(index, value)
@@ -539,18 +539,18 @@ class ProjectTree(QTreeWidget):
 
         '''
 
-        self.clear()
         new_metric = {
             'name': f'new_metric_{self.metric_counter}',
             'function': list(metrics.metricsList.keys())[0]
         }
         self.metric_counter += 1
-        if 'metrics' not in self.mutable_copy:
-            self.mutable_copy['metrics'] = [new_metric]
+        if 'metrics' not in self.items_copy:
+            self.items_copy['metrics'] = [new_metric]
         else:
-            self.mutable_copy['metrics'].append(new_metric)
+            self.items_copy['metrics'].append(new_metric)
+        self.clear()
         self._configure_widget()
-        index = len(self.mutable_copy['metrics']) - 1
+        index = len(self.items_copy['metrics']) - 1
         value = new_metric['function']
         metrics_tree = self.subtrees['metrics']
         metrics_tree.update_metric_function(index, value)
@@ -560,21 +560,22 @@ class ProjectTree(QTreeWidget):
 
         '''
 
-        root = self.invisibleRootItem()
         for item in self.selectedItems():
             item_widget = self.itemWidget(item, 0)
             if not item_widget:
-                del self.mutable_copy[item.text(0)]
-                (item.parent() or root).removeChild(item)
+                del self.items_copy[item.text(0)]
             elif type(item_widget) == QLineEdit:
                 parent = item.parent().text(0)
                 name = item_widget.text()
-                if 'name' in self.mutable_copy[parent][0].keys():
-                    self.mutable_copy[parent] = [
-                        i for i in self.mutable_copy[parent] if i['name'] != name
+                if 'name' in self.items_copy[parent][0].keys():
+                    self.items_copy[parent] = [
+                        i for i in self.items_copy[parent] if i['name'] != name
                     ]
                 else:
-                    self.mutable_copy[parent] = [
-                        i for i in self.mutable_copy[parent] if i['type'] != name
+                    self.items_copy[parent] = [
+                        i for i in self.items_copy[parent] if i['type'] != name
                     ]
-                (item.parent() or root).removeChild(item)
+            if len(self.items_copy[parent]) == 0:
+                del self.items_copy[parent]
+        self.clear()
+        self._configure_widget()
