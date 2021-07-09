@@ -575,7 +575,7 @@ class ProjectTree(QTreeWidget):
                     self.items_copy[parent] = [
                         i for i in self.items_copy[parent] if i['type'] != name
                     ]
-            if len(self.items_copy[parent]) == 0:
-                del self.items_copy[parent]
+                if len(self.items_copy[parent]) == 0:
+                    del self.items_copy[parent]
         self.clear()
         self._configure_widget()
