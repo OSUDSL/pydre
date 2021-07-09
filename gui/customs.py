@@ -69,6 +69,7 @@ class LeafWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.layout = QHBoxLayout()
+        self.text_ = None
 
     def _configure_layout(self, text, widget):
         '''TODO
@@ -85,6 +86,7 @@ class LeafWidget(QWidget):
 
         '''
 
+        self.text_ = text
         combo_box = WidgetFactory.combo_box(value, cb, items)
         combo_box.setFixedHeight(30)
         self._configure_layout(text, combo_box)
@@ -95,6 +97,7 @@ class LeafWidget(QWidget):
 
         '''
 
+        self.text_ = text
         spin_box = WidgetFactory.spin_box(value, cb)
         self._configure_layout(text, spin_box)
         spin_box.setFixedHeight(30)
@@ -105,11 +108,19 @@ class LeafWidget(QWidget):
 
         '''
 
+        self.text_ = text
         line_edit = WidgetFactory.line_edit(value, cb)
         line_edit.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self._configure_layout(text, line_edit)
         line_edit.setFixedHeight(30)
         return self
+
+    def text(self):
+        '''TODO
+        
+        '''
+
+        return self.text_
 
 
 class RoisTree(QTreeWidget):
@@ -543,5 +554,13 @@ class ProjectTree(QTreeWidget):
 
         root = self.invisibleRootItem()
         for item in self.selectedItems():
-            print(item.text(0))
-            (item.parent() or root).removeChild(item)
+            item_widget = self.itemWidget(item, 0)
+            if not item_widget:
+                del self.mutable_copy[item.text(0)]
+                (item.parent() or root).removeChild(item)
+            elif type(item_widget) == QLineEdit:
+                parent = item.parent().text(0)
+                name = item_widget.text()
+                self.mutable_copy[parent] = [i for i in 
+                    self.mutable_copy[parent] if i['name'] != name]
+                (item.parent() or root).removeChild(item)
