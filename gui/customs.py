@@ -423,7 +423,7 @@ class MetricsTree(QTreeWidget):
         '''
 
         print('test')
-        self.expandToDepth(0)
+        self.expandToDepth(1)
 
 
 class ProjectTree(QTreeWidget):
@@ -457,6 +457,7 @@ class ProjectTree(QTreeWidget):
         for collection in self.mutable_copy:
             tree = self.trees[collection](self, self.mutable_copy[collection])
             self.subtrees[collection] = tree
+        self.expandToDepth(0)   
 
     def _configure_settings(self):
         '''TODO
@@ -553,7 +554,6 @@ class ProjectTree(QTreeWidget):
         value = new_metric['function']
         metrics_tree = self.subtrees['metrics']
         metrics_tree.update_metric_function(index, value)
-        metrics_tree.expand()
 
     def remove_selected(self):
         '''TODO
