@@ -55,7 +55,7 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -286,16 +286,9 @@ font: 75 10pt &quot;Arial&quot;;</string>
              </item>
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_11">
-               <item>
-                <widget class="QLabel" name="label_7">
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="margin">
-                  <number>1</number>
-                 </property>
-                </widget>
-               </item>
+               <property name="topMargin">
+                <number>31</number>
+               </property>
                <item>
                 <widget class="Line" name="line_2">
                  <property name="orientation">
@@ -361,22 +354,22 @@ font: 75 10pt &quot;Arial&quot;;</string>
              <number>5</number>
             </property>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
-              <item>
-               <widget class="QLabel" name="label_5">
-                <property name="styleSheet">
-                 <string notr="true">background-color: rgb(220, 220, 220);
+             <widget class="QLabel" name="label_5">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(220, 220, 220);
 padding-left: 8px;
 padding-right: 8px;
 padding-top: 4px;
 padding-bottom: 4px;
 font: 75 10pt &quot;Arial&quot;;</string>
-                </property>
-                <property name="text">
-                 <string>Log</string>
-                </property>
-               </widget>
-              </item>
+              </property>
+              <property name="text">
+               <string>Log</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
               <item>
                <widget class="QComboBox" name="level_box">
                 <item>
