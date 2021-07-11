@@ -9,11 +9,12 @@ import logging
 import os
 import pydre
 import time
-from PySide2.QtWidgets import QFileDialog
+from PySide2.QtWidgets import QFileDialog, QInputDialog
 from gui.config import Config, CONFIG_PATH, GUI_PATH
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
-from gui.popups import ErrorPopup, OutputPopup, ProgressPopup, SavePopup
+from gui.popups import ErrorPopup, OutputPopup, ProgressPopup, NewFilePopup, \
+    SavePopup
 from gui.templates import Window
 
 config = Config()
@@ -61,6 +62,7 @@ class MainWindow(Window):
         '''
 
         self.ui.open_act.triggered.connect(self._handle_open_pfile)
+        self.ui.new_act.triggered.connect(self._handle_new_pfile)
         self.ui.save_act.triggered.connect(self._handle_save)
         self.ui.run_act.triggered.connect(self._handle_run_act)
 
@@ -268,6 +270,16 @@ class MainWindow(Window):
 
         row = self.ui.data_lst.currentRow()
         self.ui.data_lst.takeItem(row)
+
+    def _handle_new_pfile(self):
+        '''TODO
+        
+        '''
+
+        # QInputDialog.setWindowIcon(self.icon)
+        pfile_name, ok = QInputDialog.getText(self, 'Pydre', 'File name')
+        if ok:
+            print(pfile_name)
 
     def _handle_save(self, index):
         '''TODO
