@@ -10,11 +10,10 @@ import os
 import pydre
 import time
 from PySide2.QtWidgets import QFileDialog, QInputDialog
-from gui.config import Config, CONFIG_PATH, GUI_PATH
+from gui.config import Config, CONFIG_PATH, GUI_PATH, PROJECT_PATH
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
-from gui.popups import ErrorPopup, OutputPopup, ProgressPopup, NewFilePopup, \
-    SavePopup
+from gui.popups import ErrorPopup, OutputPopup, ProgressPopup, SavePopup
 from gui.templates import Window
 
 config = Config()
@@ -280,6 +279,12 @@ class MainWindow(Window):
         pfile_name, ok = QInputDialog.getText(self, 'Pydre', 'File name')
         if ok:
             print(pfile_name)
+            pfile_dir = 'project_files'
+            pfile_name = pfile_name + '.json'
+            pfile_path = os.path.join(PROJECT_PATH, pfile_dir, pfile_name)
+            with open(pfile_path, 'w') as pfile:
+                pfile.write('{}')
+            self._launch_editor(pfile_path)
 
     def _handle_save(self, index):
         '''TODO
