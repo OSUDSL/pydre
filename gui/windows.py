@@ -273,7 +273,7 @@ class MainWindow(Window):
 
     def _handle_new_pfile(self):
         '''TODO
-        
+
         '''
 
         # QInputDialog.setWindowIcon(self.icon)

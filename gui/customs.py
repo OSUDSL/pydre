@@ -8,7 +8,6 @@ import json
 import os
 import typing
 from pydre import filters, metrics
-from PySide2.QtGui import Qt
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
 from gui.config import Config, CONFIG_PATH, GUI_PATH
