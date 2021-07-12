@@ -33,6 +33,7 @@ class Window(QMainWindow):
         icon_path = os.path.join(GUI_PATH, config.get('Icons', name))
         self.icon = QIcon(icon_path)
         self.ui.setWindowIcon(self.icon)
+        self.setWindowIcon(self.icon)
         self.screen_width = QDesktopWidget().availableGeometry().width()
         self.screen_height = QDesktopWidget().availableGeometry().height()
 
