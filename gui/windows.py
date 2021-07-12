@@ -83,6 +83,7 @@ class MainWindow(Window):
 
         '''
 
+        self.ui.new_pfile_btn.clicked.connect(self._handle_new_pfile)
         self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
         self.ui.new_roi_btn.clicked.connect(self._handle_new_roi)
         self.ui.new_filter_btn.clicked.connect(self._handle_new_filter)
@@ -278,7 +279,6 @@ class MainWindow(Window):
         # QInputDialog.setWindowIcon(self.icon)
         pfile_name, ok = QInputDialog.getText(self, 'Pydre', 'File name')
         if ok:
-            print(pfile_name)
             pfile_dir = 'project_files'
             pfile_name = pfile_name + '.json'
             pfile_path = os.path.join(PROJECT_PATH, pfile_dir, pfile_name)

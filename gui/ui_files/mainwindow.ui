@@ -55,7 +55,7 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -123,6 +123,13 @@ font: 75 10pt &quot;Arial&quot;;</string>
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="new_pfile_btn">
+                <property name="text">
+                 <string>New project file</string>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QPushButton" name="open_pfile_btn">
