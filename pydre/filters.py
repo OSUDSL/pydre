@@ -17,6 +17,13 @@ logger = logging.getLogger('PydreLogger')
 # filters defined here take a DriveData object and return an updated DriveData object
 
 def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
+    required_col = ["TaskStatus"]
+    diff = drivedata.checkColumns(required_col)
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
     copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
 
@@ -32,6 +39,12 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
 
 
 def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
+    required_col = [timeColName, gazeColName]
+    diff = drivedata.checkColumns(required_col)
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
 
     #copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
     #                                     drivedata.data, drivedata.sourcefilename)
@@ -82,7 +95,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
         durations.sort_values(ascending=True)
 
         index = 1
-        while (durations.loc[index] < min_delta):
+        while (durations.loc[index] < min_delta and index < durations.index.max()):
             # apply the code below to all rows < min_delta
             short_gaze_count += 1
             dt.loc[dt['gazenum'] == index, 'gaze'] = np.nan

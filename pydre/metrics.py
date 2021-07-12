@@ -19,7 +19,19 @@ logger = logging.getLogger('PydreLogger')
 
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
+
+# not registered & incomplete
 def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
+    required_col = ["Velocity"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
+
     timestepID = -1
     breakOut = False
     for d in drivedata.data:
@@ -32,17 +44,44 @@ def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
             break
     return timestepID
 
-
+# not registered & incomplete
 def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float]=(0, 0, 10000, 10000)):
+    required_col = ["SimTime"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     timeAtEnd = 0
     for d in drivedata.data:
         if d.position >= pos:
-            timeAtEnd = d.simTime
+            timeAtEnd = d.SimTime
             break
     return timeAtEnd
 
+# helper func - check if a series only contains 0
+def checkSeriesNan(series):
+    count = series.value_counts()
+    if (0 in count):
+        if (count[0] == series.size):
+            return True
+    else:
+        return False
 
 def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
+    required_col = [var]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
+
     total = pandas.Series(dtype='float64')
     # original code here: total = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
@@ -51,10 +90,20 @@ def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     for d in drivedata.data:
         var_dat = d[var]
         total = total.append(var_dat[var_dat >= cutoff])
+    
     return numpy.mean(total.values, dtype=np.float64).astype(np.float64)
 
 
 def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
+    required_col = [var]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     total = pandas.Series(dtype='float64')
     # original code here: total = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
@@ -67,6 +116,15 @@ def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
 
 
 def colMax(drivedata: pydre.core.DriveData, var: str):
+    required_col = [var]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     maxes = []
     for d in drivedata.data:
         var_dat = d[var]
@@ -75,6 +133,15 @@ def colMax(drivedata: pydre.core.DriveData, var: str):
 
 
 def colMin(drivedata: pydre.core.DriveData, var: str):
+    required_col = [var]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     mins = []
     for d in drivedata.data:
         var_dat = d[var]
@@ -83,24 +150,59 @@ def colMin(drivedata: pydre.core.DriveData, var: str):
 
 
 def meanVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
-    total_vel = pandas.Series()
+    required_col = ["Velocity"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
+    total_vel = pandas.Series(dtype='float64')
+    # original code here: total_Vel = pandas.Series()
+    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
+    # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
+    # Plz change it back to the original code if the current one leads to an issue
     for d in drivedata.data:
         total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
     return numpy.mean(total_vel.values, dtype=np.float64).astype(np.float64)
 
 
 def stdDevVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
-    total_vel = pandas.Series()
+    required_col = ["Velocity"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
+    total_vel = pandas.Series(dtype='float64')
+    # original code here: total_Vel = pandas.Series()
+    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
+    # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
+    # Plz change it back to the original code if the current one leads to an issue
     for d in drivedata.data:
         total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
     return numpy.std(total_vel.values, dtype=np.float64).astype(np.float64)
 
 
 def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentage: bool = False):
+    required_col = ["SimTime", "Velocity"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     time = 0
     total_time = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "Velocity"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         if df.shape[0] < 2:
             continue
         df['Duration'] = pandas.Series(np.gradient(df.SimTime.values), index=df.index)
@@ -126,9 +228,18 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
 
 # noisy and filtfilt are NOT case sensitive and are meaningful only when calculating MSDLP
 def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_width=3.65, car_width=2.1, offset="LaneOffset", noisy="false", filtfilt="false"):
+    required_col = ["SimTime", "DatTime", "Lane", offset]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     for d in drivedata.data:
         print("1")
-        df = pandas.DataFrame(d, columns=("SimTime", "DatTime", "Lane", offset))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         LPout = None
         if (df.size > 0):
             if (laneInfo in ["mean", "Mean"]):
@@ -215,11 +326,20 @@ def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_
 
 
 def roadExits(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "RoadOffset", "Velocity"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
     # Lane width 3.6m, car width 1.8m
     roadOutTime = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "RoadOffset", "Velocity"))
+        df = pandas.DataFrame(d, columns=required_col)
         outtimes = df[(df.RoadOffset > (7.2)) | (df.RoadOffset < (0)) & (df.Velocity > 1)]
         deltas = outtimes.diff()
         if deltas.shape[0] > 0:
@@ -229,11 +349,20 @@ def roadExits(drivedata: pydre.core.DriveData):
 
 
 def roadExitsY(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "YPos", "Velocity"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
     # Lane width 3.6m, car width 1.8m
     roadOutTime = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "YPos", "Velocity"))
+        df = pandas.DataFrame(d, columns=required_col)
         outtimes = df[(df.YPos > (7.2 - 0.9)) | (df.YPos < (0 + 0.9))]
         deltas = outtimes.diff()
         if deltas.shape[0] > 0:
@@ -241,12 +370,21 @@ def roadExitsY(drivedata: pydre.core.DriveData):
             roadOutTime += sum(deltas.SimTime[(deltas.SimTime < .5) & (deltas.SimTime > 0)])
     return roadOutTime
 
-
+# incomplete
 def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
+    required_col = ["SimTime", "LonAccel"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     a = []
     t = []
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "LonAccel"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         a.append = df.LonAccel
         t.append = df.simTime
@@ -261,11 +399,20 @@ def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
             flag = 0
     return count
 
-
+# cutoff doesn't work
 def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
+    required_col = ["SimTime", "Steer"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     out = []
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "Steer"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
@@ -341,12 +488,25 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float =2):
 
 
 def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float =0, stat: str ="count"):
-    total_boxclicks = pandas.Series()
+    required_col = ["SimTime", "FeedbackButton", "BoxAppears"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
+    total_boxclicks = pandas.Series(dtype='float64')
+    # original code here: total_boxclicks = pandas.Series()
+    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
+    # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
+    # Plz change it back to the original code if the current one leads to an issue
     time_boxappeared = 0.0
     time_buttonclicked = 0.0
     hitButton = 0;
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "FeedbackButton", "BoxAppears"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
             continue
@@ -405,9 +565,18 @@ def firstOccurance(df: pandas.DataFrame, condition: str):
 
 
 def numOfErrorPresses(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "TaskFail"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     presses = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "TaskFail"))  # drop other columns
+        df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
         presses += p
@@ -440,9 +609,17 @@ This results in 8 reaction times per participant.
 
 
 def tbiReaction(drivedata: pydre.core.DriveData, type: str="brake", index: int =0):
+    required_col = ["SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=(
-        "SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"))
+        df = pandas.DataFrame(d, columns=(required_col))
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
             continue
@@ -487,10 +664,18 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str="brake", index: int =
 
 
 def ecoCar(drivedata: pydre.core.DriveData, FailCode: str ="1", stat: str ="mean"):
+    required_col = ["SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer", "AutonomousDriving"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     event = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer",
-                                          "AutonomousDriving"))  # drop other columns
+        df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
@@ -618,9 +803,18 @@ def appendDFToCSV_void(df, csvFilePath: str, sep: str =","):
 
 
 def gazeNHTSA(drivedata: pydre.core.DriveData):
+    required_col = ["VidTime", "gaze", "gazenum", "TaskFail", "taskblocks", "PartID"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     numofglances = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("VidTime", "gaze", "gazenum", "TaskFail"))  # drop other columns
+        df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
@@ -644,7 +838,7 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
         glancelist_aug = glancelist
         glancelist_aug['TaskID'] = d["TaskID"].min()
         glancelist_aug['taskblock'] = d["taskblocks"].min()
-        glancelist_aug['Subject'] = d["ParticipantID"].min()
+        glancelist_aug['Subject'] = d["PartID"].min()
 
         appendDFToCSV_void(glancelist_aug, "glance_list.csv")
 
@@ -701,8 +895,9 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
 
     for d in drivedata.data:
         df = pandas.DataFrame(d)
-        if 'OwnshipVelocity' or 'LeadCarVelocity' not in df.columns:
+        if 'OwnshipVelocity' not in df.columns or 'LeadCarVelocity' not in df.columns:
             df = addVelocities(drivedata)
+            print("calling addVelocities()")
 
         v2 = df.LeadCarVelocity
         v1 = df.OwnshipVelocity
@@ -725,25 +920,34 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
             return 0.0
 
 def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
+    required_col = ["DatTime", "gaze", "gazenum", "TaskNum", "taskblocks", "PartID"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+            
     numofglances = 0
     for d in drivedata.data:
-        df = pandas.DataFrame(d, columns=("DatTime", "gaze", "gazenum", "TaskNum"))  # drop other columns
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
-
+        
         if (len(df) == 0):
             continue
-
+        
         # construct table with columns [glanceduration, glancelocation, error]
         gr = df.groupby('gazenum', sort=False)
         durations = gr['DatTime'].max() - gr['DatTime'].min()
         locations = gr['gaze'].first()
         error_list = gr['TaskNum'].any()
-
+        
         glancelist = pandas.DataFrame({'duration': durations, 'locations': locations, 'errors': error_list})
         glancelist['locations'].fillna('offroad', inplace=True)
         glancelist['locations'].replace(['car.WindScreen', 'car.dashPlane', 'None'], ['onroad', 'offroad', 'offroad'],
                                         inplace=True)
-
+        
 
         glancelist_aug = glancelist
         glancelist_aug['TaskNum'] = d["TaskNum"].min()
@@ -769,6 +973,15 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     return [None, None, None, None]
 
 def getTaskNum(drivedata: pydre.core.DriveData):
+    required_col = ["TaskNum"]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+
+
     taskNum = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d)
@@ -777,6 +990,8 @@ def getTaskNum(drivedata: pydre.core.DriveData):
             return taskNum[0]
         else:
             return None  
+
+
 
 
 
