@@ -323,7 +323,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
                <item>
                 <widget class="QPushButton" name="remove_item_btn">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <property name="text">
                   <string>Remove</string>
