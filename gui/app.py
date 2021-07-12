@@ -4,12 +4,11 @@ Created on: 9/17/2020
 '''
 
 import sys
-from PySide2.QtGui import QColor, QFont, QPalette
-from PySide2.QtWidgets import QApplication, QStyleFactory
+from PySide2.QtGui import QFont
+from PySide2.QtWidgets import QApplication
 from gui.config import Config, CONFIG_PATH
 from gui.logger import GUIHandler
 from gui.windows import MainWindow
-from qt_material import apply_stylesheet
 
 config = Config()
 config.read(CONFIG_PATH)

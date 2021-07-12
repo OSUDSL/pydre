@@ -5,7 +5,7 @@ Created on: 2/4/2021
 
 import os
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QDialog, QInputDialog, QMessageBox, QProgressDialog
+from PySide2.QtWidgets import QInputDialog, QMessageBox, QProgressDialog
 from gui.config import Config, CONFIG_PATH, GUI_PATH
 
 config = Config()
@@ -194,7 +194,7 @@ class ProgressPopup(QProgressDialog):
 
 class ErrorPopup(QMessageBox):
     '''TODO
-    
+
     '''
 
     def __init__(self, *args, **kwargs):
@@ -208,7 +208,7 @@ class ErrorPopup(QMessageBox):
 
     def _configure_popup(self):
         '''TODO
-        
+
         '''
 
         self.setIcon(QMessageBox.Critical)
@@ -218,12 +218,13 @@ class ErrorPopup(QMessageBox):
 
     def show_(self, text, _=None):
         '''TODO
-        
+
         '''
 
         self.setText(text)
         self.show()
         return self
+
 
 class NewFilePopup(QInputDialog):
     '''TODO
