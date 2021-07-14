@@ -153,7 +153,6 @@ def mergeFintoTaskFail(drivedata: pydre.core.DriveData):
             dt = pandas.DataFrame(d)
             merged = ((dt['TaskFail'] + dt['KEY_EVENT_F']).astype("int")).replace(2, 1)
             dt['TaskFail'] = merged
-            d.to_csv('FtoF.csv')
     return drivedata
 
 
