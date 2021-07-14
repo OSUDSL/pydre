@@ -179,7 +179,6 @@ def numberTaskInstance(drivedata: pydre.core.DriveData):
             instance_index = instance_index + 1
         drivedata.data[count] = dt
         count = count + 1
-    drivedata.data[0].to_csv("Ins.csv")
     return drivedata
 
 
