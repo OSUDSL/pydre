@@ -11,18 +11,14 @@ import pydre.filters
 import pathlib
 from tqdm import tqdm
 import logging
-from gui.logger import GUIHandler
 
 logger = logging.getLogger('PydreLogger')
-logger.addHandler(GUIHandler())
 
 
 class Project():
 
-    def __init__(self, app, projectfilename, progressbar):
-        self.app = app
+    def __init__(self, projectfilename):
         self.project_filename = projectfilename
-        self.progress_bar = progressbar
 
         # This will suppress the unnecessary SettingWithCopy Warning.
         pandas.options.mode.chained_assignment = None
@@ -109,23 +105,13 @@ class Project():
                     e))
             sys.exit(1)
 
-        x = []
         if len(col_names) > 1:
-            for d in tqdm(dataset, desc=func_name):
-                x.append(d)
-                value = self.progress_bar.value() + 100.0 / len(dataset)
-                print(value)
-                self.progress_bar.setValue(value)
-                self.app.processEvents()
+            x = [filter_func(d, **filter)
+                 for d in tqdm(dataset, desc=func_name)]
             report = pandas.DataFrame(x, columns=col_names)
         else:
-            for d in tqdm(dataset, desc=func_name):
-                x.append(filter_func(d, **filter))
-                value = self.progress_bar.value() + 100.0 / len(dataset)
-                print(value)
-                self.progress_bar.setValue(value)
-                self.app.processEvents()
-            report = pandas.DataFrame(x, columns=[report_name, ])
+            report = pandas.DataFrame([filter_func(
+                d, **filter) for d in tqdm(dataset, desc=func_name)], columns=[report_name, ])
 
         return report
 
@@ -151,7 +137,6 @@ class Project():
                     e))
             sys.exit(1)
 
-
         if len(col_names) > 1:
             x = [metric_func(d, **metric) for d in dataset]
             report = pandas.DataFrame(x, columns=col_names)
@@ -174,10 +159,6 @@ class Project():
             logger.info("Loading file #{}: {}".format(
                 len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
-            value = self.progress_bar.value() + 100.0 / len(datafiles)
-            print(value)
-            self.progress_bar.setValue(value)
-            self.app.processEvents()
 
     def run(self, datafiles):
         """
@@ -189,44 +170,37 @@ class Project():
 
         self.loadFileList(datafiles)
         data_set = []
-        
-        result_data = None
-        try:
 
-            if 'filters' in self.definition:
-                for filter in self.definition['filters']:
-                    self.processFilter(filter, self.raw_data)
+        if 'filters' in self.definition:
+            for filter in self.definition['filters']:
+                self.processFilter(filter, self.raw_data)
 
-            if 'rois' in self.definition:
-                for roi in self.definition['rois']:
-                    data_set.extend(self.processROI(roi, self.raw_data))
-            else:
-                # no ROIs to process, but that's OK
-                logger.warning("No ROIs, processing raw data.")
-                data_set = self.raw_data
+        if 'rois' in self.definition:
+            for roi in self.definition['rois']:
+                data_set.extend(self.processROI(roi, self.raw_data))
+        else:
+            # no ROIs to process, but that's OK
+            logger.warning("No ROIs, processing raw data.")
+            data_set = self.raw_data
 
-            logger.info("number of datafiles: {}, number of rois: {}".format(
-                len(datafiles), len(data_set)))
+        logger.info("number of datafiles: {}, number of rois: {}".format(
+            len(datafiles), len(data_set)))
 
-            # for filter in self.definition['filters']:
-            #     self.processFilter(filter, data_set)
-            result_data = pandas.DataFrame()
-            result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
-            result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
-            result_data['ROI'] = pandas.Series([d.roi for d in data_set])
-            # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
-            # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
-            
+        # for filter in self.definition['filters']:
+        #     self.processFilter(filter, data_set)
+        result_data = pandas.DataFrame()
+        result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
+        result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
+        result_data['ROI'] = pandas.Series([d.roi for d in data_set])
+        # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
+        # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
 
-            processed_metrics = [result_data]
-        
-            for metric in self.definition['metrics']:
-                processed_metric = self.processMetric(metric, data_set)
-                processed_metrics.append(processed_metric)
-            result_data = pandas.concat(processed_metrics, axis=1)
-        except pydre.core.ColumnsMatchError as e:
-            sys.exit(1)
+        processed_metrics = [result_data]
 
+        for metric in self.definition['metrics']:
+            processed_metric = self.processMetric(metric, data_set)
+            processed_metrics.append(processed_metric)
+        result_data = pandas.concat(processed_metrics, axis=1)
         self.results = result_data
         return result_data
 

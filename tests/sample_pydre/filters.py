@@ -7,25 +7,14 @@ import pydre.core
 import numpy as np
 import logging
 
-from pathlib import Path
-
 
 import ctypes
-from gui.logger import GUIHandler
 
 logger = logging.getLogger('PydreLogger')
-logger.addHandler(GUIHandler())
 
 # filters defined here take a DriveData object and return an updated DriveData object
 
 def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
-    required_col = ["TaskStatus"]
-    diff = drivedata.checkColumns(required_col)
-    if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
-
-
     copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
 
@@ -41,12 +30,6 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
 
 
 def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
-    required_col = [timeColName, gazeColName]
-    diff = drivedata.checkColumns(required_col)
-    if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
-
 
     #copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
     #                                     drivedata.data, drivedata.sourcefilename)
@@ -97,7 +80,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
         durations.sort_values(ascending=True)
 
         index = 1
-        while (durations.loc[index] < min_delta and index < durations.index.max()):
+        while (durations.loc[index] < min_delta):
             # apply the code below to all rows < min_delta
             short_gaze_count += 1
             dt.loc[dt['gazenum'] == index, 'gaze'] = np.nan
@@ -117,70 +100,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
     return drivedata
 
 
-def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
-    for drive, filename in zip(drivedata.data, drivedata.sourcefilename):
-        event_filename = Path(eventDirectory) / Path(drivedata.sourcefilename).with_suffix(".evt").name
-        event_data = pandas.read_csv(event_filename, sep='\s+', na_values='.', header=0, skiprows=0, usecols=[0, 2, 4], names=['startTime', 'stopTime', 'Event_Name'])
-        # find all keypress events:
-        event_types = pandas.Series(event_data['Event_Name'].unique())
-        event_types = event_types[event_types.str.startswith('KEY_EVENT')].to_list()
-        if len(event_types) == 0:
-            continue
 
-        # add two columns, for the indexes corresponding to the start time and end time of the key events
-        event_data_key_presses = event_data.loc[event_data['Event_Name'].isin(event_types)]
-        event_data_key_presses['startIndex'] = drive['DatTime'].searchsorted(event_data_key_presses['startTime'])
-        event_data_key_presses['stopIndex'] = drive['DatTime'].searchsorted(event_data_key_presses['stopTime'])
-
-        # make the new columns in the drive data
-        for col in event_types:
-            drive[col] = 0
-        # merge the event data into the drive data
-        for index, row in event_data_key_presses.iterrows():
-            data_col_name = row['Event_Name']
-            drive[data_col_name].loc[range(row['startIndex'], row['stopIndex'])] = 1
-
-            # startTime and stopTime of key event f in speedbump2 are flipped. We might want to remove the if statement below if
-            # this function is used for future studies
-            if data_col_name == 'KEY_EVENT_F': 
-                drive[data_col_name].loc[range(row['stopIndex'], row['startIndex'])] = 1
-
-    return drivedata
-
-
-# copy F key presses to task fail column, added for speedbump 2 study 
-def mergeFintoTaskFail(drivedata: pydre.core.DriveData): 
-    for d in drivedata.data:
-        if 'KEY_EVENT_F' in d.columns:
-            dt = pandas.DataFrame(d)
-            merged = ((dt['TaskFail'] + dt['KEY_EVENT_F']).astype("int")).replace(2, 1)
-            dt['TaskFail'] = merged
-    return drivedata
-
-
-
-def numberTaskInstance(drivedata: pydre.core.DriveData):
-    for d in drivedata.data:
-        count = 0
-        dt = pandas.DataFrame(d)
-        #dt.loc[dt.DatTime < 1, "TaskInstance"] = 1
-        diff = dt[['KEY_EVENT_T', 'KEY_EVENT_P']].diff()
-        startPoints = diff.loc[diff['KEY_EVENT_T'] == 1.0]
-        endPoints = diff.loc[diff['KEY_EVENT_P'] == 1.0]
-        length = len(startPoints.index)
-        instance_index = 1
-        while (instance_index <= length):
-            begin = startPoints.index[instance_index - 1]
-            end = endPoints.index[instance_index - 1]
-            dt.loc[begin:end, "TaskInstance"] = instance_index
-            #print(begin)
-            #print(end)
-            #print(dt.loc[startPoints.index[instance_index - 1]:endPoints.index[instance_index - 1]])
-            #print(d)
-            instance_index = instance_index + 1
-        drivedata.data[count] = dt
-        count = count + 1
-    return drivedata
 
 
 filtersList = {}
@@ -197,6 +117,3 @@ def registerFilter(name, function, columnnames=None):
 
 registerFilter('smoothGazeData', smoothGazeData)
 registerFilter('numberSwitchBlocks', numberSwitchBlocks)
-registerFilter('mergeEvents', mergeEvents)
-registerFilter('mergeFintoTaskFail', mergeFintoTaskFail)
-registerFilter('numberTaskInstance', numberTaskInstance)
