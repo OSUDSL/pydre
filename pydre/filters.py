@@ -120,7 +120,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
 def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
     for drive, filename in zip(drivedata.data, drivedata.sourcefilename):
         event_filename = Path(eventDirectory) / Path(drivedata.sourcefilename).with_suffix(".evt").name
-        event_data = pandas.read_csv(event_filename, sep='\s+', na_values='.', header=0, skiprows=0, usecols=[0, 2, 4], names=['startTime', 'stopTime', 'Event_Name'])
+        event_data = pandas.read_csv(event_filename, sep='\s+', na_values='.', header=0, skiprows=0, usecols=[0, 2, 4], names=['vidTime', 'simTime', 'Event_Name'])
         # find all keypress events:
         event_types = pandas.Series(event_data['Event_Name'].unique())
         event_types = event_types[event_types.str.startswith('KEY_EVENT')].to_list()
@@ -129,8 +129,8 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
 
         # add two columns, for the indexes corresponding to the start time and end time of the key events
         event_data_key_presses = event_data.loc[event_data['Event_Name'].isin(event_types)]
-        event_data_key_presses['startIndex'] = drive['DatTime'].searchsorted(event_data_key_presses['startTime'])
-        event_data_key_presses['stopIndex'] = drive['DatTime'].searchsorted(event_data_key_presses['stopTime'])
+        event_data_key_presses['startIndex'] = drive['simTime'].searchsorted(event_data_key_presses['simTime'])
+        event_data_key_presses['stopIndex'] = drive['simTime'].searchsorted(event_data_key_presses['simTime']) + 0.5
 
         # make the new columns in the drive data
         for col in event_types:
