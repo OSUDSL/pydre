@@ -70,7 +70,6 @@ class MainWindow(Window):
 
         '''
 
-        self.ui.log_inp.returnPressed.connect(self._handle_add_to_log)
         self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
         self.ui.pfile_tab.tabCloseRequested.connect(self._handle_tab_close)
         self.ui.recent_lst.itemDoubleClicked.connect(self._handle_select_pfile)
