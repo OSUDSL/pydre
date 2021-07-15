@@ -117,7 +117,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
 
 def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
     for drive, filename in zip(drivedata.data, drivedata.sourcefilename):
-        event_filename = Path(eventDirectory) / Path(drivedata.sourcefilename).with_suffix(".evt").name
+        event_filename = Path(eventDirectory) / Path(filename).with_suffix(".evt").name
         event_data = pandas.read_csv(event_filename, sep='\s+', na_values='.', header=0, skiprows=0, usecols=[0, 2, 4], names=['vidTime', 'simTime', 'Event_Name'])
         # find all keypress events:
         event_types = pandas.Series(event_data['Event_Name'].unique())
@@ -140,7 +140,7 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
 
             # startTime and stopTime of key event f in speedbump2 are flipped. We might want to remove the if statement below if
             # this function is used for future studies
-            if data_col_name == 'KEY_EVENT_F': 
+            if row['stopIndex'] < row['startIndex']:  
                 drive[data_col_name].loc[range(row['stopIndex'], row['startIndex'])] = 1
 
     return drivedata
