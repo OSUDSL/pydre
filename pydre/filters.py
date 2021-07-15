@@ -142,7 +142,7 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
 
             # startTime and stopTime of key event f in speedbump2 are flipped. We might want to remove the if statement below if
             # this function is used for future studies
-            if data_col_name == 'KEY_EVENT_F': 
+            if row['stopIndex'] < row['startIndex']:  
                 drive[data_col_name].loc[range(row['stopIndex'], row['startIndex'])] = 1
 
     return drivedata
