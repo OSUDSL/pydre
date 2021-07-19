@@ -127,8 +127,8 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
 
         # add two columns, for the indexes corresponding to the start time and end time of the key events
         event_data_key_presses = event_data.loc[event_data['Event_Name'].isin(event_types)]
-        event_data_key_presses['startIndex'] = drive['simTime'].searchsorted(event_data_key_presses['simTime'])
-        event_data_key_presses['stopIndex'] = drive['simTime'].searchsorted(event_data_key_presses['simTime']) + 0.5
+        event_data_key_presses['startIndex'] = drive['SimTime'].searchsorted(event_data_key_presses['simTime'])
+        event_data_key_presses['stopIndex'] = drive['SimTime'].searchsorted(event_data_key_presses['simTime'] + 0.5)
 
         # make the new columns in the drive data
         for col in event_types:
@@ -138,7 +138,7 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
             data_col_name = row['Event_Name']
             drive[data_col_name].loc[range(row['startIndex'], row['stopIndex'])] = 1
 
-            # startTime and stopTime of key event f in speedbump2 are flipped. We might want to remove the if statement below if
+            # start_time and stopTime of key event f in speedbump2 are flipped. We might want to remove the if statement below if
             # this function is used for future studies
             if row['stopIndex'] < row['startIndex']:  
                 drive[data_col_name].loc[range(row['stopIndex'], row['startIndex'])] = 1
@@ -161,20 +161,59 @@ def numberTaskInstance(drivedata: pydre.core.DriveData):
     for d in drivedata.data:
         count = 0
         dt = pandas.DataFrame(d)
-        #dt.loc[dt.DatTime < 1, "TaskInstance"] = 1
+        #dt.to_csv('dt.csv')
         diff = dt[['KEY_EVENT_T', 'KEY_EVENT_P']].diff()
-        startPoints = diff.loc[diff['KEY_EVENT_T'] == 1.0]
-        endPoints = diff.loc[diff['KEY_EVENT_P'] == 1.0]
+        startPoints = diff.loc[diff['KEY_EVENT_T'] == 1.0] # all the points when T is pressed
+        endPoints = diff.loc[diff['KEY_EVENT_P'] == 1.0] # all the points when P is pressed
         length = len(startPoints.index)
+
+        start_ptr = 0
+        end_ptr = 0
+        index_drop = []
+        index_drop_index = 0
+
+        
+        # check if a T event happens right after a previous T event (unmatching of T and P events)
+        # and remove extra T events
+        while (start_ptr < min(length, len(endPoints.index))):
+            start_time = startPoints.index[start_ptr]
+            end_time = endPoints.index[end_ptr]
+            
+            while start_ptr + 1 < length and startPoints.index[start_ptr + 1] < end_time:   # (time of next T < time of next P) means a T event happens right after the previous T event  
+                
+                index_drop.append(start_time)
+                #index_drop_index += 1
+                start_ptr += 1
+                start_time = startPoints.index[start_ptr]
+                #logger.warning("loop")
+            start_ptr += 1
+            end_ptr += 1
+        #print(index_drop)
+        startPoints = startPoints.drop(index_drop)
+        index_drop.clear()
+
+        # check if a P event happens right after a previous P event (unmatching of T and P events)
+        # and remove extra P events
+        start_ptr = 0
+        end_ptr = 0
+        while (end_ptr < min(len(startPoints.index), len(endPoints.index))):
+            start_time = startPoints.index[start_ptr]
+            end_time = endPoints.index[end_ptr]
+            while start_time > end_time:
+                #logger.warning(end_time)
+                index_drop.append(end_time)
+                end_ptr += 1
+                end_time = endPoints.index[end_ptr]
+            start_ptr += 1
+            end_ptr += 1
+        endPoints = endPoints.drop(index_drop)
+
+        # Add task instance column
         instance_index = 1
-        while (instance_index <= length):
+        while (instance_index <= min(len(startPoints.index), len(endPoints.index))): #at this point, len(startPoints.index) == len(endPoints.index) 
             begin = startPoints.index[instance_index - 1]
             end = endPoints.index[instance_index - 1]
             dt.loc[begin:end, "TaskInstance"] = instance_index
-            #print(begin)
-            #print(end)
-            #print(dt.loc[startPoints.index[instance_index - 1]:endPoints.index[instance_index - 1]])
-            #print(d)
             instance_index = instance_index + 1
         drivedata.data[count] = dt
         count = count + 1
