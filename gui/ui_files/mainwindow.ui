@@ -360,78 +360,164 @@ font: 75 10pt &quot;Arial&quot;;</string>
        </layout>
       </widget>
       <widget class="QWidget" name="page_3">
-       <layout class="QVBoxLayout" name="verticalLayout_9">
+       <layout class="QVBoxLayout" name="verticalLayout_14">
         <item>
-         <widget class="QLabel" name="pfile_lbl">
-          <property name="styleSheet">
-           <string notr="true">background-color: rgb(220, 220, 220);
-padding-left: 8px;
-padding-right: 8px;
-padding-top: 4px;
-padding-bottom: 4px;
-font: 75 10pt &quot;Arial&quot;;</string>
+         <widget class="QSplitter" name="run_vsplitter">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
           </property>
-          <property name="text">
-           <string>-</string>
-          </property>
-          <property name="margin">
-           <number>0</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <property name="topMargin">
-           <number>10</number>
-          </property>
-          <property name="bottomMargin">
-           <number>5</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="styleSheet">
-             <string notr="true">background-color: rgb(220, 220, 220);
-padding-left: 8px;
-padding-right: 8px;
-padding-top: 4px;
-padding-bottom: 4px;
-font: 75 10pt &quot;Arial&quot;;</string>
-            </property>
-            <property name="text">
-             <string>Data files</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
+          <widget class="QWidget" name="">
+           <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
-             <widget class="QListWidget" name="data_lst">
+             <widget class="QLabel" name="pfile_lbl">
               <property name="styleSheet">
-               <string notr="true">border: none;</string>
+               <string notr="true">background-color: rgb(220, 220, 220);
+padding-left: 8px;
+padding-right: 8px;
+padding-top: 4px;
+padding-bottom: 4px;
+font: 75 10pt &quot;Arial&quot;;</string>
+              </property>
+              <property name="text">
+               <string>-</string>
+              </property>
+              <property name="margin">
+               <number>0</number>
               </property>
              </widget>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_5">
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <property name="topMargin">
+               <number>10</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
               <item>
-               <widget class="Line" name="line_3">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
+               <widget class="QLabel" name="label">
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(220, 220, 220);
+padding-left: 8px;
+padding-right: 8px;
+padding-top: 4px;
+padding-bottom: 4px;
+font: 75 10pt &quot;Arial&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>Data files</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="add_btn">
+               <layout class="QHBoxLayout" name="horizontalLayout">
+                <item>
+                 <widget class="QListWidget" name="data_lst">
+                  <property name="styleSheet">
+                   <string notr="true">border: none;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_5">
+                  <item>
+                   <widget class="Line" name="line_3">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="add_btn">
+                    <property name="styleSheet">
+                     <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Add file</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="remove_btn">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Remove</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_13">
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_3">
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(220, 220, 220);
+padding-left: 8px;
+padding-right: 8px;
+padding-top: 4px;
+padding-bottom: 4px;
+font: 75 10pt &quot;Arial&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>Output file</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="ofile_inp">
+                <property name="styleSheet">
+                 <string notr="true"/>
+                </property>
+                <property name="placeholderText">
+                 <string>out.csv by default</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QPushButton" name="cancel_btn">
                 <property name="styleSheet">
                  <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
                 </property>
                 <property name="text">
-                 <string>Add file</string>
+                 <string>Cancel</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="remove_btn">
+               <widget class="QPushButton" name="run_btn">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -439,122 +525,41 @@ font: 75 10pt &quot;Arial&quot;;</string>
                  <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
                 </property>
                 <property name="text">
-                 <string>Remove</string>
+                 <string>Run</string>
                 </property>
                </widget>
-              </item>
-              <item>
-               <spacer name="verticalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
               </item>
              </layout>
             </item>
            </layout>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_13">
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
-           <number>5</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_3">
-            <property name="styleSheet">
-             <string notr="true">background-color: rgb(220, 220, 220);
+          </widget>
+          <widget class="QWidget" name="">
+           <layout class="QVBoxLayout" name="verticalLayout_9">
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(220, 220, 220);
 padding-left: 8px;
 padding-right: 8px;
 padding-top: 4px;
 padding-bottom: 4px;
 font: 75 10pt &quot;Arial&quot;;</string>
-            </property>
-            <property name="text">
-             <string>Output file</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="ofile_inp">
-            <property name="styleSheet">
-             <string notr="true"/>
-            </property>
-            <property name="placeholderText">
-             <string>out.csv by default</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <item>
-           <widget class="QPushButton" name="cancel_btn">
-            <property name="styleSheet">
-             <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
-            </property>
-            <property name="text">
-             <string>Cancel</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="run_btn">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
-            </property>
-            <property name="text">
-             <string>Run</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_5">
-            <property name="styleSheet">
-             <string notr="true">background-color: rgb(220, 220, 220);
-padding-left: 8px;
-padding-right: 8px;
-padding-top: 4px;
-padding-bottom: 4px;
-font: 75 10pt &quot;Arial&quot;;</string>
-            </property>
-            <property name="text">
-             <string>Log</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QListWidget" name="log_lst">
-            <property name="styleSheet">
-             <string notr="true">border: none;</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+              </property>
+              <property name="text">
+               <string>Log</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QListWidget" name="log_lst">
+              <property name="styleSheet">
+               <string notr="true">border: none;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
         </item>
        </layout>
       </widget>
