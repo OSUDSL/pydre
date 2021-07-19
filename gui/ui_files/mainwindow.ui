@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>700</width>
-    <height>400</height>
+    <height>412</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,7 +55,7 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -355,84 +355,12 @@ font: 75 10pt &quot;Arial&quot;;</string>
             </layout>
            </widget>
           </widget>
-          <widget class="QWidget" name="layoutWidget">
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <property name="topMargin">
-             <number>5</number>
-            </property>
-            <item>
-             <widget class="QLabel" name="label_5">
-              <property name="styleSheet">
-               <string notr="true">background-color: rgb(220, 220, 220);
-padding-left: 8px;
-padding-right: 8px;
-padding-top: 4px;
-padding-bottom: 4px;
-font: 75 10pt &quot;Arial&quot;;</string>
-              </property>
-              <property name="text">
-               <string>Log</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
-              <item>
-               <widget class="QComboBox" name="level_box">
-                <item>
-                 <property name="text">
-                  <string>DEBUG</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>INFO</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>WARNING</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>ERROR</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>CRITICAL</string>
-                 </property>
-                </item>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="log_inp">
-                <property name="styleSheet">
-                 <string notr="true"/>
-                </property>
-                <property name="placeholderText">
-                 <string>Custom log message</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <widget class="QListWidget" name="log_lst">
-              <property name="styleSheet">
-               <string notr="true">border: none;</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
          </widget>
         </item>
        </layout>
       </widget>
       <widget class="QWidget" name="page_3">
-       <layout class="QVBoxLayout" name="verticalLayout_14">
+       <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
          <widget class="QLabel" name="pfile_lbl">
           <property name="styleSheet">
@@ -594,6 +522,35 @@ font: 75 10pt &quot;Arial&quot;;</string>
             </property>
             <property name="text">
              <string>Run</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="topMargin">
+           <number>5</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(220, 220, 220);
+padding-left: 8px;
+padding-right: 8px;
+padding-top: 4px;
+padding-bottom: 4px;
+font: 75 10pt &quot;Arial&quot;;</string>
+            </property>
+            <property name="text">
+             <string>Log</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="log_lst">
+            <property name="styleSheet">
+             <string notr="true">border: none;</string>
             </property>
            </widget>
           </item>
