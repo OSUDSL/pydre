@@ -972,7 +972,7 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         return [total_time_onroad_glances, percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
     return [None, None, None, None]
 
-def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime"):
+def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", maxtasknum=5):
     required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "TaskInstance"] 
     # filters.numberTaskInstances() is required. 
     #for now I just assume the input dataframe has a TaskInstance column
@@ -984,11 +984,12 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime"):
 
     for d in drivedata.data:
         logger.warning("Processing Task {}".format(d.TaskNum.mean()))
-        if d.TaskNum.mean() == 0:
+        if d.TaskNum.mean() == 0 or d.TaskNum.mean() > maxtasknum:
             return [None, None, None, None]
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = df.dropna(axis=0, how='any')  # remove nans and drop duplicates
         
+        df['time_diff'] = df[timecolumn].diff() # get durations by calling time_column.diff()
 
         df = df[df.gaze != 'onroad']   # remove onroad rows
         df.to_csv('AAM_cp1.csv')
@@ -1011,7 +1012,7 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime"):
             logger.warning("Not enough valid task instances. Found {}".format(len(number_valid_instance)))
 
         #df = df[df.TaskInstance < 9] # only keep the glance data for the first eight task instances for each task per person. 
-        df['time_diff'] = df[timecolumn].diff() # get durations by calling time_column.diff()
+        
         #print(df)
         #df.to_csv('df.csv')
 
@@ -1019,10 +1020,14 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime"):
         durations_by_gazenum = group_by_gazenum.sum()
         durations_by_gazenum = durations_by_gazenum.loc[(durations_by_gazenum['time_diff']!=0.0)]
         #print(durations_by_gazenum)
-        percentile = np.percentile(durations_by_gazenum.time_diff, 85) # find the 85th percentile value
-        sum_mean = df['time_diff'].mean() # mean of duration sum
-        sum_median = df['time_diff'].median() # median of duration sum
-        sum_std = df['time_diff'].std() # std of duration sum
+        percentile = np.percentile(durations_by_gazenum.time_diff, 85) # find the 85th percentile value (A1)
+
+        group_by_instance = df.groupby('TaskInstance', sort=False) # A2
+        durations_by_instance = group_by_instance.sum()
+        #print(durations_by_instance)
+        sum_mean = durations_by_instance.time_diff.mean() # mean of duration sum
+        sum_median = durations_by_instance.time_diff.median() # median of duration sum
+        sum_std = durations_by_instance.time_diff.std() # std of duration sum
 
         return [percentile, sum_mean, sum_median, sum_std]
 
