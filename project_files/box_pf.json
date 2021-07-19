@@ -1,22 +1,16 @@
 {
-    "metrics": [
+    "rois": [
         {
-            "name": "StandardDeviation",
-            "function": "boxMetrics",
-            "cutoff": 2,
-            "stat": "sd"
+            "type": "new_roi_1",
+            "filename": "roi_file"
         },
         {
-            "name": "IdentifiedBoxWithin2Seconds",
-            "function": "boxMetrics",
-            "cutoff": 2,
-            "stat": "count"
+            "type": "new_roi_2",
+            "filename": "roi_file"
         },
         {
-            "name": "Mean",
-            "function": "boxMetrics",
-            "cutoff": 2,
-            "stat": "mean"
+            "type": "new_roi_3",
+            "filename": "roi_file"
         }
     ]
 }
