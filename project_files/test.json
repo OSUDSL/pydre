@@ -1,0 +1,9 @@
+{
+    "filters": [
+        {
+            "name": "new_filter_1",
+            "function": "mergeEvents",
+            "eventDirectory": "C:\\Users\\Craig\\Documents\\Work\\DSL\\input"
+        }
+    ]
+}
