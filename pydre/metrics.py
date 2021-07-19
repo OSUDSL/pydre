@@ -972,6 +972,62 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         return [total_time_onroad_glances, percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
     return [None, None, None, None]
 
+def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime"):
+    required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "TaskInstance"] 
+    # filters.numberTaskInstances() is required. 
+    #for now I just assume the input dataframe has a TaskInstance column
+    #diff = drivedata.checkColumns(required_col)
+    
+    #if (len(diff) > 0):
+    #    logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+    #    raise pydre.core.ColumnsMatchError()
+
+    for d in drivedata.data:
+        logger.warning("Processing Task {}".format(d.TaskNum.mean()))
+        if d.TaskNum.mean() == 0:
+            return [None, None, None, None]
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
+        df = df.dropna(axis=0, how='any')  # remove nans and drop duplicates
+        
+
+        df = df[df.gaze != 'onroad']   # remove onroad rows
+        df.to_csv('AAM_cp1.csv')
+        df = df.loc[(df['TaskInstance'] != 0) & (df['TaskInstance'] != np.nan)] # drop all rows that are not in any task instance
+        dropped_instances = df.loc[(df['TaskFail'] == 1)]
+        dropped_instances = dropped_instances['TaskInstance'].drop_duplicates() # get all the task instances that contains a fail and needs to be dropped
+        df = df.loc[~df['TaskInstance'].isin(dropped_instances)] # drop all the failed task instances
+        df.to_csv('AAM_cp2.csv')
+        
+        # get first 8 task instances
+        number_valid_instance = df['TaskInstance'].unique()
+        if len(number_valid_instance) > 8:
+            lowest_instance_no = number_valid_instance.min()
+            len_of_drop = len(dropped_instances.loc[dropped_instances < (lowest_instance_no + 8)])
+            highest_instance_no = lowest_instance_no + 8 + len_of_drop
+            df = df.loc[(df['TaskInstance'] < highest_instance_no) & (df['TaskInstance'] >= lowest_instance_no)]
+            #logger.warning(highest_instance_no)
+            #logger.warning(lowest_instance_no)
+        elif len(number_valid_instance) < 8:
+            logger.warning("Not enough valid task instances. Found {}".format(len(number_valid_instance)))
+
+        #df = df[df.TaskInstance < 9] # only keep the glance data for the first eight task instances for each task per person. 
+        df['time_diff'] = df[timecolumn].diff() # get durations by calling time_column.diff()
+        #print(df)
+        #df.to_csv('df.csv')
+
+        group_by_gazenum = df.groupby('gazenum', sort=False) 
+        durations_by_gazenum = group_by_gazenum.sum()
+        durations_by_gazenum = durations_by_gazenum.loc[(durations_by_gazenum['time_diff']!=0.0)]
+        #print(durations_by_gazenum)
+        percentile = np.percentile(durations_by_gazenum.time_diff, 85) # find the 85th percentile value
+        sum_mean = df['time_diff'].mean() # mean of duration sum
+        sum_median = df['time_diff'].median() # median of duration sum
+        sum_std = df['time_diff'].std() # std of duration sum
+
+        return [percentile, sum_mean, sum_median, sum_std]
+
+    return [None, None, None, None]
+
 def getTaskNum(drivedata: pydre.core.DriveData):
     required_col = ["TaskNum"]
     diff = drivedata.checkColumns(required_col)
@@ -1017,4 +1073,6 @@ registerMetric('crossCorrelate', crossCorrelate)
 registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
 registerMetric('gazes', gazeNHTSA,
                ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
+registerMetric('speedbumpHondaGaze2', speedbumpHondaGaze2,
+               ['85th_percentile', 'duration_mean', 'duration_median', 'duration_std'])
 registerMetric('getTaskNum', getTaskNum)
