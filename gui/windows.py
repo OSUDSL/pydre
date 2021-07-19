@@ -104,6 +104,8 @@ class MainWindow(Window):
         self.ui.main_hsplitter.setStretchFactor(1, 7)
         self.ui.main_vsplitter.setStretchFactor(0, 7)
         self.ui.main_vsplitter.setStretchFactor(1, 2)
+        self.ui.run_vsplitter.setStretchFactor(0, 4)
+        self.ui.run_vsplitter.setStretchFactor(1, 1)
 
     def _configure_recent(self):
         '''Configures the recent files list displayed on the start page.
