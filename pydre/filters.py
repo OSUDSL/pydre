@@ -156,7 +156,6 @@ def mergeFintoTaskFail(drivedata: pydre.core.DriveData):
     return drivedata
 
 
-
 def numberTaskInstance(drivedata: pydre.core.DriveData):
     for d in drivedata.data:
         count = 0
@@ -165,59 +164,35 @@ def numberTaskInstance(drivedata: pydre.core.DriveData):
         diff = dt[['KEY_EVENT_T', 'KEY_EVENT_P']].diff()
         startPoints = diff.loc[diff['KEY_EVENT_T'] == 1.0] # all the points when T is pressed
         endPoints = diff.loc[diff['KEY_EVENT_P'] == 1.0] # all the points when P is pressed
-        length = len(startPoints.index)
 
-        start_ptr = 0
-        end_ptr = 0
-        index_drop = []
-        index_drop_index = 0
+        event = startPoints.append(endPoints)
+        event = event.sort_index()
+        event['drop_T'] = event['KEY_EVENT_T'].diff()
+        event['drop_P'] = event['KEY_EVENT_P'].diff()
+        event.fillna(1)
 
+        if event['KEY_EVENT_P'].iloc[0] == 1:
+            event = event.drop(event.index[0])
         
-        # check if a T event happens right after a previous T event (unmatching of T and P events)
-        # and remove extra T events
-        while (start_ptr < min(length, len(endPoints.index))):
-            start_time = startPoints.index[start_ptr]
-            end_time = endPoints.index[end_ptr]
-            
-            while start_ptr + 1 < length and startPoints.index[start_ptr + 1] < end_time:   # (time of next T < time of next P) means a T event happens right after the previous T event  
-                
-                index_drop.append(start_time)
-                #index_drop_index += 1
-                start_ptr += 1
-                start_time = startPoints.index[start_ptr]
-                #logger.warning("loop")
-            start_ptr += 1
-            end_ptr += 1
-        #print(index_drop)
-        startPoints = startPoints.drop(index_drop)
-        index_drop.clear()
+        time = []
+        for t in event.index:
+            time.append(dt.at[t, 'DatTime'])
+        event['time'] = time
+        event = event.loc[(event['drop_T'] != 0) & (event['drop_P'] != 0)]
 
-        # check if a P event happens right after a previous P event (unmatching of T and P events)
-        # and remove extra P events
-        start_ptr = 0
-        end_ptr = 0
-        while (end_ptr < min(len(startPoints.index), len(endPoints.index))):
-            start_time = startPoints.index[start_ptr]
-            end_time = endPoints.index[end_ptr]
-            while start_time > end_time:
-                #logger.warning(end_time)
-                index_drop.append(end_time)
-                end_ptr += 1
-                end_time = endPoints.index[end_ptr]
-            start_ptr += 1
-            end_ptr += 1
-        endPoints = endPoints.drop(index_drop)
-
-        # Add task instance column
-        instance_index = 1
-        while (instance_index <= min(len(startPoints.index), len(endPoints.index))): #at this point, len(startPoints.index) == len(endPoints.index) 
-            begin = startPoints.index[instance_index - 1]
-            end = endPoints.index[instance_index - 1]
-            dt.loc[begin:end, "TaskInstance"] = instance_index
-            instance_index = instance_index + 1
+        event.to_csv('event.csv')
+        instance_index = 0
+        ins = 1
+        while (instance_index < len(event) - 1):
+            begin = event.index[instance_index]
+            end = event.index[instance_index + 1]
+            dt.loc[begin:end, "TaskInstance"] = ins
+            instance_index = instance_index + 2
+            ins += 1
         drivedata.data[count] = dt
         count = count + 1
     return drivedata
+
 
 
 filtersList = {}
