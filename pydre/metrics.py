@@ -973,7 +973,7 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     return [None, None, None, None]
 
 def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", maxtasknum=5):
-    required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "TaskInstance"] 
+    required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "TaskInstance", "KEY_EVENT_T", "KEY_EVENT_P"] 
     # filters.numberTaskInstances() is required. 
     #for now I just assume the input dataframe has a TaskInstance column
     #diff = drivedata.checkColumns(required_col)
@@ -987,20 +987,21 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
         if d.TaskNum.mean() == 0 or d.TaskNum.mean() > maxtasknum:
             return [None, None, None, None]
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
-        df = df.dropna(axis=0, how='any')  # remove nans and drop duplicates
+        df = df.fillna(0)  # remove nans and drop duplicates
         
         df['time_diff'] = df[timecolumn].diff() # get durations by calling time_column.diff()
 
-        df = df[df.gaze != 'onroad']   # remove onroad rows
-        df.to_csv('AAM_cp1.csv')
+        df = df[df.gaze == 'offroad']   # remove onroad rows
+        #df.to_csv('AAM_cp1.csv')
         df = df.loc[(df['TaskInstance'] != 0) & (df['TaskInstance'] != np.nan)] # drop all rows that are not in any task instance
         dropped_instances = df.loc[(df['TaskFail'] == 1)]
         dropped_instances = dropped_instances['TaskInstance'].drop_duplicates() # get all the task instances that contains a fail and needs to be dropped
         df = df.loc[~df['TaskInstance'].isin(dropped_instances)] # drop all the failed task instances
-        df.to_csv('AAM_cp2.csv')
+        #df.to_csv('AAM_cp2.csv')
         
         # get first 8 task instances
         number_valid_instance = df['TaskInstance'].unique()
+        print(pandas.unique(df.TaskInstance))
         if len(number_valid_instance) > 8:
             lowest_instance_no = number_valid_instance.min()
             len_of_drop = len(dropped_instances.loc[dropped_instances < (lowest_instance_no + 8)])
@@ -1010,6 +1011,7 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
             #logger.warning(lowest_instance_no)
         elif len(number_valid_instance) < 8:
             logger.warning("Not enough valid task instances. Found {}".format(len(number_valid_instance)))
+        
 
         #df = df[df.TaskInstance < 9] # only keep the glance data for the first eight task instances for each task per person. 
         
@@ -1024,10 +1026,10 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
 
         group_by_instance = df.groupby('TaskInstance', sort=False) # A2
         durations_by_instance = group_by_instance.sum()
-        #print(durations_by_instance)
-        sum_mean = durations_by_instance.time_diff.mean() # mean of duration sum
-        sum_median = durations_by_instance.time_diff.median() # median of duration sum
-        sum_std = durations_by_instance.time_diff.std() # std of duration sum
+        print(durations_by_instance)
+        sum_mean = (durations_by_instance.time_diff).mean() # mean of duration sum
+        sum_median = (durations_by_instance.time_diff).median() # median of duration sum
+        sum_std = (durations_by_instance.time_diff).std() # std of duration sum
 
         return [percentile, sum_mean, sum_median, sum_std]
 
