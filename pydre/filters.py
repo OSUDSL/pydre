@@ -38,7 +38,7 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
 
 
 
-def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
+def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="ESTIMATED_CLOSEST_WORLD_INTERSECTION"):
     required_col = [timeColName, gazeColName]
     diff = drivedata.checkColumns(required_col)
     if (len(diff) > 0):
@@ -118,7 +118,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
 def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
     for drive, filename in zip(drivedata.data, drivedata.sourcefilename):
         event_filename = Path(eventDirectory) / Path(filename).with_suffix(".evt").name
-        event_data = pandas.read_csv(event_filename, sep='\s+', na_values='.', header=0, skiprows=0, usecols=[0, 2, 4], names=['vidTime', 'simTime', 'Event_Name'])
+        event_data = pandas.read_csv(event_filename, sep='\s+', na_values='.', header=0, skiprows=0, usecols=[0, 2, 4], names=['startTime', 'stopTime', 'Event_Name'])
         # find all keypress events:
         event_types = pandas.Series(event_data['Event_Name'].unique())
         event_types = event_types[event_types.str.startswith('KEY_EVENT')].to_list()
@@ -127,8 +127,8 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
 
         # add two columns, for the indexes corresponding to the start time and end time of the key events
         event_data_key_presses = event_data.loc[event_data['Event_Name'].isin(event_types)]
-        event_data_key_presses['startIndex'] = drive['SimTime'].searchsorted(event_data_key_presses['simTime'])
-        event_data_key_presses['stopIndex'] = drive['SimTime'].searchsorted(event_data_key_presses['simTime'] + 0.5)
+        event_data_key_presses['startIndex'] = drive['DatTime'].searchsorted(event_data_key_presses['startTime'])
+        event_data_key_presses['stopIndex'] = drive['DatTime'].searchsorted(event_data_key_presses['stopTime'])
 
         # make the new columns in the drive data
         for col in event_types:
@@ -138,87 +138,7 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
             data_col_name = row['Event_Name']
             drive[data_col_name].loc[range(row['startIndex'], row['stopIndex'])] = 1
 
-            # start_time and stopTime of key event f in speedbump2 are flipped. We might want to remove the if statement below if
-            # this function is used for future studies
-            if row['stopIndex'] < row['startIndex']:  
-                drive[data_col_name].loc[range(row['stopIndex'], row['startIndex'])] = 1
-
     return drivedata
-
-
-# copy F key presses to task fail column, added for speedbump 2 study 
-def mergeFintoTaskFail(drivedata: pydre.core.DriveData): 
-    for d in drivedata.data:
-        if 'KEY_EVENT_F' in d.columns:
-            dt = pandas.DataFrame(d)
-            merged = ((dt['TaskFail'] + dt['KEY_EVENT_F']).astype("int")).replace(2, 1)
-            dt['TaskFail'] = merged
-    return drivedata
-
-
-
-def numberTaskInstance(drivedata: pydre.core.DriveData):
-    for d in drivedata.data:
-        count = 0
-        dt = pandas.DataFrame(d)
-        #dt.to_csv('dt.csv')
-        diff = dt[['KEY_EVENT_T', 'KEY_EVENT_P']].diff()
-        startPoints = diff.loc[diff['KEY_EVENT_T'] == 1.0] # all the points when T is pressed
-        endPoints = diff.loc[diff['KEY_EVENT_P'] == 1.0] # all the points when P is pressed
-        length = len(startPoints.index)
-
-        start_ptr = 0
-        end_ptr = 0
-        index_drop = []
-        index_drop_index = 0
-
-        
-        # check if a T event happens right after a previous T event (unmatching of T and P events)
-        # and remove extra T events
-        while (start_ptr < min(length, len(endPoints.index))):
-            start_time = startPoints.index[start_ptr]
-            end_time = endPoints.index[end_ptr]
-            
-            while start_ptr + 1 < length and startPoints.index[start_ptr + 1] < end_time:   # (time of next T < time of next P) means a T event happens right after the previous T event  
-                
-                index_drop.append(start_time)
-                #index_drop_index += 1
-                start_ptr += 1
-                start_time = startPoints.index[start_ptr]
-                #logger.warning("loop")
-            start_ptr += 1
-            end_ptr += 1
-        #print(index_drop)
-        startPoints = startPoints.drop(index_drop)
-        index_drop.clear()
-
-        # check if a P event happens right after a previous P event (unmatching of T and P events)
-        # and remove extra P events
-        start_ptr = 0
-        end_ptr = 0
-        while (end_ptr < min(len(startPoints.index), len(endPoints.index))):
-            start_time = startPoints.index[start_ptr]
-            end_time = endPoints.index[end_ptr]
-            while start_time > end_time:
-                #logger.warning(end_time)
-                index_drop.append(end_time)
-                end_ptr += 1
-                end_time = endPoints.index[end_ptr]
-            start_ptr += 1
-            end_ptr += 1
-        endPoints = endPoints.drop(index_drop)
-
-        # Add task instance column
-        instance_index = 1
-        while (instance_index <= min(len(startPoints.index), len(endPoints.index))): #at this point, len(startPoints.index) == len(endPoints.index) 
-            begin = startPoints.index[instance_index - 1]
-            end = endPoints.index[instance_index - 1]
-            dt.loc[begin:end, "TaskInstance"] = instance_index
-            instance_index = instance_index + 1
-        drivedata.data[count] = dt
-        count = count + 1
-    return drivedata
-
 
 filtersList = {}
 filtersColNames = {}
@@ -235,5 +155,3 @@ def registerFilter(name, function, columnnames=None):
 registerFilter('smoothGazeData', smoothGazeData)
 registerFilter('numberSwitchBlocks', numberSwitchBlocks)
 registerFilter('mergeEvents', mergeEvents)
-registerFilter('mergeFintoTaskFail', mergeFintoTaskFail)
-registerFilter('numberTaskInstance', numberTaskInstance)
