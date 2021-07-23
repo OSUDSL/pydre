@@ -161,17 +161,18 @@ def numberTaskInstance(drivedata: pydre.core.DriveData):
         count = 0
         dt = pandas.DataFrame(d)
         #dt.to_csv('dt.csv')
-        diff = dt[['KEY_EVENT_T', 'KEY_EVENT_P']].diff()
+        dt['KEY_EVENT_PF'] = dt['KEY_EVENT_P'] + dt['TaskFail']
+        diff = dt[['KEY_EVENT_T', 'KEY_EVENT_PF']].diff()
         startPoints = diff.loc[diff['KEY_EVENT_T'] == 1.0] # all the points when T is pressed
-        endPoints = diff.loc[diff['KEY_EVENT_P'] == 1.0] # all the points when P is pressed
+        endPoints = diff.loc[diff['KEY_EVENT_PF'] == 1.0] # all the points when P is pressed
 
         event = startPoints.append(endPoints)
         event = event.sort_index()
         event['drop_T'] = event['KEY_EVENT_T'].diff()
-        event['drop_P'] = event['KEY_EVENT_P'].diff()
+        event['drop_P'] = event['KEY_EVENT_PF'].diff()
         event.fillna(1)
 
-        if event['KEY_EVENT_P'].iloc[0] == 1:
+        if event['KEY_EVENT_PF'].iloc[0] == 1:
             event = event.drop(event.index[0])
         
         time = []
