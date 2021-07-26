@@ -463,10 +463,10 @@ class ProjectTree(QTreeWidget):
 
         '''
 
-        style_path = config.get('Stylesheets', 'projectTree')
-        style_path = os.path.join(GUI_PATH, style_path)
-        stylesheet = open(style_path).read()
-        self.setStyleSheet(stylesheet)
+        # style_path = config.get('Stylesheets', 'projectTree')
+        # style_path = os.path.join(GUI_PATH, style_path)
+        # stylesheet = open(style_path).read()
+        # self.setStyleSheet(stylesheet)
         self.setAnimated(True)
         self.setHeaderHidden(True)
 
