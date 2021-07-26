@@ -23,7 +23,7 @@ class WidgetFactory:
     '''
 
     @staticmethod
-    def combo_box(value, cb, items):
+    def combo_box(value, cb, items, border=True):
         '''TODO
 
         '''
@@ -34,10 +34,12 @@ class WidgetFactory:
         index = items.index(value)
         combo_box.setCurrentIndex(index)
         combo_box.activated.connect(lambda i: cb(combo_box.itemText(i)))
+        if border:
+            combo_box.setStyleSheet('border: 1px solid rgb(220, 220, 220);')
         return combo_box
 
     @staticmethod
-    def spin_box(value, cb):
+    def spin_box(value, cb, border=True):
         '''TODO
 
         '''
@@ -45,10 +47,12 @@ class WidgetFactory:
         spin_box = QSpinBox()
         spin_box.setValue(value)
         spin_box.valueChanged.connect(cb)
+        if border:
+            spin_box.setStyleSheet('border: 1px solid rgb(220, 220, 220);')
         return spin_box
 
     @staticmethod
-    def line_edit(value, cb):
+    def line_edit(value, cb, border=True):
         '''TODO
 
         '''
@@ -56,6 +60,8 @@ class WidgetFactory:
         line_edit = QLineEdit()
         line_edit.setText(value)
         line_edit.textChanged.connect(cb)
+        if border:
+            line_edit.setStyleSheet('border: 1px solid rgb(220, 220, 220);')
         return line_edit
 
 
@@ -153,7 +159,7 @@ class RoisTree(QTreeWidget):
         roi = self.rois[index]
         self.branches[roi['type']] = branch
         def cb(e): return self._update_roi(index, attribute, e)
-        line_edit = WidgetFactory.line_edit(roi['type'], cb)
+        line_edit = WidgetFactory.line_edit(roi['type'], cb, border=False)
         for attribute in filter(lambda a: a != 'type', roi):
             self._configure_leaf(branch, index, attribute)
         self.root.setItemWidget(branch, 0, line_edit)
@@ -229,7 +235,7 @@ class FiltersTree(QTreeWidget):
         filter_ = self.filters[index]
         self.branches[filter_['name']] = branch
         def cb(e): return self._update_filters(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(filter_['name'], cb)
+        line_edit = WidgetFactory.line_edit(filter_['name'], cb, border=False)
         for attribute in filter(lambda a: a != 'name', filter_):
             self._configure_leaf(branch, index, attribute)
         self.root.setItemWidget(branch, 0, line_edit)
@@ -342,7 +348,7 @@ class MetricsTree(QTreeWidget):
         metric = self.metrics[index]
         self.branches[metric['name']] = branch
         def cb(e): return self._update_metric(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(metric['name'], cb)
+        line_edit = WidgetFactory.line_edit(metric['name'], cb, border=False)
         for attribute in filter(lambda a: a != 'name', metric):
             self._configure_leaf(branch, index, attribute)
         self.root.setItemWidget(branch, 0, line_edit)
