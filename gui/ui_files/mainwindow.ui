@@ -55,7 +55,7 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -338,6 +338,20 @@ font: 75 10pt &quot;Arial&quot;;</string>
                 </widget>
                </item>
                <item>
+                <widget class="QPushButton" name="move_up_btn">
+                 <property name="text">
+                  <string>Move up</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="move_down_btn">
+                 <property name="text">
+                  <string>Move down</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <spacer name="verticalSpacer_2">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
@@ -366,7 +380,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
-          <widget class="QWidget" name="">
+          <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
              <widget class="QLabel" name="pfile_lbl">
@@ -533,7 +547,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="">
+          <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_9">
             <item>
              <widget class="QLabel" name="label_5">
