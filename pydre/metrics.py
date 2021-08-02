@@ -986,6 +986,8 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
         logger.warning("Processing Task {}".format(d.TaskNum.mean()))
         if d.TaskNum.mean() == 0 or d.TaskNum.mean() > maxtasknum:
             return [None, None, None, None]
+        #if d.TaskNum.mean() == 4:
+        #    d.to_csv('4.csv')
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = df.fillna(0)  # remove nans and drop duplicates
         
@@ -1035,6 +1037,38 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
 
     return [None, None, None, None]
 
+# count and return the occurence of a specific key event
+def eventCount(drivedata: pydre.core.DriveData, event="KEY_EVENT_S"):
+    required_col = [event]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+    for d in drivedata.data:
+        df = pandas.DataFrame(d, columns=required_col)
+        col_name = event + "_ocurrance"
+        df[col_name] = df[event].diff()
+        occur = (df[col_name].value_counts().get(1))
+        if occur == None:
+            occur = 0
+        return occur
+
+def insDuration(drivedata: pydre.core.DriveData):
+    required_col = ['DatTime', 'TaskInstance']
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+    
+    for d in drivedata.data:
+        df = pandas.DataFrame(d, columns=required_col)
+        return (df.tail(1).iat[0, 0] - df.head(1).iat[0, 0])
+        
+
+
 def getTaskNum(drivedata: pydre.core.DriveData):
     required_col = ["TaskNum"]
     diff = drivedata.checkColumns(required_col)
@@ -1082,4 +1116,6 @@ registerMetric('gazes', gazeNHTSA,
                ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
 registerMetric('speedbumpHondaGaze2', speedbumpHondaGaze2,
                ['85th_percentile', 'duration_mean', 'duration_median', 'duration_std'])
+registerMetric('insDuration', insDuration)
+registerMetric('eventCount', eventCount)
 registerMetric('getTaskNum', getTaskNum)
