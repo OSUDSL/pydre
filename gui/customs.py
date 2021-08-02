@@ -10,7 +10,7 @@ import typing
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
-from gui.config import Config, CONFIG_PATH, GUI_PATH
+from gui.config import Config, CONFIG_PATH
 from gui.popups import FunctionPopup
 
 config = Config()
@@ -35,7 +35,7 @@ class WidgetFactory:
         combo_box.setCurrentIndex(index)
         combo_box.activated.connect(lambda i: cb(combo_box.itemText(i)))
         if border:
-            combo_box.setStyleSheet('border: 1px solid rgb(220, 220, 220);')
+            combo_box.setStyleSheet('border: 1px solid black;')
         return combo_box
 
     @staticmethod
@@ -48,7 +48,7 @@ class WidgetFactory:
         spin_box.setValue(value)
         spin_box.valueChanged.connect(cb)
         if border:
-            spin_box.setStyleSheet('border: 1px solid rgb(220, 220, 220);')
+            spin_box.setStyleSheet('border: 1px solid black;')
         return spin_box
 
     @staticmethod
@@ -61,7 +61,7 @@ class WidgetFactory:
         line_edit.setText(value)
         line_edit.textChanged.connect(cb)
         if border:
-            line_edit.setStyleSheet('border: 1px solid rgb(220, 220, 220);')
+            line_edit.setStyleSheet('border: 1px solid black;')
         return line_edit
 
 
@@ -584,3 +584,10 @@ class ProjectTree(QTreeWidget):
                     del self.items_copy[parent]
         self.clear()
         self._configure_widget()
+
+    def move_selected_up(self):
+        '''TODO
+
+        '''
+
+        print(self.itemWidget(self.selectedItems()[0], 0))
