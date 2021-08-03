@@ -88,6 +88,8 @@ class MainWindow(Window):
         self.ui.new_filter_btn.clicked.connect(self._handle_new_filter)
         self.ui.new_metric_btn.clicked.connect(self._handle_new_metric)
         self.ui.remove_item_btn.clicked.connect(self._handle_remove_item)
+        self.ui.move_up_btn.clicked.connect(self._handle_move_up)
+        self.ui.move_down_btn.clicked.connect(self._handle_move_down)
         self.ui.add_btn.clicked.connect(self._handle_add_dfile)
         self.ui.remove_btn.clicked.connect(self._handle_remove_dfile)
         self.ui.cancel_btn.clicked.connect(self._handle_cancel)
@@ -104,6 +106,8 @@ class MainWindow(Window):
         self.ui.main_hsplitter.setStretchFactor(1, 7)
         self.ui.main_vsplitter.setStretchFactor(0, 7)
         self.ui.main_vsplitter.setStretchFactor(1, 2)
+        self.ui.run_vsplitter.setStretchFactor(0, 4)
+        self.ui.run_vsplitter.setStretchFactor(1, 1)
 
     def _configure_recent(self):
         '''Configures the recent files list displayed on the start page.
@@ -251,6 +255,26 @@ class MainWindow(Window):
         pfile_name = self.ui.pfile_tab.tabText(index)
         project_tree = self.project_files[pfile_name][1]
         project_tree.remove_selected()
+
+    def _handle_move_up(self):
+        '''TODO
+
+        '''
+
+        index = self.ui.pfile_tab.currentIndex()
+        pfile_name = self.ui.pfile_tab.tabText(index)
+        project_tree = self.project_files[pfile_name][1]
+        project_tree.move_selected_up()
+
+    def _handle_move_down(self):
+        '''TODO
+
+        '''
+
+        index = self.ui.pfile_tab.currentIndex()
+        pfile_name = self.ui.pfile_tab.tabText(index)
+        project_tree = self.project_files[pfile_name][1]
+        print(project_tree.selectedItems())
 
     def _handle_add_dfile(self):
         '''TODO
