@@ -3,7 +3,7 @@ from pandas import CategoricalDtype
 from tqdm import tqdm, trange
 
 import pandas
-import core
+import pydre.core
 import numpy as np
 import logging
 import os
@@ -17,15 +17,15 @@ logger = logging.getLogger('PydreLogger')
 
 # filters defined here take a DriveData object and return an updated DriveData object
 
-def numberSwitchBlocks(drivedata: core.DriveData,):
+def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
     required_col = ["TaskStatus"]
     diff = drivedata.checkColumns(required_col)
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, core.funcName()))
-        raise core.ColumnsMatchError()
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
 
 
-    copy = core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
+    copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
 
     for d in drivedata.data:
@@ -39,15 +39,15 @@ def numberSwitchBlocks(drivedata: core.DriveData,):
 
 
 
-def smoothGazeData(drivedata: core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
+def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
     required_col = [timeColName, gazeColName]
     diff = drivedata.checkColumns(required_col)
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, core.funcName()))
-        raise core.ColumnsMatchError()
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
 
 
-    #copy = core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
+    #copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
     #                                     drivedata.data, drivedata.sourcefilename)
     
     data = drivedata.data
@@ -116,7 +116,7 @@ def smoothGazeData(drivedata: core.DriveData, timeColName="DatTime", gazeColName
     return drivedata
 
 
-def mergeEvents(drivedata: core.DriveData, eventDirectory: str):
+def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
     for drive, filename in zip(drivedata.data, drivedata.sourcefilename):
         event_filename = Path(eventDirectory) / Path(filename).with_suffix(".evt").name
         event_data = pandas.read_csv(event_filename, sep='\s+', na_values='.', header=0, skiprows=0, usecols=[0, 2, 4], names=['vidTime', 'simTime', 'Event_Name'])
@@ -148,7 +148,7 @@ def mergeEvents(drivedata: core.DriveData, eventDirectory: str):
 
 
 # copy F key presses to task fail column, added for speedbump 2 study 
-def mergeFintoTaskFail(drivedata: core.DriveData): 
+def mergeFintoTaskFail(drivedata: pydre.core.DriveData): 
     for d in drivedata.data:
         if 'KEY_EVENT_F' in d.columns:
             dt = pandas.DataFrame(d)
@@ -157,7 +157,7 @@ def mergeFintoTaskFail(drivedata: core.DriveData):
     return drivedata
 
 
-def numberTaskInstance(drivedata: core.DriveData):
+def numberTaskInstance(drivedata: pydre.core.DriveData):
     for d in drivedata.data:
         count = 0
         dt = pandas.DataFrame(d)
@@ -196,7 +196,7 @@ def numberTaskInstance(drivedata: core.DriveData):
     return drivedata
 
 
-def writeToCSV(drivedata: core.DriveData, outputDirectory: str):
+def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
     for source_file in drivedata.sourcefilename:
         data = pandas.read_table(source_file)
         filename = source_file.split('.')[0]
