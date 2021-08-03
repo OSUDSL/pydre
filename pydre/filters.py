@@ -3,9 +3,10 @@ from pandas import CategoricalDtype
 from tqdm import tqdm, trange
 
 import pandas
-import pydre.core
+import core
 import numpy as np
 import logging
+import os
 
 from pathlib import Path
 
@@ -18,15 +19,15 @@ logger.addHandler(GUIHandler())
 
 # filters defined here take a DriveData object and return an updated DriveData object
 
-def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
+def numberSwitchBlocks(drivedata: core.DriveData,):
     required_col = ["TaskStatus"]
     diff = drivedata.checkColumns(required_col)
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, core.funcName()))
+        raise core.ColumnsMatchError()
 
 
-    copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
+    copy = core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
                                          drivedata.data, drivedata.sourcefilename)
 
     for d in drivedata.data:
@@ -40,15 +41,15 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
 
 
 
-def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
+def smoothGazeData(drivedata: core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
     required_col = [timeColName, gazeColName]
     diff = drivedata.checkColumns(required_col)
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, core.funcName()))
+        raise core.ColumnsMatchError()
 
 
-    #copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
+    #copy = core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
     #                                     drivedata.data, drivedata.sourcefilename)
     
     data = drivedata.data
@@ -117,7 +118,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
     return drivedata
 
 
-def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
+def mergeEvents(drivedata: core.DriveData, eventDirectory: str):
     for drive, filename in zip(drivedata.data, drivedata.sourcefilename):
         event_filename = Path(eventDirectory) / Path(filename).with_suffix(".evt").name
         event_data = pandas.read_csv(event_filename, sep='\s+', na_values='.', header=0, skiprows=0, usecols=[0, 2, 4], names=['vidTime', 'simTime', 'Event_Name'])
@@ -129,8 +130,8 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
 
         # add two columns, for the indexes corresponding to the start time and end time of the key events
         event_data_key_presses = event_data.loc[event_data['Event_Name'].isin(event_types)]
-        event_data_key_presses['startIndex'] = drive['simTime'].searchsorted(event_data_key_presses['simTime'])
-        event_data_key_presses['stopIndex'] = drive['simTime'].searchsorted(event_data_key_presses['simTime'] + 0.5)
+        event_data_key_presses['startIndex'] = drive['SimTime'].searchsorted(event_data_key_presses['simTime'])
+        event_data_key_presses['stopIndex'] = drive['SimTime'].searchsorted(event_data_key_presses['simTime'] + 0.5)
 
         # make the new columns in the drive data
         for col in event_types:
@@ -140,7 +141,7 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
             data_col_name = row['Event_Name']
             drive[data_col_name].loc[range(row['startIndex'], row['stopIndex'])] = 1
 
-            # startTime and stopTime of key event f in speedbump2 are flipped. We might want to remove the if statement below if
+            # start_time and stopTime of key event f in speedbump2 are flipped. We might want to remove the if statement below if
             # this function is used for future studies
             if row['stopIndex'] < row['startIndex']:  
                 drive[data_col_name].loc[range(row['stopIndex'], row['startIndex'])] = 1
@@ -149,7 +150,7 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
 
 
 # copy F key presses to task fail column, added for speedbump 2 study 
-def mergeFintoTaskFail(drivedata: pydre.core.DriveData): 
+def mergeFintoTaskFail(drivedata: core.DriveData): 
     for d in drivedata.data:
         if 'KEY_EVENT_F' in d.columns:
             dt = pandas.DataFrame(d)
@@ -158,28 +159,51 @@ def mergeFintoTaskFail(drivedata: pydre.core.DriveData):
     return drivedata
 
 
-
-def numberTaskInstance(drivedata: pydre.core.DriveData):
+def numberTaskInstance(drivedata: core.DriveData):
     for d in drivedata.data:
         count = 0
         dt = pandas.DataFrame(d)
-        #dt.loc[dt.DatTime < 1, "TaskInstance"] = 1
-        diff = dt[['KEY_EVENT_T', 'KEY_EVENT_P']].diff()
-        startPoints = diff.loc[diff['KEY_EVENT_T'] == 1.0]
-        endPoints = diff.loc[diff['KEY_EVENT_P'] == 1.0]
-        length = len(startPoints.index)
-        instance_index = 1
-        while (instance_index <= length):
-            begin = startPoints.index[instance_index - 1]
-            end = endPoints.index[instance_index - 1]
-            dt.loc[begin:end, "TaskInstance"] = instance_index
-            #print(begin)
-            #print(end)
-            #print(dt.loc[startPoints.index[instance_index - 1]:endPoints.index[instance_index - 1]])
-            #print(d)
-            instance_index = instance_index + 1
+        #dt.to_csv('dt.csv')
+        dt['KEY_EVENT_PF'] = dt['KEY_EVENT_P'] + dt['TaskFail']
+        diff = dt[['KEY_EVENT_T', 'KEY_EVENT_PF']].diff()
+        startPoints = diff.loc[diff['KEY_EVENT_T'] == 1.0] # all the points when T is pressed
+        endPoints = diff.loc[diff['KEY_EVENT_PF'] == 1.0] # all the points when P is pressed
+
+        event = startPoints.append(endPoints)
+        event = event.sort_index()
+        event['drop_T'] = event['KEY_EVENT_T'].diff()
+        event['drop_P'] = event['KEY_EVENT_PF'].diff()
+        event.fillna(1)
+
+        if event['KEY_EVENT_PF'].iloc[0] == 1:
+            event = event.drop(event.index[0])
+        
+        time = []
+        for t in event.index:
+            time.append(dt.at[t, 'DatTime'])
+        event['time'] = time
+        event = event.loc[(event['drop_T'] != 0) & (event['drop_P'] != 0)]
+
+        event.to_csv('event.csv')
+        instance_index = 0
+        ins = 1
+        while (instance_index < len(event) - 1):
+            begin = event.index[instance_index]
+            end = event.index[instance_index + 1]
+            dt.loc[begin:end, "TaskInstance"] = ins
+            instance_index = instance_index + 2
+            ins += 1
         drivedata.data[count] = dt
         count = count + 1
+    return drivedata
+
+
+def writeToCSV(drivedata: core.DriveData, outputDirectory: str):
+    for source_file in drivedata.sourcefilename:
+        data = pandas.read_table(source_file)
+        filename = source_file.split('.')[0]
+        output_file = os.path.join(outputDirectory, filename) + '.csv'
+        data.to_csv(output_file)
     return drivedata
 
 
