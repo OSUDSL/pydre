@@ -49,7 +49,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
 
     #copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
     #                                     drivedata.data, drivedata.sourcefilename)
-    
+    ptr = 0
     data = drivedata.data
     for d in data:
         dt = pandas.DataFrame(d)
@@ -113,6 +113,9 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
         dt['gaze'].fillna(method='bfill', inplace=True)
         dt['gazenum'] = (dt['gaze'].shift(1) != dt['gaze']).astype(int).cumsum()
         #print("{} gazes after removing transitions.".format(dt['gazenum'].max()))
+        drivedata.data[ptr] = dt
+        ptr += 1
+
     return drivedata
 
 

@@ -28,7 +28,7 @@ def evt_to_df(filename):
 
 if args.input_directory and args.output_directory and args.event_file and args.timestamp_file:
     event_df = evt_to_df(os.path.join(args.input_directory, args.event_file))
-    timestamp_df = pd.read_excel(os.path.join(args.input_directory, args.timestamp_file))['SimTime'].iloc[:-1]
+    timestamp_df = pd.read_excel(os.path.join(args.input_directory, args.timestamp_file))['SimTime']#.iloc[:-1]
     for timestamp in timestamp_df:
         timestamp = '%.2f'%float(timestamp)
         for index, event in enumerate(event_df.iterrows()):
