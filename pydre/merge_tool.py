@@ -58,9 +58,15 @@ class MergeTool():
                 # The latest out_frame's final SimTime. To be added across next_frame's SimTime column as a constant.
                 # '-1' indices didn't work here, threw a pandas error. But this code produces desired result.
                 timejump = out_frame[:]["SimTime"]
+                timejumpdat = out_frame[:]["DatTime"]
                 timeconstant = timejump[len(timejump) - 1]
+
+                timejumpdat = out_frame[:]["DatTime"]
+                timeconstantdat = timejumpdat[len(timejumpdat) - 1]
+
                 next_frame = pd.read_csv(drive, sep='\s+', na_values='.', engine="c")
                 next_frame["SimTime"] += timeconstant
+                next_frame["DatTime"] += timeconstantdat
                 out_frame = out_frame.append(next_frame, ignore_index=True)
             out_frame.to_csv(os.path.join(out_dir_name, study + "_Sub_" + subject + "_Drive_0.dat"),
                              sep=' ', na_rep=".", index=False)
