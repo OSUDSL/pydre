@@ -25,6 +25,11 @@
         {
         	"name": "numberTaskInstance",
             "function": "numberTaskInstance"
+        },
+        {
+            "name": "writeToCSV",
+            "function": "writeToCSV",
+            "outputDirectory": "output"
         }
     ],
   
