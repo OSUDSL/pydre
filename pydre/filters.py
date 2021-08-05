@@ -51,7 +51,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
 
     #copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
     #                                     drivedata.data, drivedata.sourcefilename)
-    
+    ptr = 0
     data = drivedata.data
     for d in data:
         dt = pandas.DataFrame(d)
@@ -93,16 +93,10 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
         #print("{} gazes before removing transitions".format(n))
         short_gaze_count = 0
         dt.set_index('gazenum')
-        
-        
-        durations.sort_values(ascending=True)
 
-        index = 1
-        while (durations.loc[index] < min_delta and index < durations.index.max()):
-            # apply the code below to all rows < min_delta
-            short_gaze_count += 1
-            dt.loc[dt['gazenum'] == index, 'gaze'] = np.nan
-            index += 1
+        short_duration_indices = durations[durations.lt(min_delta)].index.values
+        short_gaze_count = len(short_duration_indices)
+        dt.loc[dt['gazenum'].isin(short_duration_indices), 'gaze'] = np.nan
 
         #for x in trange(durations.index.min(), durations.index.max()):
             #if durations.loc[x] < min_delta:
@@ -115,6 +109,9 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeC
         dt['gaze'].fillna(method='bfill', inplace=True)
         dt['gazenum'] = (dt['gaze'].shift(1) != dt['gaze']).astype(int).cumsum()
         #print("{} gazes after removing transitions.".format(dt['gazenum'].max()))
+        drivedata.data[ptr] = dt
+        ptr += 1
+    #drivedata.data[0].to_csv("test/test_i_" + str(int(drivedata.data[0].PartID.min())) + "_drive_" + str(int(drivedata.data[0].DriveID.min())) + "_afterSmoothing.csv")
     return drivedata
 
 
