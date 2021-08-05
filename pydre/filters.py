@@ -41,7 +41,7 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
 
 
 
-def smoothGazeData(drivedata: pydre.core.DriveData, timeColName="DatTime", gazeColName="FILTERED_GAZE_OBJ_NAME"):
+def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str="DatTime", gazeColName: str="FILTERED_GAZE_OBJ_NAME"):
     required_col = [timeColName, gazeColName]
     diff = drivedata.checkColumns(required_col)
     if (len(diff) > 0):
@@ -197,8 +197,9 @@ def numberTaskInstance(drivedata: pydre.core.DriveData):
 
 def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
     for data, sourcefile in zip(drivedata.data, drivedata.sourcefilename):
-        filename = os.path.splitext(sourcefile)[0]
+        filename = os.path.splitext(sourcefile)[0].split('\\')[-1]
         output_file = os.path.join(outputDirectory, filename) + '.csv'
+        print(output_file, outputDirectory, filename)
         data.to_csv(output_file)
     return drivedata
 
@@ -220,3 +221,4 @@ registerFilter('numberSwitchBlocks', numberSwitchBlocks)
 registerFilter('mergeEvents', mergeEvents)
 registerFilter('mergeFintoTaskFail', mergeFintoTaskFail)
 registerFilter('numberTaskInstance', numberTaskInstance)
+registerFilter('writeToCSV', writeToCSV)
