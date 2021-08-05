@@ -44,7 +44,6 @@ class MainWindow(Window):
         self._configure_callbacks()
         self._configure_splitters()
         self._configure_recent()
-        self.ui.menu_bar.setVisible(False)
 
     def _configure_callbacks(self):
         '''Configures callback functionality for actions and widgets.
