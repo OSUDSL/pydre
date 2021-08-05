@@ -1,0 +1,37 @@
+{
+	"rois": [
+        {"type": "column", "columnname": "TaskNum"}
+    ],
+  "filters": [
+        {
+            "name": "smoothGazeData",
+            "function": "smoothGazeData",
+            "gazeColName": "ESTIMATED_CLOSEST_WORLD_INTERSECTION"
+        },
+     {
+            "name": "numberSwitchBlocks",
+            "function": "numberSwitchBlocks"
+        }, 
+        {
+        	"name": "mergeEvents",
+        	"function": "mergeEvents", 
+        	"eventDirectory": "event_files"
+        }, 
+        {
+			"name": "mergeFintoTaskFail",
+        	"function": "mergeFintoTaskFail" 
+        }, 
+
+        {
+        	"name": "numberTaskInstance",
+            "function": "numberTaskInstance"
+        }
+    ],
+  
+    "metrics": [
+        {
+            "name": "speedbumpHondaGaze2",
+            "function": "speedbumpHondaGaze2"
+        }
+    ]
+ }
