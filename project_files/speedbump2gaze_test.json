@@ -7,7 +7,7 @@
             "function": "smoothGazeData",
             "gazeColName": "ESTIMATED_CLOSEST_WORLD_INTERSECTION"
         },
-     {
+        {
             "name": "numberSwitchBlocks",
             "function": "numberSwitchBlocks"
         }, 
