@@ -993,7 +993,7 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
         
         df['time_diff'] = df[timecolumn].diff() # get durations by calling time_column.diff()
 
-        df = df[df.gaze == 'offroad']   # remove onroad rows
+        df = df.loc[df.gaze != 'onroad']   # remove onroad rows
         #df.to_csv('AAM_cp1.csv')
         df = df.loc[(df['TaskInstance'] != 0) & (df['TaskInstance'] != np.nan)] # drop all rows that are not in any task instance
         dropped_instances = df.loc[(df['TaskFail'] == 1)]
@@ -1080,8 +1080,8 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
         raise pydre.core.ColumnsMatchError()
 
     for d in drivedata.data:
-        #if d.TaskNum.mean() == 0 or d.TaskNum.mean() < 4 or d.TaskNum.mean() > 5:
-        #    return [None, None, None, None]
+        if d.TaskNum.mean() == 0 or d.TaskNum.mean() < 4 or d.TaskNum.mean() > 5:
+            return [None, None, None, None]
         
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         #df.to_csv("df.csv")
@@ -1093,16 +1093,16 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
         event_s = pandas.DataFrame(df, columns=[timecolumn, 'gazenum', 'gaze', 'KEY_EVENT_S'])
         event_s['diff'] = event_s['KEY_EVENT_S'].diff()
         event_s['s_begin'] = 0
-        event_s.loc[event_s['diff'] == 1, 's_begin'] = 1
+        event_s.loc[event_s['diff'] == 1, 's_begin'] = 1 # mark the beginning of all the s events
 
         s_begin_time = event_s.loc[event_s['s_begin'] == 1]
         s_begin_time = s_begin_time.reset_index()
         #print(s_begin_time)
         index = 0
-        for time in s_begin_time[timecolumn]:
+        for time in s_begin_time[timecolumn]: #mark the duration of speedbump as 1
             event_s.loc[(event_s[timecolumn] > float(time)) & (event_s[timecolumn] < float(time + duration)), "s_begin"] = 1
             index += 1
-        event_s.to_csv("e.csv")
+        #event_s.to_csv("e.csv")
 
         group_by_gazenum = event_s.groupby('gazenum', sort=False)
         durations = pandas.DataFrame(group_by_gazenum.sum(), columns=['s_begin'])
@@ -1127,25 +1127,20 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
 
             if durations.at[i, 's_begin'] > 0:
                 temp = event_s.loc[event_s['gazenum'] == current_gaze]
-                total_length = len(temp.index)
-                speedbump_act = temp.loc[temp['s_begin'] == 1]
+                total_length = len(temp.index) # length of the entire glance
+                speedbump_act = temp.loc[temp['s_begin'] == 1] # length of the time period when speedbump is on during the current glance
                 act_length = len(speedbump_act.index)
-                if act_length >= (total_length / 2):
-                    durations.at[i, "in_speedbump"] = 1
+                if act_length >= (total_length / 2): # if speedbump is on for more than half of the total glance time:
+                    durations.at[i, "in_speedbump"] = 1 
             i += 1
         
-
         durations['gaze_duration'] = durations['end'] - durations['begin']
-        # durations['gaze_duration'] += (d[timecolumn].diff().mean()) 
-        # not sure if this is necessary: any gaze <= 0.02 will be 0 without this line of code
-        #print(d[timecolumn].diff().mean())
 
         durations_onroad_spbpon = durations.loc[(durations['gaze'] == 'onroad') & (durations['in_speedbump'] == 1)]
         durations_offroad_spbpon = durations.loc[(durations['gaze'] == 'offroad') & (durations['in_speedbump'] == 1)]
         durations_onroad_spbpoff = durations.loc[(durations['gaze'] == 'onroad') & (durations['in_speedbump'] == 0)]
         durations_offroad_spbpoff = durations.loc[(durations['gaze'] == 'offroad') & (durations['in_speedbump'] == 0)]
-        # is None or 0 onroad or offroad or needs to be dropped?
-
+        
         #durations.to_csv("dursum.csv")
         #durations_onroad_spbpon.to_csv("duron_so.csv")
         #durations_offroad_spbpon.to_csv("duroff_so.csv")
