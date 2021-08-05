@@ -198,8 +198,8 @@ def numberTaskInstance(drivedata: pydre.core.DriveData):
 def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
     for data, sourcefile in zip(drivedata.data, drivedata.sourcefilename):
         filename = os.path.splitext(os.path.basename(sourcefile))[0]
-        output_file = os.path.join(outputDirectory, filename) + '.csv'
-        data.to_csv(output_file, index=False)
+        output_path = os.path.join(outputDirectory, filename) + '.csv'
+        data.to_csv(output_path, index=False)
     return drivedata
 
 
