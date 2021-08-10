@@ -413,6 +413,13 @@ class MainWindow(Window):
         count = self.ui.data_lst.count()
         self.ui.run_btn.setEnabled(True if count > 0 else False)
 
+    def _toggle_move_btns(self):
+        '''TODO
+        
+        '''
+
+        pass
+
     def add_to_log(self, entry):
         '''TODO
 
