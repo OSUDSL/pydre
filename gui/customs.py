@@ -7,6 +7,8 @@ import copy
 import json
 import os
 import typing
+
+from PySide2.QtCore import QModelIndex
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
@@ -518,7 +520,7 @@ class ProjectTree(QTreeWidget):
         self._configure_widget()
         # rois_tree = self.subtrees['rois']
 
-    def add_filter(self, filter=None, index=-1):
+    def add_filter(self, filter=None, new_index=-1):
         '''TODO
 
         '''
@@ -532,12 +534,13 @@ class ProjectTree(QTreeWidget):
         if 'filters' not in self.items_copy:
             self.items_copy['filters'] = [new_filter]
         else:
-            self.items_copy['filters'].insert(index, new_filter)
+            self.items_copy['filters'].insert(new_index, new_filter)
         self._configure_widget()
         index = len(self.items_copy['filters']) - 1
         value = new_filter['function']
         filters_tree = self.subtrees['filters']
         filters_tree.update_filter_function(index, value)
+        self.setItemSelected(self.itemAt(0, 0).child(new_index), True)
 
     def add_metric(self):
         '''TODO
