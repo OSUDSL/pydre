@@ -518,13 +518,13 @@ class ProjectTree(QTreeWidget):
         self._configure_widget()
         # rois_tree = self.subtrees['rois']
 
-    def add_filter(self):
+    def add_filter(self, filter=None, index=-1):
         '''TODO
 
         '''
 
         self.clear()
-        new_filter = {
+        new_filter = filter if filter else {
             'name': f'new_filter_{self.filter_counter}',
             'function': list(filters.filtersList.keys())[0]
         }
@@ -532,7 +532,7 @@ class ProjectTree(QTreeWidget):
         if 'filters' not in self.items_copy:
             self.items_copy['filters'] = [new_filter]
         else:
-            self.items_copy['filters'].append(new_filter)
+            self.items_copy['filters'].insert(index, new_filter)
         self._configure_widget()
         index = len(self.items_copy['filters']) - 1
         value = new_filter['function']
@@ -590,4 +590,17 @@ class ProjectTree(QTreeWidget):
 
         '''
 
-        print(self.itemWidget(self.selectedItems()[0], 0))
+        index = self.indexFromItem(self.selectedItems()[0]).row()
+        filter = self.items_copy['filters'][index]
+        self.remove_selected()
+        self.add_filter(filter, index - 1)
+
+    def move_selected_down(self):
+        '''TODO
+        
+        '''
+
+        index = self.indexFromItem(self.selectedItems()[0]).row()
+        filter = self.items_copy['filters'][index]
+        self.remove_selected()
+        self.add_filter(filter, index + 1)

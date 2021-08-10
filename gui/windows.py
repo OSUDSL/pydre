@@ -273,7 +273,7 @@ class MainWindow(Window):
         index = self.ui.pfile_tab.currentIndex()
         pfile_name = self.ui.pfile_tab.tabText(index)
         project_tree = self.project_files[pfile_name][1]
-        print(project_tree.selectedItems())
+        project_tree.move_selected_down()
 
     def _handle_add_dfile(self):
         '''TODO
