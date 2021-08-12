@@ -523,8 +523,7 @@ class ProjectTree(QTreeWidget):
         else:
             self.items_copy['rois'].insert(new_index, new_roi)
         self._configure_widget()
-        print(self.itemAt(0, 9).text(0))
-        self.setItemSelected(self.itemAt(0, 100).child(new_index), True)
+        self.setItemSelected(self.topLevelItem(2).child(new_index), True)
 
     def add_filter(self, filter=None, new_index=-1):
         '''TODO
@@ -546,7 +545,7 @@ class ProjectTree(QTreeWidget):
         value = new_filter['function']
         filters_tree = self.subtrees['filters']
         filters_tree.update_filter_function(index, value)
-        self.setItemSelected(self.itemAt(0, 0).child(new_index), True)
+        self.setItemSelected(self.topLevelItem(0).child(new_index), True)
 
     def add_metric(self, metric=None, new_index=-1):
         '''TODO
@@ -568,7 +567,7 @@ class ProjectTree(QTreeWidget):
         value = new_metric['function']
         metrics_tree = self.subtrees['metrics']
         metrics_tree.update_metric_function(index, value)
-        self.setItemSelected(self.itemAt(1, 0).child(new_index), True)
+        self.setItemSelected(self.topLevelItem(1).child(new_index), True)
 
     def remove_selected(self):
         '''TODO
