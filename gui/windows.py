@@ -440,8 +440,8 @@ class MainWindow(Window):
 
         '''
 
-        width = self.screen_width / 4
-        height = self.screen_height / 4
+        width = self.screen_width / 3
+        height = self.screen_height / 2.5
         self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(False)
         self._configure_recent()
@@ -452,8 +452,8 @@ class MainWindow(Window):
 
         '''
 
-        width = self.screen_width / 2.5
-        height = self.screen_height / 2
+        width = self.screen_width / 2
+        height = self.screen_height / 1.5
         self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(True)
         self.ui.page_stack.setCurrentIndex(1)
@@ -463,8 +463,8 @@ class MainWindow(Window):
 
         '''
 
-        width = self.screen_width / 2.5
-        height = self.screen_height / 2
+        width = self.screen_width / 2
+        height = self.screen_height / 1.5
         self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(True)
         self.ui.page_stack.setCurrentIndex(2)
