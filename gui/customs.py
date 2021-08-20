@@ -598,18 +598,22 @@ class ProjectTree(QTreeWidget):
         '''
 
         index = self.indexFromItem(self.selectedItems()[0]).row()
-        sub_tree = self.selectedItems()[-1].parent().text(0)
-        item = self.items_copy[sub_tree][index]
-        self.remove_selected()
-        self.add_item[sub_tree](item, index - 1)
+        sub_tree = self.selectedItems()[-1].parent()
+        sub_tree_text = sub_tree.text(0)
+        item = self.items_copy[sub_tree_text][index]
+        if index > 0:
+            self.remove_selected()
+            self.add_item[sub_tree_text](item, index - 1)
 
     def move_selected_down(self):
         '''TODO
-        
+
         '''
 
         index = self.indexFromItem(self.selectedItems()[0]).row()
-        sub_tree = self.selectedItems()[-1].parent().text(0)
-        item = self.items_copy[sub_tree][index]
-        self.remove_selected()
-        self.add_item[sub_tree](item, index + 1)
+        sub_tree = self.selectedItems()[-1].parent()
+        sub_tree_text = sub_tree.text(0)
+        item = self.items_copy[sub_tree_text][index]
+        if index < sub_tree.childCount() - 1:
+            self.remove_selected()
+            self.add_item[sub_tree_text](item, index + 1)
