@@ -507,7 +507,7 @@ class ProjectTree(QTreeWidget):
             return True
         return False
 
-    def add_roi(self, roi=None, new_index=-1):
+    def add_roi(self, roi=None, index=-1):
         '''TODO
 
         '''
@@ -521,11 +521,11 @@ class ProjectTree(QTreeWidget):
         if 'rois' not in self.items_copy:
             self.items_copy['rois'] = [new_roi]
         else:
-            self.items_copy['rois'].insert(new_index, new_roi)
+            self.items_copy['rois'].insert(index, new_roi)
         self._configure_widget()
-        self.setItemSelected(self.topLevelItem(2).child(new_index), True)
+        self.setItemSelected(self.topLevelItem(2).child(index), True)
 
-    def add_filter(self, filter=None, new_index=-1):
+    def add_filter(self, filter=None, index=-1):
         '''TODO
 
         '''
@@ -539,15 +539,14 @@ class ProjectTree(QTreeWidget):
         if 'filters' not in self.items_copy:
             self.items_copy['filters'] = [new_filter]
         else:
-            self.items_copy['filters'].insert(new_index, new_filter)
+            self.items_copy['filters'].insert(index, new_filter)
         self._configure_widget()
-        index = len(self.items_copy['filters']) - 1
         value = new_filter['function']
         filters_tree = self.subtrees['filters']
         filters_tree.update_filter_function(index, value)
-        self.setItemSelected(self.topLevelItem(0).child(new_index), True)
+        self.setItemSelected(self.topLevelItem(0).child(index), True)
 
-    def add_metric(self, metric=None, new_index=-1):
+    def add_metric(self, metric=None, index=-1):
         '''TODO
 
         '''
@@ -560,14 +559,13 @@ class ProjectTree(QTreeWidget):
         if 'metrics' not in self.items_copy:
             self.items_copy['metrics'] = [new_metric]
         else:
-            self.items_copy['metrics'].insert(new_index, new_metric)
+            self.items_copy['metrics'].insert(index, new_metric)
         self.clear()
         self._configure_widget()
-        index = len(self.items_copy['metrics']) - 1
         value = new_metric['function']
         metrics_tree = self.subtrees['metrics']
         metrics_tree.update_metric_function(index, value)
-        self.setItemSelected(self.topLevelItem(1).child(new_index), True)
+        self.setItemSelected(self.topLevelItem(1).child(index), True)
 
     def remove_selected(self):
         '''TODO
