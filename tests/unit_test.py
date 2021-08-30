@@ -10,7 +10,9 @@ import io
 from tests.sample_pydre import project as samplePD
 import pandas
 import numpy as np
-
+from datetime import timedelta
+import logging
+import sys
 
 
 
@@ -68,6 +70,15 @@ class TestPydre(unittest.TestCase):
 
         fullpath = glob.glob(os.path.join(os.getcwd(), "tests/test_datfiles/" ,datafile))
         return fullpath
+
+    def secs_to_timedelta(self, secs):
+        return timedelta(weeks=0, days=0, hours=0, minutes=0, seconds=secs)
+
+    def compare_cols(self, result_df, expected_df, cols):
+        result = True
+        for names in cols:
+            result = result and result_df[names].equals(expected_df[names])
+        return result
     
     # convert a drivedata object to a str
     def dd_to_str(self, drivedata: core.DriveData):
@@ -99,16 +110,33 @@ class TestPydre(unittest.TestCase):
 
         self.assertEqual(finalresults, expected_results)
 
-    def test_columnMatchException_1(self):
+    def test_columnMatchException_excode(self):
         f = io.StringIO()
-        with self.assertRaises(SystemExit) as cm, contextlib.redirect_stderr(f):
+        with self.assertRaises(SystemExit) as cm:
             desiredproj = self.projectfileselect(0)
             p = project.Project(desiredproj)
             result = p.run(self.datafileselect(1))
-        expected_console_output = "Can't find needed columns {'FILTERED_GAZE_OBJ_NAME'} in data file F:\\DSL\\DSL Pydre\\readOnly\\pydre\\tests/test_datfiles/ColTest_Sub_10_Drive_1.dat | function: smoothGazeData"
-        self.assertIn(expected_console_output, f.getvalue())
-        #print(f.getvalue())
         self.assertEqual(cm.exception.code, 1)
+
+    def test_columnMatchException_massage(self):
+        d3 = {'DatTime': [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184]}
+
+        df = pandas.DataFrame(data=d3)
+        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        handler = logging.FileHandler(filename='tests\\temp.log')
+        filters.logger.addHandler(handler)
+        with self.assertRaises(core.ColumnsMatchError): 
+            result = filters.smoothGazeData(data_object)
+        expected_console_output = "Can't find needed columns {'FILTERED_GAZE_OBJ_NAME'} in data file ['test_file3.csv'] | function: smoothGazeData"
+       
+        temp_log = open('tests\\temp.log')
+        msg_list = temp_log.readlines()
+        msg = ' '.join(msg_list)
+        filters.logger.removeHandler(handler)
+        self.assertIn(expected_console_output, msg)
+
+
+
 
     def test_core_sliceByTime_1(self):
         d = {'col1': [1, 2, 3, 4, 5, 6], 'col2': [7, 8, 9, 10, 11, 12]}
@@ -138,7 +166,7 @@ class TestPydre(unittest.TestCase):
         param.append(data_object1)
         param.append(data_object2)
         result = self.dd_to_str(core.mergeBySpace(param))
-        expected_result = "0[1, [2]]None[   SimTime  XPos  YPos\n0        1     1     4\n1        2     3     3\n0        2    10    15\n1        3    12    16]['t', 'e', 's', 't', '_', 'f', 'i', 'l', 'e', '.', 'c', 's', 'v', ['t', 'e', 's', 't', '_', 'f', 'i', 'l', 'e', '.', 'c', 's', 'v']]"
+        expected_result = "0[1, [2]]None[   SimTime  XPos  YPos\n0        1     1     4\n1        2     3     3\n0        2    10    15\n1        3    12    16]['test_file.csv', ['test_file.csv']]"
         self.assertEqual(result, expected_result)
 
     def test_filter_numberSwitchBlocks_1(self):
@@ -235,55 +263,53 @@ class TestPydre(unittest.TestCase):
 
         df = pandas.DataFrame(data=d3)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
-
-        result = filters.smoothGazeData(data_object)
-        expected_result_str = """0[1]None[                        DatTime FILTERED_GAZE_OBJ_NAME     gaze  gazenum
-timedelta                                                               
-0 days 00:00:00.017000    0.017      localCS.dashPlane      NaN        1
-0 days 00:00:00.034000    0.034      localCS.dashPlane      NaN        2
-0 days 00:00:00.050000    0.050      localCS.dashPlane      NaN        3
-0 days 00:00:00.067000    0.067    localCS.CSLowScreen      NaN        4
-0 days 00:00:00.084000    0.084    localCS.CSLowScreen  offroad        5
-0 days 00:00:00.100000    0.100    localCS.CSLowScreen      NaN        6
-0 days 00:00:00.117000    0.117    localCS.CSLowScreen      NaN        7
-0 days 00:00:00.134000    0.134    localCS.CSLowScreen      NaN        8
-0 days 00:00:00.149000    0.149    localCS.CSLowScreen      NaN        9
-0 days 00:00:00.166000    0.166    localCS.CSLowScreen      NaN       10
-0 days 00:00:00.184000    0.184                   None      NaN       11]test_file3.csv"""
         
-        self.assertEquals(expected_result_str, self.dd_to_str(result))
+        result = filters.smoothGazeData(data_object)
+        
+        dat_time_col = [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184]
+        timedelta_col = []
+        for t in dat_time_col:
+            timedelta_col.append(self.secs_to_timedelta(t))
+        expected = {'timedelta': timedelta_col, 'DatTime': dat_time_col,  
+        'FILTERED_GAZE_OBJ_NAME': ['localCS.dashPlane', 'localCS.dashPlane', 'localCS.dashPlane', 
+        'localCS.CSLowScreen', 'localCS.CSLowScreen', 'localCS.CSLowScreen', 
+        'localCS.CSLowScreen', 'localCS.CSLowScreen', 'localCS.CSLowScreen', 
+        'localCS.CSLowScreen', 'None'], 
+        'gaze': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan], 
+        'gazenum': np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], dtype=np.int32)}
+
+        expected_result_df = pandas.DataFrame(data=expected)
+        
+        
+        self.assertTrue(self.compare_cols(result.data[0], expected_result_df, ['DatTime', 'FILTERED_GAZE_OBJ_NAME', 'gaze', 'gazenum']))
 
 
     def test_filter_smoothGazeData_3(self):
         
         # --- Construct input ---
-        d3 = {'DatTime': [0.017, 0.034, 0.05, 0.067, 0.084, 0.084, 0.117, 0.134, 0.149, 0.166, 0.184], 
-        'FILTERED_GAZE_OBJ_NAME': ['localCS.dashPlane', 'localCS.dashPlane', 'localCS.dashPlane', 
-        'localCS.WindScreen', 'localCS.WindScreen', 'localCS.WindScreen', 
-        'localCS.WindScreen', 'localCS.WindScreen', 'localCS.WindScreen', 
-        'localCS.WindScreen', 'None']}
-        df = pandas.DataFrame(data=d3)
+        df = pandas.read_csv("tests\\csv\\input_test_smoothGazeData_3.csv")
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
         result = filters.smoothGazeData(data_object)
-        expected_result_str = """0[1]None[                        DatTime FILTERED_GAZE_OBJ_NAME     gaze  gazenum
-timedelta                                                               
-0 days 00:00:00.017000    0.017      localCS.dashPlane   onroad        1
-0 days 00:00:00.034000    0.034      localCS.dashPlane   onroad        1
-0 days 00:00:00.050000    0.050      localCS.dashPlane   onroad        1
-0 days 00:00:00.067000    0.067     localCS.WindScreen   onroad        1
-0 days 00:00:00.084000    0.084     localCS.WindScreen  offroad        2
-0 days 00:00:00.084000    0.084     localCS.WindScreen      NaN        3
-0 days 00:00:00.117000    0.117     localCS.WindScreen      NaN        4
-0 days 00:00:00.134000    0.134     localCS.WindScreen      NaN        5
-0 days 00:00:00.149000    0.149     localCS.WindScreen      NaN        6
-0 days 00:00:00.166000    0.166     localCS.WindScreen      NaN        7
-0 days 00:00:00.184000    0.184                   None      NaN        8]test_file3.csv"""
 
-        self.assertEquals(expected_result_str, self.dd_to_str(result))
+        dat_time_col = [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184]
+        timedelta_col = []
+        for t in dat_time_col:
+            timedelta_col.append(self.secs_to_timedelta(t))
+        expected = {'timedelta': timedelta_col, 'DatTime': dat_time_col,  
+        'FILTERED_GAZE_OBJ_NAME': ['localCS.dashPlane', 'localCS.dashPlane', 'localCS.dashPlane', 
+        'localCS.WindScreen', 'localCS.WindScreen', 'localCS.WindScreen', 
+        'localCS.WindScreen', 'localCS.WindScreen', 'localCS.WindScreen', 
+        'localCS.WindScreen', 'None'], 
+        'gaze': ['onraod', 'onroad', 'onroad', 'onroad', np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan], 
+        'gazenum': np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], dtype=np.int32)}
+
+        expected_result_df = pandas.read_csv("tests\\csv\\output_test_smoothGazeData_3.csv");
+        expected_result_df['gazenum'] = expected_result_df['gazenum'].astype(np.int32)
+
+        self.assertTrue(self.compare_cols(result.data[0], expected_result_df, ['DatTime', 'FILTERED_GAZE_OBJ_NAME', 'gaze', 'gazenum']))
 
 
-    
     def test_metrics_findFirstTimeAboveVel_1(self):
     	# --- construct input ---
         d = {'DatTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
