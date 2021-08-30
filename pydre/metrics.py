@@ -972,6 +972,188 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         return [total_time_onroad_glances, percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
     return [None, None, None, None]
 
+def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", maxtasknum=5):
+    required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "TaskInstance", "KEY_EVENT_T", "KEY_EVENT_P"] 
+    # filters.numberTaskInstances() is required. 
+    #for now I just assume the input dataframe has a TaskInstance column
+    #diff = drivedata.checkColumns(required_col)
+    
+    #if (len(diff) > 0):
+    #    logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+    #    raise pydre.core.ColumnsMatchError()
+
+    for d in drivedata.data:
+        logger.warning("Processing Task {}".format(d.TaskNum.mean()))
+        if d.TaskNum.mean() == 0 or d.TaskNum.mean() > maxtasknum:
+            return [None, None, None, None]
+        #if d.TaskNum.mean() == 4:
+        #    d.to_csv('4.csv')
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
+        df = df.fillna(0)  # remove nans and drop duplicates
+        
+        df['time_diff'] = df[timecolumn].diff() # get durations by calling time_column.diff()
+
+        df = df.loc[df.gaze != 'onroad']   # remove onroad rows
+        #df.to_csv('AAM_cp1.csv')
+        df = df.loc[(df['TaskInstance'] != 0) & (df['TaskInstance'] != np.nan)] # drop all rows that are not in any task instance
+        dropped_instances = df.loc[(df['TaskFail'] == 1)]
+        dropped_instances = dropped_instances['TaskInstance'].drop_duplicates() # get all the task instances that contains a fail and needs to be dropped
+        df = df.loc[~df['TaskInstance'].isin(dropped_instances)] # drop all the failed task instances
+        #df.to_csv('AAM_cp2.csv')
+        
+        # get first 8 task instances
+        number_valid_instance = df['TaskInstance'].unique()
+        print(pandas.unique(df.TaskInstance))
+        if len(number_valid_instance) > 8:
+            lowest_instance_no = number_valid_instance.min()
+            len_of_drop = len(dropped_instances.loc[dropped_instances < (lowest_instance_no + 8)])
+            highest_instance_no = lowest_instance_no + 8 + len_of_drop
+            df = df.loc[(df['TaskInstance'] < highest_instance_no) & (df['TaskInstance'] >= lowest_instance_no)]
+            #logger.warning(highest_instance_no)
+            #logger.warning(lowest_instance_no)
+        elif len(number_valid_instance) < 8:
+            logger.warning("Not enough valid task instances. Found {}".format(len(number_valid_instance)))
+        
+
+        #df = df[df.TaskInstance < 9] # only keep the glance data for the first eight task instances for each task per person. 
+        
+        #print(df)
+        #df.to_csv('df.csv')
+
+        group_by_gazenum = df.groupby('gazenum', sort=False) 
+        durations_by_gazenum = group_by_gazenum.sum()
+        durations_by_gazenum = durations_by_gazenum.loc[(durations_by_gazenum['time_diff']!=0.0)]
+        #print(durations_by_gazenum)
+        percentile = np.percentile(durations_by_gazenum.time_diff, 85) # find the 85th percentile value (A1)
+
+        group_by_instance = df.groupby('TaskInstance', sort=False) # A2
+        durations_by_instance = group_by_instance.sum()
+        print(durations_by_instance)
+        sum_mean = (durations_by_instance.time_diff).mean() # mean of duration sum
+        sum_median = (durations_by_instance.time_diff).median() # median of duration sum
+        sum_std = (durations_by_instance.time_diff).std() # std of duration sum
+
+        return [percentile, sum_mean, sum_median, sum_std]
+
+    return [None, None, None, None]
+
+# count and return the occurence of a specific key event
+def eventCount(drivedata: pydre.core.DriveData, event="KEY_EVENT_S"):
+    required_col = [event]
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+    for d in drivedata.data:
+        df = pandas.DataFrame(d, columns=required_col)
+        col_name = event + "_ocurrance"
+        df[col_name] = df[event].diff()
+        occur = (df[col_name].value_counts().get(1))
+        if occur == None:
+            occur = 0
+        return occur
+
+# Return the duration of a task instance
+# roi must be TaskInstance
+def insDuration(drivedata: pydre.core.DriveData):
+    required_col = ['DatTime', 'TaskInstance']
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+    
+    for d in drivedata.data:
+        df = pandas.DataFrame(d, columns=required_col)
+        return (df.tail(1).iat[0, 0] - df.head(1).iat[0, 0])
+
+        
+# duration: duration of one speedbump
+def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", duration=6.0):
+    required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "KEY_EVENT_S", "KEY_EVENT_T", "KEY_EVENT_P"] 
+    diff = drivedata.checkColumns(required_col)
+    
+    if (len(diff) > 0):
+        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        raise pydre.core.ColumnsMatchError()
+
+    for d in drivedata.data:
+        if d.TaskNum.mean() == 0 or d.TaskNum.mean() < 4 or d.TaskNum.mean() > 5:
+            return [None, None, None, None]
+        
+        df = pandas.DataFrame(d, columns=required_col)  # drop other columns
+        #df.to_csv("df.csv")
+        #df = df.loc[(df['TaskInstance'] != 0) & (df['TaskInstance'] != np.nan)] # drop all rows that are not in any task instance
+        #dropped_instances = df.loc[(df['TaskFail'] == 1)]
+        #dropped_instances = dropped_instances['TaskInstance'].drop_duplicates() # get all the task instances that contains a fail and needs to be dropped
+        #df = df.loc[~df['TaskInstance'].isin(dropped_instances)] # drop all the failed task instances
+
+        event_s = pandas.DataFrame(df, columns=[timecolumn, 'gazenum', 'gaze', 'KEY_EVENT_S'])
+        event_s['diff'] = event_s['KEY_EVENT_S'].diff()
+        event_s['s_begin'] = 0
+        event_s.loc[event_s['diff'] == 1, 's_begin'] = 1 # mark the beginning of all the s events
+
+        s_begin_time = event_s.loc[event_s['s_begin'] == 1]
+        s_begin_time = s_begin_time.reset_index()
+        #print(s_begin_time)
+        index = 0
+        for time in s_begin_time[timecolumn]: #mark the duration of speedbump as 1
+            event_s.loc[(event_s[timecolumn] > float(time)) & (event_s[timecolumn] < float(time + duration)), "s_begin"] = 1
+            index += 1
+        #event_s.to_csv("e.csv")
+
+        group_by_gazenum = event_s.groupby('gazenum', sort=False)
+        durations = pandas.DataFrame(group_by_gazenum.sum(), columns=['s_begin'])
+        
+        durations_begin = pandas.DataFrame(group_by_gazenum.min(), columns=[timecolumn])
+        durations_begin = durations_begin.rename(columns={timecolumn: "begin"})
+        durations_end = pandas.DataFrame(group_by_gazenum.max(), columns=[timecolumn])
+        durations_end = durations_end.rename(columns={timecolumn: "end"})
+
+        durations['begin'] = durations_begin['begin']
+        durations['end'] = durations_end['end'] # contains the beginning time and end time of all gazes
+        durations = durations.reset_index()
+        durations['gaze'] = group_by_gazenum.min()['gaze'].tolist()
+
+        durations["in_speedbump"] = 0
+        
+        i = 0
+        while i < len(durations):
+            current_gaze = durations.at[i, 'gazenum']
+            begin_time = durations.at[i, 'begin']
+            end_time = durations.at[i, 'end']
+
+            if durations.at[i, 's_begin'] > 0:
+                temp = event_s.loc[event_s['gazenum'] == current_gaze]
+                total_length = len(temp.index) # length of the entire glance
+                speedbump_act = temp.loc[temp['s_begin'] == 1] # length of the time period when speedbump is on during the current glance
+                act_length = len(speedbump_act.index)
+                if act_length >= (total_length / 2): # if speedbump is on for more than half of the total glance time:
+                    durations.at[i, "in_speedbump"] = 1 
+            i += 1
+        
+        durations['gaze_duration'] = durations['end'] - durations['begin']
+
+        durations_onroad_spbpon = durations.loc[(durations['gaze'] == 'onroad') & (durations['in_speedbump'] == 1)]
+        durations_offroad_spbpon = durations.loc[(durations['gaze'] == 'offroad') & (durations['in_speedbump'] == 1)]
+        durations_onroad_spbpoff = durations.loc[(durations['gaze'] == 'onroad') & (durations['in_speedbump'] == 0)]
+        durations_offroad_spbpoff = durations.loc[(durations['gaze'] == 'offroad') & (durations['in_speedbump'] == 0)]
+        
+        #durations.to_csv("dursum.csv")
+        #durations_onroad_spbpon.to_csv("duron_so.csv")
+        #durations_offroad_spbpon.to_csv("duroff_so.csv")
+        #durations_onroad_spbpoff.to_csv("duron_sx.csv")
+        #durations_offroad_spbpoff.to_csv("duroff_sx.csv")
+
+        mean_onroad_spbpon = durations_onroad_spbpon['gaze_duration'].mean()
+        mean_offroad_spbpon = durations_offroad_spbpon['gaze_duration'].mean()
+        mean_onroad_spbpoff = durations_onroad_spbpoff['gaze_duration'].mean()
+        mean_offroad_spbpoff = durations_offroad_spbpoff['gaze_duration'].mean()
+    return [mean_onroad_spbpon, mean_offroad_spbpon, mean_onroad_spbpoff, mean_offroad_spbpoff]
+
+
 def getTaskNum(drivedata: pydre.core.DriveData):
     required_col = ["TaskNum"]
     diff = drivedata.checkColumns(required_col)
@@ -1017,4 +1199,9 @@ registerMetric('crossCorrelate', crossCorrelate)
 registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
 registerMetric('gazes', gazeNHTSA,
                ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
+registerMetric('speedbumpHondaGaze2', speedbumpHondaGaze2,
+               ['85th_percentile', 'duration_mean', 'duration_median', 'duration_std'])
+registerMetric('insDuration', insDuration)
+registerMetric('eventCount', eventCount)
 registerMetric('getTaskNum', getTaskNum)
+registerMetric('speedbump2Gaze', speedbump2Gaze, ['mean_onroad_spbpon', 'mean_offroad_spbpon', 'mean_onroad_spbpoff', 'mean_offroad_spbpoff'])
