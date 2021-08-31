@@ -458,7 +458,6 @@ class ProjectTree(QTreeWidget):
         self.roi_counter = 1
         self.filter_counter = 1
         self.metric_counter = 1
-        self._configure_settings()
         self._configure_widget()
 
     def _configure_widget(self):
@@ -466,22 +465,12 @@ class ProjectTree(QTreeWidget):
 
         '''
 
+        self.setHeaderHidden(True)
+        self.setAnimated(False)
         for collection in sorted(self.items_copy):
             tree = self.trees[collection](self, self.items_copy[collection])
             self.subtrees[collection] = tree
         self.expandToDepth(0)
-
-    def _configure_settings(self):
-        '''TODO
-
-        '''
-
-        # style_path = config.get('Stylesheets', 'projectTree')
-        # style_path = os.path.join(GUI_PATH, style_path)
-        # stylesheet = open(style_path).read()
-        # self.setStyleSheet(stylesheet)
-        self.setAnimated(True)
-        self.setHeaderHidden(True)
 
     def get_contents(self):
         '''TODO
@@ -530,6 +519,12 @@ class ProjectTree(QTreeWidget):
 
         '''
 
+        # FIXME
+        expanded = []
+        for idx in range(self.topLevelItem(0).childCount()):
+            if self.topLevelItem(0).child(idx).isExpanded():
+                expanded.append(idx)
+
         self.clear()
         new_filter = filter if filter else {
             'name': f'new_filter_{self.filter_counter}',
@@ -544,8 +539,13 @@ class ProjectTree(QTreeWidget):
         value = new_filter['function']
         filters_tree = self.subtrees['filters']
         filters_tree.update_filter_function(index, value)
-        self.topLevelItem(0).child(index).setExpanded(expand)
-        self.setItemSelected(self.topLevelItem(0).child(index), True)
+        count = self.topLevelItem(0).childCount()
+        self.topLevelItem(0).child(index % count).setExpanded(expand)
+        self.setItemSelected(self.topLevelItem(0).child(index % count), True)
+
+        # FIXME
+        for idx in expanded:
+            self.topLevelItem(0).child(idx).setExpanded(True)
 
     def add_metric(self, metric=None, index=-1, expand=False):
         '''TODO
