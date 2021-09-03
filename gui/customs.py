@@ -501,6 +501,7 @@ class ProjectTree(QTreeWidget):
 
         '''
 
+        index = len(self.items_copy['rois']) if index == -1 else index
         self.clear()
         new_roi = roi if roi else {
             'type': f'new_roi_{self.roi_counter}',
@@ -524,6 +525,7 @@ class ProjectTree(QTreeWidget):
             if self.topLevelItem(0).child(idx).isExpanded():
                 expand.append(idx)
 
+        index = len(self.items_copy['filters']) if index == -1 else index
         self.clear()
         new_filter = filter if filter else {
             'name': f'new_filter_{self.filter_counter}',
@@ -550,6 +552,7 @@ class ProjectTree(QTreeWidget):
 
         '''
 
+        index = len(self.items_copy['metrics']) if index == -1 else index
         new_metric = metric if metric else {
             'name': f'new_metric_{self.metric_counter}',
             'function': list(metrics.metricsList.keys())[0]
