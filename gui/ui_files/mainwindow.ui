@@ -55,7 +55,7 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -304,16 +304,6 @@ font: 75 10pt &quot;Arial&quot;;</string>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="new_roi_btn">
-                 <property name="styleSheet">
-                  <string notr="true"/>
-                 </property>
-                 <property name="text">
-                  <string>New ROI</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
                 <widget class="QPushButton" name="new_filter_btn">
                  <property name="text">
                   <string>New Filter</string>
@@ -324,6 +314,16 @@ font: 75 10pt &quot;Arial&quot;;</string>
                 <widget class="QPushButton" name="new_metric_btn">
                  <property name="text">
                   <string>New Metric</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="new_roi_btn">
+                 <property name="styleSheet">
+                  <string notr="true"/>
+                 </property>
+                 <property name="text">
+                  <string>New ROI</string>
                  </property>
                 </widget>
                </item>
