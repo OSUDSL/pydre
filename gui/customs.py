@@ -633,6 +633,10 @@ class ProjectTree(QTreeWidget):
 
         item = self.items_copy[sub_tree_text][index]
         if index < sub_tree.childCount() - 1:
-            expand = sub_tree.child(index).isExpanded()
+            if sub_tree.child(index).isExpanded():
+                if not sub_tree.child(index + 1).isExpanded():
+                    expanded.remove(index)
+
+                expanded.append(index + 1)
             self.remove_selected()
-            self.add_item[sub_tree_text](item, index + 1, expand)
+            self.add_item[sub_tree_text](item, index + 1, expanded)
