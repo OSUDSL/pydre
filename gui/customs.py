@@ -496,25 +496,6 @@ class ProjectTree(QTreeWidget):
             return True
         return False
 
-    def add_roi(self, roi=None, index=-1, expand=False):
-        '''TODO
-
-        '''
-
-        index = len(self.items_copy['rois']) if index == -1 else index
-        self.clear()
-        new_roi = roi if roi else {
-            'type': f'new_roi_{self.roi_counter}',
-            'filename': 'roi_file'
-        }
-        self.roi_counter += 1
-        if 'rois' not in self.items_copy:
-            self.items_copy['rois'] = [new_roi]
-        else:
-            self.items_copy['rois'].insert(index, new_roi)
-        self._configure_widget()
-        self.setItemSelected(self.topLevelItem(2).child(index), True)
-
     def add_filter(self, filter=None, index=-1, expand=[]):
         '''TODO
 
@@ -543,11 +524,10 @@ class ProjectTree(QTreeWidget):
         count = self.topLevelItem(0).childCount()
         self.setItemSelected(self.topLevelItem(0).child(index % count), True)
 
-        # FIXME
         for idx in expand:
             self.topLevelItem(0).child(idx).setExpanded(True)
 
-    def add_metric(self, metric=None, index=-1, expand=False):
+    def add_metric(self, metric=None, index=-1, expand=[]):
         '''TODO
 
         '''
@@ -568,6 +548,31 @@ class ProjectTree(QTreeWidget):
         metrics_tree = self.subtrees['metrics']
         metrics_tree.update_metric_function(index, value)
         self.setItemSelected(self.topLevelItem(1).child(index), True)
+
+        for idx in expand:
+            self.topLevelItem(1).child(idx).setExpanded(True)
+
+    def add_roi(self, roi=None, index=-1, expand=[]):
+        '''TODO
+
+        '''
+
+        index = len(self.items_copy['rois']) if index == -1 else index
+        self.clear()
+        new_roi = roi if roi else {
+            'type': f'new_roi_{self.roi_counter}',
+            'filename': 'roi_file'
+        }
+        self.roi_counter += 1
+        if 'rois' not in self.items_copy:
+            self.items_copy['rois'] = [new_roi]
+        else:
+            self.items_copy['rois'].insert(index, new_roi)
+        self._configure_widget()
+        self.setItemSelected(self.topLevelItem(2).child(index), True)
+
+        for idx in expand:
+            self.topLevelItem(2).child(idx).setExpanded(True)
 
     def remove_selected(self):
         '''TODO
