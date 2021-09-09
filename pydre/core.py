@@ -87,7 +87,8 @@ def mergeBySpace(tomerge: list):
 
 class DriveData:
 
-	def __init__(self, PartID: int, DriveID,	roi: str, data,	sourcefilename):
+	def __init__(self, PartID: int, DriveID,	roi: str, data,	sourcefilename, UniqueID=-1, scenarioName="", mode=""):
+
 		self.PartID = PartID
 		if type(DriveID) is not list:
 			DriveID = [DriveID, ]
@@ -99,6 +100,30 @@ class DriveData:
 		if type(sourcefilename) is not list:
 			sourcefilename = [sourcefilename, ]
 		self.sourcefilename = sourcefilename
+
+		if type(UniqueID) is not list:
+			UniqueID = [UniqueID, ]
+			self.UniqueID = UniqueID
+		if type(scenarioName) is not list: 
+			scenarioName = [scenarioName, ]
+			self.scenarioName = scenarioName
+		if type(mode) is not list:
+			mode = [mode, ]
+			self.mode = mode
+
+		self.format_identifier = -1; 
+		# format_identifier == -1: this drivedata object is missing at least 1 required field or contains error
+		# format_identifier == 0" this drivedata object was created from an old format data file
+		# format_identifier == 1" this drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+		if (type(DriveID) is list) and (DriveID[-1] >= 0):
+			self.format_identifier = 0
+		elif (type(DriveID) is int) and (DriveID >= 0):
+			self.format_identifier = 0
+		elif (type(UniqueID) is list) and (type(scenarioName) is list) and (type(mode) is list):
+			self.format_identifier = 1
+		elif len(mode) > 0 and len(scenarioName) > 0:
+			self.format_identifier = 1
+
 
 	def checkColumns(self, col):
 		expected_col = col
