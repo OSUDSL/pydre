@@ -25,8 +25,8 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
         raise pydre.core.ColumnsMatchError()
 
 
-    copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
-                                         drivedata.data, drivedata.sourcefilename)
+    #copy = pydre.core.DriveData.__init__(drivedata, drivedata.PartID, drivedata.DriveID, drivedata.roi,
+    #                                     drivedata.data, drivedata.sourcefilename)
 
     for d in drivedata.data:
         dt = pandas.DataFrame(d)

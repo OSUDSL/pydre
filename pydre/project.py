@@ -41,20 +41,27 @@ class Project():
 
     def __loadSingleFile(self, filename):
         """Load a single .dat file (whitespace delmited csv) into a DriveData object"""
+        mode = ""
+        scen_name = ""
+        drive_id = -1
+        unique_id = -1
         # Could cache this re, probably affect performance
         d = pandas.read_csv(filename, sep='\s+', na_values='.')
-        datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
-        match = datafile_re.search(filename)
-        if match:
-            experiment_name, subject_id, drive_id = match.groups()
+        datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
+        datafile_re_format1 = re.compile("([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat"); # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
+        match_format0 = datafile_re_format0.search(filename)
+        if match_format0:
+            experiment_name, subject_id, drive_id = match_format0.groups()
+        elif match_format1 := datafile_re_format1.search(filename):  # assign bool value to var "match_format1", only available in python 3.8 or higher
+            mode, subject_id, scen_name, unique_id = match_format1.groups()
         else:
             logger.warning(
                 "Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat")
             experiment_name = pathlib.Path(filename).stem
             subject_id = 1
-            drive_id = 1
-        return pydre.core.DriveData(PartID=int(subject_id), DriveID=int(drive_id),
-                                    roi=None, data=d, sourcefilename=filename)
+        return pydre.core.DriveData(PartID=subject_id, DriveID=int(drive_id),
+                                    roi=None, data=d, sourcefilename=filename, UniqueID=int(unique_id), scenarioName=scen_name, mode=mode)
+
 
     def processROI(self, roi, dataset):
         """
@@ -161,6 +168,11 @@ class Project():
                 len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
 
+    # remove any parenthesis, quote mark and un-necessary directory names from a str
+    def __clean(self, string):
+        return string.replace('[', '').replace(']', '').replace('\'', '').split("\\")[-1]
+
+
     def run(self, datafiles):
         """
                 Args:
@@ -194,7 +206,14 @@ class Project():
             #     self.processFilter(filter, data_set)
             result_data = pandas.DataFrame()
             result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
-            result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
+
+            if (data_set[0].format_identifier == 0): # these drivedata object was created from an old format data file
+                result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
+            elif (data_set[0].format_identifier == 1): # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+                result_data['Mode'] = pandas.Series([self.__clean(str(d.mode)) for d in data_set])
+                result_data['ScenarioName'] = pandas.Series([self.__clean(str(d.scenarioName)) for d in data_set])
+                result_data['UniqueID'] = pandas.Series([self.__clean(str(d.UniqueID)) for d in data_set])
+
             result_data['ROI'] = pandas.Series([d.roi for d in data_set])
             # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
             # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
