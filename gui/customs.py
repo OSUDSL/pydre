@@ -501,10 +501,10 @@ class ProjectTree(QTreeWidget):
 
         '''
 
-        # FIXME
-        for idx in range(self.topLevelItem(0).childCount()):
-            if self.topLevelItem(0).child(idx).isExpanded():
-                expand.append(idx)
+        for i in range(3):
+            for idx in range(self.topLevelItem(i).childCount()):
+                if self.topLevelItem(i).child(idx).isExpanded():
+                    expand.append([i, idx])
 
         index = len(self.items_copy['filters']) if index == -1 else index
         self.clear()
@@ -524,13 +524,18 @@ class ProjectTree(QTreeWidget):
         count = self.topLevelItem(0).childCount()
         self.setItemSelected(self.topLevelItem(0).child(index % count), True)
 
-        for idx in expand:
-            self.topLevelItem(0).child(idx).setExpanded(True)
+        for item in expand:
+            self.topLevelItem(item[0]).child(item[1]).setExpanded(True)
 
     def add_metric(self, metric=None, index=-1, expand=[]):
         '''TODO
 
         '''
+
+        for i in range(3):
+            for idx in range(self.topLevelItem(i).childCount()):
+                if self.topLevelItem(i).child(idx).isExpanded():
+                    expand.append([i, idx])
 
         index = len(self.items_copy['metrics']) if index == -1 else index
         new_metric = metric if metric else {
@@ -549,13 +554,18 @@ class ProjectTree(QTreeWidget):
         metrics_tree.update_metric_function(index, value)
         self.setItemSelected(self.topLevelItem(1).child(index), True)
 
-        for idx in expand:
-            self.topLevelItem(1).child(idx).setExpanded(True)
+        for item in expand:
+            self.topLevelItem(item[0]).child(item[1]).setExpanded(True)
 
     def add_roi(self, roi=None, index=-1, expand=[]):
         '''TODO
 
         '''
+
+        for i in range(3):
+            for idx in range(self.topLevelItem(i).childCount()):
+                if self.topLevelItem(i).child(idx).isExpanded():
+                    expand.append([i, idx])
 
         index = len(self.items_copy['rois']) if index == -1 else index
         self.clear()
@@ -571,8 +581,8 @@ class ProjectTree(QTreeWidget):
         self._configure_widget()
         self.setItemSelected(self.topLevelItem(2).child(index), True)
 
-        for idx in expand:
-            self.topLevelItem(2).child(idx).setExpanded(True)
+        for item in expand:
+            self.topLevelItem(item[0]).child(item[1]).setExpanded(True)
 
     def remove_selected(self):
         '''TODO
@@ -608,17 +618,23 @@ class ProjectTree(QTreeWidget):
         sub_tree = self.selectedItems()[-1].parent()
         sub_tree_text = sub_tree.text(0)
 
+        if sub_tree_text == 'filters':
+            i = 0
+        elif sub_tree_text == 'metrics':
+            i = 1
+        else:
+            i = 2
         expanded = []
         for idx in range(sub_tree.childCount()):
             if sub_tree.child(idx).isExpanded():
-                expanded.append(idx)
+                expanded.append([i, idx])
 
         item = self.items_copy[sub_tree_text][index]
         if index > 0:
             if sub_tree.child(index).isExpanded():
                 if not sub_tree.child(index - 1).isExpanded():
-                    expanded.remove(index)
-                expanded.append(index - 1)
+                    expanded.remove([i, index])
+                expanded.append([i, index - 1])
             self.remove_selected()
             self.add_item[sub_tree_text](item, index - 1, expanded)
 
@@ -631,17 +647,22 @@ class ProjectTree(QTreeWidget):
         sub_tree = self.selectedItems()[-1].parent()
         sub_tree_text = sub_tree.text(0)
 
+        if sub_tree_text == 'filters':
+            i = 0
+        elif sub_tree_text == 'metrics':
+            i = 1
+        else:
+            i = 2
         expanded = []
         for idx in range(sub_tree.childCount()):
             if sub_tree.child(idx).isExpanded():
-                expanded.append(idx)
+                expanded.append([i, idx])
 
         item = self.items_copy[sub_tree_text][index]
         if index < sub_tree.childCount() - 1:
             if sub_tree.child(index).isExpanded():
                 if not sub_tree.child(index + 1).isExpanded():
-                    expanded.remove(index)
-
-                expanded.append(index + 1)
+                    expanded.remove([i, index])
+                expanded.append([i, index + 1])
             self.remove_selected()
             self.add_item[sub_tree_text](item, index + 1, expanded)
