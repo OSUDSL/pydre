@@ -1,0 +1,17 @@
+{
+
+  "filters": [
+        {
+            "name": "arrDefineCriticalBlocks",
+            "function": "arrDefineCriticalBlocks"
+        }
+    ],
+  
+    "metrics": [
+        {
+            "name": "colMax",
+            "function": "colMax",
+            "var": "Velocity"
+        }
+    ]
+ }
