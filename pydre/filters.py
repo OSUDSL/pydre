@@ -201,6 +201,28 @@ def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
     return drivedata
 
 
+def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
+    # define a new column in the data object that
+    for idx, data, in enumerate(drivedata.data):
+        dt = pandas.DataFrame(data)
+
+        dt["arrCriticalBlock"] = 0
+        # find blocks when the car is stopped
+        stopping_delta = 0.1 # a stop is when the car is moving under 0.1 m/s
+        dt["isStopped"] = dt["Velocity"] > stopping_delta
+        dt['stoppingBlock'] = (dt['isStopped'].shift(1) != dt['isStopped']).astype(int).cumsum()
+        dt['stoppingBlock'] = dt['stoppingBlock'] * dt['isStopped']
+        # find only blocks when the car is stopped for more than 10 seconds
+
+        gr = dt.groupby('stoppingBlock', sort=False)
+        agg = gr.DatTime.agg([np.min, np.max])
+        long_enough = (agg['amax'] - agg['aemin']) > 10  # block larger than 10s
+        
+        print(agg)
+
+        drivedata.data[idx] = dt
+    return drivedata
+
 filtersList = {}
 filtersColNames = {}
 
@@ -219,3 +241,6 @@ registerFilter('mergeEvents', mergeEvents)
 registerFilter('mergeFintoTaskFail', mergeFintoTaskFail)
 registerFilter('numberTaskInstance', numberTaskInstance)
 registerFilter('writeToCSV', writeToCSV)
+
+
+registerFilter('arrDefineCriticalBlocks', arrDefineCriticalBlocks)
