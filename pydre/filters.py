@@ -201,6 +201,36 @@ def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
     return drivedata
 
 
+# columns: a str contains all columns that may contains switchDebounces, split by space. The columns must contain 1 & 0 only. 
+def switchDebounce(drivedata: pydre.core.DriveData, columns):
+    col_names = columns.split()
+    data_index = 0
+    for d in drivedata.data:
+        dt = pandas.DataFrame(d)
+        for c in col_names:
+            record = pandas.DataFrame()
+            dt['switchDebounceDiff'] = (dt[c]).diff()
+
+            record["end"] = ((dt.loc[dt['switchDebounceDiff'] < 0])['DatTime']).tolist()
+            record["begin"] = (dt.loc[dt['switchDebounceDiff'] > 0])['DatTime'].tolist()
+            record["length"] = record["end"] - record["begin"]
+            #record.to_csv("sd\\sd.csv")
+            record = record.loc[record["length"] <= 0.8]
+            record = record.reset_index()
+            print(record)
+            index = 0
+            while index < len(record):
+                begin = record.at[index, 'begin']
+                end = record.at[index, 'end']
+                #dt.loc[begin:end, c] = 0
+                logger.warning(c)
+                ((drivedata.data[data_index]).loc[(dt['DatTime'] >= begin) & (dt['DatTime'] <= end), [c]]) = 0  # switchdebounce -> 0
+                index += 1
+        #drivedata.data[data_index] = dt
+        data_index += 1
+    return drivedata
+
+
 filtersList = {}
 filtersColNames = {}
 
@@ -219,3 +249,4 @@ registerFilter('mergeEvents', mergeEvents)
 registerFilter('mergeFintoTaskFail', mergeFintoTaskFail)
 registerFilter('numberTaskInstance', numberTaskInstance)
 registerFilter('writeToCSV', writeToCSV)
+registerFilter('switchDebounce', switchDebounce)
