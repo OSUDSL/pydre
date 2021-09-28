@@ -209,16 +209,28 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
         dt["arrCriticalBlock"] = 0
         # find blocks when the car is stopped
         stopping_delta = 0.1 # a stop is when the car is moving under 0.1 m/s
-        dt["isStopped"] = dt["Velocity"] > stopping_delta
+        dt["isStopped"] = dt["Velocity"] < stopping_delta
         dt['stoppingBlock'] = (dt['isStopped'].shift(1) != dt['isStopped']).astype(int).cumsum()
         dt['stoppingBlock'] = dt['stoppingBlock'] * dt['isStopped']
         # find only blocks when the car is stopped for more than 10 seconds
 
         gr = dt.groupby('stoppingBlock', sort=False)
         agg = gr.DatTime.agg([np.min, np.max])
-        long_enough = (agg['amax'] - agg['aemin']) > 10  # block larger than 10s
-        
-        print(agg)
+        long_enough = (agg['amax'] - agg['amin']) > 10  # block larger than 10s
+        long_enough = long_enough[1:][long_enough].index.to_list() # list of the block ids that are long enough to count as stops
+        all_stops = gr.groups.keys()
+        too_short = set(all_stops) - set(long_enough)
+        dt.loc[dt.stoppingBlock.isin(too_short), "stoppingBlock"] = 0
+        stopping_times = agg.loc[long_enough]
+
+        first_inattentive = dt[(dt.HTJAState == 11) & (dt.HTJAReason == 1)].head(1)
+        try:
+            first_inattentive_index = first_inattentive.index[0]
+            first_stop = dt[first_inattentive_index:, "stoppingBlock"] > 0
+            pass
+        except KeyError:
+            first_inattentive_index = None
+
 
         drivedata.data[idx] = dt
     return drivedata
