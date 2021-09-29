@@ -201,6 +201,7 @@ def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
     return drivedata
 
 
+
 def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
     # define a new column in the data object that
     for idx, data, in enumerate(drivedata.data):
@@ -223,14 +224,67 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
         dt.loc[dt.stoppingBlock.isin(too_short), "stoppingBlock"] = 0
         stopping_times = agg.loc[long_enough]
 
-        first_inattentive = dt[(dt.HTJAState == 11) & (dt.HTJAReason == 1)].head(1)
+        # find first inattentive
         try:
+            first_inattentive = dt[(dt.HTJAState == 11) & (dt.HTJAReason == 1)].head(1)
             first_inattentive_index = first_inattentive.index[0]
-            first_stop = dt[first_inattentive_index:, "stoppingBlock"] > 0
+            first_stop = (dt.loc[first_inattentive_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_inattentive_index:first_stop, "arrCriticalBlock"] = 1
+        except (KeyError, IndexError):
+            # block is not valid
             pass
-        except KeyError:
-            first_inattentive_index = None
 
+        # find alerted lane loss
+        try:
+            first_event = dt[(dt.CEID == 1) & (dt.HTJAReason == 4)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 2
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
+
+        # find silent lane loss
+        try:
+            first_event = dt[(dt.CEID == 1) & (dt.HTJAReason != 4)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 3
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
+
+        # find alerted lead car loss
+        try:
+            first_event = dt[(dt.CEID == 2)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] =4
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
+
+
+        # find keylockout speed alert
+        try:
+            first_event = dt[(dt.HTJAState == 31)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 5
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
+
+
+        # find high to low speed alert
+        try:
+            first_event = dt[(dt.HTJAReason == 31)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 6
+        except KeyError:
+            #  block is not valid
+            pass
 
         drivedata.data[idx] = dt
     return drivedata
