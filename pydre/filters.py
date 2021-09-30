@@ -259,7 +259,7 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
             first_event = dt[(dt.CEID == 2)].head(1)
             first_event_index = first_event.index[0]
             first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] =4
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 4
         except (KeyError, IndexError):
             #  block is not valid
             pass
@@ -282,7 +282,7 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
             first_event_index = first_event.index[0]
             first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
             dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 6
-        except KeyError:
+        except (KeyError, IndexError):
             #  block is not valid
             pass
 

@@ -4,8 +4,13 @@
         {
             "name": "arrDefineCriticalBlocks",
             "function": "arrDefineCriticalBlocks"
+        },
+        {
+            "name": "smoothGazeData",
+            "function": "smoothGazeData",
+            "gazeColName": "ESTIMATED_CLOSEST_WORLD_INTERSECTION"
         }
-    ],
+  ],
 
   "rois": [
   		{"type": "column", "columnname": "arrCriticalBlock"}
@@ -16,6 +21,12 @@
             "name": "colMax",
             "function": "colMax",
             "var": "Velocity"
+        },
+        {
+            "name": "VideoStartBlock",
+            "function": "colMin",
+            "var": "MediaTime"
         }
+
     ]
  }
