@@ -26,14 +26,14 @@ class WritableObject:
 
 # Test cases of following functions are not included:
 # Reason: unmaintained
-# in metrics.py: 
+# in common.py:
 # tbiReaction()
 # tailgatingTime() & tailgatingPercentage()
 # ecoCar()
 # gazeNHTSA()
 #
 # Reason: incomplete
-# in metrics.py: 
+# in common.py:
 # findFirstTimeOutside()
 # brakeJerk()
 
