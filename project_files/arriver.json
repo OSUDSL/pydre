@@ -1,32 +1,43 @@
 {
-
   "filters": [
-        {
-            "name": "arrDefineCriticalBlocks",
-            "function": "arrDefineCriticalBlocks"
-        },
-        {
-            "name": "smoothGazeData",
-            "function": "smoothGazeData",
-            "gazeColName": "ESTIMATED_CLOSEST_WORLD_INTERSECTION"
-        }
+    {
+      "name": "arrDefineCriticalBlocks",
+      "function": "arrDefineCriticalBlocks"
+    },
+    {
+      "name": "smoothGazeData",
+      "function": "smoothGazeData",
+      "gazeColName": "ESTIMATED_CLOSEST_WORLD_INTERSECTION",
+      "latencyShift": 0
+    },
+    {
+      "name": "writeToCSV",
+      "function": "writeToCSV",
+      "outputDirectory": "output"
+    }
+
   ],
-
   "rois": [
-  		{"type": "column", "columnname": "arrCriticalBlock"}
-	],
+    {
+      "type": "column",
+      "columnname": "arrCriticalBlock"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "colMax",
+      "function": "colMax",
+      "var": "Velocity"
+    },
+    {
+      "name": "VideoStartBlock",
+      "function": "colMin",
+      "var": "MediaTime"
+    },
+    {
+      "name": "arrTimeToLookBackAfterInattentive",
+      "function": "arrTimeToLookBackAfterInattentive"
+    }
 
-    "metrics": [
-        {
-            "name": "colMax",
-            "function": "colMax",
-            "var": "Velocity"
-        },
-        {
-            "name": "VideoStartBlock",
-            "function": "colMin",
-            "var": "MediaTime"
-        }
-
-    ]
- }
+  ]
+}

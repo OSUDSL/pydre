@@ -1,3 +1,12 @@
+from __future__ import annotations # needed for python < 3.9
+
+import pandas
+import pydre.core
+from pydre.metrics import registerMetric
+import numpy as np
+import math
+from scipy import signal
+
 
 def getTaskNum(drivedata: pydre.core.DriveData):
     required_col = ["TaskNum"]

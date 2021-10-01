@@ -39,7 +39,7 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
 
 
 
-def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str="DatTime", gazeColName: str="FILTERED_GAZE_OBJ_NAME"):
+def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str="DatTime", gazeColName: str="FILTERED_GAZE_OBJ_NAME", latencyShift=6):
     required_col = [timeColName, gazeColName]
     diff = drivedata.checkColumns(required_col)
     if (len(diff) > 0):
@@ -54,12 +54,12 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str="DatTime", 
     for d in data:
         dt = pandas.DataFrame(d)
 
-        cat_type = CategoricalDtype(categories=['None', 'localCS.dashPlane', 'localCS.WindScreen', 'onroad', 'offroad'])
+        cat_type = CategoricalDtype(categories=['None', 'localCS.dashPlane', 'localCS.WindScreen', 'localCS.CSLowScreen', 'onroad', 'offroad'])
         dt['gaze'] = dt[gazeColName].astype(cat_type)
 
         # dt['gaze'].replace(['None', 'car.dashPlane', 'car.WindScreen'], ['offroad', 'offroad', 'onroad'], inplace=True)
-        dt['gaze'].replace(['None', 'localCS.dashPlane', 'localCS.WindScreen'], ['offroad', 'offroad', 'onroad'],
-                        inplace=True)
+        dt['gaze'].replace(['None', 'localCS.dashPlane', 'localCS.WindScreen', 'localCS.CSLowScreen'],
+                           ['offroad', 'offroad', 'onroad', 'offroad'], inplace=True)
 
         if len(dt['gaze'].unique()) < 2:
             print("Bad gaze data, not enough variety. Aborting")
@@ -72,7 +72,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str="DatTime", 
         dt.loc[gaze_same, 'gaze'] = dt['gaze'].shift(-1)
 
     # adjust for 100ms latency
-        dt['gaze'] = dt['gaze'].shift(-6)
+        dt['gaze'] = dt['gaze'].shift(-latencyShift)
         dt['timedelta'] = pandas.to_timedelta(dt[timeColName].astype(float), unit="s")
         dt.set_index('timedelta', inplace=True)
 
