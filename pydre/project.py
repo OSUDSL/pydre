@@ -7,6 +7,7 @@ import sys
 import pydre.core
 import pydre.rois
 import pydre.metrics
+from pydre.metrics import *
 import pydre.filters
 import pathlib
 from tqdm import tqdm
