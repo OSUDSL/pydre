@@ -39,7 +39,7 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData,):
 
 
 
-def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str="DatTime", gazeColName: str="FILTERED_GAZE_OBJ_NAME"):
+def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str="DatTime", gazeColName: str="FILTERED_GAZE_OBJ_NAME", latencyShift=6):
     required_col = [timeColName, gazeColName]
     diff = drivedata.checkColumns(required_col)
     if (len(diff) > 0):
@@ -54,12 +54,12 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str="DatTime", 
     for d in data:
         dt = pandas.DataFrame(d)
 
-        cat_type = CategoricalDtype(categories=['None', 'localCS.dashPlane', 'localCS.WindScreen', 'onroad', 'offroad'])
+        cat_type = CategoricalDtype(categories=['None', 'localCS.dashPlane', 'localCS.WindScreen', 'localCS.CSLowScreen', 'onroad', 'offroad'])
         dt['gaze'] = dt[gazeColName].astype(cat_type)
 
         # dt['gaze'].replace(['None', 'car.dashPlane', 'car.WindScreen'], ['offroad', 'offroad', 'onroad'], inplace=True)
-        dt['gaze'].replace(['None', 'localCS.dashPlane', 'localCS.WindScreen'], ['offroad', 'offroad', 'onroad'],
-                        inplace=True)
+        dt['gaze'].replace(['None', 'localCS.dashPlane', 'localCS.WindScreen', 'localCS.CSLowScreen'],
+                           ['offroad', 'offroad', 'onroad', 'offroad'], inplace=True)
 
         if len(dt['gaze'].unique()) < 2:
             print("Bad gaze data, not enough variety. Aborting")
@@ -72,7 +72,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str="DatTime", 
         dt.loc[gaze_same, 'gaze'] = dt['gaze'].shift(-1)
 
     # adjust for 100ms latency
-        dt['gaze'] = dt['gaze'].shift(-6)
+        dt['gaze'] = dt['gaze'].shift(-latencyShift)
         dt['timedelta'] = pandas.to_timedelta(dt[timeColName].astype(float), unit="s")
         dt.set_index('timedelta', inplace=True)
 
@@ -201,35 +201,93 @@ def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
     return drivedata
 
 
-# columns: a str contains all columns that may contains switchDebounces, split by space. The columns must contain 1 & 0 only. 
-def switchDebounce(drivedata: pydre.core.DriveData, columns):
-    col_names = columns.split()
-    data_index = 0
-    for d in drivedata.data:
-        dt = pandas.DataFrame(d)
-        for c in col_names:
-            record = pandas.DataFrame()
-            dt['switchDebounceDiff'] = (dt[c]).diff()
 
-            record["end"] = ((dt.loc[dt['switchDebounceDiff'] < 0])['DatTime']).tolist()
-            record["begin"] = (dt.loc[dt['switchDebounceDiff'] > 0])['DatTime'].tolist()
-            record["length"] = record["end"] - record["begin"]
-            #record.to_csv("sd\\sd.csv")
-            record = record.loc[record["length"] <= 0.8]
-            record = record.reset_index()
-            print(record)
-            index = 0
-            while index < len(record):
-                begin = record.at[index, 'begin']
-                end = record.at[index, 'end']
-                #dt.loc[begin:end, c] = 0
-                logger.warning(c)
-                ((drivedata.data[data_index]).loc[(dt['DatTime'] >= begin) & (dt['DatTime'] <= end), [c]]) = 0  # switchdebounce -> 0
-                index += 1
-        #drivedata.data[data_index] = dt
-        data_index += 1
+def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
+    # define a new column in the data object that
+    for idx, data, in enumerate(drivedata.data):
+        dt = pandas.DataFrame(data)
+
+        dt["arrCriticalBlock"] = 0
+        # find blocks when the car is stopped
+        stopping_delta = 0.1 # a stop is when the car is moving under 0.1 m/s
+        dt["isStopped"] = dt["Velocity"] < stopping_delta
+        dt['stoppingBlock'] = (dt['isStopped'].shift(1) != dt['isStopped']).astype(int).cumsum()
+        dt['stoppingBlock'] = dt['stoppingBlock'] * dt['isStopped']
+        # find only blocks when the car is stopped for more than 10 seconds
+
+        gr = dt.groupby('stoppingBlock', sort=False)
+        agg = gr.DatTime.agg([np.min, np.max])
+        long_enough = (agg['amax'] - agg['amin']) > 10  # block larger than 10s
+        long_enough = long_enough[1:][long_enough].index.to_list() # list of the block ids that are long enough to count as stops
+        all_stops = gr.groups.keys()
+        too_short = set(all_stops) - set(long_enough)
+        dt.loc[dt.stoppingBlock.isin(too_short), "stoppingBlock"] = 0
+        stopping_times = agg.loc[long_enough]
+
+        # find first inattentive
+        try:
+            first_inattentive = dt[(dt.HTJAState == 11) & (dt.HTJAReason == 1)].head(1)
+            first_inattentive_index = first_inattentive.index[0]
+            first_stop = (dt.loc[first_inattentive_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_inattentive_index:first_stop, "arrCriticalBlock"] = 1
+        except (KeyError, IndexError):
+            # block is not valid
+            pass
+
+        # find alerted lane loss
+        try:
+            first_event = dt[(dt.CEID == 1) & (dt.HTJAReason == 4)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 2
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
+
+        # find silent lane loss
+        try:
+            first_event = dt[(dt.CEID == 1) & (dt.HTJAReason != 4)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 3
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
+
+        # find alerted lead car loss
+        try:
+            first_event = dt[(dt.CEID == 2)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 4
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
+
+
+        # find keylockout speed alert
+        try:
+            first_event = dt[(dt.HTJAState == 31)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 5
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
+
+
+        # find high to low speed alert
+        try:
+            first_event = dt[(dt.HTJAReason == 31)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 6
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
+
+        drivedata.data[idx] = dt
     return drivedata
-
 
 filtersList = {}
 filtersColNames = {}
@@ -249,4 +307,6 @@ registerFilter('mergeEvents', mergeEvents)
 registerFilter('mergeFintoTaskFail', mergeFintoTaskFail)
 registerFilter('numberTaskInstance', numberTaskInstance)
 registerFilter('writeToCSV', writeToCSV)
-registerFilter('switchDebounce', switchDebounce)
+
+
+registerFilter('arrDefineCriticalBlocks', arrDefineCriticalBlocks)
