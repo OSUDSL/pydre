@@ -37,6 +37,10 @@
     {
       "name": "arrTimeToLookBackAfterInattentive",
       "function": "arrTimeToLookBackAfterInattentive"
+    },
+    {
+      "name": "arrTimeToDisengageAfterRedAlert",
+      "function": "arrTimeToDisengageAfterRedAlert"
     }
 
   ]
