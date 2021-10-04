@@ -38,3 +38,4 @@ def arrTimeToDisengageAfterRedAlert(drivedata: pydre.core.DriveData):
 
 
 registerMetric('arrTimeToLookBackAfterInattentive', arrTimeToLookBackAfterInattentive)
+registerMetric('arrTimeToDisengageAfterRedAlert', arrTimeToDisengageAfterRedAlert)
