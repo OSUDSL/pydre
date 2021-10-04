@@ -24,10 +24,9 @@ class MergeTool():
     def groupBySubject(self, file_list, exp_index):
         global regular_expressions_group
         groups = {}
-        name_pattern = re.compile(regular_expressions_group[exp_index])
+        name_pattern = re.compile(str(regular_expressions_group[exp_index]))
         for file_name in file_list:
             match = name_pattern.match(file_name)
-            logger.warning(match)
             if (match):
                 subject = match.group(1)
                 drive = match.group(2)
@@ -45,7 +44,6 @@ class MergeTool():
                     drive_group.insert(i, file_name)
                 else:
                     groups[subject] = [file_name]
-        logger.warning(groups)
         return groups
 
     def sequential_merge(self, input_directory, exp_index):
@@ -53,16 +51,17 @@ class MergeTool():
         global regular_expressions_glob
         out_dir = os.makedirs(os.path.join(input_directory, 'MergedData'), exist_ok=True)
         out_dir_name = os.path.join(input_directory, 'MergedData')
-        file_list = glob.glob(input_directory + '/' + regular_expressions_glob[exp_index])
-        logger.warning(file_list)
+        file_list = sorted(glob.glob(input_directory + '/' + regular_expressions_glob[exp_index]))
         subject_groups = self.groupBySubject(file_list, exp_index)
         warning = True
         for key in subject_groups:
             warning = False
             logger.info("merging for subject: ", key)
             drive_group = subject_groups[key]
+            drive_group.sort()
             out_frame = pd.read_csv(drive_group[0], sep='\s+', na_values='.', engine="c")
             name_pattern = re.compile(regular_expressions[exp_index])
+            
 
             out_name = ""
             if exp_index == 0:
@@ -75,9 +74,11 @@ class MergeTool():
                 model = match.group(1)
                 part_id = match.group(2)
                 scen_name = match.group(3)
-                #unique_id = match.group(4)
-                out_name = model + "_" + part_id + "_" + scen_name + "_0.dat"
-
+                unique_id = match.group(4)
+                out_name = model + "_" + part_id + "_" + scen_name + "_" + str(int(unique_id)+1) + ".dat"
+            
+            source_dir = drive_group[0]
+            out_frame['SourceId'] = source_dir[max(source_dir.find('\\'), source_dir.find('/')):]
             for drive in drive_group[1:]:
                 # The latest out_frame's final SimTime. To be added across next_frame's SimTime column as a constant.
                 # '-1' indices didn't work here, threw a pandas error. But this code produces desired result.
@@ -91,6 +92,8 @@ class MergeTool():
                 next_frame = pd.read_csv(drive, sep='\s+', na_values='.', engine="c")
                 next_frame["SimTime"] += timeconstant
                 next_frame["DatTime"] += timeconstantdat
+                source_dir = drive
+                next_frame['SourceId'] = source_dir[max(source_dir.find('\\'), source_dir.find('/')):]
                 out_frame = out_frame.append(next_frame, ignore_index=True)
             out_frame.to_csv(os.path.join(out_dir_name, out_name),
                              sep=' ', na_rep=".", index=False)
@@ -154,7 +157,7 @@ class MergeTool():
                     part_id = match.group(2)
                     scen_name = match.group(3)
                     #unique_id = match.group(4)
-                    out_name = model + "_" + part_id + "_" + scen_name + "_0.dat"
+                    out_name = model + "_" + part_id + "_" + scen_name + "_" + str(int(unique_id)+1) + ".dat"
 
                 out_frame.to_csv(os.path.join(out_dir_name, out_name), sep=' ')
 
