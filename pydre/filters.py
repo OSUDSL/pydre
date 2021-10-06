@@ -207,7 +207,7 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
     for idx, data, in enumerate(drivedata.data):
         dt = pandas.DataFrame(data)
 
-        dt["arrCriticalBlock"] = 0
+        dt["Critical Point"] = ""
         # find blocks when the car is stopped
         stopping_delta = 0.1 # a stop is when the car is moving under 0.1 m/s
         dt["isStopped"] = dt["Velocity"] < stopping_delta
@@ -229,7 +229,7 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
             first_inattentive = dt[(dt.HTJAState == 11) & (dt.HTJAReason == 1)].head(1)
             first_inattentive_index = first_inattentive.index[0]
             first_stop = (dt.loc[first_inattentive_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_inattentive_index:first_stop, "arrCriticalBlock"] = 1
+            dt.loc[first_inattentive_index:first_stop, "arrCriticalBlock"] = "HTJA"
         except (KeyError, IndexError):
             # block is not valid
             pass
@@ -239,7 +239,7 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
             first_event = dt[(dt.CEID == 1) & (dt.HTJAReason == 4)].head(1)
             first_event_index = first_event.index[0]
             first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 2
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "AlertF Lane"
         except (KeyError, IndexError):
             #  block is not valid
             pass
@@ -249,7 +249,7 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
             first_event = dt[(dt.CEID == 1) & (dt.HTJAReason != 4)].head(1)
             first_event_index = first_event.index[0]
             first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 3
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "SilentF Lane"
         except (KeyError, IndexError):
             #  block is not valid
             pass
@@ -259,18 +259,27 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
             first_event = dt[(dt.CEID == 2)].head(1)
             first_event_index = first_event.index[0]
             first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 4
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "AlertF LeadLoss"
         except (KeyError, IndexError):
             #  block is not valid
             pass
 
+        # find silent lead car loss
+        try:
+            first_event = dt[(dt.CEID ==5)].head(1)
+            first_event_index = first_event.index[0]
+            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "SilentF LeadLoss"
+        except (KeyError, IndexError):
+            #  block is not valid
+            pass
 
         # find keylockout speed alert
         try:
             first_event = dt[(dt.HTJAState == 31)].head(1)
             first_event_index = first_event.index[0]
             first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 5
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "Lockout"
         except (KeyError, IndexError):
             #  block is not valid
             pass
@@ -281,7 +290,7 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
             first_event = dt[(dt.HTJAReason == 31)].head(1)
             first_event_index = first_event.index[0]
             first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = 6
+            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "TA"
         except (KeyError, IndexError):
             #  block is not valid
             pass
