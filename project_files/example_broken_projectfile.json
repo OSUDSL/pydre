@@ -4,8 +4,8 @@
 	],
 
     "metrics": [
-        {
-            "name": "tailgatetime",
+        {        
+			"name": "tailgatetime"
             "function": "tailgatingTime"
         }
     ]
