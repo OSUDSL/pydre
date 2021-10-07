@@ -2,7 +2,8 @@
 
 import pandas
 import logging
-logger = logging.getLogger(__name__)
+import sys
+logger = logging.getLogger('PydreLogger')
 
 
 def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFrame):
@@ -19,7 +20,13 @@ def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFr
 	Given a start and end and a column name that represents a time value, output the slice that contains
 	only the specified data.
 	"""
-	return(drive_data[(drive_data[column] >= begin) & (drive_data[column] <= end)])
+	try:
+		dataframeslice = drive_data[(drive_data[column] >= begin) & (drive_data[column] <= end)]
+	except KeyError:
+		logger.error(" Data file(-d) invalid. Data frame slice could not be created. Please check contents of file for \"VidTime\" column.")
+		sys.exit(1)
+	return dataframeslice
+
 
 def mergeBySpace(tomerge: list):
 	"""
@@ -36,9 +43,9 @@ def mergeBySpace(tomerge: list):
 	"""
 	for drivedata in tomerge:
 		if (len(drivedata.data) > 1):
-			logger.warning("Subject {} roi {} contains  more than one DataFrame. Only the first element will be in the merged output.".format(drivedata.SubjectID, DriveData.roi))
+			logger.warning("Subject {} roi {} contains  more than one DataFrame. Only the first element will be in the merged output.".format(drivedata.PartID, DriveData.roi))
 		
-		subject = tomerge[0].SubjectID
+		subject = tomerge[0].PartID
 		driveIDs = tomerge[0].DriveID
 		roi = tomerge[0].roi
 		sources = list(tomerge[0].sourcefilename)
@@ -50,8 +57,8 @@ def mergeBySpace(tomerge: list):
 				i = i + 1
 				
 				#This part sets up data to be included in the final Drive Data object
-				if tomerge[i].SubjectID != subject:
-					logger.warning("Merging data for multiple subjects {} and {}. Only the first will be used".format(subject, tomerge[i].SubjectID))
+				if tomerge[i].PartID != subject:
+					logger.warning("Merging data for multiple subjects {} and {}. Only the first will be used".format(subject, tomerge[i].PartID))
 				driveIDs.append(list(tomerge[i].DriveID)) #Some may be added twice. Is this desireable?
 				if tomerge[i].roi != roi:
 					logger.warning("Merging data for multiple rois {} and {}. Only the first will be used.".format(roi, tomerge[i].roi))
@@ -80,8 +87,8 @@ def mergeBySpace(tomerge: list):
 
 class DriveData:
 
-	def __init__(self, SubjectID: int, DriveID,	roi: str, data,	sourcefilename):
-		self.SubjectID = SubjectID
+	def __init__(self, PartID: int, DriveID,	roi: str, data,	sourcefilename):
+		self.PartID = PartID
 		if type(DriveID) is not list:
 			DriveID = [DriveID, ]
 		self.DriveID = DriveID
@@ -89,6 +96,46 @@ class DriveData:
 		if type(data) is not list:
 			data = [data, ]
 		self.data = data
-		if type(data) is not list:
+		if type(sourcefilename) is not list:
 			sourcefilename = [sourcefilename, ]
 		self.sourcefilename = sourcefilename
+
+	def checkColumns(self, col):
+		expected_col = col
+		difference = []
+		for df in self.data:
+			df_col = (df.columns).tolist()
+			if (len(expected_col) != len(df_col)):
+				#logger.error("The numbers of columns do not match")
+				difference = set(expected_col) - set(df_col)
+				break
+			elif (expected_col.sort() != df_col.sort()):
+				#logger.error("Columns do not match")
+				difference = set(expected_col) - set(df_col)
+				break
+		return difference
+
+# ------ exception handling ------
+
+def funcName(): #:return: name of caller
+    return sys._getframe(1).f_code.co_name
+
+#@contextmanager
+#def disable_exception_traceback():
+    """
+    All traceback information is suppressed and only the exception type and value are printed
+    """
+#    default_value = getattr(sys, "tracebacklimit", 1000)  # `1000` is Python's default value
+#    sys.tracebacklimit = 0
+#    yield
+#    sys.tracebacklimit = default_value  # revert changes
+
+#def columnException(drivedata, required_col):
+#    diff = drivedata.checkColumns(required_col)
+#    if (len(diff) > 0):
+#        with disable_exception_traceback():
+#            raise ColumnsMatchError("Can't find needed columns " + str(diff) + " in data file " + drivedata.sourcefilename)
+	
+
+class ColumnsMatchError(Exception):
+	pass

@@ -1,0 +1,6 @@
+site
+.idea
+*.pyc
+tests/MergeTools/test_dats_to_merge/*/*Drive_0.dat
+build
+dist

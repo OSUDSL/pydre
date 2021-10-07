@@ -1,0 +1,42 @@
+{
+    "rois": [
+  		{"type": "rect", "filename": "spatial_roi_bushman2.csv"}
+	],
+
+    "metrics": [
+    	{
+            "name": "meanVelocityOver50MPH",
+    		"function": "meanVelocity",
+    		"cutoff": 22.352
+    	},
+        {
+            "name": "meanVelocityOver1MPH",
+            "function": "meanVelocity",
+            "cutoff": 0.44704
+        },
+		{
+            "name": "steeringEntropy",
+    		"function": "steeringEntropy"
+    	},
+        {
+            "name": "timeAbove60MPH",
+            "function": "timeAboveSpeed",
+            "cutoff": 26.8224
+        },
+        {
+            "name": "tailgatePercent2Sec",
+            "function": "tailgatingPercentage",
+            "cutoff": 2
+        },
+        {
+            "name": "tailgatePercent3Sec",
+            "function": "tailgatingPercentage",
+            "cutoff": 3
+        },
+        {
+            "name": "tailgatePercent4Sec",
+            "function": "tailgatingPercentage",
+            "cutoff": 4
+        }
+    ]
+ }

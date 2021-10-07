@@ -136,3 +136,26 @@ class SpaceROI():
 					self.roi_info.roi[i], region_data, ddata.sourcefilename))
 		return return_list
 
+
+class ColumnROI():
+
+	def __init__(self, columnname, nameprefix=""):
+		# parse time filename values
+		self.roi_column = columnname
+		self.name_prefix = nameprefix
+
+	def split(self, datalist):
+		"""
+		return list of pydre.core.DriveData objects
+		the 'roi' field of the objects will be filled with the roi tag listed
+		in the roi definition file column name
+		"""
+		return_list = []
+
+		for ddata in datalist:
+			for raw_data in ddata.data:
+				for i in raw_data[self.roi_column].unique():
+					region_data = raw_data[raw_data[self.roi_column] == i]
+					if len(region_data.index) > 0:
+						return_list.append(pydre.core.DriveData(ddata.PartID, ddata.DriveID, i, region_data, ddata.sourcefilename))
+		return return_list
