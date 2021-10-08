@@ -47,7 +47,7 @@ class Project():
         drive_id = -1
         unique_id = -1
         # Could cache this re, probably affect performance
-        d = pandas.read_csv(filename, sep='\s+', na_values='.')
+        d = pandas.read_csv(filename, sep=' ', na_values='.')
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
         datafile_re_format1 = re.compile("([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat"); # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
         match_format0 = datafile_re_format0.search(filename)
