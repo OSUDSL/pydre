@@ -147,11 +147,11 @@ class Project():
 
 
         if len(col_names) > 1:
-            x = [metric_func(d, **metric) for d in dataset]
+            x = [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)]
             report = pandas.DataFrame(x, columns=col_names)
         else:
             report = pandas.DataFrame(
-                [metric_func(d, **metric) for d in dataset], columns=[report_name, ])
+                [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)], columns=[report_name, ])
 
         return report
 

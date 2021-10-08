@@ -51,6 +51,10 @@
     { "name": "Headway Distance",
       "function":  "colMin",
       "var": "HeadwayDistance"
+    },
+    {
+      "name": "Average Time of On-Road Attention",
+      "function": "arrMeanLengthOfFirstOnRoadGlanceAfterAlerts"
     }
 
   ]
