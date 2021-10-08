@@ -100,13 +100,16 @@ def arrMeanLengthOfFirstOnRoadGlanceAfterAlerts(drivedata: pydre.core.DriveData)
 
         glance_times = []
 
-        for idx in dt[alert_times].index():
-            first_gaze_on_road_index = (dt.loc[first_failure_index:, "gaze"] == "onroad").idxmax()
+        for idx in dt[alert_times].index:
+            first_gaze_on_road_index = (dt.loc[idx:, "gaze"] == "onroad").idxmin()
             end_of_first_gaze_on_road_index = (dt.loc[first_gaze_on_road_index:, "gaze"] == "offroad").idxmax()
             glance_time = dt.loc[end_of_first_gaze_on_road_index].DatTime - dt.loc[first_gaze_on_road_index].DatTime
-            glance_times.append(glance_times)
+            glance_times.append(glance_time)
 
-        return np.mean(np.asarray(glance_times))
+        if len(glance_times) == 0:
+            return None
+        else:
+            return np.mean(np.asarray(glance_times))
 
 
 registerMetric('arrTimeToLookBackAfterInattentive', arrTimeToLookBackAfterInattentive)
@@ -114,4 +117,4 @@ registerMetric('arrTimeToDisengageAfterRedAlert', arrTimeToDisengageAfterSlowAle
 registerMetric('arrTimeToDisengageAfterStopAlert', arrTimeToDisengageAfterStopAlert)
 registerMetric('arrTimeToDisengage', arrTimeToDisengage)
 registerMetric("arrTimeAfterFailureToLookAtRoad", arrTimeAfterFailureToLookAtRoad)
-
+registerMetric('arrMeanLengthOfFirstOnRoadGlanceAfterAlerts', arrMeanLengthOfFirstOnRoadGlanceAfterAlerts)
