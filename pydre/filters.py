@@ -224,6 +224,9 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
         dt.loc[dt.stoppingBlock.isin(too_short), "stoppingBlock"] = 0
         stopping_times = agg.loc[long_enough]
 
+        dt['CEIDChanged'] = (dt['CEID'].shift(-1) != dt['CEID'])
+
+
         # find first inattentive
         try:
             first_inattentive = dt[(dt.HTJAState == 11) & (dt.HTJAReason == 1)].head(1)
@@ -236,40 +239,40 @@ def arrDefineCriticalBlocks(drivedata: pydre.core.DriveData):
 
         # find alerted lane loss
         try:
-            first_event = dt[(dt.CEID == 1) & (dt.HTJAReason == 4)].head(1)
-            first_event_index = first_event.index[0]
-            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "AlertF Lane"
+            last_event_start = dt[(dt.CEIDChanged == 1) & (dt.CEID == 1) & (dt.HTJAReason == 4)].head(1)
+            last_event_start_index = last_event_start.index[0]
+            first_stop = (dt.loc[last_event_start_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[last_event_start_index:first_stop, "arrCriticalBlock"] = "AlertF Lane"
         except (KeyError, IndexError):
             #  block is not valid
             pass
 
         # find silent lane loss
         try:
-            first_event = dt[(dt.CEID == 1) & (dt.HTJAReason != 4)].head(1)
-            first_event_index = first_event.index[0]
-            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "SilentF Lane"
+            last_event_start = dt[(dt.CEIDChanged == 1) & (dt.CEID == 1) & (dt.HTJAReason == 0)].head(1)
+            last_event_start_index = last_event_start.index[0]
+            first_stop = (dt.loc[last_event_start_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[last_event_start_index:first_stop, "arrCriticalBlock"] = "SilentF Lane"
         except (KeyError, IndexError):
             #  block is not valid
             pass
 
         # find alerted lead car loss
         try:
-            first_event = dt[(dt.CEID == 2)].head(1)
-            first_event_index = first_event.index[0]
-            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "AlertF LeadLoss"
+            last_event_start = dt[(dt.CEIDChanged == 1) & (dt.CEID == 2)].head(1)
+            last_event_start_index = last_event_start.index[0]
+            first_stop = (dt.loc[last_event_start_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[last_event_start_index:first_stop, "arrCriticalBlock"] = "AlertF LeadLoss"
         except (KeyError, IndexError):
             #  block is not valid
             pass
 
         # find silent lead car loss
         try:
-            first_event = dt[(dt.CEID ==5)].head(1)
-            first_event_index = first_event.index[0]
-            first_stop = (dt.loc[first_event_index:, "stoppingBlock"] > 0).idxmax()
-            dt.loc[first_event_index:first_stop, "arrCriticalBlock"] = "SilentF LeadLoss"
+            last_event_start = dt[(dt.CEIDChanged == 1) & (dt.CEID == 5)].head(1)
+            last_event_start_index = last_event_start.index[0]
+            first_stop = (dt.loc[last_event_start_index:, "stoppingBlock"] > 0).idxmax()
+            dt.loc[last_event_start_index:first_stop, "arrCriticalBlock"] = "SilentF LeadLoss"
         except (KeyError, IndexError):
             #  block is not valid
             pass

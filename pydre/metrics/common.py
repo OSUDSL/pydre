@@ -23,9 +23,6 @@ def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
         logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
-
-
-
     timestepID = -1
     breakOut = False
     for d in drivedata.data:
@@ -65,27 +62,29 @@ def checkSeriesNan(series):
     else:
         return False
 
+
 def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     required_col = [var]
     diff = drivedata.checkColumns(required_col)
-    
+
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        logger.error(
+            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
+                                                                                   pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
-
-
-
 
     total = pandas.Series(dtype='float64')
     # original code here: total = pandas.Series()
-    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
+    # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object'
     # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
     # Plz change it back to the original code if the current one leads to an issue
     for d in drivedata.data:
         var_dat = d[var]
         total = total.append(var_dat[var_dat >= cutoff])
-    
+
     return numpy.mean(total.values, dtype=np.float64).astype(np.float64)
+
+
 
 
 def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
@@ -96,8 +95,6 @@ def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
         logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
-
-
     total = pandas.Series(dtype='float64')
     # original code here: total = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
@@ -106,18 +103,16 @@ def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     for d in drivedata.data:
         var_dat = d[var]
         total = total.append(var_dat[var_dat >= cutoff])
-    return numpy.std(total.values, dtype=np.float64).astype(np.float64)
+    return np.std(total.values, dtype=np.float64).astype(np.float64)
 
 
 def colMax(drivedata: pydre.core.DriveData, var: str):
     required_col = [var]
     diff = drivedata.checkColumns(required_col)
-    
+
     if (len(diff) > 0):
         logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
-
-
 
     maxes = []
     for d in drivedata.data:

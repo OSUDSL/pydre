@@ -30,16 +30,31 @@
       "var": "MediaTime"
     },
     {
+      "name": "Steering Max",
+      "function": "colMax",
+      "var": "Steer"
+    },
+    {
+      "name": "Steering Min",
+      "function": "colMin",
+      "var": "Steer"
+    },
+    {
+      "name": "Steering SD",
+      "function": "colSD",
+      "var": "Steer"
+    },
+    {
       "name": "Time until Attention Glance",
       "function": "arrTimeToLookBackAfterInattentive"
     },
     {
       "name": "Time Until Attention After Slow TC",
-      "function": "arrTimeToDisengageAfterRedAlert"
+      "function": "arrTimeToDisengageAfterSlowAlert"
     },
     {
       "name": "Time Until Attention After Stop TC",
-      "function": "arrTimeToDisengageAfterRedAlert"
+      "function": "arrTimeToDisengageAfterStopAlert"
     },
     {
       "name": "Time Until Feature Disengaged",
@@ -48,13 +63,18 @@
     { "name":  "Time until Failure Glance",
       "function": "arrTimeAfterFailureToLookAtRoad"
     },
-    { "name": "Headway Distance",
+    { "name": "Miniumum Headway Distance",
       "function":  "colMin",
       "var": "HeadwayDistance"
     },
     {
       "name": "Average Time of On-Road Attention",
       "function": "arrMeanLengthOfFirstOnRoadGlanceAfterAlerts"
+    },
+
+    {
+      "name": "Time Until Lane Center",
+      "function": "arrTimeTillLaneCenterAfterLaneLoss"
     }
 
   ]
