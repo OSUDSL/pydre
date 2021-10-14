@@ -9,6 +9,11 @@
       "function": "smoothGazeData",
       "gazeColName": "ESTIMATED_CLOSEST_WORLD_INTERSECTION",
       "latencyShift": 0
+    },
+    {
+      "name":  "csv",
+      "function":  "writeToCSV",
+      "outputDirectory": "arr"
     }
 
   ],
