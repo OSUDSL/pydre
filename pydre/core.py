@@ -3,7 +3,8 @@
 import pandas
 import logging
 import sys
-logger = logging.getLogger('PydreLogger')
+
+logger = logging.getLogger(__name__)
 
 
 def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFrame):
