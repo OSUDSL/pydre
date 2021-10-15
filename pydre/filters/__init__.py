@@ -10,7 +10,8 @@ from pathlib import Path
 
 from pydre.filters.arriver import arrDefineCriticalBlocks
 
-logger = logging.getLogger('PydreLogger')
+logger = logging.getLogger(__name__)
+
 
 # filters defined here take a DriveData object and return an updated DriveData object
 

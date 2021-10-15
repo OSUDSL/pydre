@@ -1,5 +1,6 @@
 from __future__ import annotations # needed for python < 3.9
 
+import logging
 import pandas
 import pydre.core
 from pydre.metrics import registerMetric
@@ -13,6 +14,8 @@ from scipy import signal
 # not registered & incomplete
 from pydre.metrics.driverdistraction import getTaskNum, numOfErrorPresses, gazeNHTSA, crossCorrelate, \
     speedbumpHondaGaze, speedbumpHondaGaze2, eventCount, insDuration, speedbump2Gaze
+
+logger = logging.getLogger(__name__)
 
 
 def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):

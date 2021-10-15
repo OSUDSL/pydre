@@ -1,5 +1,6 @@
 from __future__ import annotations # needed for python < 3.9
 
+import logging
 import pandas
 import pydre.core
 from pydre.metrics import registerMetric
@@ -7,6 +8,7 @@ import numpy as np
 import math
 from scipy import signal
 
+logger = logging.getLogger(__name__)
 
 def getTaskNum(drivedata: pydre.core.DriveData):
     required_col = ["TaskNum"]

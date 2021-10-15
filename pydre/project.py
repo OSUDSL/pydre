@@ -13,7 +13,8 @@ import pathlib
 from tqdm import tqdm
 import logging
 
-logger = logging.getLogger('PydreLogger')
+logger = logging.getLogger(__name__)
+
 
 
 class Project():

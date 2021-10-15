@@ -7,7 +7,8 @@ import re
 import logging
 import shutil
 
-logger = logging.getLogger('PydreLogger')
+logger = logging.getLogger(__name__)
+
 
 regular_expressions = ['(?:.*\\\)?(.*)_Sub_(\d+)_Drive_\d+\.dat', '(?:.*\\\)?([^_]+)_([^_]+)_([^_]+)_(\d+).dat']
 regular_expressions_glob = ['*_Sub_*_Drive_*.dat', '*_*_*_*.dat']
@@ -99,7 +100,7 @@ class MergeTool():
                              sep=' ', na_rep=".", index=False)
 
         if warning is True:
-            logging.warning("No files processed, check merge directory (-d) to ensure there are valid data files present.")
+            logger.warning("No files processed, check merge directory (-d) to ensure there are valid data files present.")
 
     def spatial_merge(self, input_directory, exp_index):
         global regular_expressions
