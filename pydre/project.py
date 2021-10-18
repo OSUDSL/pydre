@@ -12,15 +12,17 @@ import pydre.filters
 import pathlib
 from tqdm import tqdm
 import logging
+from gui.logger import GUIHandler
 
 logger = logging.getLogger(__name__)
 
 
-
 class Project():
 
-    def __init__(self, projectfilename):
+    def __init__(self, app, projectfilename, progressbar):
+        self.app = app
         self.project_filename = projectfilename
+        self.progress_bar = progressbar
 
         # This will suppress the unnecessary SettingWithCopy Warning.
         pandas.options.mode.chained_assignment = None
@@ -114,13 +116,23 @@ class Project():
                     e))
             sys.exit(1)
 
+        x = []
         if len(col_names) > 1:
-            x = [filter_func(d, **filter)
-                 for d in tqdm(dataset, desc=func_name)]
+            for d in tqdm(dataset, desc=func_name):
+                x.append(d)
+                value = self.progress_bar.value() + 100.0 / len(dataset)
+                print(value)
+                self.progress_bar.setValue(value)
+                self.app.processEvents()
             report = pandas.DataFrame(x, columns=col_names)
         else:
-            report = pandas.DataFrame([filter_func(
-                d, **filter) for d in tqdm(dataset, desc=func_name)], columns=[report_name, ])
+            for d in tqdm(dataset, desc=func_name):
+                x.append(filter_func(d, **filter))
+                value = self.progress_bar.value() + 100.0 / len(dataset)
+                print(value)
+                self.progress_bar.setValue(value)
+                self.app.processEvents()
+            report = pandas.DataFrame(x, columns=[report_name, ])
 
         return report
 
@@ -169,6 +181,10 @@ class Project():
             logger.info("Loading file #{}: {}".format(
                 len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
+            value = self.progress_bar.value() + 100.0 / len(datafiles)
+            print(value)
+            self.progress_bar.setValue(value)
+            self.app.processEvents()
 
     # remove any parenthesis, quote mark and un-necessary directory names from a str
     def __clean(self, string):

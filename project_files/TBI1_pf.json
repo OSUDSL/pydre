@@ -1,22 +1,23 @@
 {
     "rois": [
-  		{"type": "column", "columnname": "MapSectionLocatedIn"}
-	],
-
+        {
+            "type": "column",
+            "columnname": "MapSectionLocatedIn"
+        }
+    ],
     "metrics": [
         {
             "name": "MeanVelocity",
             "function": "colMean",
-            "cutoff": 0,
-            "var": "Velocity"
+            "var": "Velocity",
+            "cutoff": 0
         },
         {
             "name": "SDVelocity",
             "function": "colSD",
-            "cutoff": 0,
+            "cutoff": 7,
             "var": "Velocity"
         },
-
         {
             "name": "MeanLaneOffset",
             "function": "colMean",
@@ -29,7 +30,6 @@
             "cutoff": 0,
             "var": "LaneOffset"
         },
-
         {
             "name": "MeanAcceleration",
             "function": "colMean",
@@ -42,7 +42,6 @@
             "cutoff": 0,
             "var": "LonAccel"
         },
-
         {
             "name": "MeanHeadwayDistance",
             "function": "colMean",
@@ -55,7 +54,6 @@
             "cutoff": 0,
             "var": "HeadwayDistance"
         },
-
         {
             "name": "MeanSteer",
             "function": "colMean",
@@ -68,7 +66,5 @@
             "cutoff": -10000,
             "var": "Steer"
         }
-
     ]
- }
-
+}
