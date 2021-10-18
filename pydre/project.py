@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class Project():
 
-    def __init__(self, app, projectfilename, progressbar):
+    def __init__(self,  projectfilename, progressbar=None, app=None):
         self.app = app
         self.project_filename = projectfilename
         self.progress_bar = progressbar
@@ -52,11 +52,13 @@ class Project():
         # Could cache this re, probably affect performance
         d = pandas.read_csv(filename, sep=' ', na_values='.')
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
-        datafile_re_format1 = re.compile("([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat"); # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
+        datafile_re_format1 = re.compile(
+            "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat");  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
         match_format0 = datafile_re_format0.search(filename)
         if match_format0:
             experiment_name, subject_id, drive_id = match_format0.groups()
-        elif match_format1 := datafile_re_format1.search(filename):  # assign bool value to var "match_format1", only available in python 3.8 or higher
+        elif match_format1 := datafile_re_format1.search(
+                filename):  # assign bool value to var "match_format1", only available in python 3.8 or higher
             mode, subject_id, scen_name, unique_id = match_format1.groups()
         else:
             logger.warning(
@@ -64,8 +66,8 @@ class Project():
             experiment_name = pathlib.Path(filename).stem
             subject_id = 1
         return pydre.core.DriveData(PartID=subject_id, DriveID=int(drive_id),
-                                    roi=None, data=d, sourcefilename=filename, UniqueID=int(unique_id), scenarioName=scen_name, mode=mode)
-
+                                    roi=None, data=d, sourcefilename=filename, UniqueID=int(unique_id),
+                                    scenarioName=scen_name, mode=mode)
 
     def processROI(self, roi, dataset):
         """
@@ -120,18 +122,20 @@ class Project():
         if len(col_names) > 1:
             for d in tqdm(dataset, desc=func_name):
                 x.append(d)
-                value = self.progress_bar.value() + 100.0 / len(dataset)
-                print(value)
-                self.progress_bar.setValue(value)
-                self.app.processEvents()
+                if self.progress_bar:
+                    value = self.progress_bar.value() + 100.0 / len(dataset)
+                    self.progress_bar.setValue(value)
+                if self.app:
+                    self.app.processEvents()
             report = pandas.DataFrame(x, columns=col_names)
         else:
             for d in tqdm(dataset, desc=func_name):
                 x.append(filter_func(d, **filter))
-                value = self.progress_bar.value() + 100.0 / len(dataset)
-                print(value)
-                self.progress_bar.setValue(value)
-                self.app.processEvents()
+                if self.progress_bar:
+                    value = self.progress_bar.value() + 100.0 / len(dataset)
+                    self.progress_bar.setValue(value)
+                if self.app:
+                    self.app.processEvents()
             report = pandas.DataFrame(x, columns=[report_name, ])
 
         return report
@@ -158,7 +162,6 @@ class Project():
                     e))
             sys.exit(1)
 
-
         if len(col_names) > 1:
             x = [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)]
             report = pandas.DataFrame(x, columns=col_names)
@@ -181,15 +184,15 @@ class Project():
             logger.info("Loading file #{}: {}".format(
                 len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
-            value = self.progress_bar.value() + 100.0 / len(datafiles)
-            print(value)
-            self.progress_bar.setValue(value)
-            self.app.processEvents()
+            if self.progress_bar:
+                value = self.progress_bar.value() + 100.0 / len(datafiles)
+                self.progress_bar.setValue(value)
+            if self.app:
+                self.app.processEvents()
 
     # remove any parenthesis, quote mark and un-necessary directory names from a str
     def __clean(self, string):
         return string.replace('[', '').replace(']', '').replace('\'', '').split("\\")[-1]
-
 
     def run(self, datafiles):
         """
@@ -201,7 +204,7 @@ class Project():
 
         self.loadFileList(datafiles)
         data_set = []
-        
+
         result_data = None
         try:
 
@@ -225,9 +228,10 @@ class Project():
             result_data = pandas.DataFrame()
             result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
 
-            if (data_set[0].format_identifier == 0): # these drivedata object was created from an old format data file
+            if (data_set[0].format_identifier == 0):  # these drivedata object was created from an old format data file
                 result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
-            elif (data_set[0].format_identifier == 1): # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+            elif (data_set[
+                      0].format_identifier == 1):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
                 result_data['Mode'] = pandas.Series([self.__clean(str(d.mode)) for d in data_set])
                 result_data['ScenarioName'] = pandas.Series([self.__clean(str(d.scenarioName)) for d in data_set])
                 result_data['UniqueID'] = pandas.Series([self.__clean(str(d.UniqueID)) for d in data_set])
@@ -235,10 +239,9 @@ class Project():
             result_data['ROI'] = pandas.Series([d.roi for d in data_set])
             # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
             # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
-            
 
             processed_metrics = [result_data]
-        
+
             for metric in self.definition['metrics']:
                 processed_metric = self.processMetric(metric, data_set)
                 processed_metrics.append(processed_metric)

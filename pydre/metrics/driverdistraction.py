@@ -1,4 +1,4 @@
-from __future__ import annotations # needed for python < 3.9
+from __future__ import annotations  # needed for python < 3.9
 
 import logging
 import pandas
@@ -15,14 +15,16 @@ def getTaskNum(drivedata: pydre.core.DriveData):
     diff = drivedata.checkColumns(required_col)
 
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        logger.error(
+            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
+                                                                                   pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
     taskNum = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d)
         taskNum = df['TaskNum'].mode()
-        if(len(taskNum)>0):
+        if (len(taskNum) > 0):
             return taskNum[0]
         else:
             return None
@@ -33,10 +35,10 @@ def numOfErrorPresses(drivedata: pydre.core.DriveData):
     diff = drivedata.checkColumns(required_col)
 
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        logger.error(
+            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
+                                                                                   pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
-
-
 
     presses = 0
     for d in drivedata.data:
@@ -46,7 +48,8 @@ def numOfErrorPresses(drivedata: pydre.core.DriveData):
         presses += p
     return presses
 
-def appendDFToCSV_void(df, csvFilePath: str, sep: str =","):
+
+def appendDFToCSV_void(df, csvFilePath: str, sep: str = ","):
     import os
     if not os.path.isfile(csvFilePath):
         df.to_csv(csvFilePath, mode='a', index=False, sep=sep)
@@ -60,16 +63,15 @@ def appendDFToCSV_void(df, csvFilePath: str, sep: str =","):
         df.to_csv(csvFilePath, mode='a', index=False, sep=sep, header=False)
 
 
-
 def gazeNHTSA(drivedata: pydre.core.DriveData):
     required_col = ["VidTime", "gaze", "gazenum", "TaskFail", "taskblocks", "PartID"]
     diff = drivedata.checkColumns(required_col)
 
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        logger.error(
+            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
+                                                                                   pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
-
-
 
     numofglances = 0
     for d in drivedata.data:
@@ -120,25 +122,25 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
     return [None, None, None, None]
 
 
-#not working
+# not working
 def addVelocities(drivedata: pydre.core.DriveData):
     df = pandas.DataFrame;
     for d in drivedata.data:
         df = pandas.DataFrame(d)
-    # add column with ownship velocity
+        # add column with ownship velocity
         g = np.gradient(df.XPos.values, df.SimTime.values)
         df.insert(len(df.columns), "OwnshipVelocity", g, True)
-    # add column with leadcar velocity
-        headwayDist = df.HeadwayTime*df.OwnshipVelocity
+        # add column with leadcar velocity
+        headwayDist = df.HeadwayTime * df.OwnshipVelocity
         # v = df.OwnshipVelocity+np.gradient(headwayDist, df.SimTime.values)
-        df.insert(len(df.columns), "LeadCarPos", headwayDist+df.XPos.values, True)
+        df.insert(len(df.columns), "LeadCarPos", headwayDist + df.XPos.values, True)
         df.insert(len(df.columns), "HeadwayDist", headwayDist, True)
         v = np.gradient(headwayDist + df.XPos.values, df.SimTime.values)
         df.insert(len(df.columns), "LeadCarVelocity", v, True)
     return df
 
-def crossCorrelate(drivedata: pydre.core.DriveData):
 
+def crossCorrelate(drivedata: pydre.core.DriveData):
     for d in drivedata.data:
         df = pandas.DataFrame(d)
         if 'OwnshipVelocity' not in df.columns or 'LeadCarVelocity' not in df.columns:
@@ -147,20 +149,20 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
 
         v2 = df.LeadCarVelocity
         v1 = df.OwnshipVelocity
-        cor = signal.correlate(v1-v1.mean(),
-                                       v2-v2.mean(), mode='same')
+        cor = signal.correlate(v1 - v1.mean(),
+                               v2 - v2.mean(), mode='same')
         # cor-An N-dimensional array containing a subset of the discrete linear cross-correlation of in1 with in2.
         # delay index at the max
         df.insert(len(df.columns), "CrossCorrelations", cor, True)
         delayIndex = np.argmax(cor)
-        if(delayIndex > 0):
+        if (delayIndex > 0):
             v2 = df.LeadCarVelocity.iloc[delayIndex:df.columns.__len__()]
             v1 = df.OwnshipVelocity.iloc[delayIndex:df.columns.__len__()]
-        #normalize vectors
-        v1_norm = v1/np.linalg.norm(v1)
-        v2_norm = v2/np.linalg.norm(v2)
+        # normalize vectors
+        v1_norm = v1 / np.linalg.norm(v1)
+        v2_norm = v2 / np.linalg.norm(v2)
         cor = np.dot(v1_norm, v2_norm)
-        if(cor > 0):
+        if (cor > 0):
             return cor
         else:
             return 0.0
@@ -171,10 +173,10 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     diff = drivedata.checkColumns(required_col)
 
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        logger.error(
+            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
+                                                                                   pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
-
-
 
     numofglances = 0
     for d in drivedata.data:
@@ -195,7 +197,6 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         glancelist['locations'].replace(['car.WindScreen', 'car.dashPlane', 'None'], ['onroad', 'offroad', 'offroad'],
                                         inplace=True)
 
-
         glancelist_aug = glancelist
         glancelist_aug['TaskNum'] = d["TaskNum"].min()
         glancelist_aug['taskblock'] = d["taskblocks"].min()
@@ -205,16 +206,13 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
 
         # table constructed, now find metrics
 
-
         num_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].count()
-
 
         total_time_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].sum()
         percent_onroad = total_time_onroad_glances / (df['DatTime'].max() - df['DatTime'].min())
 
         mean_time_offroad_glances = glancelist[(glancelist['locations'] == 'offroad')]['duration'].mean()
         mean_time_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].mean()
-
 
         return [total_time_onroad_glances, percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
     return [None, None, None, None]
@@ -223,10 +221,10 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
 def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", maxtasknum=5):
     required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "TaskInstance", "KEY_EVENT_T", "KEY_EVENT_P"]
     # filters.numberTaskInstances() is required.
-    #for now I just assume the input dataframe has a TaskInstance column
-    #diff = drivedata.checkColumns(required_col)
+    # for now I just assume the input dataframe has a TaskInstance column
+    # diff = drivedata.checkColumns(required_col)
 
-    #if (len(diff) > 0):
+    # if (len(diff) > 0):
     #    logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
     #    raise pydre.core.ColumnsMatchError()
 
@@ -234,20 +232,22 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
         logger.warning("Processing Task {}".format(d.TaskNum.mean()))
         if d.TaskNum.mean() == 0 or d.TaskNum.mean() > maxtasknum:
             return [None, None, None, None]
-        #if d.TaskNum.mean() == 4:
+        # if d.TaskNum.mean() == 4:
         #    d.to_csv('4.csv')
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = df.fillna(0)  # remove nans and drop duplicates
 
-        df['time_diff'] = df[timecolumn].diff() # get durations by calling time_column.diff()
+        df['time_diff'] = df[timecolumn].diff()  # get durations by calling time_column.diff()
 
-        df = df.loc[df.gaze != 'onroad']   # remove onroad rows
-        #df.to_csv('AAM_cp1.csv')
-        df = df.loc[(df['TaskInstance'] != 0) & (df['TaskInstance'] != np.nan)] # drop all rows that are not in any task instance
+        df = df.loc[df.gaze != 'onroad']  # remove onroad rows
+        # df.to_csv('AAM_cp1.csv')
+        df = df.loc[(df['TaskInstance'] != 0) & (
+                    df['TaskInstance'] != np.nan)]  # drop all rows that are not in any task instance
         dropped_instances = df.loc[(df['TaskFail'] == 1)]
-        dropped_instances = dropped_instances['TaskInstance'].drop_duplicates() # get all the task instances that contains a fail and needs to be dropped
-        df = df.loc[~df['TaskInstance'].isin(dropped_instances)] # drop all the failed task instances
-        #df.to_csv('AAM_cp2.csv')
+        dropped_instances = dropped_instances[
+            'TaskInstance'].drop_duplicates()  # get all the task instances that contains a fail and needs to be dropped
+        df = df.loc[~df['TaskInstance'].isin(dropped_instances)]  # drop all the failed task instances
+        # df.to_csv('AAM_cp2.csv')
 
         # get first 8 task instances
         number_valid_instance = df['TaskInstance'].unique()
@@ -257,29 +257,28 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
             len_of_drop = len(dropped_instances.loc[dropped_instances < (lowest_instance_no + 8)])
             highest_instance_no = lowest_instance_no + 8 + len_of_drop
             df = df.loc[(df['TaskInstance'] < highest_instance_no) & (df['TaskInstance'] >= lowest_instance_no)]
-            #logger.warning(highest_instance_no)
-            #logger.warning(lowest_instance_no)
+            # logger.warning(highest_instance_no)
+            # logger.warning(lowest_instance_no)
         elif len(number_valid_instance) < 8:
             logger.warning("Not enough valid task instances. Found {}".format(len(number_valid_instance)))
 
+        # df = df[df.TaskInstance < 9] # only keep the glance data for the first eight task instances for each task per person.
 
-        #df = df[df.TaskInstance < 9] # only keep the glance data for the first eight task instances for each task per person.
-
-        #print(df)
-        #df.to_csv('df.csv')
+        # print(df)
+        # df.to_csv('df.csv')
 
         group_by_gazenum = df.groupby('gazenum', sort=False)
         durations_by_gazenum = group_by_gazenum.sum()
-        durations_by_gazenum = durations_by_gazenum.loc[(durations_by_gazenum['time_diff']!=0.0)]
-        #print(durations_by_gazenum)
-        percentile = np.percentile(durations_by_gazenum.time_diff, 85) # find the 85th percentile value (A1)
+        durations_by_gazenum = durations_by_gazenum.loc[(durations_by_gazenum['time_diff'] != 0.0)]
+        # print(durations_by_gazenum)
+        percentile = np.percentile(durations_by_gazenum.time_diff, 85)  # find the 85th percentile value (A1)
 
-        group_by_instance = df.groupby('TaskInstance', sort=False) # A2
+        group_by_instance = df.groupby('TaskInstance', sort=False)  # A2
         durations_by_instance = group_by_instance.sum()
         print(durations_by_instance)
-        sum_mean = (durations_by_instance.time_diff).mean() # mean of duration sum
-        sum_median = (durations_by_instance.time_diff).median() # median of duration sum
-        sum_std = (durations_by_instance.time_diff).std() # std of duration sum
+        sum_mean = (durations_by_instance.time_diff).mean()  # mean of duration sum
+        sum_median = (durations_by_instance.time_diff).median()  # median of duration sum
+        sum_std = (durations_by_instance.time_diff).std()  # std of duration sum
 
         return [percentile, sum_mean, sum_median, sum_std]
 
@@ -291,7 +290,9 @@ def eventCount(drivedata: pydre.core.DriveData, event="KEY_EVENT_S"):
     diff = drivedata.checkColumns(required_col)
 
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        logger.error(
+            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
+                                                                                   pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
     for d in drivedata.data:
@@ -309,7 +310,9 @@ def insDuration(drivedata: pydre.core.DriveData):
     diff = drivedata.checkColumns(required_col)
 
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        logger.error(
+            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
+                                                                                   pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
     for d in drivedata.data:
@@ -322,7 +325,9 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
     diff = drivedata.checkColumns(required_col)
 
     if (len(diff) > 0):
-        logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
+        logger.error(
+            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
+                                                                                   pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
     for d in drivedata.data:
@@ -330,25 +335,26 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
             return [None, None, None, None]
 
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
-        #df.to_csv("df.csv")
-        #df = df.loc[(df['TaskInstance'] != 0) & (df['TaskInstance'] != np.nan)] # drop all rows that are not in any task instance
-        #dropped_instances = df.loc[(df['TaskFail'] == 1)]
-        #dropped_instances = dropped_instances['TaskInstance'].drop_duplicates() # get all the task instances that contains a fail and needs to be dropped
-        #df = df.loc[~df['TaskInstance'].isin(dropped_instances)] # drop all the failed task instances
+        # df.to_csv("df.csv")
+        # df = df.loc[(df['TaskInstance'] != 0) & (df['TaskInstance'] != np.nan)] # drop all rows that are not in any task instance
+        # dropped_instances = df.loc[(df['TaskFail'] == 1)]
+        # dropped_instances = dropped_instances['TaskInstance'].drop_duplicates() # get all the task instances that contains a fail and needs to be dropped
+        # df = df.loc[~df['TaskInstance'].isin(dropped_instances)] # drop all the failed task instances
 
         event_s = pandas.DataFrame(df, columns=[timecolumn, 'gazenum', 'gaze', 'KEY_EVENT_S'])
         event_s['diff'] = event_s['KEY_EVENT_S'].diff()
         event_s['s_begin'] = 0
-        event_s.loc[event_s['diff'] == 1, 's_begin'] = 1 # mark the beginning of all the s events
+        event_s.loc[event_s['diff'] == 1, 's_begin'] = 1  # mark the beginning of all the s events
 
         s_begin_time = event_s.loc[event_s['s_begin'] == 1]
         s_begin_time = s_begin_time.reset_index()
-        #print(s_begin_time)
+        # print(s_begin_time)
         index = 0
-        for time in s_begin_time[timecolumn]: #mark the duration of speedbump as 1
-            event_s.loc[(event_s[timecolumn] > float(time)) & (event_s[timecolumn] < float(time + duration)), "s_begin"] = 1
+        for time in s_begin_time[timecolumn]:  # mark the duration of speedbump as 1
+            event_s.loc[
+                (event_s[timecolumn] > float(time)) & (event_s[timecolumn] < float(time + duration)), "s_begin"] = 1
             index += 1
-        #event_s.to_csv("e.csv")
+        # event_s.to_csv("e.csv")
 
         group_by_gazenum = event_s.groupby('gazenum', sort=False)
         durations = pandas.DataFrame(group_by_gazenum.sum(), columns=['s_begin'])
@@ -359,7 +365,7 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
         durations_end = durations_end.rename(columns={timecolumn: "end"})
 
         durations['begin'] = durations_begin['begin']
-        durations['end'] = durations_end['end'] # contains the beginning time and end time of all gazes
+        durations['end'] = durations_end['end']  # contains the beginning time and end time of all gazes
         durations = durations.reset_index()
         durations['gaze'] = group_by_gazenum.min()['gaze'].tolist()
 
@@ -373,10 +379,11 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
 
             if durations.at[i, 's_begin'] > 0:
                 temp = event_s.loc[event_s['gazenum'] == current_gaze]
-                total_length = len(temp.index) # length of the entire glance
-                speedbump_act = temp.loc[temp['s_begin'] == 1] # length of the time period when speedbump is on during the current glance
+                total_length = len(temp.index)  # length of the entire glance
+                speedbump_act = temp.loc[
+                    temp['s_begin'] == 1]  # length of the time period when speedbump is on during the current glance
                 act_length = len(speedbump_act.index)
-                if act_length >= (total_length / 2): # if speedbump is on for more than half of the total glance time:
+                if act_length >= (total_length / 2):  # if speedbump is on for more than half of the total glance time:
                     durations.at[i, "in_speedbump"] = 1
             i += 1
 
@@ -387,11 +394,11 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
         durations_onroad_spbpoff = durations.loc[(durations['gaze'] == 'onroad') & (durations['in_speedbump'] == 0)]
         durations_offroad_spbpoff = durations.loc[(durations['gaze'] == 'offroad') & (durations['in_speedbump'] == 0)]
 
-        #durations.to_csv("dursum.csv")
-        #durations_onroad_spbpon.to_csv("duron_so.csv")
-        #durations_offroad_spbpon.to_csv("duroff_so.csv")
-        #durations_onroad_spbpoff.to_csv("duron_sx.csv")
-        #durations_offroad_spbpoff.to_csv("duroff_sx.csv")
+        # durations.to_csv("dursum.csv")
+        # durations_onroad_spbpon.to_csv("duron_so.csv")
+        # durations_offroad_spbpon.to_csv("duroff_so.csv")
+        # durations_onroad_spbpoff.to_csv("duron_sx.csv")
+        # durations_offroad_spbpoff.to_csv("duroff_sx.csv")
 
         mean_onroad_spbpon = durations_onroad_spbpon['gaze_duration'].mean()
         mean_offroad_spbpon = durations_offroad_spbpon['gaze_duration'].mean()
@@ -402,7 +409,8 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
 
 registerMetric('errorPresses', numOfErrorPresses)
 registerMetric('crossCorrelate', crossCorrelate)
-registerMetric('speedbumpHondaGaze', speedbumpHondaGaze, ['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
+registerMetric('speedbumpHondaGaze', speedbumpHondaGaze,
+               ['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
 registerMetric('gazes', gazeNHTSA,
                ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
 registerMetric('speedbumpHondaGaze2', speedbumpHondaGaze2,
@@ -410,4 +418,5 @@ registerMetric('speedbumpHondaGaze2', speedbumpHondaGaze2,
 registerMetric('insDuration', insDuration)
 registerMetric('eventCount', eventCount)
 registerMetric('getTaskNum', getTaskNum)
-registerMetric('speedbump2Gaze', speedbump2Gaze, ['mean_onroad_spbpon', 'mean_offroad_spbpon', 'mean_onroad_spbpoff', 'mean_offroad_spbpoff'])
+registerMetric('speedbump2Gaze', speedbump2Gaze,
+               ['mean_onroad_spbpon', 'mean_offroad_spbpon', 'mean_onroad_spbpoff', 'mean_offroad_spbpoff'])
