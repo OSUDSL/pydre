@@ -14,8 +14,8 @@ logger.addHandler(GUIHandler())
 regular_expressions = ['(?:.*\\\)?(.*)_Sub_(\d+)_Drive_\d+\.dat', '(?:.*\\\)?([^_]+)_([^_]+)_([^_]+)_(\d+).dat']
 regular_expressions_glob = ['*_Sub_*_Drive_*.dat', '*_*_*_*.dat']
 regular_expressions_group = ['.*_Sub_(\d+)_Drive_(\d+)\.dat', '.*_(.*)_(.*)_(\d+)\.dat']
-# 0 - Speedbump2 data file format
-# 1 - Arriver Project data file format
+# 0 - SimObserver3 data file format
+# 1 - SimCreator DX data file format
 
 class MergeTool():
 
