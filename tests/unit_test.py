@@ -318,7 +318,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.findFirstTimeAboveVel(data_object)
+        result = metrics.common.findFirstTimeAboveVel(data_object)
         expected_result = -1
         self.assertEqual(expected_result, result)
 
@@ -331,7 +331,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.findFirstTimeAboveVel(data_object)
+        result = metrics.common.findFirstTimeAboveVel(data_object)
         expected_result = -1
         self.assertEqual(expected_result, result)
         
@@ -345,7 +345,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.findFirstTimeAboveVel(data_object)
+        result = metrics.common.findFirstTimeAboveVel(data_object)
         expected_result = 5
         self.assertEqual(expected_result, result)
 
@@ -357,7 +357,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.findFirstTimeAboveVel(data_object)
+        result = metrics.common.findFirstTimeAboveVel(data_object)
         expected_result = 0
         self.assertEqual(expected_result, result)
 
@@ -370,7 +370,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        #result = metrics.findFirstTimeOutside(data_object)
+        #result = metrics.common.findFirstTimeOutside(data_object)
         #expected_result = 0
         #self.assertEqual(expected_result, result)
 
@@ -384,7 +384,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.colMean(data_object, 'position')
+        result = metrics.common.colMean(data_object, 'position')
         expected_result = 5
         self.assertEqual(expected_result, result)
 
@@ -397,7 +397,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.colMean(data_object, 'position', 3)
+        result = metrics.common.colMean(data_object, 'position', 3)
         expected_result = 6.5
         self.assertEqual(expected_result, result)
 
@@ -410,7 +410,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.colMean(data_object, 'position', 3)
+        result = metrics.common.colMean(data_object, 'position', 3)
         expected_result = np.nan
         #self.assertEqual(expected_result, result)
         np.testing.assert_equal(expected_result, result)
@@ -424,7 +424,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.colSD(data_object, 'position')
+        result = metrics.common.colSD(data_object, 'position')
         expected_result = 3.1622776601683795
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -437,7 +437,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.colSD(data_object, 'position', 3)
+        result = metrics.common.colSD(data_object, 'position', 3)
         expected_result = 2.29128784747792
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -450,7 +450,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.colSD(data_object, 'position')
+        result = metrics.common.colSD(data_object, 'position')
         expected_result = 0
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -463,7 +463,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.colMax(data_object, 'position')
+        result = metrics.common.colMax(data_object, 'position')
         expected_result = 10
         self.assertEqual(expected_result, result)
 
@@ -475,7 +475,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.colMax(data_object, 'position')
+        result = metrics.common.colMax(data_object, 'position')
         expected_result = 9
         self.assertEqual(expected_result, result)
     
@@ -487,7 +487,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.colMax(data_object, 'position')
+        result = metrics.common.colMax(data_object, 'position')
         expected_result = 0
         self.assertEqual(expected_result, result)
 
@@ -499,7 +499,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.colMin(data_object, 'position')
+        result = metrics.common.colMin(data_object, 'position')
         expected_result = 0
         self.assertEqual(expected_result, result)
 
@@ -511,7 +511,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.colMin(data_object, 'position')
+        result = metrics.common.colMin(data_object, 'position')
         expected_result = 0
         self.assertEqual(expected_result, result)
     
@@ -523,7 +523,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.meanVelocity(data_object)
+        result = metrics.common.meanVelocity(data_object)
         expected_result = 23.583963636363638
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -535,7 +535,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.meanVelocity(data_object, 20.1)
+        result = metrics.common.meanVelocity(data_object, 20.1)
         print("r", result)
         expected_result = 25.94236
         self.assertTrue(self.ac_diff > abs(expected_result - result))
@@ -548,7 +548,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.meanVelocity(data_object, 20.1)
+        result = metrics.common.meanVelocity(data_object, 20.1)
         expected_result = np.nan
         #self.assertEqual(expected_result, result)  
         np.testing.assert_equal(expected_result, result)
@@ -562,7 +562,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.stdDevVelocity(data_object)
+        result = metrics.common.stdDevVelocity(data_object)
         expected_result = 8.461594434671252
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -575,7 +575,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.stdDevVelocity(data_object, 20.1)
+        result = metrics.common.stdDevVelocity(data_object, 20.1)
         print("r", result)
         expected_result = 4.192382488084788
         self.assertTrue(self.ac_diff > abs(expected_result - result))
@@ -589,7 +589,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.stdDevVelocity(data_object, 20.1)
+        result = metrics.common.stdDevVelocity(data_object, 20.1)
         expected_result = np.nan
         #self.assertTrue(expected_result == result)
         np.testing.assert_equal(expected_result, result)
@@ -602,7 +602,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.timeAboveSpeed(data_object, 0, True)
+        result = metrics.common.timeAboveSpeed(data_object, 0, True)
         expected_result = 1.002994011976048
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -614,7 +614,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.timeAboveSpeed(data_object, 0, False)
+        result = metrics.common.timeAboveSpeed(data_object, 0, False)
         expected_result = 0.1675
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -626,7 +626,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.timeAboveSpeed(data_object, 0, False)
+        result = metrics.common.timeAboveSpeed(data_object, 0, False)
         expected_result = 0.0
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -639,7 +639,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.roadExits(data_object)
+        result = metrics.common.roadExits(data_object)
         expected_result = 0
         self.assertEqual(expected_result, result)
 
@@ -652,7 +652,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.roadExits(data_object)
+        result = metrics.common.roadExits(data_object)
         expected_result = 0.034 
         self.assertEqual(expected_result, result)
 
@@ -666,7 +666,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.roadExits(data_object)
+        result = metrics.common.roadExits(data_object)
         expected_result = 0.034
         self.assertEqual(expected_result, result)
 
@@ -679,7 +679,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.roadExitsY(data_object)
+        result = metrics.common.roadExitsY(data_object)
         expected_result = 0
         self.assertEqual(expected_result, result)
 
@@ -692,7 +692,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.roadExitsY(data_object)
+        result = metrics.common.roadExitsY(data_object)
         expected_result = 0.184 
         self.assertEqual(expected_result, result)
 
@@ -706,7 +706,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.roadExitsY(data_object)
+        result = metrics.common.roadExitsY(data_object)
         expected_result = 0.184
         self.assertEqual(expected_result, result)
 
@@ -719,7 +719,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.steeringEntropy(data_object)
+        result = metrics.common.steeringEntropy(data_object)
         expected_result = 0.0
         self.assertEqual(expected_result, result)
 
@@ -732,7 +732,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
-        result = metrics.steeringEntropy(data_object)
+        result = metrics.common.steeringEntropy(data_object)
         expected_result = 0.17147549009906388
         self.assertEqual(expected_result, result)
 
@@ -745,7 +745,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
-        result = metrics.numOfErrorPresses(data_object)
+        result = metrics.common.numOfErrorPresses(data_object)
         expected_result = 1
         self.assertEqual(expected_result, result)
     
@@ -758,7 +758,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
-        result = metrics.numOfErrorPresses(data_object)
+        result = metrics.common.numOfErrorPresses(data_object)
         expected_result = 0
         self.assertEqual(expected_result, result)
 
@@ -772,7 +772,7 @@ class TestPydre(unittest.TestCase):
         
         # -----------------------
 
-        result = metrics.firstOccurance(df, 'Col1')
+        result = metrics.common.firstOccurance(df, 'Col1')
         expected_result = 1
         print("======", result)
         self.assertEqual(expected_result, result)
@@ -787,7 +787,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="sdlp")
+        result = metrics.common.lanePosition(data_object, laneInfo="sdlp")
         expected_result = 0.050418838619299945
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -801,7 +801,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="mean")
+        result = metrics.common.lanePosition(data_object, laneInfo="mean")
         expected_result = 1.712675909090909
         self.assertTrue(self.ac_diff > abs(expected_result - result))
     
@@ -813,7 +813,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="mean")
+        result = metrics.common.lanePosition(data_object, laneInfo="mean")
         expected_result = 0
         self.assertTrue(self.ac_diff > abs(expected_result - result))
     
@@ -827,7 +827,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="msdlp")
+        result = metrics.common.lanePosition(data_object, laneInfo="msdlp")
         expected_result = 0.11609391266118639
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -839,7 +839,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="msdlp")
+        result = metrics.common.lanePosition(data_object, laneInfo="msdlp")
         expected_result = 0
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -852,7 +852,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="msdlp", noisy="true")
+        result = metrics.common.lanePosition(data_object, laneInfo="msdlp", noisy="true")
         expected_result = 0.3609804008333242
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -864,7 +864,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="msdlp", noisy="true")
+        result = metrics.common.lanePosition(data_object, laneInfo="msdlp", noisy="true")
         expected_result = 0
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -877,7 +877,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="msdlp", filtfilt="true")
+        result = metrics.common.lanePosition(data_object, laneInfo="msdlp", filtfilt="true")
         expected_result = 0.04134629214979945
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -889,7 +889,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="msdlp", filtfilt="true")
+        result = metrics.common.lanePosition(data_object, laneInfo="msdlp", filtfilt="true")
         expected_result = 0
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -903,7 +903,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="violation_duration")
+        result = metrics.common.lanePosition(data_object, laneInfo="violation_duration")
         expected_result = 0.17000000000000004
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -915,7 +915,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="violation_duration")
+        result = metrics.common.lanePosition(data_object, laneInfo="violation_duration")
         expected_result = 0
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -928,7 +928,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="exits")
+        result = metrics.common.lanePosition(data_object, laneInfo="exits")
         expected_result = 0.15000000000000002
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -940,7 +940,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="exits")
+        result = metrics.common.lanePosition(data_object, laneInfo="exits")
         expected_result = 0
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -952,7 +952,7 @@ class TestPydre(unittest.TestCase):
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
 
-        result = metrics.lanePosition(data_object, laneInfo="violation_count")
+        result = metrics.common.lanePosition(data_object, laneInfo="violation_count")
         expected_result = 1
         self.assertEqual(expected_result, result)
 
@@ -964,7 +964,7 @@ class TestPydre(unittest.TestCase):
          'XPos': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
-        result = metrics.addVelocities(data_object)
+        result = metrics.common.addVelocities(data_object)
         # -----------------------
 
         # --- construct expected result ---
@@ -991,7 +991,7 @@ class TestPydre(unittest.TestCase):
          'XPos': self.zero}
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
-        result = metrics.addVelocities(data_object)
+        result = metrics.common.addVelocities(data_object)
         # -----------------------
 
         # --- construct expected result ---
@@ -1018,7 +1018,7 @@ class TestPydre(unittest.TestCase):
          'XPos': self.zero}
         df = pandas.DataFrame(data=d)
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
-        result = metrics.crossCorrelate(data_object)
+        result = metrics.common.crossCorrelate(data_object)
         # -----------------------
         expected_result = 0
 
@@ -1032,7 +1032,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
-        result = metrics.getTaskNum(data_object)
+        result = metrics.common.getTaskNum(data_object)
         expected_result = 0
         self.assertEqual(expected_result, result)
 
@@ -1045,7 +1045,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
-        result = metrics.boxMetrics(data_object)
+        result = metrics.common.boxMetrics(data_object)
         expected_result = 2
         self.assertEqual(expected_result, result)
 
@@ -1058,7 +1058,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
-        result = metrics.boxMetrics(data_object)
+        result = metrics.common.boxMetrics(data_object)
         expected_result = 0
         self.assertEqual(expected_result, result)
 
@@ -1071,7 +1071,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
-        result = metrics.boxMetrics(data_object, stat='mean')
+        result = metrics.common.boxMetrics(data_object, stat='mean')
         expected_result = 0.015999999999999993
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -1084,7 +1084,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
-        result = metrics.boxMetrics(data_object, stat='sd')
+        result = metrics.common.boxMetrics(data_object, stat='sd')
         expected_result = 0.0010000000000000078
         self.assertTrue(self.ac_diff > abs(expected_result - result))
 
@@ -1100,7 +1100,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
-        result = metrics.crossCorrelate(data_object)
+        result = metrics.common.crossCorrelate(data_object)
         expected_result = 0.9988164711609935
 
         self.assertTrue(self.ac_diff > abs(expected_result - result))
@@ -1117,7 +1117,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
-        result = metrics.crossCorrelate(data_object)
+        result = metrics.common.crossCorrelate(data_object)
         expected_result = 0
 
         self.assertEqual(expected_result, result)
@@ -1138,7 +1138,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.speedbumpHondaGaze(data_object)
+        result = metrics.common.speedbumpHondaGaze(data_object)
         expected_result = [0.085, 0.5089820359281438, 0.05, 0.0425]
         i = 0
         while (i < 4):
@@ -1161,7 +1161,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.speedbumpHondaGaze(data_object)
+        result = metrics.common.speedbumpHondaGaze(data_object)
         expected_result = [0.135, 0.8083832335329343, np.nan, 0.045000000000000005]
         i = 0
         while (i < 4):
@@ -1188,7 +1188,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.speedbumpHondaGaze(data_object)
+        result = metrics.common.speedbumpHondaGaze(data_object)
         expected_result = [0.16699999999999998, 1.0, np.nan, 0.16699999999999998]
         i = 0
         while (i < 4):
@@ -1212,7 +1212,7 @@ class TestPydre(unittest.TestCase):
         data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
-        result = metrics.speedbumpHondaGaze(data_object)
+        result = metrics.common.speedbumpHondaGaze(data_object)
         expected_result = [0.0, 0.0, 0.16699999999999998, np.nan]
         i = 0
         while (i < 4):

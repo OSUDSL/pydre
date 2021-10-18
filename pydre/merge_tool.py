@@ -59,7 +59,7 @@ class MergeTool():
             logger.info("merging for subject: ", key)
             drive_group = subject_groups[key]
             drive_group.sort()
-            out_frame = pd.read_csv(drive_group[0], sep='\s+', na_values='.', engine="c")
+            out_frame = pd.read_csv(drive_group[0], sep=' ', na_values='.', engine="c")
             name_pattern = re.compile(regular_expressions[exp_index])
             
 
@@ -89,7 +89,7 @@ class MergeTool():
                 timejumpdat = out_frame[:]["DatTime"]
                 timeconstantdat = timejumpdat[len(timejumpdat) - 1]
 
-                next_frame = pd.read_csv(drive, sep='\s+', na_values='.', engine="c")
+                next_frame = pd.read_csv(drive, sep=' ', na_values='.', engine="c")
                 next_frame["SimTime"] += timeconstant
                 next_frame["DatTime"] += timeconstantdat
                 source_dir = drive
@@ -110,7 +110,7 @@ class MergeTool():
         subject_groups = self.groupBySubject(file_list, exp_index)
         for key in subject_groups:
             drive_group = subject_groups[key]
-            out_frame = pd.read_csv(drive_group[0], sep='\s+', na_values='.')
+            out_frame = pd.read_csv(drive_group[0], sep=' ', na_values='.')
             if (len(drive_group) > 1):
 
                 i = 0
@@ -121,7 +121,7 @@ class MergeTool():
                     last_x = last_line.XPos.iloc[0]
                     last_y = last_line.YPos.iloc[0]
                     last_time = last_line.SimTime.iloc[0]
-                    next_frame = pd.read_csv(drive_group[i], sep='\s+', na_values='.')
+                    next_frame = pd.read_csv(drive_group[i], sep=' ', na_values='.')
                     min_dist = float('inf')
                     min_index = 0
 
