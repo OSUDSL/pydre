@@ -29,7 +29,7 @@ def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
 
     timestepID = -1
     breakOut = False
-    for d in drivedata.data:
+    with drivedata.data as d:
         for i, row in d.iterrows():
             if row.Velocity >= cutoff:
                 timestepID = i
@@ -52,7 +52,7 @@ def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float] = (0
         raise pydre.core.ColumnsMatchError()
 
     timeAtEnd = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         if d.position >= pos:
             timeAtEnd = d.SimTime
             break
@@ -84,7 +84,7 @@ def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object'
     # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
     # Plz change it back to the original code if the current one leads to an issue
-    for d in drivedata.data:
+    with drivedata.data as d:
         var_dat = d[var]
         total = total.append(var_dat[var_dat >= cutoff])
 
@@ -106,7 +106,7 @@ def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
     # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
     # Plz change it back to the original code if the current one leads to an issue
-    for d in drivedata.data:
+    with drivedata.data as d:
         var_dat = d[var]
         total = total.append(var_dat[var_dat >= cutoff])
     return np.std(total.values, dtype=np.float64).astype(np.float64)
@@ -123,7 +123,7 @@ def colMax(drivedata: pydre.core.DriveData, var: str):
         raise pydre.core.ColumnsMatchError()
 
     maxes = []
-    for d in drivedata.data:
+    with drivedata.data as d:
         var_dat = d[var]
         maxes.append(var_dat.max())
     return pandas.Series(maxes).max()
@@ -140,7 +140,7 @@ def colMin(drivedata: pydre.core.DriveData, var: str):
         raise pydre.core.ColumnsMatchError()
 
     mins = []
-    for d in drivedata.data:
+    with drivedata.data as d:
         var_dat = d[var]
         mins.append(var_dat.min())
     return pandas.Series(mins).min()
@@ -161,7 +161,7 @@ def meanVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
     # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
     # Plz change it back to the original code if the current one leads to an issue
-    for d in drivedata.data:
+    with drivedata.data as d:
         total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
     return np.mean(total_vel.values, dtype=np.float64).astype(np.float64)
 
@@ -181,7 +181,7 @@ def stdDevVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
     # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
     # Plz change it back to the original code if the current one leads to an issue
-    for d in drivedata.data:
+    with drivedata.data as d:
         total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
     return np.std(total_vel.values, dtype=np.float64).astype(np.float64)
 
@@ -198,7 +198,7 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
 
     time = 0
     total_time = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         if df.shape[0] < 2:
             continue
@@ -236,7 +236,7 @@ def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_
                                                                                    pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
-    for d in drivedata.data:
+    with drivedata.data as d:
         print("1")
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         LPout = None
@@ -338,7 +338,7 @@ def roadExits(drivedata: pydre.core.DriveData):
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
     # Lane width 3.6m, car width 1.8m
     roadOutTime = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)
         outtimes = df[(df.RoadOffset > (7.2)) | (df.RoadOffset < (0)) & (df.Velocity > 1)]
         deltas = outtimes.diff()
@@ -361,7 +361,7 @@ def roadExitsY(drivedata: pydre.core.DriveData):
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
     # Lane width 3.6m, car width 1.8m
     roadOutTime = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)
         outtimes = df[(df.YPos > (7.2 - 0.9)) | (df.YPos < (0 + 0.9))]
         deltas = outtimes.diff()
@@ -384,7 +384,7 @@ def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
     a = []
     t = []
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         a.append = df.LonAccel
@@ -413,7 +413,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
         raise pydre.core.ColumnsMatchError()
 
     out = []
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
@@ -463,7 +463,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
 def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
     tail_time = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         table = d
         difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
         table.loc[:, 'delta_t'] = np.concatenate([np.zeros(1), difftime])
@@ -477,7 +477,7 @@ def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
 def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
     total_time = 0
     tail_time = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         table = d
         difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
         table.loc[:, 'delta_t'] = np.concatenate([np.zeros(1), difftime])
@@ -507,7 +507,7 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "
     time_boxappeared = 0.0
     time_buttonclicked = 0.0
     hitButton = 0;
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
@@ -601,7 +601,7 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int
                                                                                    pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=(required_col))
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
@@ -657,7 +657,7 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1", stat: str = "me
         raise pydre.core.ColumnsMatchError()
 
     event = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
