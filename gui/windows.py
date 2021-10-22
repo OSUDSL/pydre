@@ -9,7 +9,7 @@ import logging
 import os
 import pydre
 import time
-from PySide2.QtWidgets import QFileDialog, QInputDialog
+from PySide6.QtWidgets import QFileDialog, QInputDialog
 from gui.config import Config, CONFIG_PATH, GUI_PATH, PROJECT_PATH
 from gui.customs import ProjectTree
 from gui.handlers import Pydre
