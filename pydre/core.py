@@ -115,7 +115,7 @@ class DriveData:
         # format_identifier -1: this drivedata object is missing at least 1 required field or contains error
         # format_identifier 0: this drivedata object was created from an old format data file
         # format_identifier 1: this drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-        if DriveID >= 0:
+        if DriveID != None and DriveID >= 0:
             self.format_identifier = 0
         elif len(scenarioName) > 0:
             self.format_identifier = 1

@@ -29,14 +29,14 @@ def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
 
     timestepID = -1
     breakOut = False
+    # TODO: reimplement with selection and .head(1)
     with drivedata.data as d:
         for i, row in d.iterrows():
             if row.Velocity >= cutoff:
                 timestepID = i
                 breakOut = True
                 break
-        if breakOut:
-            break
+
     return timestepID
 
 
@@ -52,10 +52,10 @@ def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float] = (0
         raise pydre.core.ColumnsMatchError()
 
     timeAtEnd = 0
+    # TODO: reimplement with selection and .head(1)
     with drivedata.data as d:
         if d.position >= pos:
             timeAtEnd = d.SimTime
-            break
     return timeAtEnd
 
 
@@ -201,7 +201,7 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
     with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         if df.shape[0] < 2:
-            continue
+            return None
         df['Duration'] = pandas.Series(np.gradient(df.SimTime.values), index=df.index)
         # merged files might have bad splices.  This next line avoids time-travelling.
         df.Duration[df.Duration < 0] = np.median(df.Duration.values)
@@ -418,7 +418,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
-            continue
+            return None
 
         # resample data
         minTime = df.SimTime.values.min()
@@ -438,7 +438,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
     # concatenate out (list of np objects) into a single list
     if len(out) == 0:
-        return 0
+        return None
     error = np.concatenate(out)
     # 90th percentile of error
     alpha = np.nanpercentile(error, 90)
@@ -493,12 +493,6 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "
     required_col = ["SimTime", "FeedbackButton", "BoxAppears"]
     diff = drivedata.checkColumns(required_col)
 
-    if (len(diff) > 0):
-        logger.error(
-            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
-                                                                                   pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
-
     total_boxclicks = pandas.Series(dtype='float64')
     # original code here: total_boxclicks = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object' 
@@ -506,19 +500,19 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "
     # Plz change it back to the original code if the current one leads to an issue
     time_boxappeared = 0.0
     time_buttonclicked = 0.0
-    hitButton = 0;
+    hitButton = 0
     with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
-            continue
+            return None
         boxAppearsdf = df['BoxAppears']
         simTimedf = df['SimTime']
         boxOndf = boxAppearsdf.diff(1)
         indicesBoxOn = boxOndf[boxOndf.values > .5].index[0:]
         indicesBoxOff = boxOndf[boxOndf.values < 0.0].index[0:]
         feedbackButtondf = df['FeedbackButton']
-        reactionTimeList = list();
+        reactionTimeList = list()
         for counter in range(0, len(indicesBoxOn)):
             boxOn = int(indicesBoxOn[counter])
             boxOff = int(indicesBoxOff[counter])
@@ -533,7 +527,7 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "
                 reactionTimeList.append(reactionTime)
             else:
                 if (counter < len(indicesBoxOn) - 1):
-                    endIndex = counter + 1;
+                    endIndex = counter + 1
                     endOfBox = int(indicesBoxOn[endIndex])
                     buttonClickeddf = feedbackButtondf.loc[boxOn:endOfBox - 1].diff(1)
                     buttonClickedIndices = buttonClickeddf[buttonClickeddf.values > .5].index[0:]
@@ -595,17 +589,11 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int
     required_col = ["SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"]
     diff = drivedata.checkColumns(required_col)
 
-    if (len(diff) > 0):
-        logger.error(
-            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
-                                                                                   pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
-
     with drivedata.data as d:
         df = pandas.DataFrame(d, columns=(required_col))
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         if (len(df) == 0):
-            continue
+            return None
 
         reactionTimes = []
         simtime = df['SimTime']
@@ -650,19 +638,13 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1", stat: str = "me
     required_col = ["SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer", "AutonomousDriving"]
     diff = drivedata.checkColumns(required_col)
 
-    if (len(diff) > 0):
-        logger.error(
-            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
-                                                                                   pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
-
     event = 0
     with drivedata.data as d:
         df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
-            continue
+            return None
 
         warningToggledf = df['WarningToggle']
         autonomousToggledf = df['AutonomousDriving']

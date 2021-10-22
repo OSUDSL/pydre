@@ -64,8 +64,8 @@ class Project:
                 "Drivedata filename does not an expected format")
             experiment_name = pathlib.Path(filename).stem
             subject_id = 1
-        return pydre.core.DriveData(PartID=subject_id, DriveID=int(drive_id),
-                                    roi=None, data=d, sourcefilename=filename, UniqueID=int(unique_id),
+        return pydre.core.DriveData(PartID=subject_id, DriveID=drive_id,
+                                    roi=None, data=d, sourcefilename=filename, UniqueID=unique_id,
                                     scenarioName=scen_name, mode=mode)
 
     def processROI(self, roi, dataset):
