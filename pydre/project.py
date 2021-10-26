@@ -44,11 +44,6 @@ class Project:
 
     def __loadSingleFile(self, filename: str):
         """Load a single .dat file (space delimited csv) into a DriveData object"""
-        mode = None
-        scen_name = None
-        drive_id = None
-        unique_id = None
-        # Could cache this re, probably affect performance
         d = pandas.read_csv(filename, sep=' ', na_values='.')
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
         datafile_re_format1 = re.compile(
@@ -56,17 +51,16 @@ class Project:
         match_format0 = datafile_re_format0.search(filename)
         if match_format0:
             experiment_name, subject_id, drive_id = match_format0.groups()
+            drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
+            return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
         elif match_format1 := datafile_re_format1.search(
                 filename):  # assign bool value to var "match_format1", only available in python 3.8 or higher
             mode, subject_id, scen_name, unique_id = match_format1.groups()
+            return pydre.core.DriveData.initV4(d, filename, unique_id, scen_name, mode)
         else:
             logger.warning(
                 "Drivedata filename does not an expected format")
-            experiment_name = pathlib.Path(filename).stem
-            subject_id = 1
-        return pydre.core.DriveData(PartID=subject_id, DriveID=drive_id,
-                                    roi=None, data=d, sourcefilename=filename, UniqueID=unique_id,
-                                    scenarioName=scen_name, mode=mode)
+            return pydre.core.DriveData(d, filename)
 
     def processROI(self, roi, dataset):
         """
@@ -234,10 +228,14 @@ class Project:
 
             processed_metrics = [result_data]
 
-            for metric in self.definition['metrics']:
-                processed_metric = self.processMetric(metric, data_set)
-                processed_metrics.append(processed_metric)
-            result_data = pandas.concat(processed_metrics, axis=1)
+            if 'metrics' not in self.definition:
+                logger.critical("No metrics in project file. No results will be generated")
+                return None
+            else:
+                for metric in self.definition['metrics']:
+                    processed_metric = self.processMetric(metric, data_set)
+                    processed_metrics.append(processed_metric)
+                result_data = pandas.concat(processed_metrics, axis=1)
         except pydre.core.ColumnsMatchError as e:
             sys.exit(1)
 
