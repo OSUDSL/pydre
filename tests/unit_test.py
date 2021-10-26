@@ -67,8 +67,7 @@ class TestPydre(unittest.TestCase):
 
     def datafileselect(self, index: int):
         datafile = self.datalist[index]
-
-        fullpath = glob.glob(os.path.join(os.getcwd(), "tests/test_datfiles/" ,datafile))
+        fullpath = glob.glob(os.path.join(os.getcwd(), "tests/test_datfiles/", datafile))
         return fullpath
 
     def secs_to_timedelta(self, secs):
@@ -122,7 +121,7 @@ class TestPydre(unittest.TestCase):
         d3 = {'DatTime': [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184]}
 
         df = pandas.DataFrame(data=d3)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         handler = logging.FileHandler(filename='tests\\temp.log')
         filters.logger.addHandler(handler)
         with self.assertRaises(core.ColumnsMatchError): 
@@ -159,7 +158,7 @@ class TestPydre(unittest.TestCase):
         d2 = {'SimTime': [3, 4], 'XPos': [10, 12], 'YPos': [15, 16]}
         df2 = pandas.DataFrame(data=d2)
 
-        data_object1 = core.DriveData(PartID=0, DriveID=1, roi=None, data=df1, sourcefilename="test_file.csv")
+        data_object1 = core.DriveData( data=df1, sourcefilename="test_file.csv")
         data_object2 = core.DriveData(PartID=0, DriveID=2, roi=None, data=df2, sourcefilename="test_file.csv")
 
         param = []
@@ -173,14 +172,14 @@ class TestPydre(unittest.TestCase):
         d = {'DatTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'TaskStatus': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object3 = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object3 = core.DriveData( data=df, sourcefilename="test_file3.csv")
         result = filters.numberSwitchBlocks(drivedata=data_object3)
         #print(result.to_string())
         expected = {'DatTime': [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
         'TaskStatus': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
         'taskblocks': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]}
         expected_result_df = pandas.DataFrame(data=expected)
-        expected_result = core.DriveData(PartID=0, DriveID=1, roi=None, data=expected_result_df, sourcefilename="test_file3.csv")
+        expected_result = core.DriveData( data=expected_result_df, sourcefilename="test_file3.csv")
         self.assertEqual(result.PartID, expected_result.PartID)
         self.assertEqual(result.DriveID, expected_result.DriveID)
         self.assertEqual(result.roi, expected_result.roi)
@@ -195,14 +194,14 @@ class TestPydre(unittest.TestCase):
         d = {'DatTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'TaskStatus': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]} #input
         df = pandas.DataFrame(data=d)
-        data_object3 = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object3 = core.DriveData( data=df, sourcefilename="test_file3.csv")
         result = filters.numberSwitchBlocks(drivedata=data_object3)
         #print(result.to_string())
         expected = {'DatTime': [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
         'TaskStatus': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
         'taskblocks': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]}
         expected_result_df = pandas.DataFrame(data=expected)
-        expected_result = core.DriveData(PartID=0, DriveID=1, roi=None, data=expected_result_df, sourcefilename="test_file3.csv")
+        expected_result = core.DriveData( data=expected_result_df, sourcefilename="test_file3.csv")
         self.assertEqual(result.PartID, expected_result.PartID)
         self.assertEqual(result.DriveID, expected_result.DriveID)
         self.assertEqual(result.roi, expected_result.roi)
@@ -217,7 +216,7 @@ class TestPydre(unittest.TestCase):
         d = {'DatTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'TaskStatus': [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object3 = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object3 = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = filters.numberSwitchBlocks(drivedata=data_object3)
         #print(result.to_string())
@@ -225,7 +224,7 @@ class TestPydre(unittest.TestCase):
         'TaskStatus': [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0], 
         'taskblocks': [np.nan, np.nan, np.nan, np.nan, np.nan, 1.0, 1.0, 1.0, 1.0, np.nan, np.nan]}
         expected_result_df = pandas.DataFrame(data=expected)
-        expected_result = core.DriveData(PartID=0, DriveID=1, roi=None, data=expected_result_df, sourcefilename="test_file3.csv")
+        expected_result = core.DriveData( data=expected_result_df, sourcefilename="test_file3.csv")
         self.assertEqual(result.PartID, expected_result.PartID)
         self.assertEqual(result.DriveID, expected_result.DriveID)
         self.assertEqual(result.roi, expected_result.roi)
@@ -247,7 +246,7 @@ class TestPydre(unittest.TestCase):
         # "Bad gaze data, not enough variety. Aborting"
 
         df = pandas.DataFrame(data=d3)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = filters.smoothGazeData(data_object)
         #print(result.to_string())
@@ -262,7 +261,7 @@ class TestPydre(unittest.TestCase):
         'localCS.CSLowScreen', 'None']}
 
         df = pandas.DataFrame(data=d3)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         
         result = filters.smoothGazeData(data_object)
         
@@ -288,7 +287,7 @@ class TestPydre(unittest.TestCase):
         
         # --- Construct input ---
         df = pandas.read_csv("tests\\csv\\input_test_smoothGazeData_3.csv")
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
         result = filters.smoothGazeData(data_object)
 
@@ -315,7 +314,7 @@ class TestPydre(unittest.TestCase):
         d = {'DatTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [-0.000051, -0.000051, -0.000041, -0.000066, -0.000111, -0.000158, -0.000194, -0.000207, 0.000016, 0.000107, 0.000198]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.findFirstTimeAboveVel(data_object)
@@ -328,7 +327,7 @@ class TestPydre(unittest.TestCase):
         d = {'DatTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.findFirstTimeAboveVel(data_object)
@@ -342,7 +341,7 @@ class TestPydre(unittest.TestCase):
         d = {'DatTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.findFirstTimeAboveVel(data_object)
@@ -354,7 +353,7 @@ class TestPydre(unittest.TestCase):
         d = {'DatTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.findFirstTimeAboveVel(data_object)
@@ -367,7 +366,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         #result = metrics.common.findFirstTimeOutside(data_object)
@@ -381,7 +380,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.colMean(data_object, 'position')
@@ -394,7 +393,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.colMean(data_object, 'position', 3)
@@ -407,7 +406,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.colMean(data_object, 'position', 3)
@@ -421,7 +420,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.colSD(data_object, 'position')
@@ -434,7 +433,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.colSD(data_object, 'position', 3)
@@ -447,7 +446,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.colSD(data_object, 'position')
@@ -460,7 +459,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.colMax(data_object, 'position')
@@ -472,7 +471,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.colMax(data_object, 'position')
@@ -484,7 +483,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.colMax(data_object, 'position')
@@ -496,7 +495,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.colMin(data_object, 'position')
@@ -508,7 +507,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'position': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.colMin(data_object, 'position')
@@ -520,7 +519,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.meanVelocity(data_object)
@@ -532,7 +531,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.meanVelocity(data_object, 20.1)
@@ -545,7 +544,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.meanVelocity(data_object, 20.1)
@@ -559,7 +558,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.stdDevVelocity(data_object)
@@ -572,7 +571,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData(data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.stdDevVelocity(data_object, 20.1)
@@ -586,7 +585,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.stdDevVelocity(data_object, 20.1)
@@ -599,7 +598,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.timeAboveSpeed(data_object, 0, True)
@@ -611,7 +610,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData(data=df, sourcefilename="test_file3.csv")
         # -----------------------
         
         result = metrics.common.timeAboveSpeed(data_object, 0, False)
@@ -623,7 +622,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.050, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
               'Velocity': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.timeAboveSpeed(data_object, 0, False)
@@ -636,7 +635,7 @@ class TestPydre(unittest.TestCase):
               'RoadOffset': [1.7679, 1.7679, 1.5551, 1.5551, 1.5551, 1.667174, 1.667174, 1.668028, 1.668028, 1.668028, 1.786122], 
                'Velocity': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.roadExits(data_object)
@@ -649,7 +648,7 @@ class TestPydre(unittest.TestCase):
            'RoadOffset': [7.3, 7.4, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2], 
              'Velocity': [0, 15.1, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.roadExits(data_object)
@@ -663,7 +662,7 @@ class TestPydre(unittest.TestCase):
            'RoadOffset': [-1, -1, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2], 
              'Velocity': [15.1, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.roadExits(data_object)
@@ -676,7 +675,7 @@ class TestPydre(unittest.TestCase):
               'YPos': [1.7679, 1.7679, 1.5551, 1.5551, 1.5551, 1.667174, 1.667174, 1.668028, 1.668028, 1.668028, 1.786122], 
                'Velocity': [0, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.roadExitsY(data_object)
@@ -689,7 +688,7 @@ class TestPydre(unittest.TestCase):
            'YPos': [7.3, 7.4, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2], 
              'Velocity': [0, 15.1, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.roadExitsY(data_object)
@@ -703,7 +702,7 @@ class TestPydre(unittest.TestCase):
            'YPos': [-1, -1, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2, 7.2], 
              'Velocity': [15.1, 20.1, 21.0, 22.0, 23.12, 25.1, 26.3, 27.9, 30.1036, 31.3, 32.5]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.roadExitsY(data_object)
@@ -716,7 +715,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
              'Steer': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.steeringEntropy(data_object)
@@ -729,7 +728,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
              'Steer': [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
         
         result = metrics.common.steeringEntropy(data_object)
@@ -742,7 +741,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
              'TaskFail': [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.numOfErrorPresses(data_object)
@@ -755,7 +754,7 @@ class TestPydre(unittest.TestCase):
         d = {'SimTime': [0.017, 0.034, 0.05, 0.067, 0.084, 0.1, 0.117, 0.134, 0.149, 0.166, 0.184], 
              'TaskFail': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.numOfErrorPresses(data_object)
@@ -785,7 +784,7 @@ class TestPydre(unittest.TestCase):
            1.666987, 1.665995, 1.664588], 
            'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="sdlp")
         expected_result = 0.050418838619299945
@@ -799,7 +798,7 @@ class TestPydre(unittest.TestCase):
            1.666987, 1.665995, 1.664588], 
            'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="mean")
         expected_result = 1.712675909090909
@@ -811,7 +810,7 @@ class TestPydre(unittest.TestCase):
           'LaneOffset': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
           'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="mean")
         expected_result = 0
@@ -825,7 +824,7 @@ class TestPydre(unittest.TestCase):
            1.666987, 1.665995, 1.664588], 
            'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="msdlp")
         expected_result = 0.11609391266118639
@@ -837,7 +836,7 @@ class TestPydre(unittest.TestCase):
           'LaneOffset': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
           'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="msdlp")
         expected_result = 0
@@ -850,7 +849,7 @@ class TestPydre(unittest.TestCase):
            1.666987, 1.665995, 1.664588], 
            'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="msdlp", noisy="true")
         expected_result = 0.3609804008333242
@@ -862,7 +861,7 @@ class TestPydre(unittest.TestCase):
           'LaneOffset': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
           'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="msdlp", noisy="true")
         expected_result = 0
@@ -875,7 +874,7 @@ class TestPydre(unittest.TestCase):
            1.666987, 1.665995, 1.664588], 
            'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="msdlp", filtfilt="true")
         expected_result = 0.04134629214979945
@@ -887,7 +886,7 @@ class TestPydre(unittest.TestCase):
           'LaneOffset': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
           'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="msdlp", filtfilt="true")
         expected_result = 0
@@ -901,7 +900,7 @@ class TestPydre(unittest.TestCase):
            1.666987, 1.665995, 1.664588], 
            'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="violation_duration")
         expected_result = 0.17000000000000004
@@ -913,7 +912,7 @@ class TestPydre(unittest.TestCase):
           'LaneOffset': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
           'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="violation_duration")
         expected_result = 0
@@ -926,7 +925,7 @@ class TestPydre(unittest.TestCase):
            1.666987, 1.665995, 1.664588], 
            'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="exits")
         expected_result = 0.15000000000000002
@@ -938,7 +937,7 @@ class TestPydre(unittest.TestCase):
           'LaneOffset': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
           'Lane': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="exits")
         expected_result = 0
@@ -950,7 +949,7 @@ class TestPydre(unittest.TestCase):
           'LaneOffset': [11.1, 11.1, 0, 0, 11.5, 11.667689, 11.7, 11.8, 11.9, 12.0, 12.1], 
             'Lane': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
 
         result = metrics.common.lanePosition(data_object, laneInfo="violation_count")
         expected_result = 1
@@ -963,7 +962,7 @@ class TestPydre(unittest.TestCase):
          'HeadwayTime': [11.1, 11.1, 0, 0, 11.5, 11.667689, 11.7, 11.8, 11.9, 12.0, 12.1], 
          'XPos': [0.52, 0.54, 0.55, 0.57, 0.59, 0.59, 0.6, 0.62, 0.64, 0.65, 0.67]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         result = metrics.common.addVelocities(data_object)
         # -----------------------
 
@@ -990,7 +989,7 @@ class TestPydre(unittest.TestCase):
          'HeadwayTime': [11.1, 11.1, 0, 0, 11.5, 11.667689, 11.7, 11.8, 11.9, 12.0, 12.1], 
          'XPos': self.zero}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         result = metrics.common.addVelocities(data_object)
         # -----------------------
 
@@ -1017,7 +1016,7 @@ class TestPydre(unittest.TestCase):
          'HeadwayTime': [11.1, 11.1, 0, 0, 11.5, 11.667689, 11.7, 11.8, 11.9, 12.0, 12.1], 
          'XPos': self.zero}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         result = metrics.common.crossCorrelate(data_object)
         # -----------------------
         expected_result = 0
@@ -1029,7 +1028,7 @@ class TestPydre(unittest.TestCase):
         # --- construct input ---
         d = {'TaskNum': [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.getTaskNum(data_object)
@@ -1042,7 +1041,7 @@ class TestPydre(unittest.TestCase):
              'FeedbackButton': [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0], 
              'BoxAppears': [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0]}
         df = pandas.DataFrame(data=d3)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.boxMetrics(data_object)
@@ -1055,7 +1054,7 @@ class TestPydre(unittest.TestCase):
              'FeedbackButton': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
              'BoxAppears': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
         df = pandas.DataFrame(data=d3)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.boxMetrics(data_object)
@@ -1068,7 +1067,7 @@ class TestPydre(unittest.TestCase):
              'FeedbackButton': [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0], 
             'BoxAppears': [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0]}
         df = pandas.DataFrame(data=d3)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.boxMetrics(data_object, stat='mean')
@@ -1081,7 +1080,7 @@ class TestPydre(unittest.TestCase):
              'FeedbackButton': [0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0], 
              'BoxAppears': [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0]}
         df = pandas.DataFrame(data=d3)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.boxMetrics(data_object, stat='sd')
@@ -1097,7 +1096,7 @@ class TestPydre(unittest.TestCase):
          'OwnshipVelocity': [10, 11, 13, 14, 15, 17, 20, 23, 26, 29, 31], 
          'LeadCarVelocity': [13, 16, 18, 21, 25, 30, 32, 32.5, 34, 35, 37]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.crossCorrelate(data_object)
@@ -1114,7 +1113,7 @@ class TestPydre(unittest.TestCase):
          'OwnshipVelocity': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
          'LeadCarVelocity': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv")
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv")
         # -----------------------
 
         result = metrics.common.crossCorrelate(data_object)
@@ -1135,7 +1134,7 @@ class TestPydre(unittest.TestCase):
              'taskblocks': [1, 1, 1, 2, 2, 3, 3, 3, 4, 5, 6], 
              'PartID': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.speedbumpHondaGaze(data_object)
@@ -1158,7 +1157,7 @@ class TestPydre(unittest.TestCase):
              'taskblocks': [1, 1, 1, 2, 2, 3, 3, 3, 4, 5, 6], 
              'PartID': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.speedbumpHondaGaze(data_object)
@@ -1185,7 +1184,7 @@ class TestPydre(unittest.TestCase):
              'taskblocks': [1, 1, 1, 2, 2, 3, 3, 3, 4, 5, 6], 
              'PartID': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.speedbumpHondaGaze(data_object)
@@ -1209,7 +1208,7 @@ class TestPydre(unittest.TestCase):
              'taskblocks': [1, 1, 1, 2, 2, 3, 3, 3, 4, 5, 6], 
              'PartID': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]} #input
         df = pandas.DataFrame(data=d)
-        data_object = core.DriveData(PartID=0, DriveID=1, roi=None, data=df, sourcefilename="test_file3.csv") 
+        data_object = core.DriveData( data=df, sourcefilename="test_file3.csv") 
         # -----------------------
 
         result = metrics.common.speedbumpHondaGaze(data_object)

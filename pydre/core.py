@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 import pandas
 import logging
@@ -9,27 +10,6 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
-def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFrame):
-    """
-        args:
-            begin: float defnining the start point of the slice
-            end: float defining the end part of the slice
-            column: which column in the drive_data frame to use for the time.  This is usually SimTime or VidTime.
-            drive_data: pandas DataFrame containing the data to be sliced
-
-        returns:
-            pandas.DataFrame slice containing requested time slice
-
-    Given a start and end and a column name that represents a time value, output the slice that contains
-    only the specified data.
-    """
-    try:
-        dataframeslice = drive_data[(drive_data[column] >= begin) & (drive_data[column] <= end)]
-    except KeyError:
-        logger.error(
-            " Data file(-d) invalid. Data frame slice could not be created. Please check contents of file for \"VidTime\" column.")
-        sys.exit(1)
-    return dataframeslice
 
 
 def mergeBySpace(tomerge: list):
@@ -99,28 +79,40 @@ def mergeBySpace(tomerge: list):
 
 class DriveData:
 
-    def __init__(self, PartID: typing.Optional[int], DriveID: typing.Optional[int], roi: typing.Optional[str],
-                 data: pandas.DataFrame, sourcefilename: typing.Optional[str], UniqueID: typing.Optional[int],
-                 scenarioName: typing.Optional[str], mode: typing.Optional[str]):
-
-        self.PartID = PartID
-        self.DriveID = DriveID
-        self.roi = roi
+    def __init__(self, data: pandas.DataFrame, sourcefilename: typing.Optional[str]):
         self.data = data
         self.sourcefilename = sourcefilename
-        self.UniqueID = UniqueID
-        self.scenarioName = scenarioName
-        self.mode = mode
+        self.roi = None
+        self.format_identifier = -1
 
-        # format_identifier -1: this drivedata object is missing at least 1 required field or contains error
-        # format_identifier 0: this drivedata object was created from an old format data file
-        # format_identifier 1: this drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-        if DriveID != None and DriveID >= 0:
-            self.format_identifier = 0
-        elif len(scenarioName) > 0:
-            self.format_identifier = 1
-        else:
-            self.format_identifier = -1
+    @classmethod
+    def initV2(cls, data: pandas.DataFrame, sourcefilename: str, PartID: typing.Optional[int],
+               DriveID: typing.Optional[int]):
+        obj = cls(data, sourcefilename)
+        obj.PartID = PartID
+        obj.DriveID = DriveID
+        obj.format_identifier = 2
+        return obj
+
+    @classmethod
+    def initV4(cls, data: pandas.DataFrame, sourcefilename: str, UniqueID: typing.Optional[int],
+               scenarioName: typing.Optional[str], mode: typing.Optional[str]):
+        obj = cls(data, sourcefilename)
+        obj.UniqueID = UniqueID
+        obj.scenarioName = scenarioName
+        obj.mode = mode
+        obj.format_identifier = 4
+        return obj
+
+    def copyMetaData(self, other: DriveData):
+        self.sourcefilename = other.sourcefilename
+        if other.format_identifier == 2:
+            self.PartID = other.PartID
+            self.DriveID = other.DriveID
+        elif other.format_identifier == 4:
+            self.UniqueID = other.UniqueID
+            self.scenarioName = other.scenarioName
+            self.mode = other.mode
 
     def checkColumns(self, required_columns: List[str]):
         difference = set(required_columns) - set(list(self.data.columns))
