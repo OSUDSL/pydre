@@ -14,14 +14,8 @@ def getTaskNum(drivedata: pydre.core.DriveData):
     required_col = ["TaskNum"]
     diff = drivedata.checkColumns(required_col)
 
-    if (len(diff) > 0):
-        logger.error(
-            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
-                                                                                   pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
-
     taskNum = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d)
         taskNum = df['TaskNum'].mode()
         if (len(taskNum) > 0):
@@ -34,14 +28,8 @@ def numOfErrorPresses(drivedata: pydre.core.DriveData):
     required_col = ["SimTime", "TaskFail"]
     diff = drivedata.checkColumns(required_col)
 
-    if (len(diff) > 0):
-        logger.error(
-            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
-                                                                                   pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
-
     presses = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
         p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
@@ -74,12 +62,9 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
         raise pydre.core.ColumnsMatchError()
 
     numofglances = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=(required_col))  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
-
-        if (len(df) == 0):
-            continue
 
         # construct table with columns [glanceduration, glancelocation, error]
         gr = df.groupby('gazenum', sort=False)
@@ -119,13 +104,11 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
         #	num_over_2s_offroad_glances, num_offroad_glances, total_time_offroad_glances, mean_time_offroad_glances))
 
         return [num_offroad_glances, num_over_2s_offroad_glances, mean_time_offroad_glances, total_time_offroad_glances]
-    return [None, None, None, None]
-
 
 # not working
 def addVelocities(drivedata: pydre.core.DriveData):
-    df = pandas.DataFrame;
-    for d in drivedata.data:
+    df = pandas.DataFrame
+    with drivedata.data as d:
         df = pandas.DataFrame(d)
         # add column with ownship velocity
         g = np.gradient(df.XPos.values, df.SimTime.values)
@@ -141,7 +124,7 @@ def addVelocities(drivedata: pydre.core.DriveData):
 
 
 def crossCorrelate(drivedata: pydre.core.DriveData):
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d)
         if 'OwnshipVelocity' not in df.columns or 'LeadCarVelocity' not in df.columns:
             df = addVelocities(drivedata)
@@ -172,19 +155,13 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     required_col = ["DatTime", "gaze", "gazenum", "TaskNum", "taskblocks", "PartID"]
     diff = drivedata.checkColumns(required_col)
 
-    if (len(diff) > 0):
-        logger.error(
-            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
-                                                                                   pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
-
     numofglances = 0
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)  # drop other columns
         df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
 
         if (len(df) == 0):
-            continue
+            return
 
         # construct table with columns [glanceduration, glancelocation, error]
         gr = df.groupby('gazenum', sort=False)
@@ -215,8 +192,6 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         mean_time_onroad_glances = glancelist[(glancelist['locations'] == 'onroad')]['duration'].mean()
 
         return [total_time_onroad_glances, percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
-    return [None, None, None, None]
-
 
 def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", maxtasknum=5):
     required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "TaskInstance", "KEY_EVENT_T", "KEY_EVENT_P"]
@@ -224,11 +199,7 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
     # for now I just assume the input dataframe has a TaskInstance column
     # diff = drivedata.checkColumns(required_col)
 
-    # if (len(diff) > 0):
-    #    logger.error("\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename, pydre.core.funcName()))
-    #    raise pydre.core.ColumnsMatchError()
-
-    for d in drivedata.data:
+    with drivedata.data as d:
         logger.warning("Processing Task {}".format(d.TaskNum.mean()))
         if d.TaskNum.mean() == 0 or d.TaskNum.mean() > maxtasknum:
             return [None, None, None, None]
@@ -295,7 +266,7 @@ def eventCount(drivedata: pydre.core.DriveData, event="KEY_EVENT_S"):
                                                                                    pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)
         col_name = event + "_ocurrance"
         df[col_name] = df[event].diff()
@@ -315,7 +286,7 @@ def insDuration(drivedata: pydre.core.DriveData):
                                                                                    pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
-    for d in drivedata.data:
+    with drivedata.data as d:
         df = pandas.DataFrame(d, columns=required_col)
         return (df.tail(1).iat[0, 0] - df.head(1).iat[0, 0])
 
@@ -330,7 +301,7 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
                                                                                    pydre.core.funcName()))
         raise pydre.core.ColumnsMatchError()
 
-    for d in drivedata.data:
+    with drivedata.data as d:
         if d.TaskNum.mean() == 0 or d.TaskNum.mean() < 4 or d.TaskNum.mean() > 5:
             return [None, None, None, None]
 

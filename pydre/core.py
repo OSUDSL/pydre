@@ -1,32 +1,15 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 import pandas
 import logging
 import sys
+import typing
+
+from typing import List
 
 logger = logging.getLogger(__name__)
 
-def sliceByTime(begin: float, end: float, column: str, drive_data: pandas.DataFrame):
-    """
-        args:
-            begin: float defnining the start point of the slice
-            end: float defining the end part of the slice
-            column: which column in the drive_data frame to use for the time.  This is usually SimTime or VidTime.
-            drive_data: pandas DataFrame containing the data to be sliced
-
-        returns:
-            pandas.DataFrame slice containing requested time slice
-
-    Given a start and end and a column name that represents a time value, output the slice that contains
-    only the specified data.
-    """
-    try:
-        dataframeslice = drive_data[(drive_data[column] >= begin) & (drive_data[column] <= end)]
-    except KeyError:
-        logger.error(
-            " Data file(-d) invalid. Data frame slice could not be created. Please check contents of file for \"VidTime\" column.")
-        sys.exit(1)
-    return dataframeslice
 
 
 def mergeBySpace(tomerge: list):
@@ -96,57 +79,45 @@ def mergeBySpace(tomerge: list):
 
 class DriveData:
 
-    def __init__(self, PartID: int, DriveID, roi: str, data, sourcefilename, UniqueID=-1, scenarioName="", mode=""):
-
-        self.PartID = PartID
-        if type(DriveID) is not list:
-            DriveID = [DriveID, ]
-        self.DriveID = DriveID
-        self.roi = roi
-        if type(data) is not list:
-            data = [data, ]
+    def __init__(self, data: pandas.DataFrame, sourcefilename: typing.Optional[str]):
         self.data = data
-        if type(sourcefilename) is not list:
-            sourcefilename = [sourcefilename, ]
         self.sourcefilename = sourcefilename
+        self.roi = None
+        self.format_identifier = -1
 
-        if type(UniqueID) is not list:
-            UniqueID = [UniqueID, ]
-            self.UniqueID = UniqueID
-        if type(scenarioName) is not list:
-            scenarioName = [scenarioName, ]
-            self.scenarioName = scenarioName
-        if type(mode) is not list:
-            mode = [mode, ]
-            self.mode = mode
+    @classmethod
+    def initV2(cls, data: pandas.DataFrame, sourcefilename: str, PartID: typing.Optional[int],
+               DriveID: typing.Optional[int]):
+        obj = cls(data, sourcefilename)
+        obj.PartID = PartID
+        obj.DriveID = DriveID
+        obj.format_identifier = 2
+        return obj
 
-        self.format_identifier = -1;
-        # format_identifier == -1: this drivedata object is missing at least 1 required field or contains error
-        # format_identifier == 0" this drivedata object was created from an old format data file
-        # format_identifier == 1" this drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-        if (type(DriveID) is list) and (DriveID[-1] >= 0):
-            self.format_identifier = 0
-        elif (type(DriveID) is int) and (DriveID >= 0):
-            self.format_identifier = 0
-        elif (type(UniqueID) is list) and (type(scenarioName) is list) and (type(mode) is list):
-            self.format_identifier = 1
-        elif len(mode) > 0 and len(scenarioName) > 0:
-            self.format_identifier = 1
+    @classmethod
+    def initV4(cls, data: pandas.DataFrame, sourcefilename: str, UniqueID: typing.Optional[int],
+               scenarioName: typing.Optional[str], mode: typing.Optional[str]):
+        obj = cls(data, sourcefilename)
+        obj.UniqueID = UniqueID
+        obj.scenarioName = scenarioName
+        obj.mode = mode
+        obj.format_identifier = 4
+        return obj
 
-    def checkColumns(self, col):
-        expected_col = col
-        difference = []
-        for df in self.data:
-            df_col = (df.columns).tolist()
-            if (len(expected_col) != len(df_col)):
-                # logger.error("The numbers of columns do not match")
-                difference = set(expected_col) - set(df_col)
-                break
-            elif (expected_col.sort() != df_col.sort()):
-                # logger.error("Columns do not match")
-                difference = set(expected_col) - set(df_col)
-                break
-        return difference
+    def copyMetaData(self, other: DriveData):
+        self.sourcefilename = other.sourcefilename
+        if other.format_identifier == 2:
+            self.PartID = other.PartID
+            self.DriveID = other.DriveID
+        elif other.format_identifier == 4:
+            self.UniqueID = other.UniqueID
+            self.scenarioName = other.scenarioName
+            self.mode = other.mode
+
+    def checkColumns(self, required_columns: List[str]):
+        difference = set(required_columns) - set(list(self.data.columns))
+        if len(difference) > 0:
+            raise ColumnsMatchError(difference)
 
 
 # ------ exception handling ------
