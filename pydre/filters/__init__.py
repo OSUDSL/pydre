@@ -15,13 +15,9 @@ logger = logging.getLogger(__name__)
 def numberSwitchBlocks(drivedata: pydre.core.DriveData, ):
     required_col = ["TaskStatus"]
     diff = drivedata.checkColumns(required_col)
-    if (len(diff) > 0):
-        logger.error(
-            "\nCan't find needed columns {} in data file {} | function: {}".format(diff, drivedata.sourcefilename,
-                                                                                   pydre.core.funcName()))
-        raise pydre.core.ColumnsMatchError()
 
-    for d in drivedata.data:
+
+    with drivedata.data as d:
         dt = pandas.DataFrame(d)
         # dt.set_index('timedelta', inplace=True)
         blocks = ((dt != dt.shift()).TaskStatus.cumsum()) / 2
@@ -102,7 +98,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str = "DatTime"
         dt['gaze'].fillna(method='bfill', inplace=True)
         dt['gazenum'] = (dt['gaze'].shift(1) != dt['gaze']).astype(int).cumsum()
         # print("{} gazes after removing transitions.".format(dt['gazenum'].max()))
-        drivedata.data[ptr] = dt
+        drivedata.data = dt
         ptr += 1
     # drivedata.data[0].to_csv("test/test_i_" + str(int(drivedata.data[0].PartID.min())) + "_drive_" + str(int(drivedata.data[0].DriveID.min())) + "_afterSmoothing.csv")
     return drivedata
@@ -142,7 +138,7 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
 
 # copy F key presses to task fail column, added for speedbump 2 study 
 def mergeFintoTaskFail(drivedata: pydre.core.DriveData):
-    for d in drivedata.data:
+    with drivedata.data as d:
         if 'KEY_EVENT_F' in d.columns:
             dt = pandas.DataFrame(d)
             merged = ((dt['TaskFail'] + dt['KEY_EVENT_F']).astype("int")).replace(2, 1)
@@ -151,7 +147,7 @@ def mergeFintoTaskFail(drivedata: pydre.core.DriveData):
 
 
 def numberTaskInstance(drivedata: pydre.core.DriveData):
-    for d in drivedata.data:
+    with drivedata.data as d:
         count = 0
         dt = pandas.DataFrame(d)
         # dt.to_csv('dt.csv')
