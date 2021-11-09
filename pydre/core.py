@@ -25,56 +25,34 @@ def mergeBySpace(tomerge: list):
         altered appropriately.
         This repeats for all elements in 'tomerge'.
     """
-    for drivedata in tomerge:
-        if (len(drivedata.data) > 1):
-            logger.warning(
-                "Subject {} roi {} contains  more than one DataFrame. Only the first element will be in the merged output.".format(
-                    drivedata.PartID, DriveData.roi))
+    out_frame = tomerge[0].data
 
-        subject = tomerge[0].PartID
-        driveIDs = tomerge[0].DriveID
-        roi = tomerge[0].roi
-        sources = list(tomerge[0].sourcefilename)
+    if len(tomerge) > 1:
+        i = 0
+        while i < len(tomerge) - 1:
+            i = i + 1
 
-        out_frame = tomerge[0].data[0]
-        if (len(tomerge) > 1):
-            i = 0
-            while i < len(tomerge) - 1:
-                i = i + 1
+            # This part does the actual merging
+            last_line = out_frame.tail(1)
+            last_x = last_line.XPos.iloc[0]
+            last_y = last_line.YPos.iloc[0]
+            last_time = last_line.SimTime.iloc[0]
+            next_frame = tomerge[i].data
+            min_dist = float('inf')
+            min_index = 0
+            for index, row in next_frame.iterrows():
+                dist = (row.XPos - last_x) ** 2 + (row.YPos - last_y) ** 2
+                if (dist < min_dist):
+                    min_index = index
+                    min_dist = dist
+            start_time = next_frame.iloc[min_index].SimTime
+            next_frame = next_frame[min_index:]
+            next_frame.SimTime += last_time - start_time
+            out_frame = out_frame.append(next_frame)
 
-                # This part sets up data to be included in the final Drive Data object
-                if tomerge[i].PartID != subject:
-                    logger.warning(
-                        "Merging data for multiple subjects {} and {}. Only the first will be used".format(subject,
-                                                                                                           tomerge[
-                                                                                                               i].PartID))
-                driveIDs.append(list(tomerge[i].DriveID))  # Some may be added twice. Is this desireable?
-                if tomerge[i].roi != roi:
-                    logger.warning("Merging data for multiple rois {} and {}. Only the first will be used.".format(roi,
-                                                                                                                   tomerge[
-                                                                                                                       i].roi))
-                sources.append(list(tomerge[i].sourcefilename))
-
-                # This part does the actual merging
-                last_line = out_frame.tail(1)
-                last_x = last_line.XPos.iloc[0]
-                last_y = last_line.YPos.iloc[0]
-                last_time = last_line.SimTime.iloc[0]
-                next_frame = tomerge[i].data[0]
-                min_dist = float('inf')
-                min_index = 0
-                for index, row in next_frame.iterrows():
-                    dist = (row.XPos - last_x) ** 2 + (row.YPos - last_y) ** 2
-                    if (dist < min_dist):
-                        min_index = index
-                        min_dist = dist
-                start_time = next_frame.iloc[min_index].SimTime
-                next_frame = next_frame[min_index:]
-                next_frame.SimTime += last_time - start_time
-                out_frame = out_frame.append(next_frame)
-
-        return DriveData(subject, driveIDs, roi, out_frame, sources)
-    pass
+    new_dd = DriveData(out_frame, "")
+    new_dd.copyMetaData(tomerge[0])
+    return new_dd
 
 
 class DriveData:
