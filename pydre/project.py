@@ -7,18 +7,21 @@ import sys
 import pydre.core
 import pydre.rois
 import pydre.metrics
+from pydre.metrics import *
 import pydre.filters
 import pathlib
 from tqdm import tqdm
 import logging
+from gui.logger import GUIHandler
 
-logger = logging.getLogger('PydreLogger')
+logger = logging.getLogger(__name__)
 
 
-class Project():
-
-    def __init__(self, projectfilename):
+class Project:
+    def __init__(self,  projectfilename: str, progressbar=None, app=None):
+        self.app = app
         self.project_filename = projectfilename
+        self.progress_bar = progressbar
 
         # This will suppress the unnecessary SettingWithCopy Warning.
         pandas.options.mode.chained_assignment = None
@@ -32,29 +35,32 @@ class Project():
                 # 	editors used, the line number was consistently 1 more than the actual location of the syntax error.
                 # 	Hence, the "e.lineno -1" in the logger error below.
 
-                logger.error("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
+                logger.critical("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
                              + str(e.lineno - 1) + ".")
                 # exited as a general error because it is seemingly best suited for the problem encountered
                 sys.exit(1)
 
         self.data = []
 
-    def __loadSingleFile(self, filename):
-        """Load a single .dat file (whitespace delmited csv) into a DriveData object"""
-        # Could cache this re, probably affect performance
-        d = pandas.read_csv(filename, sep='\s+', na_values='.')
-        datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
-        match = datafile_re.search(filename)
-        if match:
-            experiment_name, subject_id, drive_id = match.groups()
+    def __loadSingleFile(self, filename: str):
+        """Load a single .dat file (space delimited csv) into a DriveData object"""
+        d = pandas.read_csv(filename, sep=' ', na_values='.')
+        datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
+        datafile_re_format1 = re.compile(
+            "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat")  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
+        match_format0 = datafile_re_format0.search(filename)
+        if match_format0:
+            experiment_name, subject_id, drive_id = match_format0.groups()
+            drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
+            return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
+        elif match_format1 := datafile_re_format1.search(
+                filename):  # assign bool value to var "match_format1", only available in python 3.8 or higher
+            mode, subject_id, scen_name, unique_id = match_format1.groups()
+            return pydre.core.DriveData.initV4(d, filename, unique_id, scen_name, mode)
         else:
             logger.warning(
-                "Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat")
-            experiment_name = pathlib.Path(filename).stem
-            subject_id = 1
-            drive_id = 1
-        return pydre.core.DriveData(PartID=int(subject_id), DriveID=int(drive_id),
-                                    roi=None, data=d, sourcefilename=filename)
+                "Drivedata filename does not an expected format")
+            return pydre.core.DriveData(d, filename)
 
     def processROI(self, roi, dataset):
         """
@@ -105,27 +111,35 @@ class Project():
                     e))
             sys.exit(1)
 
+        x = []
         if len(col_names) > 1:
-            x = [filter_func(d, **filter)
-                 for d in tqdm(dataset, desc=func_name)]
+            for d in tqdm(dataset, desc=func_name):
+                x.append(d)
+                if self.progress_bar:
+                    value = self.progress_bar.value() + 100.0 / len(dataset)
+                    self.progress_bar.setValue(value)
+                if self.app:
+                    self.app.processEvents()
             report = pandas.DataFrame(x, columns=col_names)
         else:
-            report = pandas.DataFrame([filter_func(
-                d, **filter) for d in tqdm(dataset, desc=func_name)], columns=[report_name, ])
+            for d in tqdm(dataset, desc=func_name):
+                x.append(filter_func(d, **filter))
+                if self.progress_bar:
+                    value = self.progress_bar.value() + 100.0 / len(dataset)
+                    self.progress_bar.setValue(value)
+                if self.app:
+                    self.app.processEvents()
+            report = pandas.DataFrame(x, columns=[report_name, ])
 
         return report
 
-    def processMetric(self, metric, dataset):
+    def processMetric(self, metric: object, dataset: list) -> pandas.DataFrame:
         """
-                Handles running any metric definition
 
-                Args:
-                        metric: A dict containing the type of a metric and the parameters to process it
-
-                Returns:
-                        A list of values with the results
-                """
-
+        :param metric:
+        :param dataset:
+        :return:
+        """
         try:
             func_name = metric.pop('function')
             metric_func = pydre.metrics.metricsList[func_name]
@@ -137,13 +151,12 @@ class Project():
                     e))
             sys.exit(1)
 
-
         if len(col_names) > 1:
-            x = [metric_func(d, **metric) for d in dataset]
+            x = [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)]
             report = pandas.DataFrame(x, columns=col_names)
         else:
             report = pandas.DataFrame(
-                [metric_func(d, **metric) for d in dataset], columns=[report_name, ])
+                [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)], columns=[report_name, ])
 
         return report
 
@@ -160,6 +173,15 @@ class Project():
             logger.info("Loading file #{}: {}".format(
                 len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
+            if self.progress_bar:
+                value = self.progress_bar.value() + 100.0 / len(datafiles)
+                self.progress_bar.setValue(value)
+            if self.app:
+                self.app.processEvents()
+
+    # remove any parenthesis, quote mark and un-necessary directory names from a str
+    def __clean(self, string):
+        return string.replace('[', '').replace(']', '').replace('\'', '').split("\\")[-1]
 
     def run(self, datafiles):
         """
@@ -171,10 +193,7 @@ class Project():
 
         self.loadFileList(datafiles)
         data_set = []
-        
-        result_data = None
         try:
-
             if 'filters' in self.definition:
                 for filter in self.definition['filters']:
                     self.processFilter(filter, self.raw_data)
@@ -194,18 +213,29 @@ class Project():
             #     self.processFilter(filter, data_set)
             result_data = pandas.DataFrame()
             result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
-            result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
+
+            if (data_set[0].format_identifier == 0):  # these drivedata object was created from an old format data file
+                result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
+            elif (data_set[
+                      0].format_identifier == 1):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+                result_data['Mode'] = pandas.Series([self.__clean(str(d.mode)) for d in data_set])
+                result_data['ScenarioName'] = pandas.Series([self.__clean(str(d.scenarioName)) for d in data_set])
+                result_data['UniqueID'] = pandas.Series([self.__clean(str(d.UniqueID)) for d in data_set])
+
             result_data['ROI'] = pandas.Series([d.roi for d in data_set])
             # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
             # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
-            
 
             processed_metrics = [result_data]
-        
-            for metric in self.definition['metrics']:
-                processed_metric = self.processMetric(metric, data_set)
-                processed_metrics.append(processed_metric)
-            result_data = pandas.concat(processed_metrics, axis=1)
+
+            if 'metrics' not in self.definition:
+                logger.critical("No metrics in project file. No results will be generated")
+                return None
+            else:
+                for metric in self.definition['metrics']:
+                    processed_metric = self.processMetric(metric, data_set)
+                    processed_metrics.append(processed_metric)
+                result_data = pandas.concat(processed_metrics, axis=1)
         except pydre.core.ColumnsMatchError as e:
             sys.exit(1)
 
@@ -214,12 +244,11 @@ class Project():
 
     def save(self, outfilename="out.csv"):
         """
-                Args:
-                        outfilename: filename to output csv data to.
+        Args:
+            outfilename: filename to output csv data to.
 
-                The filename specified will be overwritten automatically.
-                """
-
+            The filename specified will be overwritten automatically.
+        """
         try:
             self.results.to_csv(outfilename, index=False)
         except AttributeError:
