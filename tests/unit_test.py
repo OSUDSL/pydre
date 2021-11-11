@@ -8,6 +8,7 @@ import glob
 import contextlib
 import io
 from tests.sample_pydre import project as samplePD
+from tests.sample_pydre import core as c
 import pandas
 import numpy as np
 from datetime import timedelta
@@ -142,20 +143,20 @@ class TestPydre(unittest.TestCase):
 
 
     #Isolate this test case No more sliceByTime Function in pydre.core
-    #def test_core_sliceByTime_1(self):
-        #d = {'col1': [1, 2, 3, 4, 5, 6], 'col2': [7, 8, 9, 10, 11, 12]}
-        #df = pandas.DataFrame(data=d)
-        #result = (core.sliceByTime(1, 3, "col1", df).to_string()).lstrip()
-        #expected_result = "col1  col2\n0     1     7\n1     2     8\n2     3     9"
-        #self.assertEqual(result, expected_result)
+    def test_core_sliceByTime_1(self):
+        d = {'col1': [1, 2, 3, 4, 5, 6], 'col2': [7, 8, 9, 10, 11, 12]}
+        df = pandas.DataFrame(data=d)
+        result = (c.sliceByTime(1, 3, "col1", df).to_string()).lstrip()
+        expected_result = "col1  col2\n0     1     7\n1     2     8\n2     3     9"
+        self.assertEqual(result, expected_result)
 
     #Isolate this test case No more sliceByTime Function in pydre.core
-    #def test_core_sliceByTime_2(self):
-        #d = {'col1': [1, 1.1, 3, 4, 5, 6], 'col2': [7, 8, 9, 10, 11, 12]}
-        #df = pandas.DataFrame(data=d)
-        #result = (core.sliceByTime(1, 2, "col1", df).to_string()).lstrip()
-        #expected_result = "col1  col2\n0   1.0     7\n1   1.1     8"
-        #self.assertEqual(result, expected_result)
+    def test_core_sliceByTime_2(self):
+        d = {'col1': [1, 1.1, 3, 4, 5, 6], 'col2': [7, 8, 9, 10, 11, 12]}
+        df = pandas.DataFrame(data=d)
+        result = (c.sliceByTime(1, 2, "col1", df).to_string()).lstrip()
+        expected_result = "col1  col2\n0   1.0     7\n1   1.1     8"
+        self.assertEqual(result, expected_result)
     
     def test_core_mergeBySpace(self):
         d1 = {'SimTime': [1, 2], 'XPos': [1, 3], 'YPos': [4, 3]}
@@ -164,14 +165,14 @@ class TestPydre(unittest.TestCase):
         d2 = {'SimTime': [3, 4], 'XPos': [10, 12], 'YPos': [15, 16]}
         df2 = pandas.DataFrame(data=d2)
 
-        data_object1 = core.DriveData( data=df1, sourcefilename="test_file.csv")
+        data_object1 = core.DriveData.initV2(PartID=0,DriveID=1, data=df1, sourcefilename="test_file.csv")
         data_object2 = core.DriveData.initV2(PartID=0, DriveID=2, data=df2, sourcefilename="test_file.csv")
 
         param = []
         param.append(data_object1)
         param.append(data_object2)
         result = self.dd_to_str(core.mergeBySpace(param))
-        expected_result = "0[1, [2]]None[   SimTime  XPos  YPos\n0        1     1     4\n1        2     3     3\n0        2    10    15\n1        3    12    16]['test_file.csv', ['test_file.csv']]"
+        expected_result = "01None   SimTime  XPos  YPos\n0        1     1     4\n1        2     3     3\n0        2    10    15\n1        3    12    16test_file.csv"
         self.assertEqual(result, expected_result)
 
     def test_filter_numberSwitchBlocks_1(self):
