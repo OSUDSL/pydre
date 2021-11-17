@@ -6,8 +6,8 @@ Created on: 9/17/2020
 import os
 # os.environ['PYSIDE_DESIGNER_PLUGINS'] = '/gui'
 import sys
-from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QApplication
+from PySide2.QtGui import QFont
+from PySide2.QtWidgets import QApplication
 from gui.config import Config, CONFIG_PATH
 from gui.logger import GUIHandler
 from gui.windows import MainWindow
@@ -45,7 +45,7 @@ def start():
 
     app_window = MainWindow
     app = Application(app_window, sys.argv)
-    app.exec()
+    app.exec_()
 
 
 if __name__ == '__main__':

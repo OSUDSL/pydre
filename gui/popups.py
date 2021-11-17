@@ -4,8 +4,8 @@ Created on: 2/4/2021
 '''
 
 import os
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QInputDialog, QMessageBox, QProgressDialog
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QInputDialog, QMessageBox, QProgressDialog
 from gui.config import Config, CONFIG_PATH, GUI_PATH
 
 config = Config()
