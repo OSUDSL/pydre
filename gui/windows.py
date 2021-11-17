@@ -415,7 +415,7 @@ class MainWindow(Window):
 
     def _toggle_move_btns(self):
         '''TODO
-        
+
         '''
 
         pass

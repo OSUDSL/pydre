@@ -6,9 +6,9 @@ Created on: 2/4/2021
 import logging
 import os
 from PySide2.QtCore import QFile
-from PySide2.QtGui import QIcon
+from PySide2.QtGui import QIcon, QScreen
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QDesktopWidget, QMainWindow
+from PySide2.QtWidgets import QApplication, QMainWindow
 from gui.config import Config, CONFIG_PATH, GUI_PATH
 
 config = Config()
@@ -34,19 +34,19 @@ class Window(QMainWindow):
         self.icon = QIcon(icon_path)
         self.ui.setWindowIcon(self.icon)
         self.setWindowIcon(self.icon)
-        self.screen_width = QDesktopWidget().availableGeometry().width()
-        self.screen_height = QDesktopWidget().availableGeometry().height()
+        self.screen = QApplication.primaryScreen()
+        self.screen_center = QScreen.availableGeometry(self.screen).center()
+        self.screen_width = QScreen.availableGeometry(self.screen).width()
+        self.screen_height = QScreen.availableGeometry(self.screen).height()
+        self.frame = self.ui.frameGeometry()
 
     def resize_and_center(self, width, height):
         '''Resizes and centers the window on the screen.
 
         '''
 
-        self.ui.resize(width, height)
-        frame = self.ui.frameGeometry()
-        screen_center = QDesktopWidget().availableGeometry().center()
-        frame.moveCenter(screen_center)
-        self.ui.move(frame.topLeft())
+        self.frame.moveCenter(self.screen_center)
+        self.ui.move(self.frame.topLeft())
 
     def start(self):
         '''Displays the window given the associated UI file.
