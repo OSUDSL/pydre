@@ -5,10 +5,10 @@ Created on: 2/4/2021
 
 import logging
 import os
-from PySide6.QtCore import QFile
-from PySide6.QtGui import QIcon, QScreen
-from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide2.QtCore import QFile
+from PySide2.QtGui import QIcon, QScreen
+from PySide2.QtUiTools import QUiLoader
+from PySide2.QtWidgets import QApplication, QMainWindow
 from gui.config import Config, CONFIG_PATH, GUI_PATH
 
 config = Config()
@@ -39,7 +39,6 @@ class Window(QMainWindow):
         self.screen_width = QScreen.availableGeometry(self.screen).width()
         self.screen_height = QScreen.availableGeometry(self.screen).height()
         self.frame = self.ui.frameGeometry()
-
 
     def resize_and_center(self, width, height):
         '''Resizes and centers the window on the screen.

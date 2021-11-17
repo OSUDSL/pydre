@@ -7,9 +7,9 @@ import copy
 import json
 import os
 import typing
-from PySide6.QtCore import QModelIndex
+from PySide2.QtCore import QModelIndex
 from pydre import filters, metrics
-from PySide6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
+from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
 from gui.config import Config, CONFIG_PATH
 from gui.popups import FunctionPopup
