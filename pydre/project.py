@@ -237,7 +237,8 @@ class Project:
                     processed_metrics.append(processed_metric)
                 result_data = pandas.concat(processed_metrics, axis=1)
         except pydre.core.ColumnsMatchError as e:
-            sys.exit(1)
+            logger.critical("Failed to match columns. No results will be generated")
+            return None
 
         self.results = result_data
         return result_data
