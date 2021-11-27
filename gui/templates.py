@@ -39,17 +39,22 @@ class Window(QMainWindow):
         self.screen_width = QScreen.availableGeometry(self.screen).width()
         self.screen_height = QScreen.availableGeometry(self.screen).height()
         self.frame = self.ui.frameGeometry()
+        self.window_size = None
 
     def resize_and_center(self, width, height):
         '''Resizes and centers the window on the screen.
 
         '''
 
-        self.frame.setWidth(width)
-        self.frame.setHeight(height)
-        self.ui.resize(width, height)
-        self.frame.moveCenter(self.screen_center)
-        self.ui.move(self.frame.topLeft())
+        if self.window_size is None or (not self.ui.isMaximized() and self.window_size == (float(self.ui.width()), float(self.ui.height()))):
+            # TODO: FIX SIZING STUFF HERE (ALLOW RESIZING BY MOUSE WITHOUT MESSING IT UP ON PAGE SWITCH)
+            print('test')
+            self.window_size = (width, height)
+            self.frame.setWidth(width)
+            self.frame.setHeight(height)
+            self.ui.resize(width, height)
+            self.frame.moveCenter(self.screen_center)
+            self.ui.move(self.frame.topLeft())
 
     def start(self):
         '''Displays the window given the associated UI file.
