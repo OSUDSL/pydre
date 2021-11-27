@@ -301,7 +301,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     return Hp
 
 
-def tailgatingTime(drivedata: pydre.core.DriveData, cutoff: float =2):
+def tailgatingTime(drivedata: pydre.core.DriveData, cutoff: float = 2):
     tail_time = 0
     table = drivedata.data
     difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
