@@ -440,7 +440,7 @@ class MainWindow(Window):
 
         '''
 
-        width = self.screen_width / 3
+        width = self.screen_width / 2
         height = self.screen_height / 2.5
         self.resize_and_center(width, height)
         self.ui.menu_bar.setVisible(False)

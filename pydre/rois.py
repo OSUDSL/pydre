@@ -11,6 +11,28 @@ logger = logging.getLogger(__name__)
 logger.addHandler(GUIHandler())
 
 
+def sliceByTime(begin: float, end: float, column: str, drive_data: pd.DataFrame):
+    """
+        args:
+            begin: float defnining the start point of the slice
+            end: float defining the end part of the slice
+            column: which column in the drive_data frame to use for the time.  This is usually SimTime or VidTime.
+            drive_data: pandas DataFrame containing the data to be sliced
+
+        returns:
+            pandas.DataFrame slice containing requested time slice
+
+    Given a start and end and a column name that represents a time value, output the slice that contains
+    only the specified data.
+    """
+    try:
+        dataframeslice = drive_data[(drive_data[column] >= begin) & (drive_data[column] <= end)]
+    except KeyError:
+        logger.error(
+            " Data file(-d) invalid. Data frame slice could not be created. Please check contents of file for \"VidTime\" column.")
+        sys.exit(1)
+    return dataframeslice
+
 class TimeROI():
 
     def __init__(self, filename, nameprefix=""):
@@ -39,8 +61,12 @@ class TimeROI():
                     for item in datalist:
                         # Find the proper subject and drive in the input data
                         if (item.SubjectID == subject and driveID in item.DriveID):
-                            data_frame.append(pydre.core.sliceByTime(
-                                start_time, end_time, "VidTime", item.data[0]))
+                            new_ddata = pydre.core.sliceByTime(
+                                start_time, end_time, "VidTime", item.data[0])
+                            new_ddata.copyMetaData(ddata)
+                            new_ddata.roi = titles[roi]
+                            outputs.append(new_ddata)
+
                             drives.append(item.DriveID)
                             source_files.append(item.sourcefilename)
                             break
@@ -48,6 +74,10 @@ class TimeROI():
                     logger.warning("No data for ROI (subject: {}, roi: {})".format(
                         subject, titles[roi]))
                 else:
+                    new_ddata = pydre.core.DriveData(data_frame, ddata.sourcefilename)
+                    new_ddata.copyMetaData(ddata)
+                    new_ddata.roi = titles[roi]
+                    outputs.append(new_ddata)
                     outputs.append(pydre.core.DriveData(
                         subject, drives, titles[roi], data_frame, source_files))
         return outputs
@@ -118,28 +148,30 @@ class SpaceROI():
 
         for i in self.roi_info.index:
             for ddata in datalist:
-                for raw_data in ddata.data:
-                    xmin = min(self.roi_info.X1[i], self.roi_info.X2[i])
-                    xmax = max(self.roi_info.X1[i], self.roi_info.X2[i])
-                    ymin = min(self.roi_info.Y1[i], self.roi_info.Y2[i])
-                    ymax = max(self.roi_info.Y1[i], self.roi_info.Y2[i])
-                    region_data = raw_data[(raw_data.XPos < xmax) &
-                                           (raw_data.XPos > xmin) &
-                                           (raw_data.YPos < ymax) &
-                                           (raw_data.YPos > ymin)]
-                    if (len(region_data) == 0):
-                        logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
-                            ddata.SubjectID,
-                            ddata.sourcefilename,
-                            self.roi_info.roi[i]))
-                    else:
-                        logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
-                            len(region_data),
-                            self.roi_info.roi[i],
-                            ddata.SubjectID,
-                            ddata.sourcefilename))
-                    return_list.append(pydre.core.DriveData(ddata.SubjectID, ddata.DriveID,
-                                                            self.roi_info.roi[i], region_data, ddata.sourcefilename))
+                xmin = min(self.roi_info.X1[i], self.roi_info.X2[i])
+                xmax = max(self.roi_info.X1[i], self.roi_info.X2[i])
+                ymin = min(self.roi_info.Y1[i], self.roi_info.Y2[i])
+                ymax = max(self.roi_info.Y1[i], self.roi_info.Y2[i])
+                region_data = ddata.data[(ddata.data.XPos < xmax) &
+                                       (ddata.data.XPos > xmin) &
+                                       (ddata.data.YPos < ymax) &
+                                       (ddata.data.YPos > ymin)]
+                if (len(region_data) == 0):
+                    logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
+                        ddata.SubjectID,
+                        ddata.sourcefilename,
+                        self.roi_info.roi[i]))
+                else:
+                    logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
+                        len(region_data),
+                        self.roi_info.roi[i],
+                        ddata.SubjectID,
+                        ddata.sourcefilename))
+                new_ddata = pydre.core.DriveData(region_data, ddata.sourcefilename)
+                new_ddata.copyMetaData(ddata)
+                new_ddata.roi = self.roi_info.roi[i]
+                return_list.append(new_ddata)
+
         return return_list
 
 
@@ -159,10 +191,11 @@ class ColumnROI():
         return_list = []
 
         for ddata in datalist:
-            for raw_data in ddata.data:
-                for i in raw_data[self.roi_column].unique():
-                    region_data = raw_data[raw_data[self.roi_column] == i]
-                    if len(region_data.index) > 0:
-                        return_list.append(pydre.core.DriveData(
-                            ddata.PartID, ddata.DriveID, i, region_data, ddata.sourcefilename))
+            for i in ddata.data[self.roi_column].unique():
+                region_data = ddata.data[ddata.data[self.roi_column] == i]
+                if len(region_data.index) > 0:
+                    new_ddata = pydre.core.DriveData(region_data, ddata.sourcefilename)
+                    new_ddata.copyMetaData(ddata)
+                    new_ddata.roi = i
+                    return_list.append(new_ddata)
         return return_list
