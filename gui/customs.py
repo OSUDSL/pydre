@@ -7,12 +7,11 @@ import copy
 import json
 import os
 import typing
-from PySide2.QtCore import QModelIndex
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
-from gui.config import Config, CONFIG_PATH
-from gui.popups import ErrorPopup, FunctionPopup
+from gui.config import CONFIG_PATH, Config
+from gui.popups import FunctionPopup
 
 config = Config()
 config.read(CONFIG_PATH)
