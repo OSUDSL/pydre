@@ -45,6 +45,9 @@ class Window(QMainWindow):
 
         '''
 
+        self.frame.setWidth(width)
+        self.frame.setHeight(height)
+        self.ui.resize(width, height)
         self.frame.moveCenter(self.screen_center)
         self.ui.move(self.frame.topLeft())
 
