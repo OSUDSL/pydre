@@ -12,7 +12,7 @@ from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
 from gui.config import Config, CONFIG_PATH
-from gui.popups import FunctionPopup
+from gui.popups import ErrorPopup, FunctionPopup
 
 config = Config()
 config.read(CONFIG_PATH)
@@ -164,15 +164,6 @@ class RoisTree(QTreeWidget):
         self.rois = rois
         self.tree = QTreeWidgetItem(self.root, ['rois'])
         self.branches = {}
-        self._configure_widget()
-
-    def _configure_widget(self):
-        '''TODO
-
-        '''
-
-        for index in range(len(self.rois)):
-            self._configure_branch(index)
 
     def _configure_branch(self, index):
         '''TODO
@@ -185,19 +176,25 @@ class RoisTree(QTreeWidget):
         def cb(e): return self._update_roi(index, attribute, e)
         line_edit = WidgetFactory.line_edit(roi['type'], cb, bg=False)
         for attribute in filter(lambda a: a != 'type', roi):
-            self._configure_leaf(branch, index, attribute)
+            if self._configure_leaf(branch, index, attribute) is False:
+                return False
         self.root.setItemWidget(branch, 0, line_edit)
+        return True
 
     def _configure_leaf(self, branch, index, attribute):
         '''TODO
 
         '''
 
-        leaf = QTreeWidgetItem(branch)
-        roi = self.rois[index]
-        def cb(e): return self._update_roi(index, attribute, e)
-        line_edit = LeafWidget().line_edit(attribute, roi[attribute], cb)
-        self.root.setItemWidget(leaf, 0, line_edit)
+        try:
+            leaf = QTreeWidgetItem(branch)
+            roi = self.rois[index]
+            def cb(e): return self._update_roi(index, attribute, e)
+            line_edit = LeafWidget().line_edit(attribute, roi[attribute], cb)
+            self.root.setItemWidget(leaf, 0, line_edit)
+        except:
+            return False
+        return True
 
     def _update_roi(self, index, attribute, value):
         '''TODO
@@ -205,6 +202,16 @@ class RoisTree(QTreeWidget):
         '''
 
         self.rois[index][attribute] = value
+
+    def configure_widget(self):
+        '''TODO
+
+        '''
+
+        for index in range(len(self.rois)):
+            if self._configure_branch(index) is False:
+                return False
+        return True
 
     def get_collection(self):
         '''TODO
@@ -240,15 +247,6 @@ class FiltersTree(QTreeWidget):
         }
         self.branches = {}
         self.values = {}
-        self._configure_widget()
-
-    def _configure_widget(self):
-        '''TODO
-
-        '''
-
-        for index in range(len(self.filters)):
-            self._configure_branch(index)
 
     def _configure_branch(self, index):
         '''TODO
@@ -261,22 +259,28 @@ class FiltersTree(QTreeWidget):
         def cb(e): return self._update_filters(index, 'name', e)
         line_edit = WidgetFactory.line_edit(filter_['name'], cb, bg=False)
         for attribute in filter(lambda a: a != 'name', filter_):
-            self._configure_leaf(branch, index, attribute)
+            if self._configure_leaf(branch, index, attribute) is False:
+                return False
         self.root.setItemWidget(branch, 0, line_edit)
+        return True
 
     def _configure_leaf(self, branch, index, attribute):
         '''TODO
 
         '''
 
-        leaf = QTreeWidgetItem(branch)
-        filter_ = self.filters[index]
-        function = filters.filtersList[filter_['function']]
-        types = typing.get_type_hints(function)
-        type_ = types[attribute] if attribute != 'function' else None
-        def cb(e): return self._update_filter(index, attribute, e)
-        widget = self.widgets[type_](attribute, filter_[attribute], cb)
-        self.root.setItemWidget(leaf, 0, widget)
+        try:
+            leaf = QTreeWidgetItem(branch)
+            filter_ = self.filters[index]
+            function = filters.filtersList[filter_['function']]
+            types = typing.get_type_hints(function)
+            type_ = types[attribute] if attribute != 'function' else None
+            def cb(e): return self._update_filter(index, attribute, e)
+            widget = self.widgets[type_](attribute, filter_[attribute], cb)
+            self.root.setItemWidget(leaf, 0, widget)
+        except KeyError:
+            return False
+        return True
 
     def _update_filter(self, index, attribute, value):
         '''TODO
@@ -308,6 +312,16 @@ class FiltersTree(QTreeWidget):
             self.filters[index][argument] = values[argument]
         else:
             self.filters[index][argument] = '' if type_ == str else 0
+
+    def configure_widget(self):
+        '''TODO
+
+        '''
+
+        for index in range(len(self.filters)):
+            if self._configure_branch(index) is False:
+                return False
+        return True
 
     def update_filter_function(self, index, value):
         '''TODO
@@ -353,15 +367,6 @@ class MetricsTree(QTreeWidget):
         }
         self.branches = {}
         self.values = {}
-        self._configure_widget()
-
-    def _configure_widget(self):
-        '''TODO
-
-        '''
-
-        for index in range(len(self.metrics)):
-            self._configure_branch(index)
 
     def _configure_branch(self, index):
         '''TODO
@@ -374,22 +379,28 @@ class MetricsTree(QTreeWidget):
         def cb(e): return self._update_metric(index, 'name', e)
         line_edit = WidgetFactory.line_edit(metric['name'], cb, bg=False)
         for attribute in filter(lambda a: a != 'name', metric):
-            self._configure_leaf(branch, index, attribute)
+            if self._configure_leaf(branch, index, attribute) is False:
+                return False
         self.root.setItemWidget(branch, 0, line_edit)
+        return True
 
     def _configure_leaf(self, branch, index, attribute):
         '''TODO
 
         '''
 
-        leaf = QTreeWidgetItem(branch)
-        metric = self.metrics[index]
-        function = metrics.metricsList[metric['function']]
-        types = typing.get_type_hints(function)
-        type_ = types[attribute] if attribute != 'function' else None
-        def cb(e): return self._update_metric(index, attribute, e)
-        widget = self.widgets[type_](attribute, metric[attribute], cb)
-        self.root.setItemWidget(leaf, 0, widget)
+        try:
+            leaf = QTreeWidgetItem(branch)
+            metric = self.metrics[index]
+            function = metrics.metricsList[metric['function']]
+            types = typing.get_type_hints(function)
+            type_ = types[attribute] if attribute != 'function' else None
+            def cb(e): return self._update_metric(index, attribute, e)
+            widget = self.widgets[type_](attribute, metric[attribute], cb)
+            self.root.setItemWidget(leaf, 0, widget)
+        except KeyError:
+            return False
+        return True
 
     def _update_metric(self, index, attribute, value):
         '''TODO
@@ -421,6 +432,16 @@ class MetricsTree(QTreeWidget):
             self.metrics[index][argument] = values[argument]
         else:
             self.metrics[index][argument] = '' if type_ == str else 0
+
+    def configure_widget(self):
+        '''TODO
+
+        '''
+
+        for index in range(len(self.metrics)):
+            if self._configure_branch(index) is False:
+                return False
+        return True
 
     def update_metric_function(self, index, value):
         '''TODO
@@ -480,9 +501,8 @@ class ProjectTree(QTreeWidget):
         self.roi_counter = 1
         self.filter_counter = 1
         self.metric_counter = 1
-        self._configure_widget()
 
-    def _configure_widget(self):
+    def configure_widget(self):
         '''TODO
 
         '''
@@ -491,8 +511,11 @@ class ProjectTree(QTreeWidget):
         self.setAnimated(False)
         for collection in sorted(self.items_copy):
             tree = self.trees[collection](self, self.items_copy[collection])
+            if tree.configure_widget() is False:
+                return False
             self.subtrees[collection] = tree
         self.expandToDepth(0)
+        return True
 
     def get_contents(self):
         '''TODO
