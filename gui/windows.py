@@ -3,6 +3,7 @@ Created by: Craig Fouts
 Created on: 11/13/2020
 '''
 
+from copy import Error
 import inspect
 import json
 import logging
@@ -185,6 +186,10 @@ class MainWindow(Window):
         self._add_to_recent(pfile_path)
         if pfile_name not in self.project_files:
             project_tree = self._create_project_tree(pfile_name, pfile_path)
+            if project_tree is None:
+                self._handle_tab_change()
+                self.show_error('Failed to build project tree.')
+                return
             self.project_files[pfile_name] = [pfile_path, project_tree]
         else:
             index = self.ui.file_tab.indexOf(pfile_name)
@@ -210,10 +215,12 @@ class MainWindow(Window):
         '''
 
         project_tree = ProjectTree(pfile_path)
-        index = self.ui.pfile_tab.count()
-        self.ui.pfile_tab.insertTab(index, project_tree, pfile_name)
-        self.ui.pfile_tab.setCurrentIndex(index)
-        return project_tree
+        if project_tree.configure_widget():
+            index = self.ui.pfile_tab.count()
+            self.ui.pfile_tab.insertTab(index, project_tree, pfile_name)
+            self.ui.pfile_tab.setCurrentIndex(index)
+            return project_tree
+        return None
 
     def _handle_new_roi(self):
         '''TODO
@@ -329,13 +336,13 @@ class MainWindow(Window):
         self.ui.pfile_lbl.setText(pfile_path)
         self.switch_to_run()
 
-    def _handle_tab_change(self, index):
+    def _handle_tab_change(self, index=None):
         '''Handles functionality that occurs when a tab is opened, closed, or
         selected.
 
         '''
 
-        if self.ui.pfile_tab.count() > 0:
+        if index is not None and self.ui.pfile_tab.count() > 0:
             pfile_name = self.ui.pfile_tab.tabText(index)
             self.ui.run_act.setText(f"Run '{pfile_name}'")
         else:
