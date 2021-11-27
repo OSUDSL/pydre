@@ -3,7 +3,7 @@
 from __future__ import annotations # needed for python < 3.9
 
 import pandas
-import pydre.core
+import tests.sample_pydre.core
 import numpy
 
 import numpy as np
@@ -19,7 +19,7 @@ logger = logging.getLogger('PydreLogger')
 
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
-def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
+def findFirstTimeAboveVel(drivedata: tests.sample_pydre.core.DriveData, cutoff: float = 25):
     timestepID = -1
     breakOut = False
     for d in drivedata.data:
@@ -33,7 +33,7 @@ def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
     return timestepID
 
 
-def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float]=(0, 0, 10000, 10000)):
+def findFirstTimeOutside(drivedata: tests.sample_pydre.core.DriveData, area: list[float]=(0, 0, 10000, 10000)):
     timeAtEnd = 0
     for d in drivedata.data:
         if d.position >= pos:
@@ -42,7 +42,7 @@ def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float]=(0, 
     return timeAtEnd
 
 
-def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
+def colMean(drivedata: tests.sample_pydre.core.DriveData, var: str, cutoff: float = 0):
     total = pandas.Series()
     for d in drivedata.data:
         var_dat = d[var]
@@ -50,7 +50,7 @@ def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     return numpy.mean(total.values, dtype=np.float64).astype(np.float64)
 
 
-def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
+def colSD(drivedata: tests.sample_pydre.core.DriveData, var: str, cutoff: float = 0):
     total = pandas.Series()
     for d in drivedata.data:
         var_dat = d[var]
@@ -58,7 +58,7 @@ def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     return numpy.std(total.values, dtype=np.float64).astype(np.float64)
 
 
-def colMax(drivedata: pydre.core.DriveData, var: str):
+def colMax(drivedata: tests.sample_pydre.core.DriveData, var: str):
     maxes = []
     for d in drivedata.data:
         var_dat = d[var]
@@ -66,7 +66,7 @@ def colMax(drivedata: pydre.core.DriveData, var: str):
     return pandas.Series(maxes).max()
 
 
-def colMin(drivedata: pydre.core.DriveData, var: str):
+def colMin(drivedata: tests.sample_pydre.core.DriveData, var: str):
     mins = []
     for d in drivedata.data:
         var_dat = d[var]
@@ -74,21 +74,21 @@ def colMin(drivedata: pydre.core.DriveData, var: str):
     return pandas.Series(mins).min()
 
 
-def meanVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
+def meanVelocity(drivedata: tests.sample_pydre.core.DriveData, cutoff: float = 0):
     total_vel = pandas.Series()
     for d in drivedata.data:
         total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
     return numpy.mean(total_vel.values, dtype=np.float64).astype(np.float64)
 
 
-def stdDevVelocity(drivedata: pydre.core.DriveData, cutoff: float = 0):
+def stdDevVelocity(drivedata: tests.sample_pydre.core.DriveData, cutoff: float = 0):
     total_vel = pandas.Series()
     for d in drivedata.data:
         total_vel = total_vel.append(d[d.Velocity >= cutoff].Velocity)
     return numpy.std(total_vel.values, dtype=np.float64).astype(np.float64)
 
 
-def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentage: bool = False):
+def timeAboveSpeed(drivedata: tests.sample_pydre.core.DriveData, cutoff: float = 0, percentage: bool = False):
     time = 0
     total_time = 0
     for d in drivedata.data:
@@ -107,7 +107,7 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
     return out
 
 
-def lanePosition(drivedata: pydre.core.DriveData, laneInfo: str="sdlp", lane: int=2, lane_width: float =3.65, car_width: float =2.1):
+def lanePosition(drivedata: tests.sample_pydre.core.DriveData, laneInfo: str="sdlp", lane: int=2, lane_width: float =3.65, car_width: float =2.1):
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("SimTime", "Lane", "LaneOffset"))  # drop other columns
         LPout = None
@@ -171,7 +171,7 @@ def lanePosition(drivedata: pydre.core.DriveData, laneInfo: str="sdlp", lane: in
     return LPout
 
 
-def roadExits(drivedata: pydre.core.DriveData):
+def roadExits(drivedata: tests.sample_pydre.core.DriveData):
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
     # Lane width 3.6m, car width 1.8m
     roadOutTime = 0
@@ -185,7 +185,7 @@ def roadExits(drivedata: pydre.core.DriveData):
     return roadOutTime
 
 
-def roadExitsY(drivedata: pydre.core.DriveData):
+def roadExitsY(drivedata: tests.sample_pydre.core.DriveData):
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
     # Lane width 3.6m, car width 1.8m
     roadOutTime = 0
@@ -199,7 +199,7 @@ def roadExitsY(drivedata: pydre.core.DriveData):
     return roadOutTime
 
 
-def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
+def brakeJerk(drivedata: tests.sample_pydre.core.DriveData, cutoff: float = 0):
     a = []
     t = []
     for d in drivedata.data:
@@ -219,7 +219,7 @@ def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
     return count
 
 
-def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
+def steeringEntropy(drivedata: tests.sample_pydre.core.DriveData, cutoff: float = 0):
     out = []
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("SimTime", "Steer"))  # drop other columns
@@ -269,7 +269,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     return Hp
 
 
-def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
+def tailgatingTime(drivedata: tests.sample_pydre.core.DriveData, cutoff=2):
     tail_time = 0
     for d in drivedata.data:
         table = d
@@ -282,7 +282,7 @@ def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
     return tail_time
 
 
-def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float =2):
+def tailgatingPercentage(drivedata: tests.sample_pydre.core.DriveData, cutoff: float =2):
     total_time = 0
     tail_time = 0
     for d in drivedata.data:
@@ -297,7 +297,7 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float =2):
     return tail_time / total_time
 
 
-def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float =0, stat: str ="count"):
+def boxMetrics(drivedata: tests.sample_pydre.core.DriveData, cutoff: float =0, stat: str ="count"):
     total_boxclicks = pandas.Series()
     time_boxappeared = 0.0
     time_buttonclicked = 0.0
@@ -361,7 +361,7 @@ def firstOccurance(df: pandas.DataFrame, condition: str):
         return None
 
 
-def numOfErrorPresses(drivedata: pydre.core.DriveData):
+def numOfErrorPresses(drivedata: tests.sample_pydre.core.DriveData):
     presses = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("SimTime", "TaskFail"))  # drop other columns
@@ -396,7 +396,7 @@ This results in 8 reaction times per participant.
 '''
 
 
-def tbiReaction(drivedata: pydre.core.DriveData, type: str="brake", index: int =0):
+def tbiReaction(drivedata: tests.sample_pydre.core.DriveData, type: str="brake", index: int =0):
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=(
         "SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"))
@@ -443,7 +443,7 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str="brake", index: int =
             return None
 
 
-def ecoCar(drivedata: pydre.core.DriveData, FailCode: str ="1", stat: str ="mean"):
+def ecoCar(drivedata: tests.sample_pydre.core.DriveData, FailCode: str ="1", stat: str ="mean"):
     event = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer",
@@ -574,7 +574,7 @@ def appendDFToCSV_void(df, csvFilePath: str, sep: str =","):
         df.to_csv(csvFilePath, mode='a', index=False, sep=sep, header=False)
 
 
-def gazeNHTSA(drivedata: pydre.core.DriveData):
+def gazeNHTSA(drivedata: tests.sample_pydre.core.DriveData):
     numofglances = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("VidTime", "gaze", "gazenum", "TaskFail"))  # drop other columns
@@ -637,7 +637,7 @@ def registerMetric(name, function, columnnames: str =None):
 
 
 #not working
-def addVelocities(drivedata: pydre.core.DriveData):
+def addVelocities(drivedata: tests.sample_pydre.core.DriveData):
     df = pandas.DataFrame;
     for d in drivedata.data:
         df = pandas.DataFrame(d)
@@ -654,7 +654,7 @@ def addVelocities(drivedata: pydre.core.DriveData):
     return df
 
 
-def crossCorrelate(drivedata: pydre.core.DriveData):
+def crossCorrelate(drivedata: tests.sample_pydre.core.DriveData):
 
     for d in drivedata.data:
         df = pandas.DataFrame(d)
@@ -681,7 +681,7 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
         else:
             return 0.0
 
-def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
+def speedbumpHondaGaze(drivedata: tests.sample_pydre.core.DriveData):
     numofglances = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d, columns=("DatTime", "gaze", "gazenum", "TaskNum"))  # drop other columns
@@ -725,7 +725,7 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
         return [total_time_onroad_glances, percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
     return [None, None, None, None]
 
-def getTaskNum(drivedata: pydre.core.DriveData):
+def getTaskNum(drivedata: tests.sample_pydre.core.DriveData):
     taskNum = 0
     for d in drivedata.data:
         df = pandas.DataFrame(d)

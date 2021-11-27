@@ -5,10 +5,7 @@
 
 
   "filters": [
-        {
-            "name": "smoothGazeData",
-            "function": "smoothGazeData"
-        },
+        
      {
             "name": "numberSwitchBlocks",
             "function": "numberSwitchBlocks"
@@ -16,17 +13,10 @@
     ],
   
     "metrics": [
-        {
-            "name": "speedbumpHondaGaze",
-            "function": "speedbumpHondaGaze"
-        },
+        
       {
             "name": "getTaskNum",
             "function": "getTaskNum"
-        },
-      {
-            "name": "errorPresses",
-            "function": "errorPresses"
-      }
+        }
     ]
  }

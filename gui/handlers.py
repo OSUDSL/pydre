@@ -25,7 +25,7 @@ class Pydre:
 
         pydre_path = os.path.dirname(inspect.getfile(pydre))
         file_list = [os.path.join(pydre_path, file) for file in data_files]
-        project = Project(app, project_file, progress_bar)
+        project = Project(project_file, progress_bar, app)
         output_file = "out.csv" if not output_file.strip() else output_file
         project.run(file_list)
         project.save(os.path.join('output', output_file))
