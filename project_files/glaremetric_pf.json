@@ -1,0 +1,19 @@
+{
+    "rois": [
+           {"type": "column", "columnname": "CancelSwitch"}
+     ],
+ 
+ 
+   "filters": [
+         {
+             
+         }
+     ],
+   
+     "metrics": [
+         {
+             
+         }
+     ]
+  }
+ 
