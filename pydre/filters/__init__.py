@@ -12,6 +12,26 @@ logger = logging.getLogger(__name__)
 
 # filters defined here take a DriveData object and return an updated DriveData object
 
+def boxIdentificationTime(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "BoxStatus", "ResponseButton"]
+    diff = drivedata.checkColumns(required_col)
+
+    dt = pandas.DataFrame(drivedata.data)
+    boxStatus = dt["BoxStatus"]
+    response = dt["ResponseButton"]
+
+    boxStatus = boxStatus.diff(1)
+    boxOnStart = boxStatus[boxStatus.values > 0.5].index[0:]
+    boxOff = boxStatus[boxStatus.values < 0.0].index[0:]
+    reactionTime = list()
+    for i in range(0, len(boxOnStart)):
+        startIndex = boxOnStart[i]
+        endIndex = boxOff[i]
+        startTime = dt["SimTime"].loc[startIndex]
+        detected = response.loc[startIndex:endIndex].diff(1)
+        detectedIndices = detected[detected.values > 0.5].index[0:]
+        
+        
 def numberSwitchBlocks(drivedata: pydre.core.DriveData, ):
     required_col = ["TaskStatus"]
     diff = drivedata.checkColumns(required_col)
