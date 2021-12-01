@@ -4,10 +4,10 @@ import json
 import pandas
 import re
 import sys
-import pydre.core
-import pydre.rois
-import pydre.metrics
-import pydre.filters
+import tests.sample_pydre.core
+import tests.sample_pydre.rois
+import tests.sample_pydre.metrics
+import tests.sample_pydre.filters
 import pathlib
 from tqdm import tqdm
 import logging
@@ -53,7 +53,7 @@ class Project():
             experiment_name = pathlib.Path(filename).stem
             subject_id = 1
             drive_id = 1
-        return pydre.core.DriveData(PartID=int(subject_id), DriveID=int(drive_id),
+        return tests.sample_pydre.core.DriveData(PartID=int(subject_id), DriveID=int(drive_id),
                                     roi=None, data=d, sourcefilename=filename)
 
     def processROI(self, roi, dataset):
@@ -70,15 +70,15 @@ class Project():
         roi_type = roi['type']
         if roi_type == "time":
             logger.info("Processing ROI file " + roi['filename'])
-            roi_obj = pydre.rois.TimeROI(roi['filename'])
+            roi_obj = tests.sample_pydre.rois.TimeROI(roi['filename'])
             return roi_obj.split(dataset)
         elif roi_type == "rect":
             logger.info("Processing ROI file " + roi['filename'])
-            roi_obj = pydre.rois.SpaceROI(roi['filename'])
+            roi_obj = tests.sample_pydre.rois.SpaceROI(roi['filename'])
             return roi_obj.split(dataset)
         elif roi_type == "column":
             logger.info("Processing ROI column " + roi['columnname'])
-            roi_obj = pydre.rois.ColumnROI(roi['columnname'])
+            roi_obj = tests.sample_pydre.rois.ColumnROI(roi['columnname'])
             return roi_obj.split(dataset)
         else:
             return []
@@ -96,9 +96,9 @@ class Project():
 
         try:
             func_name = filter.pop('function')
-            filter_func = pydre.filters.filtersList[func_name]
+            filter_func = tests.sample_pydre.filters.filtersList[func_name]
             report_name = filter.pop('name')
-            col_names = pydre.filters.filtersColNames[func_name]
+            col_names = tests.sample_pydre.filters.filtersColNames[func_name]
         except KeyError as e:
             logger.warning(
                 "Filter definitions require both \"name\" and \"function\". Malformed filters definition: missing " + str(
@@ -128,9 +128,9 @@ class Project():
 
         try:
             func_name = metric.pop('function')
-            metric_func = pydre.metrics.metricsList[func_name]
+            metric_func = tests.sample_pydre.metrics.metricsList[func_name]
             report_name = metric.pop('name')
-            col_names = pydre.metrics.metricsColNames[func_name]
+            col_names = tests.sample_pydre.metrics.metricsColNames[func_name]
         except KeyError as e:
             logger.warning(
                 "Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(
