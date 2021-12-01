@@ -13,7 +13,7 @@ Pydre takes a drive data file with data that is difficult to interpret in raw fo
 
 Pydre works by reading in `.dat` files (creating DriveData objects), then applying filters, region of interest splitters and metrics to each one.
 
-![](pydre data pipeline.png "Data Pipeline")
+![](images/pydre data pipeline.png "Data Pipeline")
 
 ## Filters
 
