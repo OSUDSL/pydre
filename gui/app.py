@@ -3,6 +3,8 @@ Created by: Craig Fouts
 Created on: 9/17/2020
 '''
 
+import os
+# os.environ['PYSIDE_DESIGNER_PLUGINS'] = '/gui'
 import sys
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QApplication

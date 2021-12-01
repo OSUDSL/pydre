@@ -17,9 +17,8 @@ from gui.logger import GUIHandler
 logger = logging.getLogger(__name__)
 
 
-class Project():
-
-    def __init__(self,  projectfilename, progressbar=None, app=None):
+class Project:
+    def __init__(self,  projectfilename: str, progressbar=None, app=None):
         self.app = app
         self.project_filename = projectfilename
         self.progress_bar = progressbar
@@ -36,38 +35,32 @@ class Project():
                 # 	editors used, the line number was consistently 1 more than the actual location of the syntax error.
                 # 	Hence, the "e.lineno -1" in the logger error below.
 
-                logger.error("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
+                logger.critical("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
                              + str(e.lineno - 1) + ".")
                 # exited as a general error because it is seemingly best suited for the problem encountered
                 sys.exit(1)
 
         self.data = []
 
-    def __loadSingleFile(self, filename):
-        """Load a single .dat file (whitespace delmited csv) into a DriveData object"""
-        mode = ""
-        scen_name = ""
-        drive_id = -1
-        unique_id = -1
-        # Could cache this re, probably affect performance
+    def __loadSingleFile(self, filename: str):
+        """Load a single .dat file (space delimited csv) into a DriveData object"""
         d = pandas.read_csv(filename, sep=' ', na_values='.')
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
         datafile_re_format1 = re.compile(
-            "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat");  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
+            "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat")  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
         match_format0 = datafile_re_format0.search(filename)
         if match_format0:
             experiment_name, subject_id, drive_id = match_format0.groups()
+            drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
+            return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
         elif match_format1 := datafile_re_format1.search(
                 filename):  # assign bool value to var "match_format1", only available in python 3.8 or higher
             mode, subject_id, scen_name, unique_id = match_format1.groups()
+            return pydre.core.DriveData.initV4(d, filename, unique_id, scen_name, mode)
         else:
             logger.warning(
-                "Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat")
-            experiment_name = pathlib.Path(filename).stem
-            subject_id = 1
-        return pydre.core.DriveData(PartID=subject_id, DriveID=int(drive_id),
-                                    roi=None, data=d, sourcefilename=filename, UniqueID=int(unique_id),
-                                    scenarioName=scen_name, mode=mode)
+                "Drivedata filename does not an expected format")
+            return pydre.core.DriveData(d, filename)
 
     def processROI(self, roi, dataset):
         """
@@ -140,17 +133,13 @@ class Project():
 
         return report
 
-    def processMetric(self, metric, dataset):
+    def processMetric(self, metric: object, dataset: list) -> pandas.DataFrame:
         """
-                Handles running any metric definition
 
-                Args:
-                        metric: A dict containing the type of a metric and the parameters to process it
-
-                Returns:
-                        A list of values with the results
-                """
-
+        :param metric:
+        :param dataset:
+        :return:
+        """
         try:
             func_name = metric.pop('function')
             metric_func = pydre.metrics.metricsList[func_name]
@@ -204,10 +193,7 @@ class Project():
 
         self.loadFileList(datafiles)
         data_set = []
-
-        result_data = None
         try:
-
             if 'filters' in self.definition:
                 for filter in self.definition['filters']:
                     self.processFilter(filter, self.raw_data)
@@ -242,24 +228,28 @@ class Project():
 
             processed_metrics = [result_data]
 
-            for metric in self.definition['metrics']:
-                processed_metric = self.processMetric(metric, data_set)
-                processed_metrics.append(processed_metric)
-            result_data = pandas.concat(processed_metrics, axis=1)
+            if 'metrics' not in self.definition:
+                logger.critical("No metrics in project file. No results will be generated")
+                return None
+            else:
+                for metric in self.definition['metrics']:
+                    processed_metric = self.processMetric(metric, data_set)
+                    processed_metrics.append(processed_metric)
+                result_data = pandas.concat(processed_metrics, axis=1)
         except pydre.core.ColumnsMatchError as e:
-            sys.exit(1)
+            logger.critical("Failed to match columns. No results will be generated")
+            return None
 
         self.results = result_data
         return result_data
 
     def save(self, outfilename="out.csv"):
         """
-                Args:
-                        outfilename: filename to output csv data to.
+        Args:
+            outfilename: filename to output csv data to.
 
-                The filename specified will be overwritten automatically.
-                """
-
+            The filename specified will be overwritten automatically.
+        """
         try:
             self.results.to_csv(outfilename, index=False)
         except AttributeError:
