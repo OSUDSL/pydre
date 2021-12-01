@@ -7,7 +7,6 @@ import copy
 import json
 import os
 import typing
-
 from PySide2.QtCore import QModelIndex
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \

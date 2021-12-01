@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import pydre.core
+import tests.sample_pydre.core
 import pandas as pd
 import csv
 import re
@@ -17,7 +17,7 @@ class TimeROI():
 
 	def split(self, datalist):
 		"""
-		return list of pydre.core.DriveData objects
+		return list of tests.sample_pydre.core.DriveData objects
 		the 'roi' field of the objects will be filled with the roi tag listed
 		in the roi definition file column name
 		"""
@@ -36,14 +36,14 @@ class TimeROI():
 					for item in datalist:
 						# Find the proper subject and drive in the input data
 						if (item.SubjectID == subject and driveID in item.DriveID):
-							data_frame.append(pydre.core.sliceByTime(start_time, end_time, "VidTime", item.data[0]))
+							data_frame.append(tests.sample_tests.sample_pydre.core.sliceByTime(start_time, end_time, "VidTime", item.data[0]))
 							drives.append(item.DriveID)
 							source_files.append(item.sourcefilename)
 							break
 				if len(drives) == 0:
 					logger.warning("No data for ROI (subject: {}, roi: {})".format(subject, titles[roi]))
 				else:
-					outputs.append(pydre.core.DriveData(subject, drives, titles[roi], data_frame, source_files))
+					outputs.append(tests.sample_pydre.core.DriveData(subject, drives, titles[roi], data_frame, source_files))
 		return outputs
 
 	def getCellInfo(cell_content):
@@ -104,7 +104,7 @@ class SpaceROI():
 
 	def split(self, datalist):
 		"""
-		return list of pydre.core.DriveData objects
+		return list of tests.sample_pydre.core.DriveData objects
 		the 'roi' field of the objects will be filled with the roi tag listed
 		in the roi definition file column name
 		"""
@@ -132,7 +132,7 @@ class SpaceROI():
 							self.roi_info.roi[i],
 							ddata.SubjectID, 
 							ddata.sourcefilename))
-					return_list.append(pydre.core.DriveData(ddata.SubjectID, ddata.DriveID,
+					return_list.append(tests.sample_pydre.core.DriveData(ddata.SubjectID, ddata.DriveID,
 					self.roi_info.roi[i], region_data, ddata.sourcefilename))
 		return return_list
 
@@ -146,7 +146,7 @@ class ColumnROI():
 
 	def split(self, datalist):
 		"""
-		return list of pydre.core.DriveData objects
+		return list of tests.sample_pydre.core.DriveData objects
 		the 'roi' field of the objects will be filled with the roi tag listed
 		in the roi definition file column name
 		"""
@@ -157,5 +157,5 @@ class ColumnROI():
 				for i in raw_data[self.roi_column].unique():
 					region_data = raw_data[raw_data[self.roi_column] == i]
 					if len(region_data.index) > 0:
-						return_list.append(pydre.core.DriveData(ddata.PartID, ddata.DriveID, i, region_data, ddata.sourcefilename))
+						return_list.append(tests.sample_pydre.core.DriveData(ddata.PartID, ddata.DriveID, i, region_data, ddata.sourcefilename))
 		return return_list
