@@ -29,7 +29,6 @@ def boxIdentificationTime(drivedata: pydre.core.DriveData):
     boxOnStart = boxStatus[boxStatus.values > 0.5].index[0:]
     #List to Hold the user reaction Time for indentifiying boxes
     reactionTime = list()
-    print(boxOnStart)
     #Iterate through the box start time indices
     for i in range(0, len(boxOnStart)):
         #Get the actual start time for when the box first starts appearing
@@ -41,7 +40,6 @@ def boxIdentificationTime(drivedata: pydre.core.DriveData):
             detected = response.loc[boxOnStart[i]:boxOnStart[i+1]].diff(1)
         #Get the detected indexes of when user (if any) pressed response button for the specific box
         detectedIndices = detected[detected.values > 0.5].index[0:]
-        print(detectedIndices)
         #if no response then append negative result 
         if len(detectedIndices) == 0:
             reactionTime.append(-1)
