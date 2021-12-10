@@ -1,0 +1,16 @@
+{
+
+  "filters": [
+        {
+            "name": "smoothGazeData",
+            "function": "smoothGazeData"
+        }
+    ],
+
+    "metrics": [
+        {
+            "name": "gazes",
+            "function": "gazes"
+        }
+    ]
+ }

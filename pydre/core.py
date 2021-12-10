@@ -73,9 +73,10 @@ class DriveData:
         return obj
 
     @classmethod
-    def initV4(cls, data: pandas.DataFrame, sourcefilename: str, UniqueID: typing.Optional[int],
+    def initV4(cls, data: pandas.DataFrame, sourcefilename: str, PartID: str, UniqueID: typing.Optional[int],
                scenarioName: typing.Optional[str], mode: typing.Optional[str]):
         obj = cls(data, sourcefilename)
+        obj.PartID = PartID
         obj.UniqueID = UniqueID
         obj.scenarioName = scenarioName
         obj.mode = mode
