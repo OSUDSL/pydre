@@ -56,7 +56,7 @@ class Project:
         elif match_format1 := datafile_re_format1.search(
                 filename):  # assign bool value to var "match_format1", only available in python 3.8 or higher
             mode, subject_id, scen_name, unique_id = match_format1.groups()
-            return pydre.core.DriveData.initV4(d, filename, unique_id, scen_name, mode)
+            return pydre.core.DriveData.initV4(d, filename, subject_id, unique_id, scen_name, mode)
         else:
             logger.warning(
                 "Drivedata filename does not an expected format")

@@ -5,6 +5,8 @@ import pydre.core
 import numpy as np
 import logging
 import os
+import datetime
+import struct
 
 from pathlib import Path
 
@@ -174,6 +176,50 @@ def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
         data.to_csv(output_path, index=False)
     return drivedata
 
+def filetimeToDatetime(ft: int):
+    EPOCH_AS_FILETIME = 116444736000000000  # January 1, 1970 as filetime
+    HUNDREDS_OF_NS = 10000000
+    s, ns100 = divmod(ft - EPOCH_AS_FILETIME, HUNDREDS_OF_NS)
+    try:
+        result = datetime.datetime.fromtimestamp(s, tz=datetime.timezone.utc).replace(microsecond=(ns100 // 10))
+    except OSError:
+        # happens when the input to fromtimestamp is outside of the legal range
+        result = None
+    return result
+
+def mergeSplitFiletime(hi: int, lo: int):
+    return struct.unpack('Q', struct.pack('LL', lo, hi))[0]
+
+def smarteyeTimeSync(drivedata: pydre.core.DriveData, smarteye_vars: list[str]):
+    # REALTIME_CLOCK is the 64-bit integer timestamp from SmartEye
+    # The clock data from SimObserver is in two different 32-bit integer values:
+    # hiFileTime encodes the high-order bits of the clock data
+    # lowFileTime encodes the low-order bits of the clock data
+    drivedata.data["SimCreatorClock"] = np.vectorize(mergeSplitFiletime)(
+        drivedata.data['hiFileTime'], drivedata.data['lowFileTime'])
+    drivedata.data["SimCreatorClock"] = drivedata.data['SimCreatorClock'].apply(filetimeToDatetime)
+    drivedata.data["SmartEyeClock"] = np.vectorize(filetimeToDatetime)(drivedata.data['REALTIME_CLOCK'])
+
+    # make a new data table with only the smarteye vars, for preparation for realignment
+    # first we should check if all the varables we want to shift are actually in the data
+    orig_columns = set(drivedata.data.columns)
+    smarteye_columns = set(smarteye_vars)
+
+    if not smarteye_columns.issubset(orig_columns):
+        logger.error("Some columns defined in the filter parameters are not in the DriveData: {}"%[smarteye_columns-orig_columns])
+        # there is probably a cleaner way to do this operation.
+        # We want to keep only the smarteye data columns that are actually in the data file
+        smarteye_columns = smarteye_columns - (smarteye_columns-orig_columns)
+
+    smarteye_columns.add("SmartEyeClock")
+    smarteye_data = drivedata.data[smarteye_columns]
+    simcreator_data = drivedata.data[orig_columns-smarteye_columns]
+    drivedata.data = pandas.merge_asof(simcreator_data, smarteye_data, left_on="SimCreatorClock", right_on="SmartEyeClock", )
+
+    return drivedata
+
+
+
 filtersList = {}
 filtersColNames = {}
 
@@ -192,3 +238,4 @@ registerFilter('mergeEvents', mergeEvents)
 registerFilter('mergeFintoTaskFail', mergeFintoTaskFail)
 registerFilter('numberTaskInstance', numberTaskInstance)
 registerFilter('writeToCSV', writeToCSV)
+registerFilter('smarteyeTimeSync', smarteyeTimeSync)
