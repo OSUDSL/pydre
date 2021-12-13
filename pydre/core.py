@@ -73,9 +73,10 @@ class DriveData:
         return obj
 
     @classmethod
-    def initV4(cls, data: pandas.DataFrame, sourcefilename: str, UniqueID: typing.Optional[int],
+    def initV4(cls, data: pandas.DataFrame, sourcefilename: str, PartID: str, UniqueID: typing.Optional[int],
                scenarioName: typing.Optional[str], mode: typing.Optional[str]):
         obj = cls(data, sourcefilename)
+        obj.PartID = PartID
         obj.UniqueID = UniqueID
         obj.scenarioName = scenarioName
         obj.mode = mode
@@ -84,13 +85,15 @@ class DriveData:
 
     def copyMetaData(self, other: DriveData):
         self.sourcefilename = other.sourcefilename
+        self.PartID = other.PartID
         if other.format_identifier == 2:
-            self.PartID = other.PartID
             self.DriveID = other.DriveID
         elif other.format_identifier == 4:
             self.UniqueID = other.UniqueID
             self.scenarioName = other.scenarioName
             self.mode = other.mode
+        self.format_identifier = other.format_identifier
+
 
     def checkColumns(self, required_columns: List[str]):
         difference = set(required_columns) - set(list(self.data.columns))
@@ -123,4 +126,5 @@ def funcName():  #:return: name of caller
 
 
 class ColumnsMatchError(Exception):
-    pass
+    def __init__(self, missing_columns):
+        self.missing_columns = missing_columns

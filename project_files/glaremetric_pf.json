@@ -1,0 +1,36 @@
+{
+   "filters": [
+         {
+            "name": "boxIdentificationTime",
+            "function": "boxIdentificationTime"
+         }
+     ],
+   
+     "metrics": [
+         {
+             "name": "averageBoxReactionTime",
+             "function": "averageBoxReactionTime"
+         },
+         {
+            "name": "sdBoxReactionTime",
+            "function": "sdBoxReactionTime"
+         },
+         {
+            "name": "countBoxHits",
+            "function": "countBoxHits"
+         },
+         {
+            "name": "percentBoxHits",
+            "function": "percentBoxHits"
+         },
+         {
+            "name": "countBoxMisses",
+            "function": "countBoxMisses"
+         },
+         {
+            "name": "percentBoxMisses",
+            "function": "percentBoxMisses"
+         }
+     ]
+  }
+ 
