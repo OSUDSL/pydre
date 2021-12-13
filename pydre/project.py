@@ -214,10 +214,10 @@ class Project:
             result_data = pandas.DataFrame()
             result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
 
-            if (data_set[0].format_identifier == 0):  # these drivedata object was created from an old format data file
+            if (data_set[0].format_identifier == 2):  # these drivedata object was created from an old format data file
                 result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
             elif (data_set[
-                      0].format_identifier == 1):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+                      0].format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
                 result_data['Mode'] = pandas.Series([self.__clean(str(d.mode)) for d in data_set])
                 result_data['ScenarioName'] = pandas.Series([self.__clean(str(d.scenarioName)) for d in data_set])
                 result_data['UniqueID'] = pandas.Series([self.__clean(str(d.UniqueID)) for d in data_set])
@@ -237,7 +237,7 @@ class Project:
                     processed_metrics.append(processed_metric)
                 result_data = pandas.concat(processed_metrics, axis=1)
         except pydre.core.ColumnsMatchError as e:
-            logger.critical("Failed to match columns. No results will be generated")
+            logger.critical(f"Failed to match columns: {e.missing_columns}. No results will be generated")
             return None
 
         self.results = result_data
