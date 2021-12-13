@@ -1,0 +1,22 @@
+{
+
+  "filters": [
+        {
+            "name": "numberBoxBlocks",
+            "function": "numberBoxBlocks",
+            "button_column": "BoxStatus"
+        }
+    ],
+
+	"rois": [
+        {"type": "column", "columnname": "boxBlocks"}
+    ],
+
+    "metrics": [
+        {
+            "name": "meanVelocity",
+            "function": "colMean",
+            "var": "Velocity"
+        }
+    ]
+ }
