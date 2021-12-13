@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 # filters defined here take a DriveData object and return an updated DriveData object
 
-def boxIdentificationTime(drivedata: pydre.core.DriveData):
+def boxIdentificationTime(drivedata: pydre.core.DriveData, button_column="ResponseButton"):
     #check if required column names for mesopic study
-    required_col = ["SimTime", "BoxStatus", "ResponseButton"]
+    required_col = ["SimTime", "BoxStatus", button_column]
     diff = drivedata.checkColumns(required_col)
     df = pandas.DataFrame(drivedata.data)
     dt = pandas.DataFrame(df, columns=required_col)  # drop other columns
@@ -24,7 +24,7 @@ def boxIdentificationTime(drivedata: pydre.core.DriveData):
     #Get DataFrame object and specific columns in data frame
     time = dt["SimTime"]
     boxStatus = dt["BoxStatus"]
-    response = dt["ResponseButton"]
+    response = dt[button_column]
     #Subtract with previous row value to find the start times of each box
     boxStatus = boxStatus.diff(1)
     #Get the specific row indices of the start times for each box
@@ -53,9 +53,23 @@ def boxIdentificationTime(drivedata: pydre.core.DriveData):
     reactionTimeFrame = pandas.DataFrame({'ReactionTime': reactionTime})
     dt = pandas.concat([dt, reactionTimeFrame], ignore_index=True)
     #update drivedata data 
-    drivedata.data = dt
+    drivedata.data["ReactionTime"] = dt["ReactionTime"]
     #return drivedata object
     return drivedata
+
+
+def numberBoxBlocks(drivedata: pydre.core.DriveData, button_column="BoxStatus"):
+    required_col = [button_column]
+    diff = drivedata.checkColumns(required_col)
+    dt = drivedata.data
+    blocks = ((dt != dt.shift())[button_column].cumsum()) / 2
+    blocks[dt[button_column] == 0] = None
+    blocks.fillna(method="ffill", inplace=True)
+    dt["boxBlocks"] = blocks
+    dt = dt.reset_index()
+    drivedata.data = dt
+    return drivedata
+
 
         
 def numberSwitchBlocks(drivedata: pydre.core.DriveData, ):
@@ -283,3 +297,4 @@ registerFilter('mergeFintoTaskFail', mergeFintoTaskFail)
 registerFilter('numberTaskInstance', numberTaskInstance)
 registerFilter('writeToCSV', writeToCSV)
 registerFilter('smarteyeTimeSync', smarteyeTimeSync)
+registerFilter('numberBoxBlocks', numberBoxBlocks)
