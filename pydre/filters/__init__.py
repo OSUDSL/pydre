@@ -14,6 +14,50 @@ logger = logging.getLogger(__name__)
 
 # filters defined here take a DriveData object and return an updated DriveData object
 
+def boxIdentificationTime(drivedata: pydre.core.DriveData):
+    #check if required column names for mesopic study
+    required_col = ["SimTime", "BoxStatus", "ResponseButton"]
+    diff = drivedata.checkColumns(required_col)
+    df = pandas.DataFrame(drivedata.data)
+    dt = pandas.DataFrame(df, columns=required_col)  # drop other columns
+    dt = pandas.DataFrame.drop_duplicates(dt.dropna(axis=0, how='any'))  # remove nans and drop duplicates
+    #Get DataFrame object and specific columns in data frame
+    time = dt["SimTime"]
+    boxStatus = dt["BoxStatus"]
+    response = dt["ResponseButton"]
+    #Subtract with previous row value to find the start times of each box
+    boxStatus = boxStatus.diff(1)
+    #Get the specific row indices of the start times for each box
+    boxOnStart = boxStatus[boxStatus.values > 0.5].index[0:]
+    #List to Hold the user reaction Time for indentifiying boxes
+    reactionTime = list()
+    #Iterate through the box start time indices
+    for i in range(0, len(boxOnStart)):
+        #Get the actual start time for when the box first starts appearing
+        startTime = time.loc[boxOnStart[i]]
+        #Find when user (if any) pressed response
+        if i == len(boxOnStart) - 1:
+            detected = response.loc[boxOnStart[i]:].diff(1)
+        else:
+            detected = response.loc[boxOnStart[i]:boxOnStart[i+1]].diff(1)
+        #Get the detected indexes of when user (if any) pressed response button for the specific box
+        detectedIndices = detected[detected.values > 0.5].index[0:]
+        #if no response then append negative result 
+        if len(detectedIndices) == 0:
+            reactionTime.append(-1)
+        else:
+            pressTime = time.loc[detectedIndices[0]]
+            #Append the reaction time from subtracting start time from when user presses response button first 
+            reactionTime.append(pressTime - startTime)
+    #Concat to data frame
+    reactionTimeFrame = pandas.DataFrame({'ReactionTime': reactionTime})
+    dt = pandas.concat([dt, reactionTimeFrame], ignore_index=True)
+    #update drivedata data 
+    drivedata.data = dt
+    #return drivedata object
+    return drivedata
+
+        
 def numberSwitchBlocks(drivedata: pydre.core.DriveData, ):
     required_col = ["TaskStatus"]
     diff = drivedata.checkColumns(required_col)
@@ -231,7 +275,7 @@ def registerFilter(name, function, columnnames=None):
     else:
         filtersColNames[name] = [name, ]
 
-
+registerFilter('boxIdentificationTime', boxIdentificationTime)
 registerFilter('smoothGazeData', smoothGazeData)
 registerFilter('numberSwitchBlocks', numberSwitchBlocks)
 registerFilter('mergeEvents', mergeEvents)

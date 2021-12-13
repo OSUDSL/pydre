@@ -326,6 +326,55 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
     total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
     return tail_time / total_time
 
+def averageBoxReactionTime(drivedata: pydre.core.DriveData):
+    required_col = ["ReactionTime"]
+    diff = drivedata.checkColumns(required_col)
+    df = drivedata.data
+    df = df[df['ReactionTime'].notnull()]
+    #Filter all reaction times that are negative (missed boxes) then output mean
+    return df[df["ReactionTime"] > 0.0]["ReactionTime"].mean()
+
+def sdBoxReactionTime(drivedata: pydre.core.DriveData):
+    required_col = ["ReactionTime"]
+    diff = drivedata.checkColumns(required_col)
+    df = drivedata.data
+    df = df[df['ReactionTime'].notnull()]
+    #Filter all reaction times that are negative (missed boxes) then output sd
+    return df[df["ReactionTime"] > 0.0]["ReactionTime"].std()
+
+#cutoff: represents the time in seconds the reaction time should be within for a "Hit"
+def countBoxHits(drivedata: pydre.core.DriveData, cutoff = 5):
+    required_col = ["ReactionTime"]
+    diff = drivedata.checkColumns(required_col)
+    df = drivedata.data
+    df = df[df['ReactionTime'].notnull()]
+    #return number of hits within cutoff
+    return df[(df['ReactionTime'] > 0) & (df['ReactionTime'] < cutoff)].shape[0]
+
+#cutoff: represents the time in seconds the reaction time should be within for a "Hit"
+def percentBoxHits(drivedata: pydre.core.DriveData, cutoff = 5):
+    required_col = ["ReactionTime"]
+    diff = drivedata.checkColumns(required_col)
+    df = drivedata.data
+    df = df[df['ReactionTime'].notnull()]
+    #return percentage of hits within cutoff
+    return ((df[(df['ReactionTime'] > 0) & (df['ReactionTime'] < cutoff)].shape[0]) / (df.shape[0])) * 100
+
+def countBoxMisses(drivedata: pydre.core.DriveData):
+    required_col = ["ReactionTime"]
+    diff = drivedata.checkColumns(required_col)
+    df = drivedata.data
+    df = df[df['ReactionTime'].notnull()]
+    #return number of negative reation Times (indicates box was missed)
+    return df[(df['ReactionTime'] < 0)].shape[0]
+
+def percentBoxMisses(drivedata: pydre.core.DriveData):
+    required_col = ["ReactionTime"]
+    diff = drivedata.checkColumns(required_col)
+    df = drivedata.data
+    df = df[df['ReactionTime'].notnull()]
+    #return percentage of Misses
+    return ((df[(df['ReactionTime'] < 0)].shape[0]) / (df.shape[0])) * 100
 
 def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "count"):
     required_col = ["SimTime", "FeedbackButton", "BoxAppears"]
@@ -602,3 +651,9 @@ registerMetric('roadExits', roadExits)
 registerMetric('brakeJerk', brakeJerk)
 registerMetric('ecoCar', ecoCar)
 registerMetric('tbiReaction', tbiReaction)
+registerMetric('averageBoxReactionTime', averageBoxReactionTime)
+registerMetric('sdBoxReactionTime', sdBoxReactionTime)
+registerMetric('countBoxHits', countBoxHits)
+registerMetric('percentBoxHits', percentBoxHits)
+registerMetric('countBoxMisses', countBoxMisses)
+registerMetric('percentBoxMisses', percentBoxMisses)
