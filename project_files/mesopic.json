@@ -4,7 +4,7 @@
         {
             "name": "numberBoxBlocks",
             "function": "numberBoxBlocks",
-            "button_column": "BoxStatus"
+            "box_column": "BoxStatus"
         }
     ],
 
@@ -17,6 +17,37 @@
             "name": "meanVelocity",
             "function": "colMean",
             "var": "Velocity"
-        }
+        },
+        {
+            "name": "sdVelocity",
+            "function": "colSD",
+            "var": "Velocity"
+        },
+        {
+            "name": "sdLP",
+            "function": "colSD",
+            "var": "RoadOffset"
+        },
+        {
+              "name": "startSimTime",
+              "function": "colMin",
+              "var": "SimTime"
+        },
+      {
+        "name": "startXPos",
+        "function": "colMin",
+        "var": "XPos"
+      },
+      {
+        "name": "reactionTime",
+        "function": "timeFirstTrue",
+        "var": "CancelSwitch"
+      },
+      {
+        "name": "BoxTarget",
+        "function": "colMax",
+        "var": "BoxTarget"
+      }
+
     ]
  }
