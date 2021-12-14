@@ -58,13 +58,14 @@ def boxIdentificationTime(drivedata: pydre.core.DriveData, button_column="Respon
     return drivedata
 
 
-def numberBoxBlocks(drivedata: pydre.core.DriveData, button_column="BoxStatus"):
-    required_col = [button_column]
+def numberBoxBlocks(drivedata: pydre.core.DriveData, box_column="BoxStatus"):
+    required_col = [box_column]
     diff = drivedata.checkColumns(required_col)
     dt = drivedata.data
-    blocks = ((dt != dt.shift())[button_column].cumsum()) / 2
-    blocks[dt[button_column] == 0] = None
-    blocks.fillna(method="ffill", inplace=True)
+    blocks = ((dt != dt.shift())[box_column].cumsum()) / 2
+    blocks[dt[box_column] == 0] = None
+    # add about 5 seconds after the box disappears
+    blocks.fillna(method="ffill", inplace=True, limit=5*60)
     dt["boxBlocks"] = blocks
     dt = dt.reset_index()
     drivedata.data = dt

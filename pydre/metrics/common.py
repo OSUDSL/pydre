@@ -438,11 +438,23 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "
     return hitButton
 
 
-def firstOccurance(df: pandas.DataFrame, condition: str):
+def firstOccurrence(df: pandas.DataFrame, condition: str):
     try:
         output = df[condition].head(1)
         return output.index[0]
     except:
+        return None
+
+
+def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
+    required_col = [var, "SimTime"]
+    diff = drivedata.checkColumns(required_col)
+    if drivedata.data[var].max() == 0:
+        return np.nan
+    try:
+        f = drivedata.data[var].idxmax()
+        return drivedata.data["SimTime"].loc[f] - drivedata.data["SimTime"].iloc[0]
+    except ValueError:
         return None
 
 
@@ -487,14 +499,14 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int
     hazardIndex = [1, 3][index]
     if type == "brake":
         # brakesd = np.std(df.Brake)
-        start = firstOccurance(df, hazard == hazardIndex)
+        start = firstOccurrence(df, hazard == hazardIndex)
         if start:
             startTime = df["SimTime"].loc[start]
             startBrake = df["Brake"].loc[start]
             # check maximum of 10 seconds from hazard activation
-            reactionTime = firstOccurance(df, (simtime > startTime)  # after the starting of the hazard
-                                          & (simtime < startTime + 10)  # before 10 seconds after the hazard
-                                          & (df["Brake"] > startBrake + 0.5))
+            reactionTime = firstOccurrence(df, (simtime > startTime)  # after the starting of the hazard
+                                           & (simtime < startTime + 10)  # before 10 seconds after the hazard
+                                           & (df["Brake"] > startBrake + 0.5))
             if reactionTime:
                 print(
                     "hazard {} reactiontime {}".format(hazardIndex, simtime.loc[reactionTime] - simtime.loc[start]))
@@ -502,12 +514,12 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int
     elif type == "throttle":
         throttlesd = np.std(df[(hazard == 0) | (hazard == 2)].Throttle)
         throttlediff = df["Throttle"].diff()
-        start = firstOccurance(df, hazard == hazardIndex)
+        start = firstOccurrence(df, hazard == hazardIndex)
         if start:
             startTime = df["SimTime"].loc[start]
-            reactionTime = firstOccurance(df, (simtime > startTime)  # after the starting of the hazard
-                                          & (simtime < startTime + 10)  # before 10 seconds after the hazard
-                                          & (throttlediff > throttlesd))
+            reactionTime = firstOccurrence(df, (simtime > startTime)  # after the starting of the hazard
+                                           & (simtime < startTime + 10)  # before 10 seconds after the hazard
+                                           & (throttlediff > throttlesd))
             if reactionTime:
                 print(
                     "hazard {} reactiontime {}".format(hazardIndex, simtime.loc[reactionTime] - simtime.loc[start]))
@@ -657,3 +669,4 @@ registerMetric('countBoxHits', countBoxHits)
 registerMetric('percentBoxHits', percentBoxHits)
 registerMetric('countBoxMisses', countBoxMisses)
 registerMetric('percentBoxMisses', percentBoxMisses)
+registerMetric('timeFirstTrue', timeFirstTrue)

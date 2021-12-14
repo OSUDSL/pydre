@@ -710,7 +710,7 @@ class TestPydre(unittest.TestCase):
         
         # -----------------------
 
-        result = metrics.common.firstOccurance(df, 'Col1')
+        result = metrics.common.firstOccurrence(df, 'Col1')
         expected_result = 1
         print("======", result)
         self.assertEqual(expected_result, result)
