@@ -12,8 +12,29 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
+filtersList = {}
+filtersColNames = {}
+
+
+def registerFilter(jsonname=None, columnnames=None):
+    def registering_decorator(func):
+        jname = jsonname
+        if not jname:
+            jname = func.__name__
+        # register function
+        filtersList[jname] = func
+        if columnnames:
+            filtersColNames[jname] = columnnames
+        else:
+            filtersColNames[jname] = [jname, ]
+        return func
+    return registering_decorator
+
+
 # filters defined here take a DriveData object and return an updated DriveData object
 
+@registerFilter()
 def boxIdentificationTime(drivedata: pydre.core.DriveData, button_column="ResponseButton"):
     #check if required column names for mesopic study
     required_col = ["SimTime", "BoxStatus", button_column]
@@ -57,7 +78,7 @@ def boxIdentificationTime(drivedata: pydre.core.DriveData, button_column="Respon
     #return drivedata object
     return drivedata
 
-
+@registerFilter()
 def numberBoxBlocks(drivedata: pydre.core.DriveData, box_column="BoxStatus"):
     required_col = [box_column]
     diff = drivedata.checkColumns(required_col)
@@ -71,8 +92,7 @@ def numberBoxBlocks(drivedata: pydre.core.DriveData, box_column="BoxStatus"):
     drivedata.data = dt
     return drivedata
 
-
-        
+@registerFilter()
 def numberSwitchBlocks(drivedata: pydre.core.DriveData, ):
     required_col = ["TaskStatus"]
     diff = drivedata.checkColumns(required_col)
@@ -85,7 +105,7 @@ def numberSwitchBlocks(drivedata: pydre.core.DriveData, ):
     drivedata.data = dt
     return drivedata
 
-
+@registerFilter()
 def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str = "DatTime",
                    gazeColName: str = "FILTERED_GAZE_OBJ_NAME", latencyShift=6):
     required_col = [timeColName, gazeColName]
@@ -149,7 +169,7 @@ def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str = "DatTime"
     drivedata.data = dt
     return drivedata
 
-
+@registerFilter()
 def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
     for drive, filename in zip(drivedata.data, drivedata.sourcefilename):
         event_filename = Path(eventDirectory) / Path(filename).with_suffix(".evt").name
@@ -192,6 +212,7 @@ def mergeFintoTaskFail(drivedata: pydre.core.DriveData):
     return drivedata
 
 
+@registerFilter()
 def numberTaskInstance(drivedata: pydre.core.DriveData):
     dt = pandas.DataFrame(drivedata.data)
     # dt.to_csv('dt.csv')
@@ -227,7 +248,7 @@ def numberTaskInstance(drivedata: pydre.core.DriveData):
     drivedata.data = dt
     return drivedata
 
-
+@registerFilter()
 def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
     for data, sourcefile in zip(drivedata.data, drivedata.sourcefilename):
         filename = os.path.splitext(os.path.basename(sourcefile))[0]
@@ -235,6 +256,7 @@ def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
         data.to_csv(output_path, index=False)
     return drivedata
 
+@registerFilter()
 def filetimeToDatetime(ft: int):
     EPOCH_AS_FILETIME = 116444736000000000  # January 1, 1970 as filetime
     HUNDREDS_OF_NS = 10000000
@@ -249,6 +271,7 @@ def filetimeToDatetime(ft: int):
 def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack('Q', struct.pack('LL', lo, hi))[0]
 
+@registerFilter()
 def smarteyeTimeSync(drivedata: pydre.core.DriveData, smarteye_vars: list[str]):
     # REALTIME_CLOCK is the 64-bit integer timestamp from SmartEye
     # The clock data from SimObserver is in two different 32-bit integer values:
@@ -277,25 +300,3 @@ def smarteyeTimeSync(drivedata: pydre.core.DriveData, smarteye_vars: list[str]):
 
     return drivedata
 
-
-
-filtersList = {}
-filtersColNames = {}
-
-
-def registerFilter(name, function, columnnames=None):
-    filtersList[name] = function
-    if columnnames:
-        filtersColNames[name] = columnnames
-    else:
-        filtersColNames[name] = [name, ]
-
-registerFilter('boxIdentificationTime', boxIdentificationTime)
-registerFilter('smoothGazeData', smoothGazeData)
-registerFilter('numberSwitchBlocks', numberSwitchBlocks)
-registerFilter('mergeEvents', mergeEvents)
-registerFilter('mergeFintoTaskFail', mergeFintoTaskFail)
-registerFilter('numberTaskInstance', numberTaskInstance)
-registerFilter('writeToCSV', writeToCSV)
-registerFilter('smarteyeTimeSync', smarteyeTimeSync)
-registerFilter('numberBoxBlocks', numberBoxBlocks)
