@@ -1,42 +1,43 @@
 {
-	"rois": [
-        {"type": "column", "columnname": "TaskNum"}
+    "rois": [
+        {
+            "type": "column",
+            "columnname": "TaskNum"
+        }
     ],
-  "filters": [
+    "filters": [
         {
             "name": "smoothGazeData",
             "function": "smoothGazeData",
             "gazeColName": "ESTIMATED_CLOSEST_WORLD_INTERSECTION"
         },
-     {
+        {
             "name": "numberSwitchBlocks",
             "function": "numberSwitchBlocks"
-        }, 
+        },
         {
-        	"name": "mergeEvents",
-        	"function": "mergeEvents", 
-        	"eventDirectory": "event_files"
-        }, 
+            "name": "mergeEvents",
+            "function": "mergeEvents",
+            "eventDirectory": "event_files"
+        },
         {
-			"name": "mergeFintoTaskFail",
-        	"function": "mergeFintoTaskFail" 
-        }, 
-
+            "name": "mergeFintoTaskFail",
+            "function": "mergeFintoTaskFail"
+        },
         {
-        	"name": "numberTaskInstance",
+            "name": "numberTaskInstance",
             "function": "numberTaskInstance"
         },
         {
             "name": "writeToCSV",
             "function": "writeToCSV",
-            "outputDirectory": "output"
+            "outputDirectory": "output_test"
         }
     ],
-  
     "metrics": [
         {
             "name": "speedbumpHondaGaze2",
             "function": "speedbumpHondaGaze2"
         }
     ]
- }
+}
