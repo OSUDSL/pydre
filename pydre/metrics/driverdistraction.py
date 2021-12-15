@@ -10,6 +10,7 @@ from scipy import signal
 
 logger = logging.getLogger(__name__)
 
+@registerMetric()
 def getTaskNum(drivedata: pydre.core.DriveData):
     required_col = ["TaskNum"]
     diff = drivedata.checkColumns(required_col)
@@ -22,7 +23,7 @@ def getTaskNum(drivedata: pydre.core.DriveData):
     else:
         return None
 
-
+@registerMetric("errorPresses")
 def numOfErrorPresses(drivedata: pydre.core.DriveData):
     required_col = ["SimTime", "TaskFail"]
     diff = drivedata.checkColumns(required_col)
@@ -48,7 +49,7 @@ def appendDFToCSV_void(df, csvFilePath: str, sep: str = ","):
     else:
         df.to_csv(csvFilePath, mode='a', index=False, sep=sep, header=False)
 
-
+@registerMetric(columnnames=['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
 def gazeNHTSA(drivedata: pydre.core.DriveData):
     required_col = ["VidTime", "gaze", "gazenum", "TaskFail", "taskblocks", "PartID"]
     diff = drivedata.checkColumns(required_col)
@@ -111,7 +112,7 @@ def addVelocities(drivedata: pydre.core.DriveData):
     df.insert(len(df.columns), "LeadCarVelocity", v, True)
     return df
 
-
+@registerMetric()
 def crossCorrelate(drivedata: pydre.core.DriveData):
     df = pandas.DataFrame(drivedata.data)
     if 'OwnshipVelocity' not in df.columns or 'LeadCarVelocity' not in df.columns:
@@ -138,7 +139,7 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
     else:
         return 0.0
 
-
+@registerMetric(columnnames=['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
 def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     required_col = ["DatTime", "gaze", "gazenum", "TaskNum", "taskblocks", "PartID"]
     diff = drivedata.checkColumns(required_col)
@@ -180,6 +181,7 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
 
     return [total_time_onroad_glances, percent_onroad, mean_time_offroad_glances, mean_time_onroad_glances]
 
+@registerMetric(columnnames=['85th_percentile', 'duration_mean', 'duration_median', 'duration_std'])
 def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", maxtasknum=5):
     required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "TaskInstance", "KEY_EVENT_T", "KEY_EVENT_P"]
     # filters.numberTaskInstances() is required.
@@ -239,6 +241,7 @@ def speedbumpHondaGaze2(drivedata: pydre.core.DriveData, timecolumn="DatTime", m
 
     return [percentile, sum_mean, sum_median, sum_std]
 
+@registerMetric()
 def eventCount(drivedata: pydre.core.DriveData, event="KEY_EVENT_S"):
     required_col = [event]
     diff = drivedata.checkColumns(required_col)
@@ -251,7 +254,7 @@ def eventCount(drivedata: pydre.core.DriveData, event="KEY_EVENT_S"):
         occur = 0
     return occur
 
-
+@registerMetric()
 def insDuration(drivedata: pydre.core.DriveData):
     required_col = ['DatTime', 'TaskInstance']
     diff = drivedata.checkColumns(required_col)
@@ -259,7 +262,7 @@ def insDuration(drivedata: pydre.core.DriveData):
     df = pandas.DataFrame(drivedata.data, columns=required_col)
     return (df.tail(1).iat[0, 0] - df.head(1).iat[0, 0])
 
-
+@registerMetric(columnnames=['mean_onroad_spbpon', 'mean_offroad_spbpon', 'mean_onroad_spbpoff', 'mean_offroad_spbpoff'])
 def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", duration=6.0):
     required_col = [timecolumn, "gaze", "gazenum", "TaskNum", "TaskFail", "KEY_EVENT_S", "KEY_EVENT_T", "KEY_EVENT_P"]
     diff = drivedata.checkColumns(required_col)
@@ -340,16 +343,3 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
     return [mean_onroad_spbpon, mean_offroad_spbpon, mean_onroad_spbpoff, mean_offroad_spbpoff]
 
 
-registerMetric('errorPresses', numOfErrorPresses)
-registerMetric('crossCorrelate', crossCorrelate)
-registerMetric('speedbumpHondaGaze', speedbumpHondaGaze,
-               ['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
-registerMetric('gazes', gazeNHTSA,
-               ['numOfGlancesOR', 'numOfGlancesOR2s', 'meanGlanceORDuration', 'sumGlanceORDuration'])
-registerMetric('speedbumpHondaGaze2', speedbumpHondaGaze2,
-               ['85th_percentile', 'duration_mean', 'duration_median', 'duration_std'])
-registerMetric('insDuration', insDuration)
-registerMetric('eventCount', eventCount)
-registerMetric('getTaskNum', getTaskNum)
-registerMetric('speedbump2Gaze', speedbump2Gaze,
-               ['mean_onroad_spbpon', 'mean_offroad_spbpon', 'mean_onroad_spbpoff', 'mean_offroad_spbpoff'])

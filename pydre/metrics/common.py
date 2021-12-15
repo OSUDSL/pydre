@@ -17,6 +17,7 @@ from pydre.metrics.driverdistraction import getTaskNum, numOfErrorPresses, gazeN
 logger = logging.getLogger(__name__)
 
 
+@registerMetric()
 def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
     required_col = ["Velocity"]
     drivedata.checkColumns(required_col)
@@ -44,33 +45,35 @@ def checkSeriesNan(series):
     else:
         return False
 
-
+@registerMetric()
 def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     required_col = [var]
     drivedata.checkColumns(required_col)
     var_dat = drivedata.data[var]
     return np.mean(var_dat[var_dat >= cutoff].values)
 
-
+@registerMetric()
 def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: float = 0):
     required_col = [var]
     drivedata.checkColumns(required_col)
     var_dat = drivedata.data[var]
     return np.std(var_dat[var_dat >= cutoff].values)
 
-
+@registerMetric()
 def colMax(drivedata: pydre.core.DriveData, var: str):
     required_col = [var]
     drivedata.checkColumns(required_col)
     var_dat = drivedata.data[var]
     return np.max(var_dat.values)
 
+@registerMetric()
 def colMin(drivedata: pydre.core.DriveData, var: str):
     required_col = [var]
     drivedata.checkColumns(required_col)
     var_dat = drivedata.data[var]
     return np.min(var_dat.values)
 
+@registerMetric()
 def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentage: bool = False):
     required_col = ["SimTime", "Velocity"]
     drivedata.checkColumns(required_col)
@@ -101,6 +104,7 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
 # when testing with a sin signal, but I'm not sure if that leads to a risk or not so I'll keep that as an option
 
 # noisy and filtfilt are NOT case sensitive and are meaningful only when calculating MSDLP
+@registerMetric()
 def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_width=3.65, car_width=2.1,
                  offset="LaneOffset", noisy="false", filtfilt="false"):
     required_col = ["SimTime", "DatTime", "Lane", offset]
@@ -192,7 +196,7 @@ def lanePosition(drivedata: pydre.core.DriveData, laneInfo="sdlp", lane=2, lane_
             return None
     return LPout
 
-
+@registerMetric()
 def roadExits(drivedata: pydre.core.DriveData):
     required_col = ["SimTime", "RoadOffset", "Velocity"]
     drivedata.checkColumns(required_col)
@@ -208,7 +212,7 @@ def roadExits(drivedata: pydre.core.DriveData):
         roadOutTime += sum(deltas.SimTime[(deltas.SimTime < .5) & (deltas.SimTime > 0)])
     return roadOutTime
 
-
+@registerMetric()
 def roadExitsY(drivedata: pydre.core.DriveData):
     required_col = ["SimTime", "YPos", "Velocity"]
     drivedata.checkColumns(required_col)
@@ -249,6 +253,7 @@ def brakeJerk(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
 
 # cutoff doesn't work
+@registerMetric()
 def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     required_col = ["SimTime", "Steer"]
     drivedata.checkColumns(required_col)
@@ -300,7 +305,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
     return Hp
 
-
+@registerMetric()
 def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
     tail_time = 0
     table = drivedata.data
@@ -312,7 +317,7 @@ def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
     tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
     return tail_time
 
-
+@registerMetric()
 def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
     total_time = 0
     tail_time = 0
@@ -326,6 +331,7 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
     total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
     return tail_time / total_time
 
+@registerMetric()
 def averageBoxReactionTime(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
     diff = drivedata.checkColumns(required_col)
@@ -334,6 +340,7 @@ def averageBoxReactionTime(drivedata: pydre.core.DriveData):
     #Filter all reaction times that are negative (missed boxes) then output mean
     return df[df["ReactionTime"] > 0.0]["ReactionTime"].mean()
 
+@registerMetric()
 def sdBoxReactionTime(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
     diff = drivedata.checkColumns(required_col)
@@ -376,6 +383,7 @@ def percentBoxMisses(drivedata: pydre.core.DriveData):
     #return percentage of Misses
     return ((df[(df['ReactionTime'] < 0)].shape[0]) / (df.shape[0])) * 100
 
+@registerMetric()
 def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "count"):
     required_col = ["SimTime", "FeedbackButton", "BoxAppears"]
     diff = drivedata.checkColumns(required_col)
@@ -437,7 +445,7 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "
         print("Can't calculate that statistic.")
     return hitButton
 
-
+@registerMetric()
 def firstOccurrence(df: pandas.DataFrame, condition: str):
     try:
         output = df[condition].head(1)
@@ -445,7 +453,7 @@ def firstOccurrence(df: pandas.DataFrame, condition: str):
     except:
         return None
 
-
+@registerMetric()
 def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
     required_col = [var, "SimTime"]
     diff = drivedata.checkColumns(required_col)
@@ -482,7 +490,7 @@ Then you average the two throttle reaction times and the two brake reaction time
 This results in 8 reaction times per participant.
 '''
 
-
+@registerMetric()
 def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int = 0):
     required_col = ["SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"]
     diff = drivedata.checkColumns(required_col)
@@ -530,7 +538,7 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int
     else:
         return None
 
-
+@registerMetric()
 def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1", stat: str = "mean"):
     required_col = ["SimTime", "WarningToggle", "FailureCode", "Throttle", "Brake", "Steer", "AutonomousDriving"]
     diff = drivedata.checkColumns(required_col)
@@ -648,25 +656,3 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1", stat: str = "me
     else:
         print("Can't calculate that statistic.")
 
-
-registerMetric('colMean', colMean)
-registerMetric('colMin', colMin)
-registerMetric('colMax', colMax)
-registerMetric('colSD', colSD)
-registerMetric('steeringEntropy', steeringEntropy)
-registerMetric('tailgatingTime', tailgatingTime)
-registerMetric('tailgatingPercentage', tailgatingPercentage)
-registerMetric('timeAboveSpeed', timeAboveSpeed)
-registerMetric('lanePosition', lanePosition)
-registerMetric('boxMetrics', boxMetrics)
-registerMetric('roadExits', roadExits)
-registerMetric('brakeJerk', brakeJerk)
-registerMetric('ecoCar', ecoCar)
-registerMetric('tbiReaction', tbiReaction)
-registerMetric('averageBoxReactionTime', averageBoxReactionTime)
-registerMetric('sdBoxReactionTime', sdBoxReactionTime)
-registerMetric('countBoxHits', countBoxHits)
-registerMetric('percentBoxHits', percentBoxHits)
-registerMetric('countBoxMisses', countBoxMisses)
-registerMetric('percentBoxMisses', percentBoxMisses)
-registerMetric('timeFirstTrue', timeFirstTrue)
