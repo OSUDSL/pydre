@@ -8,6 +8,8 @@ import os
 import datetime
 import struct
 
+import typing
+from typing import List
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -272,7 +274,7 @@ def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack('Q', struct.pack('LL', lo, hi))[0]
 
 @registerFilter()
-def smarteyeTimeSync(drivedata: pydre.core.DriveData, smarteye_vars: list[str]):
+def smarteyeTimeSync(drivedata: pydre.core.DriveData, smarteye_vars: List[str]):
     # REALTIME_CLOCK is the 64-bit integer timestamp from SmartEye
     # The clock data from SimObserver is in two different 32-bit integer values:
     # hiFileTime encodes the high-order bits of the clock data
