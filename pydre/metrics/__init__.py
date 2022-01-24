@@ -14,6 +14,20 @@ logger = logging.getLogger(__name__)
 metricsList = {}
 metricsColNames = {}
 
+def registerMetric(jsonname=None, columnnames=None):
+    def registering_decorator(func):
+        jname = jsonname
+        if not jname:
+            jname = func.__name__
+        # register function
+        metricsList[jname] = func
+        if columnnames:
+            metricsColNames[jname] = columnnames
+        else:
+            metricsColNames[jname] = [jname, ]
+        return func
+    return registering_decorator
+
 def check_data_columns(arg):
     def argwrapper(f):
         @wraps(f)
@@ -24,10 +38,3 @@ def check_data_columns(arg):
             return value
         return wrapper
     return argwrapper
-
-def registerMetric(name, function, columnnames: typing.Optional[List[str]] = None):
-    metricsList[name] = function
-    if columnnames:
-        metricsColNames[name] = columnnames
-    else:
-        metricsColNames[name] = [name, ]
