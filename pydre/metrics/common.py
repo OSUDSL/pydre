@@ -465,6 +465,18 @@ def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
     except ValueError:
         return None
 
+@registerMetric()
+def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var:str):
+    required_col = [var, "SimTime"]
+    diff = drivedata.checkColumns(required_col)
+    if drivedata.data[var].max() == 0:
+        return np.nan
+    try:
+        f = drivedata.data[drivedata.data[var].gt(5)].index[0]
+        return drivedata.data["SimTime"].loc[f] - drivedata.data["SimTime"].iloc[0]
+    except ValueError:
+        return None
+
 
 '''
 TBI Reaction algorithm

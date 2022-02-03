@@ -1,0 +1,54 @@
+{
+
+    "filters": [
+          {
+              "name": "numberBoxBlocks",
+              "function": "numberBoxBlocks",
+              "box_column": "BoxStatus"
+          }
+      ],
+  
+      "rois": [
+          {"type": "column", "columnname": "boxBlocks"}
+      ],
+  
+      "metrics": [
+          {
+              "name": "meanVelocity",
+              "function": "colMean",
+              "var": "Velocity"
+          },
+          {
+              "name": "sdVelocity",
+              "function": "colSD",
+              "var": "Velocity"
+          },
+          {
+              "name": "sdLP",
+              "function": "colSD",
+              "var": "RoadOffset"
+          },
+          {
+                "name": "startSimTime",
+                "function": "colMin",
+                "var": "SimTime"
+          },
+        {
+          "name": "startXPos",
+          "function": "colMin",
+          "var": "XPos"
+        },
+        {
+          "name": "reactionTime",
+          "function": "timeFirstTrue",
+          "var": "CancelSwitch"
+        },
+        {
+          "name": "BoxTarget",
+          "function": "colMax",
+          "var": "BoxTarget"
+        }
+  
+      ]
+   }
+  
