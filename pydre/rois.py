@@ -189,7 +189,6 @@ class ColumnROI():
         in the roi definition file column name
         """
         return_list = []
-
         for ddata in datalist:
             for i in ddata.data[self.roi_column].unique():
                 region_data = ddata.data[ddata.data[self.roi_column] == i]

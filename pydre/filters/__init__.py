@@ -95,7 +95,7 @@ def numberBoxBlocks(drivedata: pydre.core.DriveData, box_column="BoxStatus"):
     return drivedata
 
 @registerFilter()
-def numberFollowingCarBrakes(drivedata: pydre.core.DriveData, box_column="FollowingCarBrakingStatus"):
+def numberFollowingCarBrakes(drivedata: pydre.core.DriveData, box_column="FollowCarBrakingStatus"):
     required_col = [box_column]
     diff = drivedata.checkColumns(required_col)
     dt = drivedata.data
