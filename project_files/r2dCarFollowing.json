@@ -4,7 +4,7 @@
           {
               "name": "numberFollowingCarBrakes",
               "function": "numberFollowingCarBrakes",
-              "box_column": "FollowingCarBrakingStatus"
+              "box_column": "FollowCarBrakingStatus"
           }
       ],
   

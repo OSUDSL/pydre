@@ -41,12 +41,7 @@
         {
           "name": "reactionTime",
           "function": "timeFirstTrue",
-          "var": "CancelSwitch"
-        },
-        {
-          "name": "BoxTarget",
-          "function": "colMax",
-          "var": "BoxTarget"
+          "var": "ResponseButton"
         }
   
       ]

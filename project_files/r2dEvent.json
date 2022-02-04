@@ -40,8 +40,8 @@
         },
         {
           "name": "reactionTime",
-          "function": "reactionBrakeFirstTrue",
-          "var": "Brake"
+          "function": "reactionTimeEventTrue",
+          "var": "Lane"
         }
   
       ]
