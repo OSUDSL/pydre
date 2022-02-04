@@ -6,3 +6,4 @@ build
 dist
 gui/config_files/config.ini
 env
+venv/
