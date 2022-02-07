@@ -41,7 +41,8 @@
         {
           "name": "reactionTime",
           "function": "reactionTimeEventTrue",
-          "var": "Lane"
+          "var1": "Brake", 
+          "var2": "LaneOffset"
         }
   
       ]
