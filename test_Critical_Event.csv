@@ -1,3 +1,0 @@
-Subject,Mode,ScenarioName,UniqueID,ROI,meanVelocity,sdVelocity,sdLP,startSimTime,startXPos,reactionTime
-Sim/pydre/pydre/example,work/Driving,data/Experimenter,3220002,1.0,15.59461733991228,3.732725122507528,0.3655041939509966,1534.84,1763.710815,2.0800000000001546
-Sim/pydre/pydre/example,work/Driving,data/Experimenter,3220002,2.0,18.428408133479213,0.4308328804127487,0.5367013968614683,1723.4,5640.427246,1.7999999999999545
