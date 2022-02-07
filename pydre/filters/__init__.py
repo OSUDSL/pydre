@@ -113,8 +113,8 @@ def numberEventBlocks(drivedata: pydre.core.DriveData, box_column="CriticalEvent
     dt = drivedata.data
     eventBlocks = ((dt != dt.shift())[box_column].cumsum()) / 2
     eventBlocks[dt[box_column] == 0] = None
-    # add about 5 seconds after the event occurs
-    eventBlocks.fillna(method="ffill", inplace=True, limit=5*60)
+    # add about 2 seconds after the event occurs
+    #eventBlocks.fillna(method="ffill", inplace=True, limit=2*60)
     dt["eventBlocks"] = eventBlocks
     dt = dt.reset_index()
     drivedata.data = dt
