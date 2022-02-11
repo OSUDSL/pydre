@@ -7,6 +7,7 @@ import sys
 import pydre.core
 import pydre.rois
 import pydre.metrics
+import ntpath
 from pydre.metrics import *
 import pydre.filters
 import pathlib
@@ -43,6 +44,7 @@ class Project:
         self.data = []
 
     def __loadSingleFile(self, filename: str):
+        file = ntpath.basename(filename)
         """Load a single .dat file (space delimited csv) into a DriveData object"""
         d = pandas.read_csv(filename, sep=' ', na_values='.')
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
@@ -54,7 +56,7 @@ class Project:
             drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
             return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
         elif match_format1 := datafile_re_format1.search(
-                filename):  # assign bool value to var "match_format1", only available in python 3.8 or higher
+                file):  # assign bool value to var "match_format1", only available in python 3.8 or higher
             mode, subject_id, scen_name, unique_id = match_format1.groups()
             return pydre.core.DriveData.initV4(d, filename, subject_id, unique_id, scen_name, mode)
         else:
