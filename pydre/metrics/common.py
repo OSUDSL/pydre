@@ -476,6 +476,8 @@ def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var:str):
         return drivedata.data["SimTime"].loc[f] - drivedata.data["SimTime"].iloc[0]
     except ValueError:
         return None
+    except IndexError:
+        return None
 
 @registerMetric()
 def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1:str, var2:str):
@@ -485,7 +487,7 @@ def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1:str, var2:str):
     if res is None or np.isnan(res):
         #Check if Pariticipant swerved to react to event
         try:
-            f = drivedata.data[abs(drivedata.data[var2]) >= 1.75].index[0]
+            f = drivedata.data[abs(drivedata.data[var2]) >= 1.2].index[0]
             return drivedata.data["SimTime"].loc[f] - drivedata.data["SimTime"].iloc[0]
         except ValueError:
             return None
