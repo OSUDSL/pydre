@@ -15,34 +15,33 @@ config.read(CONFIG_PATH)
 
 
 class Application(QApplication):
-    '''Primary application that handles command-line arguments and launches the 
-    given window.
-
+    '''Primary application that handles command-line arguments and launches the
+    given Window object.
     '''
 
     def __init__(self, window, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        '''Constructor
+        @param window: Window object responsible for layout and functionality
+        '''
 
+        super().__init__(*args, **kwargs)
         self.window = window(self)
         GUIHandler.window = self.window
         self._configure_app()
         self.window.start()
 
     def _configure_app(self):
-        '''TODO
-
+        '''Convenience method for configuring default app settings.
         '''
 
         self.setFont(QFont('Arial', 10))
 
 
 def start():
-    '''Starts the application with default configuration settings.
-
+    '''Launches the application with default configuration settings.
     '''
 
-    app_window = MainWindow
-    app = Application(app_window, sys.argv)
+    app = Application(MainWindow, sys.argv)
     app.exec_()
 
 
