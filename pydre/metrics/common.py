@@ -464,7 +464,40 @@ def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
         return drivedata.data["SimTime"].loc[f] - drivedata.data["SimTime"].iloc[0]
     except ValueError:
         return None
+    except KeyError:
+        return None
 
+@registerMetric()
+def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var:str):
+    required_col = [var, "SimTime"]
+    diff = drivedata.checkColumns(required_col)
+    if drivedata.data[var].max() == 0:
+        return np.nan
+    try:
+        f = drivedata.data[drivedata.data[var].gt(5)].index[0]
+        return drivedata.data["SimTime"].loc[f] - drivedata.data["SimTime"].iloc[0]
+    except ValueError:
+        return None
+    except IndexError:
+        return None
+
+@registerMetric()
+def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1:str, var2:str):
+    required_col = [var1, var2, "SimTime"]
+    diff = drivedata.checkColumns(required_col)
+    res = reactionBrakeFirstTrue(drivedata, var1)
+    if res is None or np.isnan(res):
+        #Check if Pariticipant swerved to react to event
+        try:
+            f = drivedata.data[abs(drivedata.data[var2]) >= 1.2].index[0]
+            return drivedata.data["SimTime"].loc[f] - drivedata.data["SimTime"].iloc[0]
+        except ValueError:
+            return None
+        except IndexError:
+            return None
+    else:
+        return res
+    
 
 '''
 TBI Reaction algorithm
