@@ -42,6 +42,11 @@
           "name": "reactionTime",
           "function": "reactionBrakeFirstTrue",
           "var": "Brake"
+        }, 
+        {
+            "name": "minHeadwayDistance",
+            "function": "colMin",
+            "var": "HeadwayDistance"
         }
   
       ]
