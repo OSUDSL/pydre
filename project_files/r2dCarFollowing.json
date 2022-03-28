@@ -1,0 +1,54 @@
+{
+
+    "filters": [
+          {
+              "name": "numberFollowingCarBrakes",
+              "function": "numberFollowingCarBrakes",
+              "box_column": "FollowCarBrakingStatus"
+          }
+      ],
+  
+      "rois": [
+          {"type": "column", "columnname": "carBlocks"}
+      ],
+  
+      "metrics": [
+          {
+              "name": "meanVelocity",
+              "function": "colMean",
+              "var": "Velocity"
+          },
+          {
+              "name": "sdVelocity",
+              "function": "colSD",
+              "var": "Velocity"
+          },
+          {
+              "name": "sdLP",
+              "function": "colSD",
+              "var": "RoadOffset"
+          },
+          {
+                "name": "startSimTime",
+                "function": "colMin",
+                "var": "SimTime"
+          },
+        {
+          "name": "startXPos",
+          "function": "colMin",
+          "var": "XPos"
+        },
+        {
+          "name": "reactionTime",
+          "function": "reactionBrakeFirstTrue",
+          "var": "Brake"
+        }, 
+        {
+            "name": "minHeadwayDistance",
+            "function": "colMin",
+            "var": "HeadwayDistance"
+        }
+  
+      ]
+   }
+  

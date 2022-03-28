@@ -95,6 +95,33 @@ def numberBoxBlocks(drivedata: pydre.core.DriveData, box_column="BoxStatus"):
     return drivedata
 
 @registerFilter()
+def numberFollowingCarBrakes(drivedata: pydre.core.DriveData, box_column="FollowCarBrakingStatus"):
+    required_col = [box_column]
+    diff = drivedata.checkColumns(required_col)
+    dt = drivedata.data
+    brakes = ((dt != dt.shift())[box_column].cumsum()) / 2
+    brakes[dt[box_column] == 0] = None
+    dt["carBlocks"] = brakes
+    dt = dt.reset_index()
+    drivedata.data = dt
+    return drivedata
+
+@registerFilter()
+def numberEventBlocks(drivedata: pydre.core.DriveData, box_column="CriticalEventStatus"):
+    required_col = [box_column]
+    diff = drivedata.checkColumns(required_col)
+    dt = drivedata.data
+    eventBlocks = ((dt != dt.shift())[box_column].cumsum()) / 2
+    eventBlocks[dt[box_column] == 0] = None
+    # add about 2 seconds after the event occurs
+    #eventBlocks.fillna(method="ffill", inplace=True, limit=2*60)
+    dt["eventBlocks"] = eventBlocks
+    dt = dt.reset_index()
+    drivedata.data = dt
+    return drivedata
+
+
+@registerFilter()
 def numberSwitchBlocks(drivedata: pydre.core.DriveData, ):
     required_col = ["TaskStatus"]
     diff = drivedata.checkColumns(required_col)
