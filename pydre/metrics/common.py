@@ -1,6 +1,8 @@
 from __future__ import annotations  # needed for python < 3.9
 
 import logging
+import re
+
 import pandas
 import pydre.core
 from pydre.metrics import registerMetric
@@ -689,3 +691,29 @@ def ecoCar(drivedata: pydre.core.DriveData, FailCode: str = "1", stat: str = "me
     else:
         print("Can't calculate that statistic.")
 
+@registerMetric("R2DIDColumns", ["ParticipantID", "MatchID", "Case", "Location", "Gender", "Week"])
+def R2DIDColumns(drivedata: pydre.core.DriveData):
+    ident = drivedata.PartID
+    ident_groups = re.match(r'(\d)(\d)(\d)(\d\d\d\d)[wW](\d)', ident)
+    if ident_groups is None:
+        return [None, None, None, None, None]
+    case = ident_groups.group(1)
+    if case == "3":
+        case = "Case"
+    elif case == "5":
+        case = "Control"
+    elif case == "7":
+        case = "Enrolled"
+    location = ident_groups.group(2)
+    if location == "1":
+        location = "UAB"
+    elif location == "2":
+        location = "OSU"
+    gender = ident_groups.group(3)
+    if gender == "1":
+        gender = "Male"
+    elif gender == "2":
+        gender = "Female"
+    match_id = ident_groups.group(4)
+    week = ident_groups.group(5)
+    return case + location + gender + match_id, match_id, case, location, gender, week

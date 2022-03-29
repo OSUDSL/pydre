@@ -14,6 +14,10 @@
   
       "metrics": [
           {
+            "name": "R2DIDColumns",
+            "function": "R2DIDColumns"
+          },
+          {
               "name": "meanVelocity",
               "function": "colMean",
               "var": "Velocity"
