@@ -1,0 +1,13 @@
+QTreeView::item:hover {
+	color: black;
+	background-color: white;
+}
+
+QTreeView::item:focus {
+	color: black;
+	background-color: white;
+}
+
+QComboBox {
+	background-color: rgb(220, 220, 220);
+}

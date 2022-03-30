@@ -1,0 +1,30 @@
+{
+
+    "metrics": [
+        {
+            "name": "tbiReactionBrake1",
+            "function": "tbiReaction",
+            "type": "brake",
+            "index": 0
+        },
+        {
+            "name": "tbiReactionThrottle1",
+            "function": "tbiReaction",
+            "type": "throttle",
+            "index": 0
+        },
+        {
+            "name": "tbiReactionBrake2",
+            "function": "tbiReaction",
+            "type": "brake",
+            "index": 1
+        },
+        {
+            "name": "tbiReactionThrottle2",
+            "function": "tbiReaction",
+            "type": "throttle",
+            "index": 1
+        }
+    ]
+ }
+
