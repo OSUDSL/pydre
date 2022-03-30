@@ -3,130 +3,256 @@
 import json
 import pandas
 import re
-
+import sys
 import pydre.core
 import pydre.rois
 import pydre.metrics
-
+import ntpath
+from pydre.metrics import *
+import pydre.filters
+import pathlib
+from tqdm import tqdm
 import logging
-logger = logging.getLogger('PydreLogger')
+from gui.logger import GUIHandler
+
+logger = logging.getLogger(__name__)
 
 
-class Project():
+class Project:
+    def __init__(self,  projectfilename: str, progressbar=None, app=None):
+        self.app = app
+        self.project_filename = projectfilename
+        self.progress_bar = progressbar
 
-	def __init__(self, projectfilename):
-		self.project_filename = projectfilename
-		self.definition = None
-		with open(self.project_filename) as project_file:
-			self.definition = json.load(project_file)
+        # This will suppress the unnecessary SettingWithCopy Warning.
+        pandas.options.mode.chained_assignment = None
 
-		# TODO: check for correct definition syntax
-		self.data = []
+        self.definition = None
+        with open(self.project_filename) as project_file:
+            try:
+                self.definition = json.load(project_file)
+            except json.decoder.JSONDecodeError as e:
+                # The exact location of the error according to the exception, is a little wonky. Amongst all the text
+                # 	editors used, the line number was consistently 1 more than the actual location of the syntax error.
+                # 	Hence, the "e.lineno -1" in the logger error below.
 
-	def __loadSingleFile(self, filename):
-		"""Load a single .dat file (whitespace delmited csv) into a DriveData object"""
-		# Could cache this re, probably affect performance
-		d = pandas.read_csv(filename, sep='\s+', na_values='.')
-		datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
-		match = datafile_re.search(filename)
-		experiment_name, subject_id, drive_id = match.groups()
-		return pydre.core.DriveData(SubjectID=int(subject_id), DriveID=int(drive_id),
-									roi=None, data=d, sourcefilename=filename)
+                logger.critical("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
+                             + str(e.lineno - 1) + ".")
+                # exited as a general error because it is seemingly best suited for the problem encountered
+                sys.exit(1)
 
-	def processROI(self, roi, dataset):
-		"""
-		Handles running region of interest definitions for a dataset
+        self.data = []
 
-		Args:
-			roi: A dict containing the type of a roi and the filename of the data used to process it
-			dataset: a list of pandas dataframes containing the source data to partition
+    def __loadSingleFile(self, filename: str):
+        file = ntpath.basename(filename)
+        """Load a single .dat file (space delimited csv) into a DriveData object"""
+        d = pandas.read_csv(filename, sep=' ', na_values='.')
+        datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
+        datafile_re_format1 = re.compile(
+            "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat")  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
+        match_format0 = datafile_re_format0.search(filename)
+        if match_format0:
+            experiment_name, subject_id, drive_id = match_format0.groups()
+            drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
+            return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
+        elif match_format1 := datafile_re_format1.search(
+                file):  # assign bool value to var "match_format1", only available in python 3.8 or higher
+            mode, subject_id, scen_name, unique_id = match_format1.groups()
+            return pydre.core.DriveData.initV4(d, filename, subject_id, unique_id, scen_name, mode)
+        else:
+            logger.warning(
+                "Drivedata filename does not an expected format")
+            return pydre.core.DriveData(d, filename)
 
-		Returns:
-			A list of pandas DataFrames containing the data for each region of interest
-		"""
-		roi_type = roi['type']
-		filename = roi['filename']
-		if roi_type == "time":
-			roi_obj = pydre.rois.TimeROI(filename)
-			return roi_obj.split(dataset)
-		elif roi_type == "rect":
-			roi_obj = pydre.rois.SpaceROI(filename)
-			return roi_obj.split(dataset)
-		else:
-			return []
+    def processROI(self, roi, dataset):
+        """
+                Handles running region of interest definitions for a dataset
 
-	def processMetric(self, metric, dataset):
-		"""
-		Handles running any metric defninition
+                Args:
+                        roi: A dict containing the type of a roi and the filename of the data used to process it
+                        dataset: a list of pandas dataframes containing the source data to partition
 
-		Args:
-			metric: A dict containing the type of a metric and the parameters to process it
+                Returns:
+                        A list of pandas DataFrames containing the data for each region of interest
+                """
+        roi_type = roi['type']
+        if roi_type == "time":
+            logger.info("Processing ROI file " + roi['filename'])
+            roi_obj = pydre.rois.TimeROI(roi['filename'])
+            return roi_obj.split(dataset)
+        elif roi_type == "rect":
+            logger.info("Processing ROI file " + roi['filename'])
+            roi_obj = pydre.rois.SpaceROI(roi['filename'])
+            return roi_obj.split(dataset)
+        elif roi_type == "column":
+            logger.info("Processing ROI column " + roi['columnname'])
+            roi_obj = pydre.rois.ColumnROI(roi['columnname'])
+            return roi_obj.split(dataset)
+        else:
+            return []
 
-		Returns:
-			A list of values with the results
-		"""
+    def processFilter(self, filter, dataset):
+        """
+        Handles running any filter definition
 
-		try:
-			metric_func = pydre.metrics.metricsList[metric.pop('function')]
-			report_name = metric.pop('name')
-		except KeyError as e:
-			logger.warning("Malformed metrics defninition: missing " + str(e))
-			return []
-		return [report_name, [metric_func(d, **metric) for d in dataset]]
+        Args:
+            filter: A dict containing the type of a filter and the parameters to process it
 
-	def loadFileList(self, datafiles):
-		"""
-		Args:
-			datafiles: a list of filename strings (SimObserver .dat files)
+        Returns:
+            A list of values with the results
+        """
 
-		Loads all datafiles into the project raw data list.
-		Before loading, the internal list is cleared.
-		"""
-		self.raw_data = []
-		for datafile in datafiles:
-			logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
-			self.raw_data.append(self.__loadSingleFile(datafile))
+        try:
+            func_name = filter.pop('function')
+            filter_func = pydre.filters.filtersList[func_name]
+            report_name = filter.pop('name')
+            col_names = pydre.filters.filtersColNames[func_name]
+        except KeyError as e:
+            logger.warning(
+                "Filter definitions require both \"name\" and \"function\". Malformed filters definition: missing " + str(
+                    e))
+            sys.exit(1)
 
-	def run(self, datafiles):
-		"""
-		Args:
-			datafiles: a list of filename strings (SimObserver .dat files)
+        x = []
+        if len(col_names) > 1:
+            for d in tqdm(dataset, desc=func_name):
+                x.append(d)
+                if self.progress_bar:
+                    value = self.progress_bar.value() + 100.0 / len(dataset)
+                    self.progress_bar.setValue(value)
+                if self.app:
+                    self.app.processEvents()
+            report = pandas.DataFrame(x, columns=col_names)
+        else:
+            for d in tqdm(dataset, desc=func_name):
+                x.append(filter_func(d, **filter))
+                if self.progress_bar:
+                    value = self.progress_bar.value() + 100.0 / len(dataset)
+                    self.progress_bar.setValue(value)
+                if self.app:
+                    self.app.processEvents()
+            report = pandas.DataFrame(x, columns=[report_name, ])
 
-		Load all files in datafiles, then process the rois and metrics
-		"""
-		self.loadFileList(datafiles)
-		data_set = []
-		if 'rois' in self.definition:
-			for roi in self.definition['rois']:
-				data_set.extend(self.processROI(roi, self.raw_data))
-		else:
-			# no ROIs to process, but that's OK
-			logger.warning("No ROIs, processing raw data.")
-			data_set = self.raw_data
+        return report
 
-		result_data = pandas.DataFrame()
-		result_data['Subject'] = pandas.Series([d.SubjectID for d in data_set])
-		result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
-		result_data['ROI'] = pandas.Series([d.roi for d in data_set])
-		for metric in self.definition['metrics']:
-			metric_title, metric_values = self.processMetric(metric, data_set)
-			
-			if (metric_title in result_data):
-				logger.error("The metric title [" + metric_title + "] occrus multiple times in the project file. Only the last metric named [" + metric_title + "] will be kept in the data.")
-				#Should we quit() here??
-				
-			result_data[metric_title] = pandas.Series(metric_values)
-		self.results = result_data	
+    def processMetric(self, metric: object, dataset: list) -> pandas.DataFrame:
+        """
 
-	def save(self, outfilename="out.csv"):
-		"""
-		Args:
-			outfilename: filename to output csv data to.
+        :param metric:
+        :param dataset:
+        :return:
+        """
+        try:
+            func_name = metric.pop('function')
+            metric_func = pydre.metrics.metricsList[func_name]
+            report_name = metric.pop('name')
+            col_names = pydre.metrics.metricsColNames[func_name]
+        except KeyError as e:
+            logger.warning(
+                "Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(
+                    e))
+            sys.exit(1)
 
-		The filename specified will be overwritten automatically.
-		"""
-		
-		try:
-			self.results.to_csv(outfilename, index=False)
-		except AttributeError:
-			logger.error("Results not computed yet")
+        if len(col_names) > 1:
+            x = [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)]
+            report = pandas.DataFrame(x, columns=col_names)
+        else:
+            report = pandas.DataFrame(
+                [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)], columns=[report_name, ])
+
+        return report
+
+    def loadFileList(self, datafiles):
+        """
+                Args:
+                        datafiles: a list of filename strings (SimObserver .dat files)
+
+                Loads all datafiles into the project raw data list.
+                Before loading, the internal list is cleared.
+                """
+        self.raw_data = []
+        for datafile in tqdm(datafiles, desc="Loading files"):
+            logger.info("Loading file #{}: {}".format(
+                len(self.raw_data), datafile))
+            self.raw_data.append(self.__loadSingleFile(datafile))
+            if self.progress_bar:
+                value = self.progress_bar.value() + 100.0 / len(datafiles)
+                self.progress_bar.setValue(value)
+            if self.app:
+                self.app.processEvents()
+
+    # remove any parenthesis, quote mark and un-necessary directory names from a str
+    def __clean(self, string):
+        return string.replace('[', '').replace(']', '').replace('\'', '').split("\\")[-1]
+
+    def run(self, datafiles):
+        """
+                Args:
+                        datafiles: a list of filename strings (SimObserver .dat files)
+
+                Load all files in datafiles, then process the rois and metrics
+                """
+
+        self.loadFileList(datafiles)
+        data_set = []
+        try:
+            if 'filters' in self.definition:
+                for filter in self.definition['filters']:
+                    self.processFilter(filter, self.raw_data)
+
+            if 'rois' in self.definition:
+                for roi in self.definition['rois']:
+                    data_set.extend(self.processROI(roi, self.raw_data))
+            else:
+                # no ROIs to process, but that's OK
+                logger.warning("No ROIs, processing raw data.")
+                data_set = self.raw_data
+
+            logger.info("number of datafiles: {}, number of rois: {}".format(
+                len(datafiles), len(data_set)))
+
+            # for filter in self.definition['filters']:
+            #     self.processFilter(filter, data_set)
+            result_data = pandas.DataFrame()
+            result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
+
+            if (data_set[0].format_identifier == 2):  # these drivedata object was created from an old format data file
+                result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
+            elif (data_set[
+                      0].format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+                result_data['Mode'] = pandas.Series([self.__clean(str(d.mode)) for d in data_set])
+                result_data['ScenarioName'] = pandas.Series([self.__clean(str(d.scenarioName)) for d in data_set])
+                result_data['UniqueID'] = pandas.Series([self.__clean(str(d.UniqueID)) for d in data_set])
+
+            result_data['ROI'] = pandas.Series([d.roi for d in data_set])
+            # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
+            # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
+
+            processed_metrics = [result_data]
+
+            if 'metrics' not in self.definition:
+                logger.critical("No metrics in project file. No results will be generated")
+                return None
+            else:
+                for metric in self.definition['metrics']:
+                    processed_metric = self.processMetric(metric, data_set)
+                    processed_metrics.append(processed_metric)
+                result_data = pandas.concat(processed_metrics, axis=1)
+        except pydre.core.ColumnsMatchError as e:
+            logger.critical(f"Failed to match columns: {e.missing_columns}. No results will be generated")
+            return None
+
+        self.results = result_data
+        return result_data
+
+    def save(self, outfilename="out.csv"):
+        """
+        Args:
+            outfilename: filename to output csv data to.
+
+            The filename specified will be overwritten automatically.
+        """
+        try:
+            self.results.to_csv(outfilename, index=False)
+        except AttributeError:
+            logger.error("Results not computed yet")
