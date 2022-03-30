@@ -1,0 +1,22 @@
+{
+   "rois": [
+  		{"type": "column", "columnname": "taskblocks"}
+	],
+
+
+  "filters": [
+        
+     {
+            "name": "numberSwitchBlocks",
+            "function": "numberSwitchBlocks"
+        }
+    ],
+  
+    "metrics": [
+        
+      {
+            "name": "getTaskNum",
+            "function": "getTaskNum"
+        }
+    ]
+ }

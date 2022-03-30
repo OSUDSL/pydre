@@ -1,0 +1,18 @@
+{
+
+  "filters": [
+        {
+            "name": "smoothGazeData",
+            "function": "smoothGazeData",
+            "gazeColName": "ESTIMATED_CLOSEST_WORLD_INTERSECTION"
+        }
+    ],
+  
+    "metrics": [
+        {
+            "name": "colMax",
+            "function": "colMax",
+            "var": "Velocity"
+        }
+    ]
+ }
