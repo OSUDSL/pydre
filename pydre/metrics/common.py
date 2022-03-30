@@ -697,6 +697,7 @@ def R2DIDColumns(drivedata: pydre.core.DriveData):
     ident_groups = re.match(r'(\d)(\d)(\d)(\d\d\d\d)[wW](\d)', ident)
     if ident_groups is None:
         return [None, None, None, None, None]
+    participant_id = ident_groups.group(1) + ident_groups.group(2) + ident_groups.group(3) + ident_groups.group(4)
     case = ident_groups.group(1)
     if case == "3":
         case = "Case"
@@ -716,4 +717,4 @@ def R2DIDColumns(drivedata: pydre.core.DriveData):
         gender = "Female"
     match_id = ident_groups.group(4)
     week = ident_groups.group(5)
-    return case + location + gender + match_id, match_id, case, location, gender, week
+    return participant_id, match_id, case, location, gender, week
