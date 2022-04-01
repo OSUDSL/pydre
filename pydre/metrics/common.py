@@ -464,6 +464,8 @@ def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
         return drivedata.data["SimTime"].loc[f] - drivedata.data["SimTime"].iloc[0]
     except ValueError:
         return None
+    except KeyError:
+        return None
 
 @registerMetric()
 def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var:str):
