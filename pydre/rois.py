@@ -60,7 +60,8 @@ class TimeROI():
                     start_time, end_time, driveID = drive_info
                     for item in datalist:
                         # Find the proper subject and drive in the input data
-                        if (item.SubjectID == subject and driveID in item.DriveID):
+                        #if (item.SubjectID == subject and driveID in item.DriveID): # try out PartID to get this to run cgw 5/20/2022
+                        if (item.PartID == subject and driveID in item.DriveID):
                             new_ddata = pydre.core.sliceByTime(
                                 start_time, end_time, "VidTime", item.data[0])
                             new_ddata.copyMetaData(ddata)
@@ -157,15 +158,27 @@ class SpaceROI():
                                        (ddata.data.YPos < ymax) &
                                        (ddata.data.YPos > ymin)]
                 if (len(region_data) == 0):
+
+                    # try out PartID to get this to run cgw 5/20/2022
+                    #logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
+                    #    ddata.SubjectID,
+                    #    ddata.sourcefilename,
+                    #    self.roi_info.roi[i]))
                     logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
-                        ddata.SubjectID,
+                        ddata.PartID,
                         ddata.sourcefilename,
                         self.roi_info.roi[i]))
                 else:
+                    # try out PartID to get this to run cgw 5/20/2022
+                    # logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
+                    #     len(region_data),
+                    #     self.roi_info.roi[i],
+                    #     ddata.SubjectID,
+                    #     ddata.sourcefilename))
                     logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
                         len(region_data),
                         self.roi_info.roi[i],
-                        ddata.SubjectID,
+                        ddata.PartID,
                         ddata.sourcefilename))
                 new_ddata = pydre.core.DriveData(region_data, ddata.sourcefilename)
                 new_ddata.copyMetaData(ddata)
