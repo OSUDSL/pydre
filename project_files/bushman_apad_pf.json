@@ -6,12 +6,13 @@
     "metrics": [
     	{
             "name": "meanVelocityOver50MPH",
-    		"function": "meanVelocity",
+    		"function": "colMean",
+            "var": "Velocity"
     		"cutoff": 22.352
     	},
         {
             "name": "meanVelocityOver1MPH",
-            "function": "meanVelocity",
+            "function": "colMean",
             "cutoff": 0.44704
         },
 		{
@@ -25,23 +26,27 @@
         },
         {
             "name": "tailgatePercent1Sec",
-            "function": "tailgatingPercentage",
-            "cutoff": 1
+            "function": "tailgatingPercentageAboveSpeed",
+            "cutoff": 1,
+            "velocity": 13.4112
         },
         {
             "name": "tailgatePercent2Sec",
-            "function": "tailgatingPercentage",
-            "cutoff": 2
+            "function": "tailgatingPercentageAboveSpeed",
+            "cutoff": 2,
+            "velocity": 13.4112
         },
         {
             "name": "tailgatePercent3Sec",
-            "function": "tailgatingPercentage",
-            "cutoff": 3
+            "function": "tailgatingPercentageAboveSpeed",
+            "cutoff": 3,
+            "velocity": 13.4112
         },
         {
             "name": "tailgatePercent4Sec",
-            "function": "tailgatingPercentage",
-            "cutoff": 4
+            "function": "tailgatingPercentageAboveSpeed",
+            "cutoff": 4,
+            "velocity": 13.4112
         }
     ]
  }
