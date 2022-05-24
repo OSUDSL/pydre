@@ -334,6 +334,18 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
     return tail_time / total_time
 
 @registerMetric()
+def tailgatingPercentageAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float =2, velocity: float = 13.4112):
+
+    dd = drivedata.data
+
+    # filter the table to remove all entries where velocity values are less than the cutoff velocity
+    df = df[dd['Velocity'] >= velocity]
+
+    return tailgatingPercentage(df, cutoff)
+
+
+
+@registerMetric()
 def averageBoxReactionTime(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
     diff = drivedata.checkColumns(required_col)
