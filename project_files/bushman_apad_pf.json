@@ -1,24 +1,25 @@
 {
     "rois": [
-  		{"type": "rect", "filename": "spatial_roi_bushman2.csv"}
-	],
+        {"type": "rect", "filename": "spatial_roi_bushman_apad.csv"}
+    ],
 
     "metrics": [
-    	{
+        {
             "name": "meanVelocityOver50MPH",
-    		"function": "colMean",
-            "var": "Velocity"
-    		"cutoff": 22.352
-    	},
+            "function": "colMean",
+            "var": "Velocity",
+            "cutoff": 22.352
+        },
         {
             "name": "meanVelocityOver1MPH",
             "function": "colMean",
+            "var": "Velocity",
             "cutoff": 0.44704
         },
-		{
+        {
             "name": "steeringEntropy",
-    		"function": "steeringEntropy"
-    	},
+            "function": "steeringEntropy"
+        },
         {
             "name": "timeAbove60MPH",
             "function": "timeAboveSpeed",
