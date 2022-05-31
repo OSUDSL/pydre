@@ -1,6 +1,6 @@
 {
     "rois": [
-        {"type": "rect", "filename": "spatial_roi_bushman_apad.csv"}
+        {"type": "rect", "filename": "./project_files/spatial_roi_bushman_apad.csv"}
     ],
 
     "metrics": [
@@ -15,10 +15,6 @@
             "function": "colMean",
             "var": "Velocity",
             "cutoff": 0.44704
-        },
-        {
-            "name": "steeringEntropy",
-            "function": "steeringEntropy"
         },
         {
             "name": "timeAbove60MPH",
