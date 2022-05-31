@@ -337,13 +337,22 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
 def tailgatingPercentageAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float =2, velocity: float = 13.4112):
 
     dd = drivedata.data
+    df = drivedata.data
 
     # filter the table to remove all entries where velocity values are less than the cutoff velocity
     df = df[dd['Velocity'] >= velocity]
 
-    return tailgatingPercentage(df, cutoff)
-
-
+    total_time = 0
+    tail_time = 0
+    table = df
+    difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
+    table.loc[:, 'delta_t'] = np.concatenate([np.zeros(1), difftime])
+    # find all tailgating instances where the delta time is reasonable.
+    # this ensures we don't get screwy data from merged files
+    tail_data = table[(table.HeadwayTime > 0) & (table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
+    tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
+    total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
+    return tail_time / total_time
 
 @registerMetric()
 def averageBoxReactionTime(drivedata: pydre.core.DriveData):
