@@ -354,6 +354,33 @@ def tailgatingPercentageAboveSpeed(drivedata: pydre.core.DriveData, cutoff: floa
     total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
     return tail_time / total_time
 
+# determines when the ownship collides with another vehicle by examining headway distance as threshold
+@registerMetric()
+def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 1):
+    required_col = ["SimTime", "HeadwayDistance"]
+
+    drivedata.checkColumns(required_col)
+
+    dd = drivedata.data
+    collisionInstance = 0
+
+    # find instances of headway distance < the cutoff
+    df = dd.loc[dd['HeadwayDistance'] <= cutoff]
+
+    prevIndex = 0
+    # sequences of rows with headway distance <= cutoff must be treated as the same collision
+    for index, row in df.iterrows():
+
+        # if the current index does not directly follow the previous index where a collision was detected, it is a different collision
+        if ((index - prevIndex) > 1):
+            collisionInstance = collisionInstance + 1
+
+        prevIndex = index
+
+    return collisionInstance
+
+
+
 @registerMetric()
 def averageBoxReactionTime(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]

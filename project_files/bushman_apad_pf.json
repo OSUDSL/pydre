@@ -44,6 +44,11 @@
             "function": "tailgatingPercentageAboveSpeed",
             "cutoff": 4,
             "velocity": 13.4112
+        },
+        {
+            "name": "leadVehicleCollision",
+            "function": "leadVehicleCollision",
+            "cutoff": 1.0
         }
     ]
  }
