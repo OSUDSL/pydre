@@ -160,7 +160,7 @@ class SpaceROI():
                 if (len(region_data) == 0):
 
                     # try out PartID to get this to run cgw 5/20/2022
-                    #logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
+                    # logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
                     #    ddata.SubjectID,
                     #    ddata.sourcefilename,
                     #    self.roi_info.roi[i]))
