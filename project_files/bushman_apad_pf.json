@@ -48,7 +48,7 @@
         {
             "name": "leadVehicleCollision",
             "function": "leadVehicleCollision",
-            "cutoff": 1.0
+            "cutoff": 2.85
         }
     ]
  }
