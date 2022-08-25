@@ -5,3 +5,11 @@ QComboBox {
 QComboBox::drop-down {
     background-color: rgb(200, 200, 200);
 }
+
+QSpinBox {
+    background-color: rgb(220, 220, 220);
+}
+
+QLineEdit {
+    background-color: rgb(220, 220, 220)
+}

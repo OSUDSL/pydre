@@ -51,106 +51,113 @@ class WidgetFactory:
         return widget
 
     @staticmethod
-    def spin_box(value, cb, bg=True):
-        '''TODO
-
+    def spin_box(cb, val=None, style=STYLE_PATH):
+        '''Generates a configured Spin Box widget populated with the given
+        optional initial value and linked to the given callback function.
+        
+        :param cb: Action callback function
+        :param val: Initial input value (optional)
+        :param style: Widget styleshet path (optional)
+        :return: A configured Spin Box widget
         '''
 
-        spin_box = QSpinBox()
-        spin_box.setValue(value)
-
-        spin_box.valueChanged.connect(cb)
-        # if border:
-        #     spin_box.setStyleSheet('border: 1px solid black;')
-        spin_box.setStyleSheet('''
-            QSpinBox {
-                background-color: rgb(220, 220, 220);
-            }
-        ''')
-        return spin_box
+        widget = QSpinBox()
+        if val is not None:
+            widget.setValue(val)
+        if style is not None:
+            widget.setStyleSheet(open(style).read())
+        widget.valueChanged.connect(cb)
+        return widget
 
     @staticmethod
-    def line_edit(value, cb, bg=True):
-        '''TODO
-
+    def line_edit(cb, val=None, style=STYLE_PATH):
+        '''Generates a configured Line Edit widget populated with the given
+        optional initial value and linked to the given callback funtion.
+        
+        :param cb: Action callback function
+        :param val: Initial input value (optional)
+        :param style: Widget stylesheet path (optional)
+        :return: A configured Line Edit widget
         '''
 
-        line_edit = QLineEdit()
-        line_edit.setText(value)
-        line_edit.textChanged.connect(cb)
-        # if border:
-        #     line_edit.setStyleSheet('border: 1px solid black;')
-        if bg:
-            line_edit.setStyleSheet('''
-                QLineEdit {
-                    background-color: rgb(220, 220, 220)
-                }
-            ''')
-        return line_edit
+        widget = QLineEdit()
+        if val is not None:
+            widget.setText(val)
+        if style is not None:
+            widget.setStyleSheet(open(style).read())
+        widget.textChanged.connect(cb)
+        return widget
 
 
 class LeafWidget(QWidget):
-    '''Custom leaf widget for displaying and editing project file parameters.
+    '''Configurable leaf widget for displaying and editing various types of 
+    project file attributes.
 
+    Widgets:
+        Combo Box
+        Spin Box
+        Line Edit
+
+    :param text: Inline descriptor label text
     '''
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.layout = QHBoxLayout()
-        self.text_ = None
-
-    def _configure_layout(self, text, widget):
-        '''TODO
-
+    def __init__(self, label, *args, **kwargs):
+        '''Constructor.
         '''
 
-        label = QLabel(text)
-        self.layout.addWidget(label)
+        super().__init__(*args, **kwargs)
+        self.layout = QHBoxLayout()
+        self.layout.addWidget(QLabel(label))
+
+    def combo_box(self, cb, items, val=None, height=30):
+        '''Generates a configured project tree leaf widget with a descriptor 
+        label and inline Combo Box widget.
+
+        :param cb: Action callback function
+        :param items: Combo Box item collection
+        :param val: Initial input value (optional)
+        :param height: Widget height (optional)
+        :return: A configured Combo Box leaf widget
+        '''
+
+        widget = WidgetFactory.combo_box(cb, items, val)
+        widget.setFixedHeight(height)
         self.layout.addWidget(widget)
         self.setLayout(self.layout)
-
-    def combo_box(self, items, text, value, cb):
-        '''TODO
-
-        '''
-
-        self.text_ = text
-        # combo_box = WidgetFactory.combo_box(value, cb, items)
-        combo_box = WidgetFactory.combo_box(cb, items, value)
-        combo_box.setFixedHeight(30)
-        self._configure_layout(text, combo_box)
         return self
 
-    def spin_box(self, text, value, cb):
-        '''TODO
+    def spin_box(self, cb, val=None, height=30):
+        '''Generates a configured project tree leaf widget with a descriptor
+        label and inline Spin Box widget.
 
+        :param cb: Action callback function
+        :param val: Initial input value (optional)
+        :param height: Widget height (optional)
+        :return: A configured Spin Box leaf widget
         '''
 
-        self.text_ = text
-        spin_box = WidgetFactory.spin_box(value, cb)
-        self._configure_layout(text, spin_box)
-        spin_box.setFixedHeight(30)
+        widget = WidgetFactory.spin_box(cb, val)
+        widget.setFixedHeight(height)
+        self.layout.addWidget(widget)
+        self.setLayout(self.layout)
         return self
 
-    def line_edit(self, text, value, cb):
-        '''TODO
+    def line_edit(self, cb, val=None, height=30):
+        '''Generates a configured project tree leaf widget with a descriptor
+        label and inline Line Edit widget.
 
+        :param cb: Action callback function
+        :param val: Initial input value (optional)
+        :param height: Widget height (optional)
+        :return: A configured Line Edit leaf widget
         '''
 
-        self.text_ = text
-        line_edit = WidgetFactory.line_edit(value, cb)
-        line_edit.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        self._configure_layout(text, line_edit)
-        line_edit.setFixedHeight(30)
+        widget = WidgetFactory.line_edit(cb, val)
+        widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        widget.setFixedHeight(height)
+        self.layout.addWidget(widget)
+        self.setLayout(self.layout)
         return self
-
-    def text(self):
-        '''TODO
-
-        '''
-
-        return self.text_
 
 
 class RoisTree(QTreeWidget):
@@ -175,7 +182,7 @@ class RoisTree(QTreeWidget):
         roi = self.rois[index]
         self.branches[roi['type']] = branch
         def cb(e): return self._update_roi(index, attribute, e)
-        line_edit = WidgetFactory.line_edit(roi['type'], cb, bg=False)
+        line_edit = WidgetFactory.line_edit(cb, roi['type'], style=None)
         for attribute in filter(lambda a: a != 'type', roi):
             if self._configure_leaf(branch, index, attribute) is False:
                 return False
@@ -191,7 +198,7 @@ class RoisTree(QTreeWidget):
             leaf = QTreeWidgetItem(branch)
             roi = self.rois[index]
             def cb(e): return self._update_roi(index, attribute, e)
-            line_edit = LeafWidget().line_edit(attribute, roi[attribute], cb)
+            line_edit = LeafWidget(attribute).line_edit(cb, roi[attribute])
             self.root.setItemWidget(leaf, 0, line_edit)
         except:
             return False
@@ -242,9 +249,9 @@ class FiltersTree(QTreeWidget):
         self.tree = QTreeWidgetItem(self.root, ['filters'])
         items = list(filters.filtersList.keys())
         self.widgets = {
-            None: lambda t, v, c: LeafWidget().combo_box(items, t, v, c),
-            float: lambda t, v, c: LeafWidget().spin_box(t, v, c),
-            str: lambda t, v, c: LeafWidget().line_edit(t, v, c)
+            None: lambda t, c, v: LeafWidget(t).combo_box(c, items, v),
+            float: lambda t, c, v: LeafWidget(t).spin_box(c, v),
+            str: lambda t, c, v: LeafWidget(t).line_edit(c, v)
         }
         self.branches = {}
         self.values = {}
@@ -258,7 +265,7 @@ class FiltersTree(QTreeWidget):
         filter_ = self.filters[index]
         self.branches[filter_['name']] = branch
         def cb(e): return self._update_filters(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(filter_['name'], cb, bg=False)
+        line_edit = WidgetFactory.line_edit(cb, filter_['name'], style=None)
         for attribute in filter(lambda a: a != 'name', filter_):
             if self._configure_leaf(branch, index, attribute) is False:
                 return False
@@ -277,7 +284,7 @@ class FiltersTree(QTreeWidget):
             types = typing.get_type_hints(function)
             type_ = types[attribute] if attribute != 'function' else None
             def cb(e): return self._update_filter(index, attribute, e)
-            widget = self.widgets[type_](attribute, filter_[attribute], cb)
+            widget = self.widgets[type_](attribute, cb, filter_[attribute])
             self.root.setItemWidget(leaf, 0, widget)
         except KeyError:
             return False
@@ -362,9 +369,9 @@ class MetricsTree(QTreeWidget):
         self.tree = QTreeWidgetItem(self.root, ['metrics'])
         items = list(metrics.metricsList.keys())
         self.widgets = {
-            None: lambda t, v, c: LeafWidget().combo_box(items, t, v, c),
-            float: lambda t, v, c: LeafWidget().spin_box(t, v, c),
-            str: lambda t, v, c: LeafWidget().line_edit(t, v, c)
+            None: lambda t, c, v: LeafWidget(t).combo_box(c, items, v),
+            float: lambda t, c, v: LeafWidget(t).spin_box(c, v),
+            str: lambda t, c, v: LeafWidget(t).line_edit(c, v)
         }
         self.branches = {}
         self.values = {}
@@ -378,7 +385,7 @@ class MetricsTree(QTreeWidget):
         metric = self.metrics[index]
         self.branches[metric['name']] = branch
         def cb(e): return self._update_metric(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(metric['name'], cb, bg=False)
+        line_edit = WidgetFactory.line_edit(cb, metric['name'], style=None)
         for attribute in filter(lambda a: a != 'name', metric):
             if self._configure_leaf(branch, index, attribute) is False:
                 return False
@@ -397,7 +404,7 @@ class MetricsTree(QTreeWidget):
             types = typing.get_type_hints(function)
             type_ = types[attribute] if attribute != 'function' else None
             def cb(e): return self._update_metric(index, attribute, e)
-            widget = self.widgets[type_](attribute, metric[attribute], cb)
+            widget = self.widgets[type_](attribute, cb, metric[attribute])
             self.root.setItemWidget(leaf, 0, widget)
         except KeyError:
             return False
