@@ -159,76 +159,84 @@ class LeafWidget(QWidget):
 
 
 class RoisTree(QTreeWidget):
-    '''TODO
+    '''Configurable sub-tree widget for displaying and editing project rois.
 
+    Usage:
+        tree = RoisTree(<root tree>, <roi items>)
+
+    :param root: Parent in which to embed this sub-tree
+    :param items: Collection of roi items
     '''
 
-    def __init__(self, root, rois, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, root, items, *args, **kwargs):
+        '''Constructor.
+        '''
 
+        super().__init__(*args, **kwargs)
         self.root = root
-        self.rois = rois
+        self.items = items
         self.tree = QTreeWidgetItem(self.root, ['rois'])
         self.branches = {}
 
-    def _configure_branch(self, index):
-        '''TODO
+    def setup(self):
+        '''Configures and displays the rois sub-tree.
+        '''
 
+        for idx in range(len(self.items)):
+            if self.setup_branch(idx) is False:
+                return False
+        return True
+
+    def setup_branch(self, idx):
+        '''Configures and displays an item branch of the rois sub-tree.
+
+        :param idx: Index of the item branch
+        :return: True if the configuration was successful; False otherwise
         '''
 
         branch = QTreeWidgetItem(self.tree)
-        roi = self.rois[index]
-        self.branches[roi['type']] = branch
-        def cb(e): return self._update_roi(index, attribute, e)
-        line_edit = WidgetFactory.line_edit(cb, roi['type'], style=None)
-        for attribute in filter(lambda a: a != 'type', roi):
-            if self._configure_leaf(branch, index, attribute) is False:
+        item = self.items[idx]
+        def cb(e): return self.update(idx, 'type', e)
+        line_edit = WidgetFactory.line_edit(cb, item['type'], style=None)
+        for key in filter(lambda i: i != 'type', item):
+            if self.setup_leaf(branch, idx, key) is False:
                 return False
         self.root.setItemWidget(branch, 0, line_edit)
+        self.branches[item['type']] = branch
         return True
 
-    def _configure_leaf(self, branch, index, attribute):
-        '''TODO
+    def setup_leaf(self, branch, idx, key):
+        '''Configures and displays an attribute leaf of the rois sub-tree.
 
+        :param branch: Parent branch in which to embed this leaf
+        :param idx: Index of the parent branch
+        :param key: Key of the roi attribute
+        :return: True if the configuration was successful; False otherwise
         '''
 
         try:
             leaf = QTreeWidgetItem(branch)
-            roi = self.rois[index]
-            def cb(e): return self._update_roi(index, attribute, e)
-            line_edit = LeafWidget(attribute).line_edit(cb, roi[attribute])
+            item = self.items[idx]
+            def cb(e): return self.update(idx, key, e)
+            line_edit = LeafWidget(key).line_edit(cb, item[key])
             self.root.setItemWidget(leaf, 0, line_edit)
-        except:
+        except KeyError:
             return False
         return True
 
-    def _update_roi(self, index, attribute, value):
-        '''TODO
+    def update(self, idx, key, val):
+        '''Updates the specified attribute leaf embedded in the item branch at 
+        the given index.
 
+        :param idx: Index of the item branch
+        :param key: Key of the roi attribute
+        :param val: New attribute value
         '''
 
-        self.rois[index][attribute] = value
-
-    def configure_widget(self):
-        '''TODO
-
-        '''
-
-        for index in range(len(self.rois)):
-            if self._configure_branch(index) is False:
-                return False
-        return True
-
-    def get_collection(self):
-        '''TODO
-
-        '''
-
-        return self.rois
+        self.items[idx][key] = val
 
     def add_item(self, item):
         '''TODO
-
         '''
 
         print(item)
@@ -319,7 +327,7 @@ class FiltersTree(QTreeWidget):
         else:
             self.filters[index][argument] = '' if type_ == str else 0
 
-    def configure_widget(self):
+    def setup(self):
         '''TODO
 
         '''
@@ -439,7 +447,7 @@ class MetricsTree(QTreeWidget):
         else:
             self.metrics[index][argument] = '' if type_ == str else 0
 
-    def configure_widget(self):
+    def setup(self):
         '''TODO
 
         '''
@@ -517,7 +525,7 @@ class ProjectTree(QTreeWidget):
         self.setAnimated(False)
         for collection in sorted(self.items_copy):
             tree = self.trees[collection](self, self.items_copy[collection])
-            if tree.configure_widget() is False:
+            if tree.setup() is False:
                 return False
             self.subtrees[collection] = tree
         self.expandToDepth(0)
