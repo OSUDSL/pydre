@@ -10,44 +10,45 @@ import typing
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
-from gui.config import CONFIG_PATH, Config
+from gui.config import CONFIG_PATH, GUI_PATH, Config
 from gui.popups import FunctionPopup
 
 config = Config()
 config.read(CONFIG_PATH)
 
+STYLE_PATH = os.path.join(GUI_PATH, 'stylesheets', 'widget.css')
+
 
 class WidgetFactory:
-    '''TODO
-
+    '''Static utility class used to generate configured widgets.
+    
+    Widgets:
+        Combo Box
+        Spin Box
+        Line Edit
     '''
 
     @staticmethod
-    def combo_box(value, cb, items, bg=True):
-        '''TODO
-
+    def combo_box(cb, items, val=None, style=STYLE_PATH):
+        '''Generates a configured Combo Box widget populated with the given
+        items/optional initial value and linked to the given callback function.
+        
+        :param cb: Action callback function
+        :param items: Combo Box item collection
+        :param val: Initial input value (optional)
+        :param style: Widget stylesheet path (optional)
+        :return: A configured Combo Box widget
         '''
 
-        combo_box = QComboBox()
+        widget = QComboBox()
         for item in items:
-            combo_box.addItem(item)
-        index = items.index(value)
-        combo_box.setCurrentIndex(index)
-        combo_box.activated.connect(lambda i: cb(combo_box.itemText(i)))
-        # if border:
-        #     combo_box.setStyleSheet('border: 1px solid black;')
-        combo_box.setStyleSheet('''
-            QComboBox {
-                background-color: rgb(220, 220, 220);
-            }
-
-
-
-            QComboBox::drop-down {
-                background-color: rgb(200, 200, 200)
-            }
-        ''')
-        return combo_box
+            widget.addItem(item)
+        if val is not None:
+            widget.setCurrentIndex(items.index(val))
+        if style is not None:
+            widget.setStyleSheet(open(style).read())
+        widget.activated.connect(lambda i: cb(widget.itemText(i)))
+        return widget
 
     @staticmethod
     def spin_box(value, cb, bg=True):
@@ -115,7 +116,8 @@ class LeafWidget(QWidget):
         '''
 
         self.text_ = text
-        combo_box = WidgetFactory.combo_box(value, cb, items)
+        # combo_box = WidgetFactory.combo_box(value, cb, items)
+        combo_box = WidgetFactory.combo_box(cb, items, value)
         combo_box.setFixedHeight(30)
         self._configure_layout(text, combo_box)
         return self
