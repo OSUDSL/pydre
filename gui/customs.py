@@ -17,7 +17,6 @@ config = Config()
 config.read(CONFIG_PATH)
 
 
-
 class WidgetFactory:
     '''Static utility class used to generate configured widgets.
     

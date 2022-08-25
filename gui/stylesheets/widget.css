@@ -2,10 +2,6 @@ QComboBox {
     background-color: rgb(220, 220, 220);
 }
 
-QComboBox::drop-down {
-    background-color: rgb(200, 200, 200);
-}
-
 QSpinBox {
     background-color: rgb(220, 220, 220);
 }
