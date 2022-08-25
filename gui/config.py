@@ -10,6 +10,7 @@ from pathlib import Path
 PROJECT_PATH = Path().resolve()
 GUI_PATH = os.path.join(PROJECT_PATH, 'gui')
 CONFIG_PATH = os.path.join(GUI_PATH, 'config_files', 'config.ini')
+WIDGET_STYLE_PATH = os.path.join(GUI_PATH, 'stylesheets', 'widget.css')
 
 
 class Config(ConfigParser):
