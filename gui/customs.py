@@ -10,13 +10,12 @@ import typing
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
-from gui.config import CONFIG_PATH, GUI_PATH, Config
+from gui.config import CONFIG_PATH, WIDGET_STYLE_PATH, Config
 from gui.popups import FunctionPopup
 
 config = Config()
 config.read(CONFIG_PATH)
 
-STYLE_PATH = os.path.join(GUI_PATH, 'stylesheets', 'widget.css')
 
 
 class WidgetFactory:
@@ -29,7 +28,7 @@ class WidgetFactory:
     '''
 
     @staticmethod
-    def combo_box(cb, items, val=None, style=STYLE_PATH):
+    def combo_box(cb, items, val=None, style=WIDGET_STYLE_PATH):
         '''Generates a configured Combo Box widget populated with the given
         items/optional initial value and linked to the given callback function.
         
@@ -51,7 +50,7 @@ class WidgetFactory:
         return widget
 
     @staticmethod
-    def spin_box(cb, val=None, style=STYLE_PATH):
+    def spin_box(cb, val=None, style=WIDGET_STYLE_PATH):
         '''Generates a configured Spin Box widget populated with the given
         optional initial value and linked to the given callback function.
         
@@ -70,7 +69,7 @@ class WidgetFactory:
         return widget
 
     @staticmethod
-    def line_edit(cb, val=None, style=STYLE_PATH):
+    def line_edit(cb, val=None, style=WIDGET_STYLE_PATH):
         '''Generates a configured Line Edit widget populated with the given
         optional initial value and linked to the given callback funtion.
         
