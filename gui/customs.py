@@ -5,7 +5,6 @@ Created on: 11/21/2020
 
 import copy
 import json
-import os
 import typing
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
@@ -159,12 +158,12 @@ class LeafWidget(QWidget):
 
 
 class RoisTree(QTreeWidget):
-    '''Configurable sub-tree widget for displaying and editing project rois.
+    '''Configurable subtree widget for displaying and editing project rois.
 
     Usage:
         tree = RoisTree(<root tree>, <roi items>)
 
-    :param root: Parent in which to embed this sub-tree
+    :param root: Parent in which to embed this subtree
     :param items: Collection of roi items
     '''
 
@@ -179,7 +178,7 @@ class RoisTree(QTreeWidget):
         self.branches = {}
 
     def setup(self):
-        '''Configures and displays the rois sub-tree.
+        '''Configures the rois subtree.
         '''
 
         for idx in range(len(self.items)):
@@ -188,7 +187,7 @@ class RoisTree(QTreeWidget):
         return True
 
     def setup_branch(self, idx):
-        '''Configures and displays an item branch of the rois sub-tree.
+        '''Configures an item branch of the rois subtree.
 
         :param idx: Index of the item branch
         :return: True if the configuration was successful; False otherwise
@@ -206,7 +205,7 @@ class RoisTree(QTreeWidget):
         return True
 
     def setup_leaf(self, branch, idx, key):
-        '''Configures and displays an attribute leaf of the rois sub-tree.
+        '''Configures an attribute leaf of the rois subtree.
 
         :param branch: Parent branch in which to embed this leaf
         :param idx: Index of the parent branch
@@ -243,79 +242,134 @@ class RoisTree(QTreeWidget):
 
 
 class FiltersTree(QTreeWidget):
-    '''TODO
+    '''Configurable subtree widget for displaying and editing project filters.
 
+    Usage:
+        tree = FiltersTree(<root tree>, <filter items>)
+
+    :param root: Parent in which to embed this subtree
+    :param items: Collection of filter items
     '''
 
-    def __init__(self, root, filters_, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, root, items, *args, **kwargs):
+        '''Constructor.
+        '''
 
+        super().__init__(*args, **kwargs)
         self.root = root
-        self.filters = filters_
+        self.items = items
         self.tree = QTreeWidgetItem(self.root, ['filters'])
-        items = list(filters.filtersList.keys())
+        combo_items = list(filters.filtersList.keys())
         self.widgets = {
-            None: lambda t, c, v: LeafWidget(t).combo_box(c, items, v),
+            None: lambda t, c, v: LeafWidget(t).combo_box(c, combo_items, v),
             float: lambda t, c, v: LeafWidget(t).spin_box(c, v),
             str: lambda t, c, v: LeafWidget(t).line_edit(c, v)
         }
         self.branches = {}
-        self.values = {}
 
-    def _configure_branch(self, index):
-        '''TODO
+    def setup(self):
+        '''Configures the filters subtree.
+        '''
 
+        for idx in range(len(self.items)):
+            if self.setup_branch(idx) is False:
+                return False
+        return True
+
+    def setup_branch(self, idx):
+        '''Configures an item branch of the filters subtree.
+
+        :param idx: Index of the item branch
+        :return: True if the confguration was successful; False otherwise
         '''
 
         branch = QTreeWidgetItem(self.tree)
-        filter_ = self.filters[index]
-        self.branches[filter_['name']] = branch
-        def cb(e): return self._update_filters(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(cb, filter_['name'], style=None)
-        for attribute in filter(lambda a: a != 'name', filter_):
-            if self._configure_leaf(branch, index, attribute) is False:
+        item = self.items[idx]
+        def cb(e): return self.update(idx, 'name', e)
+        line_edit = WidgetFactory.line_edit(cb, item['name'], style=None)
+        for key in filter(lambda i: i != 'name', item):
+            if self.setup_leaf(branch, idx, key) is False:
                 return False
         self.root.setItemWidget(branch, 0, line_edit)
+        self.branches[item['name']] = branch
         return True
 
-    def _configure_leaf(self, branch, index, attribute):
-        '''TODO
+    def setup_leaf(self, branch, idx, key):
+        '''Configures an attribute leaf of the filters subtree.
 
+        :param branch: Parent branch in which to embed this leaf
+        :param idx: Index of the parent branch
+        :param key: Key of the roi attribute
+        :retrn: True if the configuration was successful; False otherwise
         '''
 
         try:
             leaf = QTreeWidgetItem(branch)
-            filter_ = self.filters[index]
-            function = filters.filtersList[filter_['function']]
-            types = typing.get_type_hints(function)
-            type_ = types[attribute] if attribute != 'function' else None
-            def cb(e): return self._update_filter(index, attribute, e)
-            widget = self.widgets[type_](attribute, cb, filter_[attribute])
+            item = self.items[idx]
+            func = filters.filtersList[item['function']]
+            types = typing.get_type_hints(func)
+            type_ = types[key] if key != 'function' else None
+            def cb(e): return self.update(idx, key, e)
+            widget = self.widgets[type_](key, cb, item[key])
             self.root.setItemWidget(leaf, 0, widget)
         except KeyError:
             return False
         return True
 
-    def _update_filter(self, index, attribute, value):
-        '''TODO
-
+    def update(self, idx, key, val):
+        '''Updates the specified attribute leaf embedded in the item branch at
+        the given index.
+        
+        :param idx: Index of the item branch
+        :param key: Key of the filter attribute
+        :param val: New attribute value
         '''
 
-        if attribute == 'function':
+        if key == 'function':
             text = config.get('Popup Text', 'function')
-            def cb(e): return self._handle_update(index, value, e)
+            def cb(e): return self.handle_func_update(idx, val, e)
             FunctionPopup(parent=self).show_(text, cb)
         else:
-            self.filters[index][attribute] = value
+            self.items[idx][key] = val
 
-    def _handle_update(self, index, value, update):
-        '''TODO
-
+    def handle_func_update(self, idx, val, update=True):
+        '''Handles updates to the function attribute of the item branch at the 
+        given index emitted by popups acting on the filters subtree.
+        
+        :param idx: Index of the item branch
+        :param val: New function attribute value
+        :param update: True if the update should be performed; False otherwise
         '''
 
-        if not update:
-            value = self.filters[index]['function']
-        self.update_filter_function(index, value)
+        if update is False:
+            val = self.items[idx]['function']
+        self.update_func(idx, val)
+
+    def update_func(self, idx, val):
+        '''Updates the function attribute of the item branch at the given index.
+        
+        :param idx: Index of the item branch
+        :param val: New function attribute value
+        '''
+
+        name = self.items[idx]['name']
+        self.items[idx] = {'name': name, 'function': val}
+        branch = self.branches[name]
+        branch.takeChildren()
+        new_func = filters.filtersList[self.items[idx]['function']]
+        types = typing.get_type_hints(new_func)
+        self.setup_leaf(branch, idx, 'function')
+        for key in filter(lambda i: i != 'drivedata', types.keys()):
+            self.update_item(idx, key)
+
+    def update_item(self, idx, key, val, type_):
+        '''FIXME: Figure this out
+        '''
+
+        if key in self.items[idx]:
+            self.items[idx][key] = val
+        else:
+            self.items[idx][key] = '' if type_ == str else 0
 
     def _update_argument(self, index, values, argument, type_):
         '''TODO
@@ -323,43 +377,26 @@ class FiltersTree(QTreeWidget):
         '''
 
         if argument in values:
-            self.filters[index][argument] = values[argument]
+            self.items[index][argument] = values[argument]
         else:
-            self.filters[index][argument] = '' if type_ == str else 0
-
-    def setup(self):
-        '''TODO
-
-        '''
-
-        for index in range(len(self.filters)):
-            if self._configure_branch(index) is False:
-                return False
-        return True
+            self.items[index][argument] = '' if type_ == str else 0
 
     def update_filter_function(self, index, value):
         '''TODO
 
         '''
 
-        self.values = self.filters[index]
-        self.filters[index] = {'name': self.values['name'], 'function': value}
-        branch = self.branches[self.filters[index]['name']]
+        self.values = self.items[index]
+        self.items[index] = {'name': self.values['name'], 'function': value}
+        branch = self.branches[self.items[index]['name']]
         branch.takeChildren()
-        function = filters.filtersList[self.filters[index]['function']]
+        function = filters.filtersList[self.items[index]['function']]
         types = typing.get_type_hints(function)
         self._configure_leaf(branch, index, 'function')
         for argument in filter(lambda a: a != 'drivedata', types.keys()):
             type_ = types[argument]
             self._update_argument(index, self.values, argument, type_)
             self._configure_leaf(branch, index, argument)
-
-    def get_collection(self):
-        '''TODO
-
-        '''
-
-        return self.filters
 
 
 class MetricsTree(QTreeWidget):
@@ -486,7 +523,6 @@ class MetricsTree(QTreeWidget):
 
         '''
 
-        print('test')
         self.expandToDepth(1)
 
 

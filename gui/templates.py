@@ -48,7 +48,6 @@ class Window(QMainWindow):
 
         if self.window_size is None or (not self.ui.isMaximized() and self.window_size == (float(self.ui.width()), float(self.ui.height()))):
             # TODO: FIX SIZING STUFF HERE (ALLOW RESIZING BY MOUSE WITHOUT MESSING IT UP ON PAGE SWITCH)
-            print('test')
             self.window_size = (width, height)
             self.frame.setWidth(width)
             self.frame.setHeight(height)
