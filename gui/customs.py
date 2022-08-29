@@ -187,7 +187,7 @@ class RoisTree(QTreeWidget):
         return True
 
     def setup_branch(self, idx):
-        '''Configures an item branch of the rois subtree.
+        '''Configures the item branch at the given index.
 
         :param idx: Index of the item branch
         :return: True if the configuration was successful; False otherwise
@@ -205,7 +205,8 @@ class RoisTree(QTreeWidget):
         return True
 
     def setup_leaf(self, branch, idx, key):
-        '''Configures an attribute leaf of the rois subtree.
+        '''Configures the specified attribute leaf embedded in the item branch
+        at the given index.
 
         :param branch: Parent branch in which to embed this leaf
         :param idx: Index of the parent branch
@@ -277,10 +278,10 @@ class FiltersTree(QTreeWidget):
         return True
 
     def setup_branch(self, idx):
-        '''Configures an item branch of the filters subtree.
+        '''Configures the item branch at the given index.
 
         :param idx: Index of the item branch
-        :return: True if the confguration was successful; False otherwise
+        :return: True if the configuration was successful; False otherwise
         '''
 
         branch = QTreeWidgetItem(self.tree)
@@ -295,7 +296,8 @@ class FiltersTree(QTreeWidget):
         return True
 
     def setup_leaf(self, branch, idx, key):
-        '''Configures an attribute leaf of the filters subtree.
+        '''Configures the specified attribute leaf embedded in the item branch 
+        at the given index.
 
         :param branch: Parent branch in which to embed this leaf
         :param idx: Index of the parent branch
@@ -333,8 +335,9 @@ class FiltersTree(QTreeWidget):
             self.items[idx][key] = val
 
     def handle_func_update(self, idx, val, update=True):
-        '''Handles updates to the function attribute of the item branch at the 
-        given index emitted by popups acting on the filters subtree.
+        '''Handles updates to the filter function attribute embedded in the item
+        branch at the given index emitted by popups acting on the filters 
+        subtree.
         
         :param idx: Index of the item branch
         :param val: New function attribute value
@@ -346,57 +349,39 @@ class FiltersTree(QTreeWidget):
         self.update_func(idx, val)
 
     def update_func(self, idx, val):
-        '''Updates the function attribute of the item branch at the given index.
+        '''Updates the filter function attribute embedded in the item branch at 
+        the given index.
         
         :param idx: Index of the item branch
         :param val: New function attribute value
         '''
 
-        name = self.items[idx]['name']
-        self.items[idx] = {'name': name, 'function': val}
-        branch = self.branches[name]
+        items = self.items[idx]
+        self.items[idx] = {'name': items['name'], 'function': val}
+        branch = self.branches[items['name']]
         branch.takeChildren()
         new_func = filters.filtersList[self.items[idx]['function']]
         types = typing.get_type_hints(new_func)
         self.setup_leaf(branch, idx, 'function')
         for key in filter(lambda i: i != 'drivedata', types.keys()):
-            self.update_item(idx, key)
+            self.update_arg(idx, key, items, types[key])
 
-    def update_item(self, idx, key, val, type_):
-        '''FIXME: Figure this out
+    def update_arg(self, idx, key, vals, type_):
+        '''Updates the filter argument attribute for the function embedded in 
+        the item branch at the given index.
+
+        :param idx: Index of the item branch
+        :param key: Key of the filter argument attribute
+        :param val: New attribute value
+        :param type_: Type of the filter argument
         '''
 
-        if key in self.items[idx]:
-            self.items[idx][key] = val
+        if key in vals:
+            self.items[idx][key] = vals[key]
         else:
             self.items[idx][key] = '' if type_ == str else 0
-
-    def _update_argument(self, index, values, argument, type_):
-        '''TODO
-
-        '''
-
-        if argument in values:
-            self.items[index][argument] = values[argument]
-        else:
-            self.items[index][argument] = '' if type_ == str else 0
-
-    def update_filter_function(self, index, value):
-        '''TODO
-
-        '''
-
-        self.values = self.items[index]
-        self.items[index] = {'name': self.values['name'], 'function': value}
-        branch = self.branches[self.items[index]['name']]
-        branch.takeChildren()
-        function = filters.filtersList[self.items[index]['function']]
-        types = typing.get_type_hints(function)
-        self._configure_leaf(branch, index, 'function')
-        for argument in filter(lambda a: a != 'drivedata', types.keys()):
-            type_ = types[argument]
-            self._update_argument(index, self.values, argument, type_)
-            self._configure_leaf(branch, index, argument)
+        branch = self.branches[self.items[idx]['name']]
+        self.setup_leaf(branch, idx, key)
 
 
 class MetricsTree(QTreeWidget):
@@ -615,7 +600,7 @@ class ProjectTree(QTreeWidget):
         self._configure_widget()
         value = new_filter['function']
         filters_tree = self.subtrees['filters']
-        filters_tree.update_filter_function(index, value)
+        filters_tree.update_func(index, value)
         count = self.topLevelItem(0).childCount()
         self.setItemSelected(self.topLevelItem(0).child(index % count), True)
 
