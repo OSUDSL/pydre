@@ -1,42 +1,43 @@
 {
-   "rois": [
-  		{"type": "column", "columnname": "taskblocks"}
-	],
-
-
-  "filters": [
+    "rois": [
+        {
+            "type": "column",
+            "columnname": "taskblocks"
+        }
+    ],
+    "filters": [
         {
             "name": "smoothGazeData",
-            "function": "smoothGazeData"
+            "function": "writeToCSV",
+            "outputDirectory": "test"
         },
-     {
+        {
             "name": "numberSwitchBlocks",
             "function": "numberSwitchBlocks"
         }
     ],
-  
     "metrics": [
         {
             "name": "speedbumpHondaGaze",
             "function": "speedbumpHondaGaze"
         },
-      {
+        {
             "name": "getTaskNum",
             "function": "getTaskNum"
         },
-      {
+        {
             "name": "errorPresses",
             "function": "errorPresses"
-      },
-      {
-            "name":"timeBegin",
-            "function":"colMin",
-            "var":"SimTime"
-      },
-      {
-            "name":"timeEnd",
-            "function":"colMax",
-            "var":"SimTime"
-      }
+        },
+        {
+            "name": "timeBegin",
+            "function": "colMin",
+            "var": "SimTime"
+        },
+        {
+            "name": "timeEnd",
+            "function": "colMax",
+            "var": "SimTime"
+        }
     ]
- }
+}

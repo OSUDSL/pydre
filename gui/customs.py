@@ -5,6 +5,8 @@ Created on: 11/21/2020
 
 import copy
 import json
+from pyclbr import Function
+from tkinter import Widget
 import typing
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
@@ -266,7 +268,7 @@ class FiltersTree(QTreeWidget):
             float: lambda t, c, v: LeafWidget(t).spin_box(c, v),
             str: lambda t, c, v: LeafWidget(t).line_edit(c, v)
         }
-        self.branches = {}
+        self.branches, self.values = {}, {}
 
     def setup(self):
         '''Configures the filters subtree.
@@ -301,8 +303,8 @@ class FiltersTree(QTreeWidget):
 
         :param branch: Parent branch in which to embed this leaf
         :param idx: Index of the parent branch
-        :param key: Key of the roi attribute
-        :retrn: True if the configuration was successful; False otherwise
+        :param key: Key of the filter attribute
+        :return: True if the configuration was successful; False otherwise
         '''
 
         try:
@@ -356,15 +358,15 @@ class FiltersTree(QTreeWidget):
         :param val: New function attribute value
         '''
 
-        items = self.items[idx]
-        self.items[idx] = {'name': items['name'], 'function': val}
-        branch = self.branches[items['name']]
+        self.values.update(self.items[idx])
+        self.items[idx] = {'name': self.values['name'], 'function': val}
+        branch = self.branches[self.values['name']]
         branch.takeChildren()
         new_func = filters.filtersList[self.items[idx]['function']]
         types = typing.get_type_hints(new_func)
         self.setup_leaf(branch, idx, 'function')
         for key in filter(lambda i: i != 'drivedata', types.keys()):
-            self.update_arg(idx, key, items, types[key])
+            self.update_arg(idx, key, self.values, types[key])
 
     def update_arg(self, idx, key, vals, type_):
         '''Updates the filter argument attribute for the function embedded in 
@@ -385,130 +387,145 @@ class FiltersTree(QTreeWidget):
 
 
 class MetricsTree(QTreeWidget):
-    '''TODO
+    '''Configurable subtree widget for displaying and editing project metrics.
 
+    Usage:
+        tree = MetricsTree(<root tree>, <metric items>)
+
+    :param root: Parent in which to embed this subtree
+    :param items: Collection of filter items
     '''
 
-    def __init__(self, root, metrics_, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, root, items, *args, **kwargs):
+        '''Constructor.
+        '''
 
+        super().__init__(*args, **kwargs)
         self.root = root
-        self.metrics = metrics_
+        self.items = items
         self.tree = QTreeWidgetItem(self.root, ['metrics'])
-        items = list(metrics.metricsList.keys())
-        self.widgets = {
-            None: lambda t, c, v: LeafWidget(t).combo_box(c, items, v),
+        combo_items = list(metrics.metricsList.keys())
+        self.widgets= {
+            None: lambda t, c, v: LeafWidget(t).combo_box(c, combo_items, v),
             float: lambda t, c, v: LeafWidget(t).spin_box(c, v),
             str: lambda t, c, v: LeafWidget(t).line_edit(c, v)
         }
-        self.branches = {}
-        self.values = {}
+        self.branches, self.values = {}, {}
 
-    def _configure_branch(self, index):
-        '''TODO
+    def setup(self):
+        '''Configures the metrics subtree.
+        '''
 
+        for index in range(len(self.items)):
+            if self.setup_branch(index) is False:
+                return False
+        return True
+
+    def setup_branch(self, idx):
+        '''Configures the item branch at the given index.
+        
+        :param idx: Index of the item branch
+        :return: True if the configuration was successful; False otherwise
         '''
 
         branch = QTreeWidgetItem(self.tree)
-        metric = self.metrics[index]
-        self.branches[metric['name']] = branch
-        def cb(e): return self._update_metric(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(cb, metric['name'], style=None)
-        for attribute in filter(lambda a: a != 'name', metric):
-            if self._configure_leaf(branch, index, attribute) is False:
+        item = self.items[idx]
+        def cb(e): return self.update(idx, 'name', e)
+        line_edit = WidgetFactory.line_edit(cb, item['name'], style=None)
+        for key in filter(lambda i: i != 'name', item):
+            if self.setup_leaf(branch, idx, key) is False:
                 return False
         self.root.setItemWidget(branch, 0, line_edit)
+        self.branches[item['name']] = branch
         return True
 
-    def _configure_leaf(self, branch, index, attribute):
-        '''TODO
-
+    def setup_leaf(self, branch, idx, key):
+        '''Configures the specified attribute leaf embedded in the item branch
+        at the given index.
+        
+        :param branch: Parent branch in which to embed this leaf
+        :param idx: Index of the parent branch
+        :param key: Key of the filter attribute
+        :return: True if the configuration was successful; False otherwise
         '''
 
         try:
             leaf = QTreeWidgetItem(branch)
-            metric = self.metrics[index]
-            function = metrics.metricsList[metric['function']]
-            types = typing.get_type_hints(function)
-            type_ = types[attribute] if attribute != 'function' else None
-            def cb(e): return self._update_metric(index, attribute, e)
-            widget = self.widgets[type_](attribute, cb, metric[attribute])
+            item = self.items[idx]
+            func = metrics.metricsList[item['function']]
+            types = typing.get_type_hints(func)
+            type_ = types[key] if key != 'function' else None
+            def cb(e): return self.update(idx, key, e)
+            widget = self.widgets[type_](key, cb, item[key])
             self.root.setItemWidget(leaf, 0, widget)
         except KeyError:
             return False
         return True
 
-    def _update_metric(self, index, attribute, value):
-        '''TODO
-
+    def update(self, idx, key, val):
+        '''Updates the specified attribute leaf embedded in the item branch at
+        the given index.
+        
+        :param idx: Index of the item branch
+        :param key: Key of the filter attribute
+        :param val: New attrbute value
         '''
 
-        if attribute == 'function':
+        if key == 'function':
             text = config.get('Popup Text', 'function')
-            def cb(e): return self._handle_update(index, value, e)
+            def cb(e): return self.handle_func_update(idx, val, e)
             FunctionPopup(parent=self).show_(text, cb)
         else:
-            self.metrics[index][attribute] = value
+            self.items[idx][key] = val
 
-    def _handle_update(self, index, value, update):
-        '''TODO
-
+    def handle_func_update(self, idx, val, update=True):
+        '''Handles updates to the metric function attribute embedded in the item
+        branch at the given index emitted by popups acting on the filters
+        subtree.
+        
+        :param idx: Index of the item branch
+        :param val: New function attribute value
+        :param update: True if the update should be performed; False otherwise
         '''
 
-        if not update:
-            value = self.metrics[index]['function']
-        self.update_metric_function(index, value)
+        if update is False:
+            val = self.items[idx]['function']
+        self.update_func(idx, val)
 
-    def _update_argument(self, index, values, argument, type_):
-        '''TODO
-
+    def update_func(self, idx, val):
+        '''Updates the metric function attribute embedded in the item branch at
+        the given index.
+        
+        :param idx: Index of the item branch
+        :param val: New function attribute value
         '''
 
-        if argument in values:
-            self.metrics[index][argument] = values[argument]
-        else:
-            self.metrics[index][argument] = '' if type_ == str else 0
-
-    def setup(self):
-        '''TODO
-
-        '''
-
-        for index in range(len(self.metrics)):
-            if self._configure_branch(index) is False:
-                return False
-        return True
-
-    def update_metric_function(self, index, value):
-        '''TODO
-
-        '''
-
-        self.values.update(self.metrics[index])
-        self.metrics[index] = {'name': self.values['name'], 'function': value}
-        branch = self.branches[self.metrics[index]['name']]
+        self.values.update(self.items[idx])
+        self.items[idx] = {'name': self.values['name'], 'function': val}
+        branch = self.branches[self.values['name']]
         branch.takeChildren()
-        function = metrics.metricsList[self.metrics[index]['function']]
-        types = typing.get_type_hints(function)
-        self._configure_leaf(branch, index, 'function')
-        for argument in filter(lambda a: a != 'drivedata', types.keys()):
-            type_ = types[argument]
-            self._update_argument(index, self.values, argument, type_)
-            self._configure_leaf(branch, index, argument)
+        new_func = metrics.metricsList[self.items[idx]['function']]
+        types = typing.get_type_hints(new_func)
+        self.setup_leaf(branch, idx, 'function')
+        for key in filter(lambda i: i != 'drivedata', types.keys()):
+            self.update_arg(idx, key, self.values, types[key])
 
-    def get_collection(self):
-        '''TODO
-
+    def update_arg(self, idx, key, vals, type_):
+        '''Updates the metric argument attribute for the function embedded in
+        the item branch at the given index.
+        
+        :param idx: Index of the item branch
+        :param key: Key of the metric argument attribute
+        :param val: New attribute value
+        :param type_: Type of the metric argument
         '''
 
-        return self.metrics
-
-    def expand(self):
-        '''TODO
-
-        '''
-
-        self.expandToDepth(1)
+        if key in vals:
+            self.items[idx][key] = vals[key]
+        else:
+            self.items[idx][key] = '' if type_ == str else 0
+        branch = self.branches[self.items[idx]['name']]
+        self.setup_leaf(branch, idx, key)
 
 
 class ProjectTree(QTreeWidget):
