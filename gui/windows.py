@@ -214,7 +214,7 @@ class MainWindow(Window):
         '''
 
         project_tree = ProjectTree(pfile_path)
-        if project_tree.configure_widget():
+        if project_tree.setup():
             index = self.ui.pfile_tab.count()
             self.ui.pfile_tab.insertTab(index, project_tree, pfile_name)
             self.ui.pfile_tab.setCurrentIndex(index)
@@ -259,7 +259,7 @@ class MainWindow(Window):
         index = self.ui.pfile_tab.currentIndex()
         pfile_name = self.ui.pfile_tab.tabText(index)
         project_tree = self.project_files[pfile_name][1]
-        project_tree.remove_selected()
+        project_tree.del_items()
 
     def _handle_move_up(self):
         '''TODO
