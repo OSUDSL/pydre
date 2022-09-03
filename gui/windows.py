@@ -269,7 +269,7 @@ class MainWindow(Window):
         index = self.ui.pfile_tab.currentIndex()
         pfile_name = self.ui.pfile_tab.tabText(index)
         project_tree = self.project_files[pfile_name][1]
-        project_tree.move_selected_up()
+        project_tree.move_up()
 
     def _handle_move_down(self):
         '''TODO
@@ -279,7 +279,7 @@ class MainWindow(Window):
         index = self.ui.pfile_tab.currentIndex()
         pfile_name = self.ui.pfile_tab.tabText(index)
         project_tree = self.project_files[pfile_name][1]
-        project_tree.move_selected_down()
+        project_tree.move_down()
 
     def _handle_add_dfile(self):
         '''TODO

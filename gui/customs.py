@@ -551,42 +551,6 @@ class ProjectTree(QTreeWidget):
     :param project_file: Path to the project file used to construct this tree
     '''
 
-    # def __init__(self, project_file, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-
-    #     self.project_file = project_file
-    #     self.items_ = json.load(open(self.project_file))
-    #     self.items_copy = copy.deepcopy(self.items_)
-    #     self.trees = {
-    #         'rois': lambda r, c: RoisTree(r, c),
-    #         'filters': lambda r, c: FiltersTree(r, c),
-    #         'metrics': lambda r, c: MetricsTree(r, c)
-    #     }
-    #     self.add_item = {
-    #         'rois': lambda r, i, e: self.add_roi(r, i, expand=e),
-    #         'filters': lambda f, i, e: self.add_filter(f, i, expand=e),
-    #         'metrics': lambda m, i, e: self.add_metric(m, i, expand=e)
-    #     }
-    #     self.subtrees = {}
-    #     self.roi_counter = 1
-    #     self.filter_counter = 1
-    #     self.metric_counter = 1
-
-    # def configure_widget(self):
-    #     '''TODO
-
-    #     '''
-
-    #     self.setHeaderHidden(True)
-    #     self.setAnimated(False)
-    #     for collection in sorted(self.items_copy):
-    #         tree = self.trees[collection](self, self.items_copy[collection])
-    #         if tree.setup() is False:
-    #             return False
-    #         self.subtrees[collection] = tree
-    #     self.expandToDepth(0)
-    #     return True
-
     def __init__(self, project_file, *args, **kwargs):
         '''Constructor.
         '''
@@ -600,11 +564,11 @@ class ProjectTree(QTreeWidget):
             'filters': lambda r, c: FiltersTree(r, c),
             'metrics': lambda r, c: MetricsTree(r, c)
         }
-        self.counters = {
-            'rois': 1,
-            'filters': 1,
-            'metrics': 1
+        self.add = {
+            'rois': lambda i, x, e: self.add_roi(i, x, e),
+
         }
+        self.counters = {'rois': 1, 'filters': 1, 'metrics': 1}
         self.subtrees = {}
 
     def setup(self):
@@ -672,70 +636,77 @@ class ProjectTree(QTreeWidget):
         for item in items:
             self.topLevelItem(item[0]).child(item[1]).setExpanded(True)
 
-    def add_item(self, collection, item):
+    def add_item(self, collection, item, idx=None):
         '''Adds the given item to the specified collection, creating that
         collection if it doesn't exist already.
 
         :param collection: Collection identifier (rois, filters, or metrics)
         :param item: Item to be added as a new branch
+        :param idx: Index at which to insert the new item branch (optional)
         :return: Index of the new item branch
         '''
 
         self.counters[collection] += 1
         if collection in self.items1:
-            idx = len(self.items1[collection])
+            idx = idx if idx is not None else len(self.items1[collection])
             self.items1[collection].insert(idx, item)
         else:
-            idx = 0
+            idx = idx if idx is not None else 0
             self.items1[collection] = [item]
         self.setItemSelected(self.topLevelItem(0).child(idx), True)
         self.setup()
         return idx
 
-    def add_roi(self, item=None):
+    def add_roi(self, item=None, idx=None, expanded=None):
         '''Adds a new roi item to the project tree, creating a generic roi if an
         item dictionary is not provided.
         
         :param item: Roi item to be added as a new branch (optional)
+        :param idx: Index at which to insert the new item branch (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
         '''
 
-        expanded = self.get_expanded()
+        expanded = expanded if expanded is not None else self.get_expanded()
         item = item if item is not None else {
             'type': f'new_roi_{self.counters["rois"]}',
             'filename': f'<roi_file>'}
-        self.add_item('rois', item)
+        self.add_item('rois', item, idx)
         self.set_expanded(expanded)
 
-    def add_filter(self, item=None):
+    def add_filter(self, item=None, idx=None, expanded=None):
         '''Adds a new filter item to the project tree, creating a generic filter
         if an item dictionary is not provided.
         
         :param item: Filter item to be added as a new branch (optional)
+        :param idx: Index at which to insert the new item branch (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
         '''
 
-        expanded = self.get_expanded()
+        expanded = expanded if expanded is not None else self.get_expanded()
         item = item if item is not None else {
             'name': f'new_filter_{self.counters["filters"]}',
             'function': list(filters.filtersList.keys())[0]
         }
-        idx = self.add_item('filters', item)
+        idx = self.add_item('filters', item, idx)
         new_func = item['function']
         self.subtrees['filters'].update_func(idx, new_func)
         self.set_expanded(expanded)
 
-    def add_metric(self, item=None):
+    def add_metric(self, item=None, idx=None, expanded=None):
         '''Adds a new filter item to the project tree, creating a generic metric
         if an item dictionary is not provided.
         
         :param item: Metric item to be added as a new branch (optional)
+        :param idx: Index at which to insert the new item branch (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
         '''
 
-        expanded = self.get_expanded()
+        expanded = expanded if expanded is not None else self.get_expanded()
         item = item if item is not None else {
             'name': f'new_metric_{self.counters["metrics"]}',
             'function': list(metrics.metricsList.keys())[0]
         }
-        idx = self.add_item('metrics', item)
+        idx = self.add_item('metrics', item, idx)
         new_func = item['function']
         self.subtrees['metrics'].update_func(idx, new_func)
         self.set_expanded(expanded)
@@ -743,7 +714,7 @@ class ProjectTree(QTreeWidget):
     def del_item(self, item):
         '''Removes the given item branch from the project tree.
         
-        :param item: Item to be deleted
+        :param item: Item branch to be deleted
         '''
 
         parent = item.parent().text(0)
@@ -754,14 +725,15 @@ class ProjectTree(QTreeWidget):
             del self.items1[parent]
         self.setup()
 
-    def del_items(self, items=None):
+    def del_items(self, items=None, expanded=None):
         '''Removes a collection of item branches from the project tree, using
         the currently selected items if no collection is provided.
         
-        :param item: Items to be deleted (optional)
+        :param item: Items branch to be deleted (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
         '''
 
-        expanded = self.get_expanded()
+        expanded = expanded if expanded is not None else self.get_expanded()
         items = items if items is not None else self.selectedItems()
         for item in items:
             item_widget = self.itemWidget(item, 0)
@@ -772,60 +744,65 @@ class ProjectTree(QTreeWidget):
         self.setup()
         self.set_expanded(expanded)
 
-    def move_selected_up(self):
-        '''TODO
-
+    def get_info(self, item=None):
+        '''Gets item, parent, collection, and index information about an item
+        branch, using the first currently selected item if no item is provided.
+        
+        :param item: Item branch from which to retrieve information (optional)
+        :return: The item along with its parent, collection, and branch index
         '''
 
-        index = self.indexFromItem(self.selectedItems()[0]).row()
-        sub_tree = self.selectedItems()[-1].parent()
-        sub_tree_text = sub_tree.text(0)
+        try:
+            item = item if item is not None else self.selectedItems()[0]
+            parent, collection = item.parent(), item.parent().text(0)
+            tree_idx = ('filters', 'metrics', 'rois').index(collection)
+            item_idx = self.indexFromItem(item).row()
+            return item, parent, collection, [tree_idx, item_idx]
+        except IndexError:
+            return ((None,) * 4)
 
-        if sub_tree_text == 'filters':
-            i = 0
-        elif sub_tree_text == 'metrics':
-            i = 1
-        else:
-            i = 2
-        expanded = []
-        for idx in range(sub_tree.childCount()):
-            if sub_tree.child(idx).isExpanded():
-                expanded.append([i, idx])
-
-        item = self.items_copy[sub_tree_text][index]
-        if index > 0:
-            if sub_tree.child(index).isExpanded():
-                if not sub_tree.child(index - 1).isExpanded():
-                    expanded.remove([i, index])
-                expanded.append([i, index - 1])
-            self.remove_selected()
-            self.add_item[sub_tree_text](item, index - 1, expanded)
-
-    def move_selected_down(self):
-        '''TODO
-
+    def move_up(self, item=None, expanded=None):
+        '''Moves an item branch up in the project tree, using the first 
+        currently selected item if no item is provided.
+        
+        :param item: Item branch to be moved up (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
         '''
 
-        index = self.indexFromItem(self.selectedItems()[0]).row()
-        sub_tree = self.selectedItems()[-1].parent()
-        sub_tree_text = sub_tree.text(0)
+        expanded = expanded if expanded is not None else self.get_expanded()
+        item, parent, collection, idx = self.get_info(item)
+        if idx[1] > 0 and item is not None:
+            if item.isExpanded():
+                expanded.append([idx[0], idx[1]-1])
+            else:
+                expanded = [i for i in expanded if i != [idx[0], idx[1]-1]]
+            if parent.child(idx[1]-1).isExpanded():
+                expanded.append([idx[0], idx[1]])
+            else:
+                expanded = [i for i in expanded if i != idx]
+            item = self.items1[collection][idx[1]]
+            self.del_items(expanded=[])
+            getattr(self, f'add_{collection[:-1]}')(item, idx[1]-1, expanded)
 
-        if sub_tree_text == 'filters':
-            i = 0
-        elif sub_tree_text == 'metrics':
-            i = 1
-        else:
-            i = 2
-        expanded = []
-        for idx in range(sub_tree.childCount()):
-            if sub_tree.child(idx).isExpanded():
-                expanded.append([i, idx])
+    def move_down(self, item=None, expanded=None):
+        '''Moves an item branch down in the project tree, using the first 
+        currently selected item if no item is provided.
+        
+        :param item: Item branch to be moved down (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
+        '''
 
-        item = self.items_copy[sub_tree_text][index]
-        if index < sub_tree.childCount() - 1:
-            if sub_tree.child(index).isExpanded():
-                if not sub_tree.child(index + 1).isExpanded():
-                    expanded.remove([i, index])
-                expanded.append([i, index + 1])
-            self.remove_selected()
-            self.add_item[sub_tree_text](item, index + 1, expanded)
+        expanded = expanded if expanded is not None else self.get_expanded()
+        item, parent, collection, idx = self.get_info(item)
+        if idx[1] < parent.childCount() - 1 and item is not None:
+            if item.isExpanded():
+                expanded.append([idx[0], idx[1]+1])
+            else:
+                expanded = [i for i in expanded if i != [idx[0], idx[1]+1]]
+            if parent.child(idx[1]+1).isExpanded():
+                expanded.append([idx[0], idx[1]])
+            else:
+                expanded = [i for i in expanded if i != idx]
+            item = self.items1[collection][idx[1]]
+            self.del_items(expanded=[])
+            getattr(self, f'add_{collection[:-1]}')(item, idx[1]+1, expanded)
