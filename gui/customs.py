@@ -5,8 +5,6 @@ Created on: 11/21/2020
 
 import copy
 import json
-from pyclbr import Function
-from tkinter import Widget
 import typing
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
@@ -613,6 +611,23 @@ class ProjectTree(QTreeWidget):
             self.update()
         return self.items0
 
+    def get_info(self, item=None):
+        '''Gets item, parent, collection, and index information about an item
+        branch, using the first currently selected item if no item is provided.
+        
+        :param item: Item branch from which to retrieve information (optional)
+        :return: The item along with its parent, collection, and branch index
+        '''
+
+        try:
+            item = item if item is not None else self.selectedItems()[0]
+            parent, collection = item.parent(), item.parent().text(0)
+            tree_idx = ('filters', 'metrics', 'rois').index(collection)
+            item_idx = self.indexFromItem(item).row()
+            return item, parent, collection, [tree_idx, item_idx]
+        except IndexError:
+            return ((None,) * 4)
+
     def get_expanded(self, depth=2):
         '''Reports the currently expanded item branches up to the given depth.
         
@@ -743,23 +758,6 @@ class ProjectTree(QTreeWidget):
                 self.del_item(item)
         self.setup()
         self.set_expanded(expanded)
-
-    def get_info(self, item=None):
-        '''Gets item, parent, collection, and index information about an item
-        branch, using the first currently selected item if no item is provided.
-        
-        :param item: Item branch from which to retrieve information (optional)
-        :return: The item along with its parent, collection, and branch index
-        '''
-
-        try:
-            item = item if item is not None else self.selectedItems()[0]
-            parent, collection = item.parent(), item.parent().text(0)
-            tree_idx = ('filters', 'metrics', 'rois').index(collection)
-            item_idx = self.indexFromItem(item).row()
-            return item, parent, collection, [tree_idx, item_idx]
-        except IndexError:
-            return ((None,) * 4)
 
     def move_up(self, item=None, expanded=None):
         '''Moves an item branch up in the project tree, using the first 
