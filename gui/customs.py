@@ -598,7 +598,7 @@ class ProjectTree(QTreeWidget):
         with recent changes.
         '''
 
-        return self.items0 == self.items1
+        return self.items0 != self.items1
 
     def get_items(self, update=True):
         '''Reports the current collection of project items after optionally 
@@ -637,9 +637,11 @@ class ProjectTree(QTreeWidget):
 
         expanded = []
         for i in range(depth):
-            for idx in range(self.topLevelItem(i).childCount()):
-                if self.topLevelItem(i).child(idx).isExpanded():
-                    expanded.append([i, idx])
+            parent = self.topLevelItem(i)
+            if parent is not None:
+                for idx in range(self.topLevelItem(i).childCount()):
+                    if self.topLevelItem(i).child(idx).isExpanded():
+                        expanded.append([i, idx])
         return expanded
 
     def set_expanded(self, items):
