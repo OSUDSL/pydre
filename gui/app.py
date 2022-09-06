@@ -16,7 +16,7 @@ config.read(CONFIG_PATH)
 
 class Application(QApplication):
     '''Primary application class responsible for handling command-line arguments
-    and launching the given Window object.
+    and launching the given window object.
 
     Usage:
         window = MainWindow()
@@ -27,7 +27,7 @@ class Application(QApplication):
     '''
 
     def __init__(self, window, *args, **kwargs):
-        '''Constructor
+        '''Constructor.
         '''
 
         super().__init__(*args, **kwargs)

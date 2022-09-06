@@ -18,85 +18,86 @@ from gui.templates import Window
 
 config = Config()
 config.read(CONFIG_PATH)
-
 logger = logging.getLogger('PydreLogger')
 
 
 class MainWindow(Window):
-    '''Primary window class that handles all tasks related to the main window
-    configurations and functionality.
+    '''Primary window class responsible for handling all tasks related to GUI
+    layout and functionality.
 
+    Usage:
+        app = QApplication()
+        window = MainWindow(app)
+        window.start()
+    
+    :param app: Parent application object responsible for launching the GUI
     '''
 
     def __init__(self, app, *args, **kwargs):
+        '''Constructor.
+        '''
+
         super().__init__('main', *args, **kwargs)
-
         self.app = app
-        self.project_files = {}
-        self._configure_window()
-        self.switch_to_start()
-
-    def _configure_window(self):
+        self.files = {}
+        self.setup()
+        self.to_start()
+    
+    def setup(self):
         '''Configures initial window settings.
-
         '''
 
-        self._configure_callbacks()
-        self._configure_splitters()
-        self._configure_recent()
+        self.setup_callbacks()
+        self.setup_splitters()
+        self.setup_recent()
 
-    def _configure_callbacks(self):
+    def setup_callbacks(self):
         '''Configures callback functionality for actions and widgets.
-
         '''
 
-        self._configure_action_callbacks()
-        self._configure_widget_callbacks()
-        self._configure_button_callbacks()
+        self.setup_actions()
+        self.setup_widgets()
+        self.setup_buttons()
 
-    def _configure_action_callbacks(self):
-        '''TODO
-
+    def setup_actions(self):
+        '''Configures action callback functionality.
         '''
 
-        self.ui.open_act.triggered.connect(self._handle_open_pfile)
-        self.ui.new_act.triggered.connect(self._handle_new_pfile)
-        self.ui.save_act.triggered.connect(self._handle_save)
-        self.ui.run_act.triggered.connect(self._handle_run_act)
+        self.ui.open_act.triggered.connect(self.handle_open)
+        self.ui.new_act.triggered.connect(self.handle_new)
+        self.ui.save_act.triggered.connect(self.handle_save)
+        self.ui.run_act.triggered.connect(self.handle_to_run)
 
-    def _configure_widget_callbacks(self):
-        '''TODO
-
+    def setup_widgets(self):
+        '''Configures widget callback functionality.
         '''
 
-        self.ui.pfile_tab.currentChanged.connect(self._handle_tab_change)
-        self.ui.pfile_tab.tabCloseRequested.connect(self._handle_tab_close)
-        self.ui.recent_lst.itemDoubleClicked.connect(self._handle_select_pfile)
-        self.ui.data_lst.itemSelectionChanged.connect(self._toggle_remove_btn)
-        self.ui.data_lst.model().rowsInserted.connect(self._toggle_run_btn)
-        self.ui.data_lst.model().rowsRemoved.connect(self._toggle_run_btn)
+        self.ui.pfile_tab.currentChanged.connect(self.handle_tab_change)
+        self.ui.pfile_tab.tabCloseRequested.connect(self.handle_tab_close)
+        self.ui.recent_lst.itemDoubleClicked.connect(self.handle_select)
+        self.ui.data_lst.itemSelectionChanged.connect(self.toggle_remove)
+        self.ui.data_lst.model().rowsInserted.connect(self.toggle_run)
+        self.ui.data_lst.model().rowsRemoved.connect(self.toggle_run)
 
-    def _configure_button_callbacks(self):
-        '''TODO
-
+    def setup_buttons(self):
+        '''Configures button callback functionality.
         '''
 
-        self.ui.new_pfile_btn.clicked.connect(self._handle_new_pfile)
-        self.ui.open_pfile_btn.clicked.connect(self._handle_open_pfile)
-        self.ui.new_roi_btn.clicked.connect(self._handle_new_roi)
-        self.ui.new_filter_btn.clicked.connect(self._handle_new_filter)
-        self.ui.new_metric_btn.clicked.connect(self._handle_new_metric)
-        self.ui.remove_item_btn.clicked.connect(self._handle_remove_item)
-        self.ui.move_up_btn.clicked.connect(self._handle_move_up)
-        self.ui.move_down_btn.clicked.connect(self._handle_move_down)
-        self.ui.add_btn.clicked.connect(self._handle_add_dfile)
-        self.ui.remove_btn.clicked.connect(self._handle_remove_dfile)
-        self.ui.cancel_btn.clicked.connect(self._handle_cancel)
-        self.ui.run_btn.clicked.connect(self._handle_run)
+        self.ui.open_pfile_btn.clicked.connect(self.handle_open)
+        self.ui.new_pfile_btn.clicked.connect(self.handle_new)
+        self.ui.new_roi_btn.clicked.connect(self.handle_add_roi)
+        self.ui.new_filter_btn.clicked.connect(self.handle_add_filter)
+        self.ui.new_metric_btn.clicked.connect(self.handle_add_metric)
+        self.ui.remove_item_btn.clicked.connect(self.handle_remove_item)
+        self.ui.move_up_btn.clicked.connect(self.handle_up)
+        self.ui.move_down_btn.clicked.connect(self.handle_down)
+        self.ui.add_dfile_btn.clicked.connect(self.handle_add_dfile)
+        self.ui.remove_dfile_btn.clicked.connect(self.handle_remove_dfile)
+        self.ui.cancel_btn.clicked.connect(self.handle_cancel)
+        self.ui.run_btn.clicked.connect(self.handle_run)
 
-    def _configure_splitters(self):
+    def setup_splitters(self):
         '''Configures the initial stretch factors for splitter widgets.
-
         '''
 
         self.ui.start_hsplitter.setStretchFactor(0, 5)
@@ -108,369 +109,353 @@ class MainWindow(Window):
         self.ui.run_vsplitter.setStretchFactor(0, 4)
         self.ui.run_vsplitter.setStretchFactor(1, 1)
 
-    def _configure_recent(self):
+    def setup_recent(self):
         '''Configures the recent files list displayed on the start page.
-
         '''
 
         self.ui.recent_lst.clear()
-        recent_pfiles = config.get('Recent Files', 'paths').split(',')
-        for path_ in filter(lambda f: f != '', recent_pfiles):
-            _, name = os.path.split(path_)
-            self.ui.recent_lst.addItem(name)
+        files = config.get('Recent Files', 'paths').split(',')
+        for file in filter(lambda i: i != '', files):
+            self.ui.recent_lst.addItem(os.path.split(file)[1])
 
-    def _handle_add_to_log(self):
-        '''TODO
-
-        '''
-
-        level = self.ui.level_box.currentText()
-        entry = self.ui.log_inp.text()
-        if entry:
-            now = time.localtime()
-            now_time = time.strftime('%H:%M:%S', now)
-            msg = f'{now_time} - {level}: {entry}'
-            self.ui.log_lst.addItem(msg)
-            self.ui.log_lst.scrollToBottom()
-            self.ui.log_inp.clear()
-
-    def _handle_select_pfile(self):
-        '''Handles selecting a file from the recent files list.
-
-        '''
-
-        directory = os.path.dirname(GUI_PATH)
-        recent_paths = config.get('Recent Files', 'paths').split(',')
-        index = self.ui.recent_lst.currentRow()
-        file_path = os.path.join(directory, recent_paths[index])
-        self._launch_editor(file_path) if file_path else None
-
-    def _handle_open_pfile(self):
+    def handle_open(self):
         '''Handles opening a project file in a new tab.
-
         '''
 
-        pfile_type = config.get('File Types', 'project')
-        pfile_path = self._open_file(pfile_type)
-        self._launch_editor(pfile_path) if pfile_path else None
+        file = self.open_file(config.get('File Types', 'project'))
+        if file:
+            self.start_editor(file)
 
-    def _open_file(self, filter=None):  # TODO: MOVE TO UTILITY CLASS
-        '''Launches a file selection dialog based on the given file type and
-        returns a file path if one is selected.
-
+    def handle_new(self):
+        '''Handles creating and opening a new project file in a new tab.
         '''
 
-        title = "Open File"
-        directory = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
-        path_, _ = QFileDialog.getOpenFileName(self, title, directory, filter)
-        return os.path.abspath(path_) if path_ else None
-
-    def _open_files(self, filter=None):  # TODO: MOVE TO UTILITY CLASS
-        '''Launches a file selection dialog based on the given file type and
-        returns a list of file paths if one or more is selected.
-
-        '''
-
-        title = "Open File"
-        directory = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
-        paths, _ = QFileDialog.getOpenFileNames(self, title, directory, filter)
-        return [os.path.abspath(path_) for path_ in paths]
-
-    def _launch_editor(self, pfile_path):
-        '''Configures and shows a file editor in a new tab.
-
-        '''
-
-        pfile_name = pfile_path.split(os.sep)[-1]
-        self._add_to_recent(pfile_path)
-        if pfile_name not in self.project_files:
-            project_tree = self._create_project_tree(pfile_name, pfile_path)
-            if project_tree is None:
-                self._handle_tab_change()
-                self.show_error('Failed to build project tree.')
-                return
-            self.project_files[pfile_name] = [pfile_path, project_tree]
-        else:
-            index = self.ui.file_tab.indexOf(pfile_name)
-            self.ui.file_tab.setCurrentIndex(index)
-        self.switch_to_editor()
-
-    def _add_to_recent(self, pfile_path):
-        '''Adds the given project file name and path to the recent files lists
-        in the configuration file.
-
-        '''
-
-        relative_path = os.path.join(*pfile_path.split(os.sep)[-2:])
-        recent = config.get('Recent Files', 'paths').split(',')
-        recent.remove(relative_path) if relative_path in recent else None
-        recent.insert(0, relative_path)
-        config.set('Recent Files', 'paths', ','.join(recent))
-        config.update()
-
-    def _create_project_tree(self, pfile_name, pfile_path):
-        '''Creates and displays a FileTree widget for the given file.
-
-        '''
-
-        project_tree = ProjectTree(pfile_path)
-        if project_tree.setup():
-            index = self.ui.pfile_tab.count()
-            self.ui.pfile_tab.insertTab(index, project_tree, pfile_name)
-            self.ui.pfile_tab.setCurrentIndex(index)
-            return project_tree
-        return None
-
-    def _handle_new_roi(self):
-        '''TODO
-
-        '''
-
-        index = self.ui.pfile_tab.currentIndex()
-        pfile_name = self.ui.pfile_tab.tabText(index)
-        project_tree = self.project_files[pfile_name][1]
-        project_tree.add_roi()
-
-    def _handle_new_filter(self):
-        '''TODO
-
-        '''
-
-        index = self.ui.pfile_tab.currentIndex()
-        pfile_name = self.ui.pfile_tab.tabText(index)
-        project_tree = self.project_files[pfile_name][1]
-        project_tree.add_filter()
-
-    def _handle_new_metric(self):
-        '''TODO
-
-        '''
-
-        index = self.ui.pfile_tab.currentIndex()
-        pfile_name = self.ui.pfile_tab.tabText(index)
-        project_tree = self.project_files[pfile_name][1]
-        project_tree.add_metric()
-
-    def _handle_remove_item(self):
-        '''TODO
-
-        '''
-
-        index = self.ui.pfile_tab.currentIndex()
-        pfile_name = self.ui.pfile_tab.tabText(index)
-        project_tree = self.project_files[pfile_name][1]
-        project_tree.del_items()
-
-    def _handle_move_up(self):
-        '''TODO
-
-        '''
-
-        index = self.ui.pfile_tab.currentIndex()
-        pfile_name = self.ui.pfile_tab.tabText(index)
-        project_tree = self.project_files[pfile_name][1]
-        project_tree.move_up()
-
-    def _handle_move_down(self):
-        '''TODO
-
-        '''
-
-        index = self.ui.pfile_tab.currentIndex()
-        pfile_name = self.ui.pfile_tab.tabText(index)
-        project_tree = self.project_files[pfile_name][1]
-        project_tree.move_down()
-
-    def _handle_add_dfile(self):
-        '''TODO
-
-        '''
-
-        dfile_type = config.get('File Types', 'data')
-        dfile_paths = self._open_files(dfile_type)
-        for path_ in dfile_paths:
-            self.ui.data_lst.addItem(path_)
-
-    def _handle_remove_dfile(self):
-        '''TODO
-
-        '''
-
-        row = self.ui.data_lst.currentRow()
-        self.ui.data_lst.takeItem(row)
-
-    def _handle_new_pfile(self):
-        '''TODO
-
-        '''
-
-        # QInputDialog.setWindowIcon(self.icon)
-        pfile_name, ok = QInputDialog.getText(self, 'Pydre', 'File name')
+        name, ok = QInputDialog.getText(self, 'Pydre', 'File name')
         if ok:
-            pfile_dir = 'project_files'
-            pfile_name = pfile_name + '.json'
-            pfile_path = os.path.join(PROJECT_PATH, pfile_dir, pfile_name)
-            with open(pfile_path, 'w') as pfile:
-                pfile.write('{}')
-            self._launch_editor(pfile_path)
-
-    def _handle_save(self, index):
-        '''TODO
-
+            file = os.path.join(PROJECT_PATH, 'project_files', f'{name}.json')
+            with open(file, 'w') as f:
+                f.write('{}')
+            self.start_editor(file)
+        
+    def handle_save(self, idx=None):
+        '''Handles saving changes made to the project tab at the given index,
+        using the current index if no index is given.
+        
+        :param idx: Project tab index (optional)
         '''
 
-        pfile_name = self.ui.pfile_tab.tabText(index)
-        with open(self.project_files[pfile_name][0], 'w') as pfile:
-            contents = self.ui.pfile_tab.currentWidget().get_contents()
-            json.dump(contents, pfile, indent=4)
+        idx = idx if idx is not None else self.ui.pfile_tab.currentIndex()
+        name = self.ui.pfile_tab.tabText(idx)
+        with open(self.files[name][0], 'w') as file:
+            self.ui.pfile_tab.currentWidget().update()
+            contents = self.ui.pfile_tab.currentWidget().items0
+            json.dump(contents, file, indent=4)
 
-    def _handle_run_act(self):
-        '''TODO
-
+    def handle_to_run(self, idx):
+        '''Handles passing the project tab at the given index to the run page,
+        using the current index if no index is given.
+        
+        :param idx: Project tab index (optional)
         '''
 
-        index = self.ui.pfile_tab.currentIndex()
-        pfile_name = self.ui.pfile_tab.tabText(index)
-        pfile_path = self.project_files[pfile_name][0]
-        self.ui.pfile_lbl.setText(pfile_path)
-        self.switch_to_run()
+        idx = idx if idx is not None else self.ui.pfile_tab.curentIndex()
+        name = self.ui.pfile_tab.tabText(idx)
+        self.ui.pfile_lbl.setText(self.files[name][0])
+        self.to_run()
 
-    def _handle_tab_change(self, index=None):
-        '''Handles functionality that occurs when a tab is opened, closed, or
-        selected.
-
+    def handle_tab_change(self, idx=None):
+        '''Handles activity that occurs when the project tab at the given index 
+        is opened, closed, or selected.
+        
+        :param idx: Project tab index (optional)
         '''
 
-        if index is not None and self.ui.pfile_tab.count() > 0:
-            pfile_name = self.ui.pfile_tab.tabText(index)
-            self.ui.run_act.setText(f"Run '{pfile_name}'")
+        if idx is not None and self.ui.pfile_tab.count() > 0:
+            name = self.ui.pfile_tab.tabText(idx)
+            self.ui.run_act.setText(f'Run \'{name}\'')
         else:
-            self.switch_to_start()
+            self.to_start()
 
-    def _handle_tab_close(self, index):
-        '''TODO
-
+    def handle_tab_close(self, idx):
+        '''Handles activity that occurs upon a project tab close request at the
+        given index.
+        
+        :param idx: Project tab index
         '''
 
-        if self.ui.pfile_tab.widget(index).changed():
-            pfile_name = self.ui.pfile_tab.tabText(index)
-            text = f"{pfile_name} " + config.get('Popup Text', 'save')
-            def cb(e): return self._handle_close(index, e)
+        if self.ui.pfile_tab.widget(idx).updated():
+            name = self.ui.pfile_tab.tabText(idx)
+            text = f'{name} {config.get("Popup Text", "save")}'
+            def cb(e): return self.del_tab(idx, e)
             SavePopup(parent=self).show_(text, cb)
         else:
-            self._handle_close(index, False)
+            self.del_tab(idx, False)
 
-    def _handle_close(self, index, save):
-        '''TODO
-
+    def handle_select(self):
+        '''Handles opening a selected project file from the recent files list.
         '''
 
-        self._handle_save(index) if save else None
-        self.project_files.pop(self.ui.pfile_tab.tabText(index))
-        self.ui.pfile_tab.removeTab(index)
+        recents = config.get('Recent Files', 'paths').split(',')
+        idx = self.ui.recent_lst.currentRow()
+        file = os.path.join(os.path.dirname(GUI_PATH), recents[idx])
+        if file:
+            self.start_editor(file)
 
-    def _handle_cancel(self):
-        '''TODO
+    def handle_add_roi(self, idx=None):
+        '''Handles creating and adding a new roi to the project tree at the 
+        given index, using the current index if no index is provided.
+        
+        :param idx: Project tab index (optional)
+        '''
 
+        idx = idx if idx is not None else self.ui.pfile_tab.currentIndex()
+        name = self.ui.pfile_tab.tabText(idx)
+        self.files[name][1].add_roi()
+
+    def handle_add_filter(self, idx=None):
+        '''Handles creating and adding a new filter to the project tree at the
+        given index, using the current index if no index is provided.
+        
+        :param idx: Project tab index (optional)
+        '''
+
+        idx = idx if idx is not None else self.ui.pfile_tab.currentIndex()
+        name = self.ui.pfile_tab.tabText(idx)
+        self.files[name][1].add_filter()
+
+    def handle_add_metric(self, idx=None):
+        '''Handles creating and adding a new metric to the project tree at the
+        given index, using the current index if no index is provided.
+        
+        :param idx: Project tab index (optional)
+        '''
+
+        idx = idx if idx is not None else self.ui.pfile_tab.currentIndex()
+        name = self.ui.pfile_tab.tabText(idx)
+        self.files[name][1].add_metric()
+
+    def handle_remove_item(self, idx=None):
+        '''Handles removing the currently selected items in the project tree at
+        the given index, using the current index if no index is provided.
+        
+        :param idx: Project tab index (optional)
+        '''
+
+        idx = idx if idx is not None else self.ui.pfile_tab.currentIndex()
+        name = self.ui.pfile_tab.tabText(idx)
+        self.files[name][1].del_items()
+
+    def handle_up(self, idx=None):
+        '''Handles moving the currently selected items up from the project tree 
+        at the given index, using the current index if no index is provided.
+        
+        :param idx: Project tab index (optional)
+        '''
+
+        idx = idx if idx is not None else self.ui.pfile_tab.currentIndex()
+        name = self.ui.pfile_tab.tabText(idx)
+        self.files[name][1].move_up()
+
+    def handle_down(self, idx=None):
+        '''Handles moving the currently selected items down in the project tree 
+        at the given index, using the current index if no index is provided.
+        
+        :param idx: Project tab index (optional)
+        '''
+
+        idx = idx if idx is not None else self.ui.pfile_tab.currentIndex()
+        name = self.ui.pfile_tab.tabText(idx)
+        self.files[name][1].move_down()
+
+    def handle_add_dfile(self):
+        '''Handles getting and adding one or more data files to the data list 
+        using a file selection dialog.
+        '''
+
+        type_ = config.get('File Types', 'data')
+        files = self.open_files(type_)
+        if files is not None:
+            for file in files:
+                self.ui.data_lst.addItem(file)
+
+    def handle_remove_dfile(self):
+        '''Handles removing the currently selected data files from the data
+        list.
+        '''
+
+        idx = self.ui.data_lst.currentRow()
+        self.ui.data_lst.takeItem(idx)
+
+    def handle_cancel(self):
+        '''Handles terminating the current run setup and switching back to the 
+        editor page.
         '''
 
         self.ui.data_lst.clear()
-        self._toggle_run_btn()
-        self.switch_to_editor()
+        self.toggle_run()
+        self.to_editor()
 
-    def _handle_run(self):
-        '''TODO
-
+    def handle_run(self):
+        '''Handles running pydre with the current project and data file
+        configuration as defined in the GUI.
         '''
 
         if self.ui.ofile_inp.text().strip():
-            self._run_pydre()
+            self.run_pydre()
         else:
             text = config.get('Popup Text', 'output')
-            def cb(e): return self._run_pydre() if e else None
+            def cb(e): return self.run_pydre() if e else None
             OutputPopup(parent=self).show_(text, cb)
 
-    def _run_pydre(self):
-        '''TODO
-
+    def start_editor(self, file):
+        '''Configures and initiates a project tree editor for the given project 
+        file in a new tab.
+        
+        :param file: Project file from which to build the project tree
         '''
 
-        text = config.get('Popup Text', 'progress')
-        progress = ProgressPopup(self.app, parent=self).show_(text)
-        project_file = self.ui.pfile_lbl.text()
-        count = self.ui.data_lst.count()
-        data_files = [self.ui.data_lst.item(i).text() for i in range(count)]
-        output_file = self.ui.ofile_inp.displayText()
-        Pydre.run(self.app, project_file, data_files, output_file, progress)
+        name = file.split(os.sep)[-1]
+        self.add_recent(file)
+        if name in self.files:
+            idx = self.ui.file_tab.indexOf(name)
+            self.ui.file_tab.setCurrentIndex(idx)
+        else:
+            tree = self.create_tree(file)
+            if tree is None:
+                self.handle_tab_change()
+                ErrorPopup(parent=self).show_('Failed to build project tree.')
+                return
+            self.files[name] = [file, tree]
+        self.to_editor()
 
-    def _toggle_remove_btn(self):
-        '''TODO
+    def create_tree(self, file):
+        '''Creates and configures a new project tree widget for the given 
+        project file.
+        
+        :param file: Project file from which to build the project tree
+        :return: A configured project tree widget
+        '''
 
+        tree = ProjectTree(file)
+        if tree.setup():
+            idx = self.ui.pfile_tab.count()
+            self.ui.pfile_tab.insertTab(idx, tree, file.split(os.sep)[-1])
+            self.ui.pfile_tab.setCurrentIndex(idx)
+            return tree
+        return None
+            
+    def add_recent(self, file):
+        '''Adds the name and path of the given project file to the current
+        collection of recent files stored in the configuration file.
+        
+        :param file: Project file to add to the recent files list
+        '''
+
+        file = os.path.join(*file.split(os.sep)[-2:])
+        recent = config.get('Recent Files', 'paths').split(',')
+        if file in recent:
+            recent.remove(file)
+        recent.insert(0, file)
+        config.set('Recent Files', 'paths', ','.join(recent))
+        config.update()
+
+    def del_tab(self, idx, save=True):
+        '''Removes the project tab at the given index, prompting to save the 
+        corresponding project file if changes were made to the project tree.
+        
+        :param idx: Project tab index
+        :param save: True if the project file should be saved; False otherwise
+        '''
+
+        if save:
+            self.handle_save(idx)
+        self.files.pop(self.ui.pfile_tab.tabText(idx))
+        self.ui.pfile_tab.removeTab(idx)
+
+    def toggle_remove(self):
+        '''Toggles the "Remove" button widget based on the number of currently
+        selected data items.
         '''
 
         count = len(self.ui.data_lst.selectedItems())
         self.ui.remove_btn.setEnabled(True if count > 0 else False)
 
-    def _toggle_run_btn(self):
-        '''TODO
-
+    def toggle_run(self):
+        '''Toggles the "Run" action widget based on the number of data items.
         '''
 
         count = self.ui.data_lst.count()
         self.ui.run_btn.setEnabled(True if count > 0 else False)
 
-    def _toggle_move_btns(self):
-        '''TODO
-
+    def to_start(self):
+        '''Switches the GUI to the start page (page 1 of 3).
         '''
 
-        pass
+        width, height = self.screen_width / 3., self.screen_height / 2.5
+        self.resize_and_center(width, height)
+        self.ui.menu_bar.setVisible(False)
+        self.setup_recent()
+        self.ui.page_stack.setCurrentIndex(0)
+
+    def to_editor(self):
+        '''Switches the GUI to the editor page (page 2 of 3).
+        '''
+        width, height = self.screen_width / 2.5, self.screen_height / 2.
+        self.resize_and_center(width, height)
+        self.ui.menu_bar.setVisible(True)
+        self.ui.page_stack.setCurrentIndex(1)
+
+    def to_run(self):
+        '''Switches the GUI to the run page (page 3 of 3).
+        '''
+
+        width, height = self.screen_width / 2.5, self.screen_height / 2.
+        self.resize_and_center(width, height)
+        self.ui.menu_bar.setVisible(True)
+        self.ui.page_stack.setCurrentIndex(2)
+
+    def open_file(self, filter=None):
+        '''Launches a file selection dialog based on the given file type filter
+        and returns a file path if one is selected.
+        
+        :param filter: File type filter (optional)
+        :return: File path if one is selected; None otherwise
+        '''
+
+        dir = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
+        file = QFileDialog.getOpenFileName(self, 'Open File', dir, filter)[0]
+        return os.path.abspath(file) if file else None
+
+    def open_files(self, filter=None):
+        '''Launches a file selection dialog based on the given file type filter
+        and returns a collection of file paths if one or more are selected.
+        
+        :param filter: File type filter (optional)
+        :return: Collection of file paths if any are selected; None otherwise
+        '''
+
+        dir = os.path.dirname(os.path.dirname(inspect.getfile(pydre)))
+        files = QFileDialog.getOpenFileNames(self, 'Open File', dir, filter)[0]
+        return [os.path.abspath(file) for file in files] if files else None
 
     def add_to_log(self, entry):
-        '''TODO
-
+        '''Adds the given entry to the GUI log list.
+        
+        :param entry: Item to be logged
         '''
 
         self.ui.log_lst.addItem(entry)
         self.ui.log_lst.scrollToBottom()
 
-    def show_error(self, error):
-        '''TODO
-
+    def run_pydre(self):
+        '''Runs pydre with the current project and data file configuration 
+        as defined in the GUI.
         '''
 
-        ErrorPopup(parent=self).show_(error)
-
-    def switch_to_start(self):
-        '''Swithes to the start page (page 1 / 3).
-
-        '''
-
-        width = self.screen_width / 3
-        height = self.screen_height / 2.5
-        self.resize_and_center(width, height)
-        self.ui.menu_bar.setVisible(False)
-        self._configure_recent()
-        self.ui.page_stack.setCurrentIndex(0)
-
-    def switch_to_editor(self):
-        '''Switches to the editor page (page 2 / 3).
-
-        '''
-
-        width = self.screen_width / 2.5
-        height = self.screen_height / 2
-        self.resize_and_center(width, height)
-        self.ui.menu_bar.setVisible(True)
-        self.ui.page_stack.setCurrentIndex(1)
-
-    def switch_to_run(self):
-        '''Switches to the run page (page 3 / 3).
-
-        '''
-
-        width = self.screen_width / 2.5
-        height = self.screen_height / 2
-        self.resize_and_center(width, height)
-        self.ui.menu_bar.setVisible(True)
-        self.ui.page_stack.setCurrentIndex(2)
+        text = config.get('Popup Text', 'progress')
+        file = self.ui.pfile_lbl.text()
+        count = self.ui.data_lst.count()
+        data = [self.ui.data_lst.item(i).text() for i in range(count)]
+        name = self.ui.ofile_inp.displayText()
+        progress = ProgressPopup(self.app, parent=self).show_(text)
+        Pydre.run(self.app, file, data, name, progress)

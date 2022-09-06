@@ -293,14 +293,14 @@ padding: 8px;</string>
                <item>
                 <widget class="QPushButton" name="move_up_btn">
                  <property name="text">
-                  <string>Move up</string>
+                  <string>Move Up</string>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="move_down_btn">
                  <property name="text">
-                  <string>Move down</string>
+                  <string>Move Down</string>
                  </property>
                 </widget>
                </item>
@@ -395,17 +395,17 @@ font: 75 10pt &quot;Arial&quot;;</string>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="add_btn">
+                   <widget class="QPushButton" name="add_dfile_btn">
                     <property name="styleSheet">
                      <string notr="true">font: 75 10pt &quot;Arial&quot;;</string>
                     </property>
                     <property name="text">
-                     <string>Add file</string>
+                     <string>Add File</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="remove_btn">
+                   <widget class="QPushButton" name="remove_dfile_btn">
                     <property name="enabled">
                      <bool>false</bool>
                     </property>
