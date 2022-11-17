@@ -1,17 +1,19 @@
 {
     "rois": [
-  		{"type": "rect", "filename": "spatial_roi.csv"}
+  		{"type": "rect", "filename": "project_files/spatial_roi.csv"}
 	],
 
     "metrics": [
     	{
             "name": "meanVelocityOver20",
-    		"function": "meanVelocity",
+            "function": "colMean",
+            "var": "Velocity",
     		"cutoff": 20
     	},
 		{
             "name": "meanVelocityOver10",
-    		"function": "meanVelocity",
+            "function": "colMean",
+            "var": "Velocity",
     		"cutoff": 10
     	},
 		{
