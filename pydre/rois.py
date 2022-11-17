@@ -157,15 +157,15 @@ class SpaceROI():
                                        (ddata.data.YPos < ymax) &
                                        (ddata.data.YPos > ymin)]
                 if (len(region_data) == 0):
-                    logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
-                        ddata.SubjectID,
+                    logger.warning("No data for PartID: {}, Source: {},  ROI: {}".format(
+                        ddata.PartID,
                         ddata.sourcefilename,
                         self.roi_info.roi[i]))
                 else:
                     logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
                         len(region_data),
                         self.roi_info.roi[i],
-                        ddata.SubjectID,
+                        ddata.PartID,
                         ddata.sourcefilename))
                 new_ddata = pydre.core.DriveData(region_data, ddata.sourcefilename)
                 new_ddata.copyMetaData(ddata)
