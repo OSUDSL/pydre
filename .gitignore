@@ -7,3 +7,5 @@ dist
 gui/config_files/config.ini
 env
 venv/
+.DS_Store
+__pycache__/
