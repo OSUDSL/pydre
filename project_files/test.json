@@ -1,11 +1,27 @@
 {
-
-      "metrics": [
-    	{
+    "metrics": [
+        {
             "function": "colMean",
-    		"name": "meanRoadOffset",
-    		"var": "RoadOffset"
-    	}
+            "name": "meanRoadOffset",
+            "var": "RoadOffset"
+        },
+        {
+            "name": "new_metric_1",
+            "function": "errorPresses"
+        }
+    ],
+    "filters": [
+        {
+            "name": "new_filter_1",
+            "function": "smoothGazeData",
+            "timeColName": "",
+            "gazeColName": ""
+        }
+    ],
+    "rois": [
+        {
+            "type": "new_roi_1",
+            "filename": "<roi_file>"
+        }
     ]
-
 }
