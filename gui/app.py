@@ -35,17 +35,3 @@ class Application(QApplication):
         GUIHandler.window = self.window
         self.window.start()
 
-
-def start(window):
-    '''Launches the application with the given window configuration and
-    command-line arguments.
-
-    :param window: Window object responsible for GUI layout and functionality
-    '''
-
-    app = Application(window, sys.argv)
-    app.exec_()
-
-
-if __name__ == '__main__':
-    start(MainWindow)
