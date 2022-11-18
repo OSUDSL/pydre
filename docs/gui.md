@@ -5,7 +5,7 @@ The GUI for pydre allows users to visually interface with and run the pydre appl
 To run the GUI:
 
 -   Navigate to the pydre directory (NOT the GUI directory)
--   Comand Line Syntax: `py -m gui.app`
+-   Command Line Syntax: `python python_gui.py`
 -   If missing libraries run: `pip install -r requirements.txt`
 
 ## Start Page
