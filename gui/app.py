@@ -3,8 +3,6 @@ Created by: Craig Fouts
 Created on: 9/17/2020
 '''
 
-import os
-# os.environ['PYSIDE_DESIGNER_PLUGINS'] = '/gui'
 import sys
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QApplication
@@ -17,36 +15,37 @@ config.read(CONFIG_PATH)
 
 
 class Application(QApplication):
-    '''Primary application that handles command-line arguments and launches the 
-    given window.
+    '''Primary application class responsible for handling command-line arguments
+    and launching the given window object.
 
+    Usage:
+        window = MainWindow()
+        app = Application(window, sys.argv)
+        app.exec_()
+
+    :param window: Window object responsible for GUI layout and functionality
     '''
 
     def __init__(self, window, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.window = window(self)
-        GUIHandler.window = self.window
-        self._configure_app()
-        self.window.start()
-
-    def _configure_app(self):
-        '''TODO
-
+        '''Constructor.
         '''
 
-        self.setFont(QFont('Arial', 10))
+        super().__init__(*args, **kwargs)
+        self.window = window(self)
+        GUIHandler.window = self.window
+        self.window.start()
 
 
-def start():
-    '''Starts the application with default configuration settings.
+def start(window):
+    '''Launches the application with the given window configuration and
+    command-line arguments.
 
+    :param window: Window object responsible for GUI layout and functionality
     '''
 
-    app_window = MainWindow
-    app = Application(app_window, sys.argv)
+    app = Application(window, sys.argv)
     app.exec_()
 
 
 if __name__ == '__main__':
-    start()
+    start(MainWindow)
