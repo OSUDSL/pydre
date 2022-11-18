@@ -13,43 +13,50 @@ from gui.config import Config, CONFIG_PATH, GUI_PATH
 
 config = Config()
 config.read(CONFIG_PATH)
-
-loader = QUiLoader()
 logger = logging.getLogger('PydreLogger')
+loader = QUiLoader()
 
 
 class Window(QMainWindow):
     '''Parent window class that configures window UI, icon, and title if given.
-
     '''
 
     def __init__(self, name, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        ui_path = os.path.join(GUI_PATH, config.get('UI Files', name))
-        self.ui_file = QFile(ui_path)
-        self.ui_file.open(QFile.ReadOnly)
-        self.ui = loader.load(self.ui_file)
-        icon_path = os.path.join(GUI_PATH, config.get('Icons', name))
-        self.icon = QIcon(icon_path)
-        self.ui.setWindowIcon(self.icon)
+        self.name = name
+        file = QFile(os.path.join(GUI_PATH, config.get('UI Files', self.name)))
+        file.open(QFile.ReadOnly)
+        self.ui = loader.load(file)
+        icon = QIcon(os.path.join(GUI_PATH, config.get('Icons', self.name)))
+        self.ui.setWindowIcon(icon)
+        self.setWindowIcon(icon)
         self.screen = QApplication.primaryScreen()
         self.screen_center = QScreen.availableGeometry(self.screen).center()
         self.screen_width = QScreen.availableGeometry(self.screen).width()
         self.screen_height = QScreen.availableGeometry(self.screen).height()
         self.frame = self.ui.frameGeometry()
+        self.window_size = None
 
     def resize_and_center(self, width, height):
-        '''Resizes and centers the window on the screen.
+        '''Resizes and centers the child window on the current screen.
 
+        :param width: Target window width
+        :param height: Target window height
         '''
 
-        self.frame.moveCenter(self.screen_center)
-        self.ui.move(self.frame.topLeft())
+        current_size = (float(self.ui.width()), float(self.ui.height()))
+        match = (not self.ui.isMaximized()) and self.window_size == current_size
+        if self.window_size is None or match:
+            self.window_size = (width, height)
+            self.frame.setWidth(width)
+            self.frame.setHeight(height)
+            self.ui.resize(width, height)
+            self.frame.moveCenter(self.screen_center)
+            self.ui.move(self.frame.topLeft())
 
     def start(self):
-        '''Displays the window given the associated UI file.
-
+        '''Displays the child window and initiates functionality.
         '''
 
         self.ui.show()

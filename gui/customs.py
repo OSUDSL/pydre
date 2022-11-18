@@ -5,13 +5,11 @@ Created on: 11/21/2020
 
 import copy
 import json
-import os
 import typing
-from PySide2.QtCore import QModelIndex
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
-from gui.config import Config, CONFIG_PATH
+from gui.config import CONFIG_PATH, WIDGET_STYLE_PATH, Config
 from gui.popups import FunctionPopup
 
 config = Config()
@@ -19,672 +17,792 @@ config.read(CONFIG_PATH)
 
 
 class WidgetFactory:
-    '''TODO
-
+    '''Static utility class used to generate configured widgets.
+    
+    Widgets:
+        Combo Box
+        Spin Box
+        Line Edit
     '''
 
     @staticmethod
-    def combo_box(value, cb, items, bg=True):
-        '''TODO
-
+    def combo_box(cb, items, val=None, style=WIDGET_STYLE_PATH):
+        '''Generates a configured Combo Box widget populated with the given
+        items/optional initial value and linked to the given callback function.
+        
+        :param cb: Action callback function
+        :param items: Combo Box item collection
+        :param val: Initial input value (optional)
+        :param style: Widget stylesheet path (optional)
+        :return: A configured Combo Box widget
         '''
 
-        combo_box = QComboBox()
+        widget = QComboBox()
         for item in items:
-            combo_box.addItem(item)
-        index = items.index(value)
-        combo_box.setCurrentIndex(index)
-        combo_box.activated.connect(lambda i: cb(combo_box.itemText(i)))
-        # if border:
-        #     combo_box.setStyleSheet('border: 1px solid black;')
-        combo_box.setStyleSheet('''
-            QComboBox {
-                background-color: rgb(220, 220, 220);
-            }
-
-
-
-            QComboBox::drop-down {
-                background-color: rgb(200, 200, 200)
-            }
-        ''')
-        return combo_box
+            widget.addItem(item)
+        if val is not None:
+            widget.setCurrentIndex(items.index(val))
+        if style is not None:
+            widget.setStyleSheet(open(style).read())
+        widget.activated.connect(lambda i: cb(widget.itemText(i)))
+        return widget
 
     @staticmethod
-    def spin_box(value, cb, bg=True):
-        '''TODO
-
+    def spin_box(cb, val=None, style=WIDGET_STYLE_PATH):
+        '''Generates a configured Spin Box widget populated with the given
+        optional initial value and linked to the given callback function.
+        
+        :param cb: Action callback function
+        :param val: Initial input value (optional)
+        :param style: Widget styleshet path (optional)
+        :return: A configured Spin Box widget
         '''
 
-        spin_box = QSpinBox()
-        spin_box.setValue(value)
-
-        spin_box.valueChanged.connect(cb)
-        # if border:
-        #     spin_box.setStyleSheet('border: 1px solid black;')
-        spin_box.setStyleSheet('''
-            QSpinBox {
-                background-color: rgb(220, 220, 220);
-            }
-        ''')
-        return spin_box
+        widget = QSpinBox()
+        if val is not None:
+            widget.setValue(val)
+        if style is not None:
+            widget.setStyleSheet(open(style).read())
+        widget.valueChanged.connect(cb)
+        return widget
 
     @staticmethod
-    def line_edit(value, cb, bg=True):
-        '''TODO
-
+    def line_edit(cb, val=None, style=WIDGET_STYLE_PATH):
+        '''Generates a configured Line Edit widget populated with the given
+        optional initial value and linked to the given callback funtion.
+        
+        :param cb: Action callback function
+        :param val: Initial input value (optional)
+        :param style: Widget stylesheet path (optional)
+        :return: A configured Line Edit widget
         '''
 
-        line_edit = QLineEdit()
-        line_edit.setText(value)
-        line_edit.textChanged.connect(cb)
-        # if border:
-        #     line_edit.setStyleSheet('border: 1px solid black;')
-        if bg:
-            line_edit.setStyleSheet('''
-                QLineEdit {
-                    background-color: rgb(220, 220, 220)
-                }
-            ''')
-        return line_edit
+        widget = QLineEdit()
+        if val is not None:
+            widget.setText(val)
+        if style is not None:
+            widget.setStyleSheet(open(style).read())
+        widget.textChanged.connect(cb)
+        return widget
 
 
 class LeafWidget(QWidget):
-    '''Custom leaf widget for displaying and editing project file parameters.
+    '''Configurable leaf widget for displaying and editing various types of 
+    project file attributes.
 
+    Widgets:
+        Combo Box
+        Spin Box
+        Line Edit
+
+    :param text: Inline descriptor label text
     '''
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.layout = QHBoxLayout()
-        self.text_ = None
-
-    def _configure_layout(self, text, widget):
-        '''TODO
-
+    def __init__(self, label, *args, **kwargs):
+        '''Constructor.
         '''
 
-        label = QLabel(text)
-        self.layout.addWidget(label)
+        super().__init__(*args, **kwargs)
+        self.layout = QHBoxLayout()
+        self.layout.addWidget(QLabel(label))
+
+    def combo_box(self, cb, items, val=None, height=30):
+        '''Generates a configured project tree leaf widget with a descriptor 
+        label and inline Combo Box widget.
+
+        :param cb: Action callback function
+        :param items: Combo Box item collection
+        :param val: Initial input value (optional)
+        :param height: Widget height (optional)
+        :return: A configured Combo Box leaf widget
+        '''
+
+        widget = WidgetFactory.combo_box(cb, items, val)
+        widget.setFixedHeight(height)
         self.layout.addWidget(widget)
         self.setLayout(self.layout)
-
-    def combo_box(self, items, text, value, cb):
-        '''TODO
-
-        '''
-
-        self.text_ = text
-        combo_box = WidgetFactory.combo_box(value, cb, items)
-        combo_box.setFixedHeight(30)
-        self._configure_layout(text, combo_box)
         return self
 
-    def spin_box(self, text, value, cb):
-        '''TODO
+    def spin_box(self, cb, val=None, height=30):
+        '''Generates a configured project tree leaf widget with a descriptor
+        label and inline Spin Box widget.
 
+        :param cb: Action callback function
+        :param val: Initial input value (optional)
+        :param height: Widget height (optional)
+        :return: A configured Spin Box leaf widget
         '''
 
-        self.text_ = text
-        spin_box = WidgetFactory.spin_box(value, cb)
-        self._configure_layout(text, spin_box)
-        spin_box.setFixedHeight(30)
+        widget = WidgetFactory.spin_box(cb, val)
+        widget.setFixedHeight(height)
+        self.layout.addWidget(widget)
+        self.setLayout(self.layout)
         return self
 
-    def line_edit(self, text, value, cb):
-        '''TODO
+    def line_edit(self, cb, val=None, height=30):
+        '''Generates a configured project tree leaf widget with a descriptor
+        label and inline Line Edit widget.
 
+        :param cb: Action callback function
+        :param val: Initial input value (optional)
+        :param height: Widget height (optional)
+        :return: A configured Line Edit leaf widget
         '''
 
-        self.text_ = text
-        line_edit = WidgetFactory.line_edit(value, cb)
-        line_edit.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        self._configure_layout(text, line_edit)
-        line_edit.setFixedHeight(30)
+        widget = WidgetFactory.line_edit(cb, val)
+        widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        widget.setFixedHeight(height)
+        self.layout.addWidget(widget)
+        self.setLayout(self.layout)
         return self
-
-    def text(self):
-        '''TODO
-
-        '''
-
-        return self.text_
 
 
 class RoisTree(QTreeWidget):
-    '''TODO
+    '''Configurable subtree widget for displaying and editing project rois.
 
+    Usage:
+        tree = RoisTree(<root tree>, <roi items>)
+        if tree.setup():
+            ...
+
+    :param root: Parent in which to embed this subtree
+    :param items: Collection of roi items
     '''
 
-    def __init__(self, root, rois, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.root = root
-        self.rois = rois
-        self.tree = QTreeWidgetItem(self.root, ['rois'])
-        self.branches = {}
-        self._configure_widget()
-
-    def _configure_widget(self):
-        '''TODO
-
+    def __init__(self, root, items, *args, **kwargs):
+        '''Constructor.
         '''
 
-        for index in range(len(self.rois)):
-            self._configure_branch(index)
+        super().__init__(*args, **kwargs)
+        self.root = root
+        self.items = items
+        self.tree = QTreeWidgetItem(self.root, ['rois'])
+        self.branches = {}
 
-    def _configure_branch(self, index):
-        '''TODO
+    def setup(self):
+        '''Configures the rois subtree.
 
+        :return: True if the configuration was successful; False otherwise
+        '''
+
+        for idx in range(len(self.items)):
+            if self.setup_branch(idx) is False:
+                return False
+        return True
+
+    def setup_branch(self, idx):
+        '''Configures the item branch at the given index.
+
+        :param idx: Index of the item branch
+        :return: True if the configuration was successful; False otherwise
         '''
 
         branch = QTreeWidgetItem(self.tree)
-        roi = self.rois[index]
-        self.branches[roi['type']] = branch
-        def cb(e): return self._update_roi(index, attribute, e)
-        line_edit = WidgetFactory.line_edit(roi['type'], cb, bg=False)
-        for attribute in filter(lambda a: a != 'type', roi):
-            self._configure_leaf(branch, index, attribute)
+        item = self.items[idx]
+        def cb(e): return self.update(idx, 'type', e)
+        line_edit = WidgetFactory.line_edit(cb, item['type'], style=None)
+        for key in filter(lambda i: i != 'type', item):
+            if self.setup_leaf(branch, idx, key) is False:
+                return False
         self.root.setItemWidget(branch, 0, line_edit)
+        self.branches[item['type']] = branch
+        return True
 
-    def _configure_leaf(self, branch, index, attribute):
-        '''TODO
+    def setup_leaf(self, branch, idx, key):
+        '''Configures the specified attribute leaf embedded in the item branch
+        at the given index.
 
+        :param branch: Parent branch in which to embed this leaf
+        :param idx: Index of the parent branch
+        :param key: Key of the roi attribute
+        :return: True if the configuration was successful; False otherwise
         '''
 
-        leaf = QTreeWidgetItem(branch)
-        roi = self.rois[index]
-        def cb(e): return self._update_roi(index, attribute, e)
-        line_edit = LeafWidget().line_edit(attribute, roi[attribute], cb)
-        self.root.setItemWidget(leaf, 0, line_edit)
+        try:
+            leaf = QTreeWidgetItem(branch)
+            item = self.items[idx]
+            def cb(e): return self.update(idx, key, e)
+            line_edit = LeafWidget(key).line_edit(cb, item[key])
+            self.root.setItemWidget(leaf, 0, line_edit)
+        except KeyError:
+            return False
+        return True
 
-    def _update_roi(self, index, attribute, value):
-        '''TODO
+    def update(self, idx, key, val):
+        '''Updates the specified attribute leaf embedded in the item branch at 
+        the given index.
 
+        :param idx: Index of the item branch
+        :param key: Key of the roi attribute
+        :param val: New attribute value
         '''
 
-        self.rois[index][attribute] = value
-
-    def get_collection(self):
-        '''TODO
-
-        '''
-
-        return self.rois
+        self.items[idx][key] = val
 
     def add_item(self, item):
         '''TODO
-
         '''
 
         print(item)
 
 
 class FiltersTree(QTreeWidget):
-    '''TODO
+    '''Configurable subtree widget for displaying and editing project filters.
 
+    Usage:
+        tree = FiltersTree(<root tree>, <filter items>)
+        if tree.setup():
+            ...
+
+    :param root: Parent in which to embed this subtree
+    :param items: Collection of filter items
     '''
 
-    def __init__(self, root, filters_, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.root = root
-        self.filters = filters_
-        self.tree = QTreeWidgetItem(self.root, ['filters'])
-        items = list(filters.filtersList.keys())
-        self.widgets = {
-            None: lambda t, v, c: LeafWidget().combo_box(items, t, v, c),
-            float: lambda t, v, c: LeafWidget().spin_box(t, v, c),
-            str: lambda t, v, c: LeafWidget().line_edit(t, v, c)
-        }
-        self.branches = {}
-        self.values = {}
-        self._configure_widget()
-
-    def _configure_widget(self):
-        '''TODO
-
+    def __init__(self, root, items, *args, **kwargs):
+        '''Constructor.
         '''
 
-        for index in range(len(self.filters)):
-            self._configure_branch(index)
+        super().__init__(*args, **kwargs)
+        self.root = root
+        self.items = items
+        self.tree = QTreeWidgetItem(self.root, ['filters'])
+        combo_items = list(filters.filtersList.keys())
+        self.widgets = {
+            None: lambda t, c, v: LeafWidget(t).combo_box(c, combo_items, v),
+            float: lambda t, c, v: LeafWidget(t).spin_box(c, v),
+            str: lambda t, c, v: LeafWidget(t).line_edit(c, v)
+        }
+        self.branches, self.values = {}, {}
 
-    def _configure_branch(self, index):
-        '''TODO
+    def setup(self):
+        '''Configures the filters subtree.
 
+        :return: True if the configuration was successful; False otherwise
+        '''
+
+        for idx in range(len(self.items)):
+            if self.setup_branch(idx) is False:
+                return False
+        return True
+
+    def setup_branch(self, idx):
+        '''Configures the item branch at the given index.
+
+        :param idx: Index of the item branch
+        :return: True if the configuration was successful; False otherwise
         '''
 
         branch = QTreeWidgetItem(self.tree)
-        filter_ = self.filters[index]
-        self.branches[filter_['name']] = branch
-        def cb(e): return self._update_filters(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(filter_['name'], cb, bg=False)
-        for attribute in filter(lambda a: a != 'name', filter_):
-            self._configure_leaf(branch, index, attribute)
+        item = self.items[idx]
+        def cb(e): return self.update(idx, 'name', e)
+        line_edit = WidgetFactory.line_edit(cb, item['name'], style=None)
+        for key in filter(lambda i: i != 'name', item):
+            if self.setup_leaf(branch, idx, key) is False:
+                return False
         self.root.setItemWidget(branch, 0, line_edit)
+        self.branches[item['name']] = branch
+        return True
 
-    def _configure_leaf(self, branch, index, attribute):
-        '''TODO
+    def setup_leaf(self, branch, idx, key):
+        '''Configures the specified attribute leaf embedded in the item branch 
+        at the given index.
 
+        :param branch: Parent branch in which to embed this leaf
+        :param idx: Index of the parent branch
+        :param key: Key of the filter attribute
+        :return: True if the configuration was successful; False otherwise
         '''
 
-        leaf = QTreeWidgetItem(branch)
-        filter_ = self.filters[index]
-        function = filters.filtersList[filter_['function']]
-        types = typing.get_type_hints(function)
-        type_ = types[attribute] if attribute != 'function' else None
-        def cb(e): return self._update_filter(index, attribute, e)
-        widget = self.widgets[type_](attribute, filter_[attribute], cb)
-        self.root.setItemWidget(leaf, 0, widget)
+        try:
+            leaf = QTreeWidgetItem(branch)
+            item = self.items[idx]
+            func = filters.filtersList[item['function']]
+            types = typing.get_type_hints(func)
+            type_ = types[key] if key != 'function' else None
+            def cb(e): return self.update(idx, key, e)
+            widget = self.widgets[type_](key, cb, item[key])
+            self.root.setItemWidget(leaf, 0, widget)
+        except KeyError:
+            return False
+        return True
 
-    def _update_filter(self, index, attribute, value):
-        '''TODO
-
+    def update(self, idx, key, val):
+        '''Updates the specified attribute leaf embedded in the item branch at
+        the given index.
+        
+        :param idx: Index of the item branch
+        :param key: Key of the filter attribute
+        :param val: New attribute value
         '''
 
-        if attribute == 'function':
+        if key == 'function':
             text = config.get('Popup Text', 'function')
-            def cb(e): return self._handle_update(index, value, e)
+            def cb(e): return self.handle_func_update(idx, val, e)
             FunctionPopup(parent=self).show_(text, cb)
         else:
-            self.filters[index][attribute] = value
+            self.items[idx][key] = val
 
-    def _handle_update(self, index, value, update):
-        '''TODO
-
+    def handle_func_update(self, idx, val, update=True):
+        '''Handles updates to the filter function attribute embedded in the item
+        branch at the given index emitted by popups acting on the filters 
+        subtree.
+        
+        :param idx: Index of the item branch
+        :param val: New function attribute value
+        :param update: True if the update should be performed; False otherwise
         '''
 
-        if not update:
-            value = self.filters[index]['function']
-        self.update_filter_function(index, value)
+        if update is False:
+            val = self.items[idx]['function']
+        self.update_func(idx, val)
 
-    def _update_argument(self, index, values, argument, type_):
-        '''TODO
-
+    def update_func(self, idx, val):
+        '''Updates the filter function attribute embedded in the item branch at 
+        the given index.
+        
+        :param idx: Index of the item branch
+        :param val: New function attribute value
         '''
 
-        if argument in values:
-            self.filters[index][argument] = values[argument]
-        else:
-            self.filters[index][argument] = '' if type_ == str else 0
-
-    def update_filter_function(self, index, value):
-        '''TODO
-
-        '''
-
-        self.values = self.filters[index]
-        self.filters[index] = {'name': self.values['name'], 'function': value}
-        branch = self.branches[self.filters[index]['name']]
+        self.values.update(self.items[idx])
+        self.items[idx] = {'name': self.values['name'], 'function': val}
+        branch = self.branches[self.values['name']]
         branch.takeChildren()
-        function = filters.filtersList[self.filters[index]['function']]
-        types = typing.get_type_hints(function)
-        self._configure_leaf(branch, index, 'function')
-        for argument in filter(lambda a: a != 'drivedata', types.keys()):
-            type_ = types[argument]
-            self._update_argument(index, self.values, argument, type_)
-            self._configure_leaf(branch, index, argument)
+        new_func = filters.filtersList[self.items[idx]['function']]
+        types = typing.get_type_hints(new_func)
+        self.setup_leaf(branch, idx, 'function')
+        for key in filter(lambda i: i != 'drivedata', types.keys()):
+            self.update_arg(idx, key, self.values, types[key])
 
-    def get_collection(self):
-        '''TODO
+    def update_arg(self, idx, key, vals, type_):
+        '''Updates the filter argument attribute for the function embedded in 
+        the item branch at the given index.
 
+        :param idx: Index of the item branch
+        :param key: Key of the filter argument attribute
+        :param val: New attribute value
+        :param type_: Type of the filter argument
         '''
 
-        return self.filters
+        if key in vals:
+            self.items[idx][key] = vals[key]
+        else:
+            self.items[idx][key] = '' if type_ == str else 0
+        branch = self.branches[self.items[idx]['name']]
+        self.setup_leaf(branch, idx, key)
 
 
 class MetricsTree(QTreeWidget):
-    '''TODO
+    '''Configurable subtree widget for displaying and editing project metrics.
 
+    Usage:
+        tree = MetricsTree(<root tree>, <metric items>)
+        if tree.setup():
+            ...
+
+    :param root: Parent in which to embed this subtree
+    :param items: Collection of filter items
     '''
 
-    def __init__(self, root, metrics_, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.root = root
-        self.metrics = metrics_
-        self.tree = QTreeWidgetItem(self.root, ['metrics'])
-        items = list(metrics.metricsList.keys())
-        self.widgets = {
-            None: lambda t, v, c: LeafWidget().combo_box(items, t, v, c),
-            float: lambda t, v, c: LeafWidget().spin_box(t, v, c),
-            str: lambda t, v, c: LeafWidget().line_edit(t, v, c)
-        }
-        self.branches = {}
-        self.values = {}
-        self._configure_widget()
-
-    def _configure_widget(self):
-        '''TODO
-
+    def __init__(self, root, items, *args, **kwargs):
+        '''Constructor.
         '''
 
-        for index in range(len(self.metrics)):
-            self._configure_branch(index)
+        super().__init__(*args, **kwargs)
+        self.root = root
+        self.items = items
+        self.tree = QTreeWidgetItem(self.root, ['metrics'])
+        combo_items = list(metrics.metricsList.keys())
+        self.widgets= {
+            None: lambda t, c, v: LeafWidget(t).combo_box(c, combo_items, v),
+            float: lambda t, c, v: LeafWidget(t).spin_box(c, v),
+            str: lambda t, c, v: LeafWidget(t).line_edit(c, v)
+        }
+        self.branches, self.values = {}, {}
 
-    def _configure_branch(self, index):
-        '''TODO
+    def setup(self):
+        '''Configures the metrics subtree.
 
+        :return: True if the configuration was successful; False otherwise
+        '''
+
+        for index in range(len(self.items)):
+            if self.setup_branch(index) is False:
+                return False
+        return True
+
+    def setup_branch(self, idx):
+        '''Configures the item branch at the given index.
+        
+        :param idx: Index of the item branch
+        :return: True if the configuration was successful; False otherwise
         '''
 
         branch = QTreeWidgetItem(self.tree)
-        metric = self.metrics[index]
-        self.branches[metric['name']] = branch
-        def cb(e): return self._update_metric(index, 'name', e)
-        line_edit = WidgetFactory.line_edit(metric['name'], cb, bg=False)
-        for attribute in filter(lambda a: a != 'name', metric):
-            self._configure_leaf(branch, index, attribute)
+        item = self.items[idx]
+        def cb(e): return self.update(idx, 'name', e)
+        line_edit = WidgetFactory.line_edit(cb, item['name'], style=None)
+        for key in filter(lambda i: i != 'name', item):
+            if self.setup_leaf(branch, idx, key) is False:
+                return False
         self.root.setItemWidget(branch, 0, line_edit)
+        self.branches[item['name']] = branch
+        return True
 
-    def _configure_leaf(self, branch, index, attribute):
-        '''TODO
-
+    def setup_leaf(self, branch, idx, key):
+        '''Configures the specified attribute leaf embedded in the item branch
+        at the given index.
+        
+        :param branch: Parent branch in which to embed this leaf
+        :param idx: Index of the parent branch
+        :param key: Key of the filter attribute
+        :return: True if the configuration was successful; False otherwise
         '''
 
-        leaf = QTreeWidgetItem(branch)
-        metric = self.metrics[index]
-        function = metrics.metricsList[metric['function']]
-        types = typing.get_type_hints(function)
-        type_ = types[attribute] if attribute != 'function' else None
-        def cb(e): return self._update_metric(index, attribute, e)
-        widget = self.widgets[type_](attribute, metric[attribute], cb)
-        self.root.setItemWidget(leaf, 0, widget)
+        try:
+            leaf = QTreeWidgetItem(branch)
+            item = self.items[idx]
+            func = metrics.metricsList[item['function']]
+            types = typing.get_type_hints(func)
+            type_ = types[key] if key != 'function' else None
+            def cb(e): return self.update(idx, key, e)
+            widget = self.widgets[type_](key, cb, item[key])
+            self.root.setItemWidget(leaf, 0, widget)
+        except KeyError:
+            return False
+        return True
 
-    def _update_metric(self, index, attribute, value):
-        '''TODO
-
+    def update(self, idx, key, val):
+        '''Updates the specified attribute leaf embedded in the item branch at
+        the given index.
+        
+        :param idx: Index of the item branch
+        :param key: Key of the filter attribute
+        :param val: New attrbute value
         '''
 
-        if attribute == 'function':
+        if key == 'function':
             text = config.get('Popup Text', 'function')
-            def cb(e): return self._handle_update(index, value, e)
+            def cb(e): return self.handle_func_update(idx, val, e)
             FunctionPopup(parent=self).show_(text, cb)
         else:
-            self.metrics[index][attribute] = value
+            self.items[idx][key] = val
 
-    def _handle_update(self, index, value, update):
-        '''TODO
-
+    def handle_func_update(self, idx, val, update=True):
+        '''Handles updates to the metric function attribute embedded in the item
+        branch at the given index emitted by popups acting on the filters
+        subtree.
+        
+        :param idx: Index of the item branch
+        :param val: New function attribute value
+        :param update: True if the update should be performed; False otherwise
         '''
 
-        if not update:
-            value = self.metrics[index]['function']
-        self.update_metric_function(index, value)
+        if update is False:
+            val = self.items[idx]['function']
+        self.update_func(idx, val)
 
-    def _update_argument(self, index, values, argument, type_):
-        '''TODO
-
+    def update_func(self, idx, val):
+        '''Updates the metric function attribute embedded in the item branch at
+        the given index.
+        
+        :param idx: Index of the item branch
+        :param val: New function attribute value
         '''
 
-        if argument in values:
-            self.metrics[index][argument] = values[argument]
-        else:
-            self.metrics[index][argument] = '' if type_ == str else 0
-
-    def update_metric_function(self, index, value):
-        '''TODO
-
-        '''
-
-        self.values.update(self.metrics[index])
-        self.metrics[index] = {'name': self.values['name'], 'function': value}
-        branch = self.branches[self.metrics[index]['name']]
+        self.values.update(self.items[idx])
+        self.items[idx] = {'name': self.values['name'], 'function': val}
+        branch = self.branches[self.values['name']]
         branch.takeChildren()
-        function = metrics.metricsList[self.metrics[index]['function']]
-        types = typing.get_type_hints(function)
-        self._configure_leaf(branch, index, 'function')
-        for argument in filter(lambda a: a != 'drivedata', types.keys()):
-            type_ = types[argument]
-            self._update_argument(index, self.values, argument, type_)
-            self._configure_leaf(branch, index, argument)
+        new_func = metrics.metricsList[self.items[idx]['function']]
+        types = typing.get_type_hints(new_func)
+        self.setup_leaf(branch, idx, 'function')
+        for key in filter(lambda i: i != 'drivedata', types.keys()):
+            self.update_arg(idx, key, self.values, types[key])
 
-    def get_collection(self):
-        '''TODO
-
+    def update_arg(self, idx, key, vals, type_):
+        '''Updates the metric argument attribute for the function embedded in
+        the item branch at the given index.
+        
+        :param idx: Index of the item branch
+        :param key: Key of the metric argument attribute
+        :param val: New attribute value
+        :param type_: Type of the metric argument
         '''
 
-        return self.metrics
-
-    def expand(self):
-        '''TODO
-
-        '''
-
-        print('test')
-        self.expandToDepth(1)
+        if key in vals:
+            self.items[idx][key] = vals[key]
+        else:
+            self.items[idx][key] = '' if type_ == str else 0
+        branch = self.branches[self.items[idx]['name']]
+        self.setup_leaf(branch, idx, key)
 
 
 class ProjectTree(QTreeWidget):
-    '''Custom tree widget for displaying and editing project files.
+    '''Configurable tree widget for displaying and editing project files.
 
+    Usage:
+        tree = ProjectTree(<project file path>)
+        if tree.setup():
+            ...
+
+    :param project_file: Path to the project file used to construct this tree
     '''
 
     def __init__(self, project_file, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        '''Constructor.
+        '''
 
+        super().__init__(*args, **kwargs)
         self.project_file = project_file
-        self.items_ = json.load(open(self.project_file))
-        self.items_copy = copy.deepcopy(self.items_)
+        self.items0 = json.load(open(self.project_file))
+        self.items1 = copy.deepcopy(self.items0)
         self.trees = {
             'rois': lambda r, c: RoisTree(r, c),
             'filters': lambda r, c: FiltersTree(r, c),
             'metrics': lambda r, c: MetricsTree(r, c)
         }
-        self.add_item = {
-            'rois': lambda r, i, e: self.add_roi(r, i, expand=e),
-            'filters': lambda f, i, e: self.add_filter(f, i, expand=e),
-            'metrics': lambda m, i, e: self.add_metric(m, i, expand=e)
+        self.add = {
+            'rois': lambda i, x, e: self.add_roi(i, x, e),
+
         }
+        self.counters = {'rois': 1, 'filters': 1, 'metrics': 1}
         self.subtrees = {}
-        self.roi_counter = 1
-        self.filter_counter = 1
-        self.metric_counter = 1
-        self._configure_widget()
 
-    def _configure_widget(self):
-        '''TODO
+    def setup(self):
+        '''Configures the project tree.
 
+        :return: True if the configuration was successful; False otherwise
         '''
 
         self.setHeaderHidden(True)
         self.setAnimated(False)
-        for collection in sorted(self.items_copy):
-            tree = self.trees[collection](self, self.items_copy[collection])
+        self.clear()
+        for collection in sorted(self.items1):
+            tree = self.trees[collection](self, self.items1[collection])
+            if tree.setup() is False:
+                return False
             self.subtrees[collection] = tree
         self.expandToDepth(0)
+        return True
 
-    def get_contents(self):
-        '''TODO
-
+    def update(self):
+        '''Updates the current collection of project items with any recent
+        changes.
         '''
 
-        self.update_contents()
-        return self.items_
+        self.items0.update(self.items1)
 
-    def update_contents(self):
-        '''TODO
-
+    def updated(self):
+        '''Reports whether the current collection of project items is up to date
+        with recent changes.
         '''
 
-        self.items_ = self.items_copy
+        return self.items0 != self.items1
 
-    def changed(self):
-        '''TODO
+    def get_items(self, update=True):
+        '''Reports the current collection of project items after optionally 
+        updating it with recent changes.
 
+        :param update: True if the collection should be updated; False otherwise
         '''
 
-        if self.items_copy != self.items_:
-            return True
-        return False
+        if update:
+            self.update()
+        return self.items0
 
-    def add_filter(self, filter=None, index=-1, expand=[]):
-        '''TODO
-
+    def get_info(self, item=None):
+        '''Gets item, parent, collection, and index information about an item
+        branch, using the first currently selected item if no item is provided.
+        
+        :param item: Item branch from which to retrieve information (optional)
+        :return: The item along with its parent, collection, and branch index
         '''
 
-        for i in range(3):
-            for idx in range(self.topLevelItem(i).childCount()):
-                if self.topLevelItem(i).child(idx).isExpanded():
-                    expand.append([i, idx])
+        try:
+            item = item if item is not None else self.selectedItems()[0]
+            parent, collection = item.parent(), item.parent().text(0)
+            tree_idx = ('filters', 'metrics', 'rois').index(collection)
+            item_idx = self.indexFromItem(item).row()
+            return item, parent, collection, [tree_idx, item_idx]
+        except IndexError:
+            return ((None,) * 4)
 
-        index = len(self.items_copy['filters']) if index == -1 else index
-        self.clear()
-        new_filter = filter if filter else {
-            'name': f'new_filter_{self.filter_counter}',
+    def get_expanded(self, depth=2):
+        '''Reports the currently expanded item branches up to the given depth.
+        
+        :param depth: Item branch expansion depth (optional)
+        :return: Collection of currently expanded item branches
+        '''
+
+        expanded = []
+        for i in range(depth):
+            parent = self.topLevelItem(i)
+            if parent is not None:
+                for idx in range(self.topLevelItem(i).childCount()):
+                    if self.topLevelItem(i).child(idx).isExpanded():
+                        expanded.append([i, idx])
+        return expanded
+
+    def set_expanded(self, items):
+        '''Sets the given item branches to be expanded.
+        
+        :param items: Collection of item branches to be expanded
+        '''
+
+        for item in items:
+            self.topLevelItem(item[0]).child(item[1]).setExpanded(True)
+
+    def add_item(self, collection, item, idx=None):
+        '''Adds the given item to the specified collection, creating that
+        collection if it doesn't exist already.
+
+        :param collection: Collection identifier (rois, filters, or metrics)
+        :param item: Item to be added as a new branch
+        :param idx: Index at which to insert the new item branch (optional)
+        :return: Index of the new item branch
+        '''
+
+        self.counters[collection] += 1
+        if collection in self.items1:
+            idx = idx if idx is not None else len(self.items1[collection])
+            self.items1[collection].insert(idx, item)
+        else:
+            idx = idx if idx is not None else 0
+            self.items1[collection] = [item]
+        self.setItemSelected(self.topLevelItem(0).child(idx), True)
+        self.setup()
+        return idx
+
+    def add_roi(self, item=None, idx=None, expanded=None):
+        '''Adds a new roi item to the project tree, creating a generic roi if an
+        item dictionary is not provided.
+        
+        :param item: Roi item to be added as a new branch (optional)
+        :param idx: Index at which to insert the new item branch (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
+        '''
+
+        expanded = expanded if expanded is not None else self.get_expanded()
+        item = item if item is not None else {
+            'type': f'new_roi_{self.counters["rois"]}',
+            'filename': f'<roi_file>'}
+        self.add_item('rois', item, idx)
+        self.set_expanded(expanded)
+
+    def add_filter(self, item=None, idx=None, expanded=None):
+        '''Adds a new filter item to the project tree, creating a generic filter
+        if an item dictionary is not provided.
+        
+        :param item: Filter item to be added as a new branch (optional)
+        :param idx: Index at which to insert the new item branch (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
+        '''
+
+        expanded = expanded if expanded is not None else self.get_expanded()
+        item = item if item is not None else {
+            'name': f'new_filter_{self.counters["filters"]}',
             'function': list(filters.filtersList.keys())[0]
         }
-        self.filter_counter += 1
-        if 'filters' not in self.items_copy:
-            self.items_copy['filters'] = [new_filter]
-        else:
-            self.items_copy['filters'].insert(index, new_filter)
-        self._configure_widget()
-        value = new_filter['function']
-        filters_tree = self.subtrees['filters']
-        filters_tree.update_filter_function(index, value)
-        count = self.topLevelItem(0).childCount()
-        self.setItemSelected(self.topLevelItem(0).child(index % count), True)
+        idx = self.add_item('filters', item, idx)
+        new_func = item['function']
+        self.subtrees['filters'].update_func(idx, new_func)
+        self.set_expanded(expanded)
 
-        for item in expand:
-            self.topLevelItem(item[0]).child(item[1]).setExpanded(True)
-
-    def add_metric(self, metric=None, index=-1, expand=[]):
-        '''TODO
-
+    def add_metric(self, item=None, idx=None, expanded=None):
+        '''Adds a new filter item to the project tree, creating a generic metric
+        if an item dictionary is not provided.
+        
+        :param item: Metric item to be added as a new branch (optional)
+        :param idx: Index at which to insert the new item branch (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
         '''
 
-        for i in range(3):
-            for idx in range(self.topLevelItem(i).childCount()):
-                if self.topLevelItem(i).child(idx).isExpanded():
-                    expand.append([i, idx])
-
-        index = len(self.items_copy['metrics']) if index == -1 else index
-        new_metric = metric if metric else {
-            'name': f'new_metric_{self.metric_counter}',
+        expanded = expanded if expanded is not None else self.get_expanded()
+        item = item if item is not None else {
+            'name': f'new_metric_{self.counters["metrics"]}',
             'function': list(metrics.metricsList.keys())[0]
         }
-        self.metric_counter += 1
-        if 'metrics' not in self.items_copy:
-            self.items_copy['metrics'] = [new_metric]
-        else:
-            self.items_copy['metrics'].insert(index, new_metric)
-        self.clear()
-        self._configure_widget()
-        value = new_metric['function']
-        metrics_tree = self.subtrees['metrics']
-        metrics_tree.update_metric_function(index, value)
-        self.setItemSelected(self.topLevelItem(1).child(index), True)
+        idx = self.add_item('metrics', item, idx)
+        new_func = item['function']
+        self.subtrees['metrics'].update_func(idx, new_func)
+        self.set_expanded(expanded)
 
-        for item in expand:
-            self.topLevelItem(item[0]).child(item[1]).setExpanded(True)
-
-    def add_roi(self, roi=None, index=-1, expand=[]):
-        '''TODO
-
+    def del_item(self, item):
+        '''Removes the given item branch from the project tree.
+        
+        :param item: Item branch to be deleted
         '''
 
-        for i in range(3):
-            for idx in range(self.topLevelItem(i).childCount()):
-                if self.topLevelItem(i).child(idx).isExpanded():
-                    expand.append([i, idx])
+        parent = item.parent().text(0)
+        key = 'name' if 'name' in self.items1[parent][0].keys() else 'type'
+        val = self.itemWidget(item, 0).text()
+        self.items1[parent] = [i for i in self.items1[parent] if i[key] != val]
+        if len(self.items1[parent]) == 0:
+            del self.items1[parent]
+        self.setup()
 
-        index = len(self.items_copy['rois']) if index == -1 else index
-        self.clear()
-        new_roi = roi if roi else {
-            'type': f'new_roi_{self.roi_counter}',
-            'filename': 'roi_file'
-        }
-        self.roi_counter += 1
-        if 'rois' not in self.items_copy:
-            self.items_copy['rois'] = [new_roi]
-        else:
-            self.items_copy['rois'].insert(index, new_roi)
-        self._configure_widget()
-        self.setItemSelected(self.topLevelItem(2).child(index), True)
-
-        for item in expand:
-            self.topLevelItem(item[0]).child(item[1]).setExpanded(True)
-
-    def remove_selected(self):
-        '''TODO
-
+    def del_items(self, items=None, expanded=None):
+        '''Removes a collection of item branches from the project tree, using
+        the currently selected items if no collection is provided.
+        
+        :param item: Items branch to be deleted (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
         '''
 
-        for item in self.selectedItems():
+        expanded = expanded if expanded is not None else self.get_expanded()
+        items = items if items is not None else self.selectedItems()
+        for item in items:
             item_widget = self.itemWidget(item, 0)
-            if not item_widget:
-                del self.items_copy[item.text(0)]
+            if item_widget is None:
+                del self.items1[item.text(0)]
             elif type(item_widget) == QLineEdit:
-                parent = item.parent().text(0)
-                name = item_widget.text()
-                if 'name' in self.items_copy[parent][0].keys():
-                    self.items_copy[parent] = [
-                        i for i in self.items_copy[parent] if i['name'] != name
-                    ]
-                else:
-                    self.items_copy[parent] = [
-                        i for i in self.items_copy[parent] if i['type'] != name
-                    ]
-                if len(self.items_copy[parent]) == 0:
-                    del self.items_copy[parent]
-        self.clear()
-        self._configure_widget()
+                self.del_item(item)
+        self.setup()
+        self.set_expanded(expanded)
 
-    def move_selected_up(self):
-        '''TODO
-
+    def move_up(self, item=None, expanded=None):
+        '''Moves an item branch up in the project tree, using the first 
+        currently selected item if no item is provided.
+        
+        :param item: Item branch to be moved up (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
         '''
 
-        index = self.indexFromItem(self.selectedItems()[0]).row()
-        sub_tree = self.selectedItems()[-1].parent()
-        sub_tree_text = sub_tree.text(0)
+        expanded = expanded if expanded is not None else self.get_expanded()
+        item, parent, collection, idx = self.get_info(item)
+        if idx[1] > 0 and item is not None:
+            if item.isExpanded():
+                expanded.append([idx[0], idx[1]-1])
+            else:
+                expanded = [i for i in expanded if i != [idx[0], idx[1]-1]]
+            if parent.child(idx[1]-1).isExpanded():
+                expanded.append([idx[0], idx[1]])
+            else:
+                expanded = [i for i in expanded if i != idx]
+            item = self.items1[collection][idx[1]]
+            self.del_items(expanded=[])
+            getattr(self, f'add_{collection[:-1]}')(item, idx[1]-1, expanded)
 
-        if sub_tree_text == 'filters':
-            i = 0
-        elif sub_tree_text == 'metrics':
-            i = 1
-        else:
-            i = 2
-        expanded = []
-        for idx in range(sub_tree.childCount()):
-            if sub_tree.child(idx).isExpanded():
-                expanded.append([i, idx])
-
-        item = self.items_copy[sub_tree_text][index]
-        if index > 0:
-            if sub_tree.child(index).isExpanded():
-                if not sub_tree.child(index - 1).isExpanded():
-                    expanded.remove([i, index])
-                expanded.append([i, index - 1])
-            self.remove_selected()
-            self.add_item[sub_tree_text](item, index - 1, expanded)
-
-    def move_selected_down(self):
-        '''TODO
-
+    def move_down(self, item=None, expanded=None):
+        '''Moves an item branch down in the project tree, using the first 
+        currently selected item if no item is provided.
+        
+        :param item: Item branch to be moved down (optional)
+        :param expanded: Collection of item branches to be expanded (optional)
         '''
 
-        index = self.indexFromItem(self.selectedItems()[0]).row()
-        sub_tree = self.selectedItems()[-1].parent()
-        sub_tree_text = sub_tree.text(0)
-
-        if sub_tree_text == 'filters':
-            i = 0
-        elif sub_tree_text == 'metrics':
-            i = 1
-        else:
-            i = 2
-        expanded = []
-        for idx in range(sub_tree.childCount()):
-            if sub_tree.child(idx).isExpanded():
-                expanded.append([i, idx])
-
-        item = self.items_copy[sub_tree_text][index]
-        if index < sub_tree.childCount() - 1:
-            if sub_tree.child(index).isExpanded():
-                if not sub_tree.child(index + 1).isExpanded():
-                    expanded.remove([i, index])
-                expanded.append([i, index + 1])
-            self.remove_selected()
-            self.add_item[sub_tree_text](item, index + 1, expanded)
+        expanded = expanded if expanded is not None else self.get_expanded()
+        item, parent, collection, idx = self.get_info(item)
+        if idx[1] < parent.childCount() - 1 and item is not None:
+            if item.isExpanded():
+                expanded.append([idx[0], idx[1]+1])
+            else:
+                expanded = [i for i in expanded if i != [idx[0], idx[1]+1]]
+            if parent.child(idx[1]+1).isExpanded():
+                expanded.append([idx[0], idx[1]])
+            else:
+                expanded = [i for i in expanded if i != idx]
+            item = self.items1[collection][idx[1]]
+            self.del_items(expanded=[])
+            getattr(self, f'add_{collection[:-1]}')(item, idx[1]+1, expanded)
