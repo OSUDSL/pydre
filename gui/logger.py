@@ -20,7 +20,15 @@ class GUIHandler(Handler):
         now_time = time.strftime('%H:%M:%S', now)
         level = record.levelname
         msg = f'{now_time} - {level}: {record.msg}'
-        self.window.add_to_log(msg)
-        if level not in ('DEBUG', 'INFO', 'WARNING'):
-            error_msg = f'{level}: {record.msg}'
-            self.window.show_error(error_msg)
+
+        try:
+            self.window.add_to_log(msg)
+        except:
+            print("Unable to add message to log.\n")
+
+        try:
+            if level not in ('DEBUG', 'INFO', 'WARNING'):
+                error_msg = f'{level}: {record.msg}'
+                self.window.show_error(error_msg)
+        except:
+            print("Unable to display error message.\n")
