@@ -5,10 +5,10 @@ import pandas as pd
 import csv
 import re
 import logging
-from gui.logger import GUIHandler
+
 
 logger = logging.getLogger(__name__)
-logger.addHandler(GUIHandler())
+
 
 
 def sliceByTime(begin: float, end: float, column: str, drive_data: pd.DataFrame):
