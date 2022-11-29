@@ -13,10 +13,8 @@ import pydre.filters
 import pathlib
 from tqdm import tqdm
 import logging
-from gui.logger import GUIHandler
 
 logger = logging.getLogger(__name__)
-
 
 class Project:
     def __init__(self,  projectfilename: str, progressbar=None, app=None):
