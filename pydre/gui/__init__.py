@@ -1,7 +1,8 @@
 
 import sys
-import gui.app
-from gui.windows import MainWindow
+
+from pydre.gui import app
+from pydre.gui.windows import MainWindow
 
 def start():
     '''Launches the application with the given window configuration and

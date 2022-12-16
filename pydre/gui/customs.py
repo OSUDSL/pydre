@@ -9,11 +9,11 @@ import typing
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
-from gui.config import CONFIG_PATH, WIDGET_STYLE_PATH, Config
-from gui.popups import FunctionPopup
+from pydre.gui.config import config_filename, Config
+from pydre.gui.popups import FunctionPopup
 
 config = Config()
-config.read(CONFIG_PATH)
+config.read(config_filename)
 
 
 class WidgetFactory:

@@ -8,16 +8,15 @@ import json
 import logging
 import os
 import pydre
-import time
 from PySide2.QtWidgets import QFileDialog, QInputDialog
-from gui.config import Config, CONFIG_PATH, GUI_PATH, PROJECT_PATH
-from gui.customs import ProjectTree
-from gui.handlers import Pydre
-from gui.popups import ErrorPopup, OutputPopup, ProgressPopup, SavePopup
-from gui.templates import Window
+from pydre.gui.config import Config, config_filename, PROJECT_PATH
+from pydre.gui.customs import ProjectTree
+from pydre.gui.handlers import Pydre
+from pydre.gui.popups import ErrorPopup, OutputPopup, ProgressPopup, SavePopup
+from pydre.gui.templates import Window
 
 config = Config()
-config.read(CONFIG_PATH)
+config.read(config_filename)
 logger = logging.getLogger('PydreLogger')
 
 
