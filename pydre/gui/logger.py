@@ -6,7 +6,6 @@ Created on: 6/8/2021
 import time
 from logging import Handler
 
-
 class GUIHandler(Handler):
 
     window = None

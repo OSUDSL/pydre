@@ -12,6 +12,14 @@ from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
 from pydre.gui.config import config_filename, Config
 from pydre.gui.popups import FunctionPopup
 
+from PySide2 import QtCore
+
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
+
+
 config = Config()
 config.read(config_filename)
 
@@ -26,7 +34,7 @@ class WidgetFactory:
     '''
 
     @staticmethod
-    def combo_box(cb, items, val=None, style=WIDGET_STYLE_PATH):
+    def combo_box(cb, items, val=None, style=None):
         '''Generates a configured Combo Box widget populated with the given
         items/optional initial value and linked to the given callback function.
         
@@ -44,11 +52,13 @@ class WidgetFactory:
             widget.setCurrentIndex(items.index(val))
         if style is not None:
             widget.setStyleSheet(open(style).read())
+        else:
+            widget.setStyleSheet(str(files("pydre.gui.stylesheets").joinpath("widget.css")))
         widget.activated.connect(lambda i: cb(widget.itemText(i)))
         return widget
 
     @staticmethod
-    def spin_box(cb, val=None, style=WIDGET_STYLE_PATH):
+    def spin_box(cb, val=None, style=None):
         '''Generates a configured Spin Box widget populated with the given
         optional initial value and linked to the given callback function.
         
@@ -63,11 +73,13 @@ class WidgetFactory:
             widget.setValue(val)
         if style is not None:
             widget.setStyleSheet(open(style).read())
+        else:
+            widget.setStyleSheet(str(files("pydre.gui.stylesheets").joinpath("widget.css")))
         widget.valueChanged.connect(cb)
         return widget
 
     @staticmethod
-    def line_edit(cb, val=None, style=WIDGET_STYLE_PATH):
+    def line_edit(cb, val=None, style=None):
         '''Generates a configured Line Edit widget populated with the given
         optional initial value and linked to the given callback funtion.
         
@@ -82,6 +94,8 @@ class WidgetFactory:
             widget.setText(val)
         if style is not None:
             widget.setStyleSheet(open(style).read())
+        else:
+            widget.setStyleSheet(str(files("pydre.gui.stylesheets").joinpath("widget.css")))
         widget.textChanged.connect(cb)
         return widget
 
@@ -670,8 +684,13 @@ class ProjectTree(QTreeWidget):
         else:
             idx = idx if idx is not None else 0
             self.items1[collection] = [item]
-        self.setItemSelected(self.topLevelItem(0).child(idx), True)
+        #self.setItemSelected(self.topLevelItem(0).child(idx), True)
         self.setup()
+        try:
+            tree_item = self.findItems(item['name'],QtCore.Qt.MatchFixedString|QtCore.Qt.MatchRecursive)[0]
+            self.setItemSelected(tree_item, True)
+        except IndexError:
+            pass
         return idx
 
     def add_roi(self, item=None, idx=None, expanded=None):

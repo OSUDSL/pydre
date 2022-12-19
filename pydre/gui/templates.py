@@ -18,9 +18,8 @@ except ImportError:
 
 config = Config()
 config.read(config_filename)
-logger = logging.getLogger('PydreLogger')
+logger = logging.getLogger(__file__)
 loader = QUiLoader()
-
 
 class Window(QMainWindow):
     '''Parent window class that configures window UI, icon, and title if given.

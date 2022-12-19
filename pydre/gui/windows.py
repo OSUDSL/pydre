@@ -17,8 +17,7 @@ from pydre.gui.templates import Window
 
 config = Config()
 config.read(config_filename)
-logger = logging.getLogger('PydreLogger')
-
+logger = logging.getLogger(__file__)
 
 class MainWindow(Window):
     '''Primary window class responsible for handling all tasks related to GUI
@@ -196,7 +195,7 @@ class MainWindow(Window):
 
         recents = config.get('Recent Files', 'paths').split(',')
         idx = self.ui.recent_lst.currentRow()
-        file = os.path.join(os.path.dirname(GUI_PATH), recents[idx])
+        file = recents[idx]
         if file:
             self.start_editor(file)
 

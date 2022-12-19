@@ -6,9 +6,7 @@ import csv
 import re
 import logging
 
-
 logger = logging.getLogger(__name__)
-
 
 
 def sliceByTime(begin: float, end: float, column: str, drive_data: pd.DataFrame):
