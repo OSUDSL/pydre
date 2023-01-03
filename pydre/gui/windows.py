@@ -61,10 +61,11 @@ class MainWindow(Window):
         '''Configures action callback functionality.
         '''
 
-        self.ui.open_act.triggered.connect(self.handle_open)
-        self.ui.new_act.triggered.connect(self.handle_new)
-        self.ui.save_act.triggered.connect(self.handle_save)
-        self.ui.run_act.triggered.connect(self.handle_to_run)
+        self.ui.openAct.triggered.connect(self.handle_open)
+        self.ui.newAct.triggered.connect(self.handle_new)
+        self.ui.saveAct.triggered.connect(self.handle_save)
+        self.ui.saveasAct.triggered.connect(self.handle_saveas)
+        self.ui.runAct.triggered.connect(self.handle_to_run)
 
     def setup_widgets(self):
         '''Configures widget callback functionality.
@@ -149,6 +150,23 @@ class MainWindow(Window):
             contents = self.ui.pfile_tab.currentWidget().items0
             json.dump(contents, file, indent=4)
 
+    def handle_saveas(self, idx=None):
+        '''Handles saving changes made to the project tab as a new filename
+
+        :param idx: Project tab index (optional)
+        '''
+
+        idx = idx if idx is not None else self.ui.pfile_tab.currentIndex()
+        name = self.ui.pfile_tab.tabText(idx)
+
+        fileName = QFileDialog.getOpenFileName(self,
+                                               "Save project file as...", "", "project files (*.json)")
+
+        with open(fileName, 'w') as file:
+            self.ui.pfile_tab.currentWidget().update()
+            contents = self.ui.pfile_tab.currentWidget().items0
+            json.dump(contents, file, indent=4)
+
     def handle_to_run(self, idx):
         '''Handles passing the project tab at the given index to the run page,
         using the current index if no index is given.
@@ -170,7 +188,7 @@ class MainWindow(Window):
 
         if idx is not None and self.ui.pfile_tab.count() > 0:
             name = self.ui.pfile_tab.tabText(idx)
-            self.ui.run_act.setText(f'Run \'{name}\'')
+            self.ui.runAct.setText(f'Run \'{name}\'')
         else:
             self.to_start()
 

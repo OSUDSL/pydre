@@ -12,7 +12,7 @@ from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
 from pydre.gui.config import config_filename, Config
 from pydre.gui.popups import FunctionPopup
 
-from PySide2 import QtCore
+from PySide2.QtCore import Qt
 
 try:
     from importlib.resources import files
@@ -684,13 +684,7 @@ class ProjectTree(QTreeWidget):
         else:
             idx = idx if idx is not None else 0
             self.items1[collection] = [item]
-        #self.setItemSelected(self.topLevelItem(0).child(idx), True)
         self.setup()
-        try:
-            tree_item = self.findItems(item['name'],QtCore.Qt.MatchFixedString|QtCore.Qt.MatchRecursive)[0]
-            self.setItemSelected(tree_item, True)
-        except IndexError:
-            pass
         return idx
 
     def add_roi(self, item=None, idx=None, expanded=None):
