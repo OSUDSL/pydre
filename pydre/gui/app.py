@@ -5,7 +5,7 @@ Created on: 9/17/2020
 
 from PySide2.QtWidgets import QApplication
 from pydre.gui.config import Config, config_filename
-from pydre.gui.logger import GUIHandler
+from pydre.gui.gui_log import GUILogHandler
 
 config = Config()
 config.read(config_filename)
@@ -29,6 +29,6 @@ class Application(QApplication):
 
         super().__init__(*args, **kwargs)
         self.window = window(self)
-        GUIHandler.window = self.window
+        GUILogHandler.window = self.window
         self.window.start()
 

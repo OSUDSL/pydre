@@ -6,9 +6,11 @@ Created on: 6/8/2021
 import time
 from logging import Handler
 
-class GUIHandler(Handler):
+class GUILogHandler(Handler):
 
-    window = None
+    def __init__(self, gui_window):
+        Handler.__init__(self)
+        self.window = gui_window
 
     def emit(self, record):
         '''TODO

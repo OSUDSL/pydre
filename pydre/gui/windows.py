@@ -40,6 +40,7 @@ class MainWindow(Window):
         self.files = {}
         self.setup()
         self.to_start()
+
     
     def setup(self):
         '''Configures initial window settings.
