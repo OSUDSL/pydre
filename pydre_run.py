@@ -10,14 +10,7 @@ import pydre.project
 import pydre.core
 import os.path
 import glob
-import logging
 
-logging.basicConfig(
-    format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
-    datefmt="%d/%b/%Y %H:%M:%S",
-    stream=sys.stdout)
-
-logger = logging.getLogger(__file__)
 
 import argparse
 

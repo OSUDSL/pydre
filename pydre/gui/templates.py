@@ -9,13 +9,17 @@ from PySide2.QtCore import QFile
 from PySide2.QtGui import QIcon, QScreen
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtWidgets import QApplication, QMainWindow
-from gui.config import Config, CONFIG_PATH, GUI_PATH
+from pydre.gui.config import Config, config_filename
+
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 
 config = Config()
-config.read(CONFIG_PATH)
-logger = logging.getLogger('PydreLogger')
+config.read(config_filename)
+logger = logging.getLogger(__file__)
 loader = QUiLoader()
-
 
 class Window(QMainWindow):
     '''Parent window class that configures window UI, icon, and title if given.
@@ -25,10 +29,10 @@ class Window(QMainWindow):
         super().__init__(*args, **kwargs)
 
         self.name = name
-        file = QFile(os.path.join(GUI_PATH, config.get('UI Files', self.name)))
+        file = QFile(str(files("pydre.gui.ui_files").joinpath(config.get('UI Files', self.name))))
         file.open(QFile.ReadOnly)
         self.ui = loader.load(file)
-        icon = QIcon(os.path.join(GUI_PATH, config.get('Icons', self.name)))
+        icon = QIcon(str(files("pydre.gui.images").joinpath(config.get('Icons', self.name))))
         self.ui.setWindowIcon(icon)
         self.setWindowIcon(icon)
         self.screen = QApplication.primaryScreen()

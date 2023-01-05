@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
+
 from __future__ import annotations
 
 import pandas
 import logging
 import sys
 import typing
-
 from typing import List
 
 logger = logging.getLogger(__name__)
-
-
 
 def mergeBySpace(tomerge: list):
     """

@@ -4,8 +4,9 @@ site
 tests/MergeTools/test_dats_to_merge/*/*Drive_0.dat
 build
 dist
-gui/config_files/config.ini
+config.ini
 env
 venv/
 .DS_Store
 __pycache__/
+out.csv

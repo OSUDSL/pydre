@@ -1,6 +1,4 @@
-
-import pydre
-import gui
+from pydre import gui
 
 gui.start()
 

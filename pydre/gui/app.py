@@ -3,15 +3,12 @@ Created by: Craig Fouts
 Created on: 9/17/2020
 '''
 
-import sys
-from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QApplication
-from gui.config import Config, CONFIG_PATH
-from gui.logger import GUIHandler
-from gui.windows import MainWindow
+from pydre.gui.config import Config, config_filename
+from pydre.gui.gui_log import GUILogHandler
 
 config = Config()
-config.read(CONFIG_PATH)
+config.read(config_filename)
 
 
 class Application(QApplication):
@@ -32,6 +29,6 @@ class Application(QApplication):
 
         super().__init__(*args, **kwargs)
         self.window = window(self)
-        GUIHandler.window = self.window
+        GUILogHandler.window = self.window
         self.window.start()
 

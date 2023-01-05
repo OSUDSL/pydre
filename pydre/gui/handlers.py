@@ -9,8 +9,7 @@ import os
 import pydre
 from pydre.project import Project
 
-logger = logging.getLogger('PydreLogger')
-
+logger = logging.getLogger(__file__)
 
 class Pydre:
     '''PyDre handler that mediates all pydre functionality accessed by the GUI.

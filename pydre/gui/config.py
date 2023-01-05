@@ -6,11 +6,13 @@ Created on: 01/05/2021
 import os
 from configparser import ConfigParser
 from pathlib import Path
+import importlib.resources
+
 
 PROJECT_PATH = Path().resolve()
 GUI_PATH = os.path.join(PROJECT_PATH, 'gui')
-CONFIG_PATH = os.path.join(GUI_PATH, 'config_files', 'config.ini')
-WIDGET_STYLE_PATH = os.path.join(GUI_PATH, 'stylesheets', 'widget.css')
+config_filename = os.path.join(PROJECT_PATH, 'config.ini')
+
 
 
 class Config(ConfigParser):
@@ -33,5 +35,5 @@ class Config(ConfigParser):
         the configuration variable.
         '''
 
-        with open(CONFIG_PATH, 'w') as config_file:
+        with open(config_filename, 'w') as config_file:
             self.write(config_file)

@@ -1,5 +1,9 @@
 import logging
+import sys
 
-logger = logging.getLogger('PydreLogger')
-FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s"
-logging.basicConfig(format=FORMAT)
+logging.basicConfig(
+    format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
+    datefmt="%d/%b/%Y %H:%M:%S",
+    stream=sys.stdout)
+
+logger = logging.getLogger(__file__)

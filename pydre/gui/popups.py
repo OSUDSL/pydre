@@ -6,10 +6,15 @@ Created on: 2/4/2021
 import os
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QInputDialog, QMessageBox, QProgressDialog
-from gui.config import Config, CONFIG_PATH, GUI_PATH
+from pydre.gui.config import Config, config_filename, GUI_PATH
+
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 
 config = Config()
-config.read(CONFIG_PATH)
+config.read(config_filename)
 
 
 class SavePopup(QMessageBox):
@@ -27,8 +32,8 @@ class SavePopup(QMessageBox):
 
         '''
 
-        icon_path = os.path.join(GUI_PATH, config.get('Icons', 'main'))
-        self.icon = QIcon(icon_path)
+        icon_path = files("pydre.gui.images").joinpath("main.ico")
+        self.icon = QIcon(str(icon_path))
         self.setWindowIcon(self.icon)
         self.setWindowTitle('PyDre')
         self.setIcon(QMessageBox.Warning)

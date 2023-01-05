@@ -35,9 +35,6 @@
   <property name="windowOpacity">
    <double>1.000000000000000</double>
   </property>
-  <property name="styleSheet">
-   <string notr="true"/>
-  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
@@ -51,13 +48,13 @@
       <property name="acceptDrops">
        <bool>true</bool>
       </property>
-      <property name="styleSheet">
-       <string notr="true"/>
-      </property>
       <property name="currentIndex">
        <number>1</number>
       </property>
       <widget class="QWidget" name="page">
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
        <layout class="QVBoxLayout" name="verticalLayout_10">
         <item>
          <widget class="QSplitter" name="start_hsplitter">
@@ -540,28 +537,28 @@ font: 75 10pt &quot;Arial&quot;;</string>
      <x>0</x>
      <y>0</y>
      <width>700</width>
-     <height>18</height>
+     <height>17</height>
     </rect>
    </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(220, 220, 220);
-</string>
-   </property>
    <widget class="QMenu" name="file_menu">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="new_act"/>
-    <addaction name="open_act"/>
+    <addaction name="newAct"/>
+    <addaction name="openAct"/>
     <addaction name="separator"/>
-    <addaction name="save_act"/>
-    <addaction name="actionSave_as"/>
-    <addaction name="actionSave_all"/>
-    <addaction name="actionRevert_FILE_NAME"/>
+    <addaction name="saveAct"/>
+    <addaction name="saveasAct"/>
     <addaction name="separator"/>
     <addaction name="actionClose_2"/>
    </widget>
    <widget class="QMenu" name="edit_menu">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="title">
      <string>Edit</string>
     </property>
@@ -596,7 +593,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
     <property name="title">
      <string>Run</string>
     </property>
-    <addaction name="run_act"/>
+    <addaction name="runAct"/>
     <addaction name="actionRun"/>
     <addaction name="separator"/>
     <addaction name="actionEdit_configurations"/>
@@ -614,17 +611,17 @@ font: 75 10pt &quot;Arial&quot;;</string>
     <string>Project File</string>
    </property>
   </action>
-  <action name="new_act">
+  <action name="newAct">
    <property name="text">
     <string>New...</string>
    </property>
   </action>
-  <action name="open_act">
+  <action name="openAct">
    <property name="text">
     <string>Open...</string>
    </property>
   </action>
-  <action name="run_act">
+  <action name="runAct">
    <property name="text">
     <string>Run</string>
    </property>
@@ -674,7 +671,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
     <string>Find...</string>
    </property>
   </action>
-  <action name="save_act">
+  <action name="saveAct">
    <property name="text">
     <string>Save</string>
    </property>
@@ -682,7 +679,7 @@ font: 75 10pt &quot;Arial&quot;;</string>
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionSave_as">
+  <action name="saveasAct">
    <property name="text">
     <string>Save as...</string>
    </property>

@@ -9,11 +9,19 @@ import typing
 from pydre import filters, metrics
 from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
-from gui.config import CONFIG_PATH, WIDGET_STYLE_PATH, Config
-from gui.popups import FunctionPopup
+from pydre.gui.config import config_filename, Config
+from pydre.gui.popups import FunctionPopup
+
+from PySide2.QtCore import Qt
+
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
+
 
 config = Config()
-config.read(CONFIG_PATH)
+config.read(config_filename)
 
 
 class WidgetFactory:
@@ -26,7 +34,7 @@ class WidgetFactory:
     '''
 
     @staticmethod
-    def combo_box(cb, items, val=None, style=WIDGET_STYLE_PATH):
+    def combo_box(cb, items, val=None, style=None):
         '''Generates a configured Combo Box widget populated with the given
         items/optional initial value and linked to the given callback function.
         
@@ -44,11 +52,13 @@ class WidgetFactory:
             widget.setCurrentIndex(items.index(val))
         if style is not None:
             widget.setStyleSheet(open(style).read())
+        else:
+            widget.setStyleSheet(str(files("pydre.gui.stylesheets").joinpath("widget.css")))
         widget.activated.connect(lambda i: cb(widget.itemText(i)))
         return widget
 
     @staticmethod
-    def spin_box(cb, val=None, style=WIDGET_STYLE_PATH):
+    def spin_box(cb, val=None, style=None):
         '''Generates a configured Spin Box widget populated with the given
         optional initial value and linked to the given callback function.
         
@@ -63,11 +73,13 @@ class WidgetFactory:
             widget.setValue(val)
         if style is not None:
             widget.setStyleSheet(open(style).read())
+        else:
+            widget.setStyleSheet(str(files("pydre.gui.stylesheets").joinpath("widget.css")))
         widget.valueChanged.connect(cb)
         return widget
 
     @staticmethod
-    def line_edit(cb, val=None, style=WIDGET_STYLE_PATH):
+    def line_edit(cb, val=None, style=None):
         '''Generates a configured Line Edit widget populated with the given
         optional initial value and linked to the given callback funtion.
         
@@ -82,6 +94,8 @@ class WidgetFactory:
             widget.setText(val)
         if style is not None:
             widget.setStyleSheet(open(style).read())
+        else:
+            widget.setStyleSheet(str(files("pydre.gui.stylesheets").joinpath("widget.css")))
         widget.textChanged.connect(cb)
         return widget
 
@@ -670,7 +684,6 @@ class ProjectTree(QTreeWidget):
         else:
             idx = idx if idx is not None else 0
             self.items1[collection] = [item]
-        self.setItemSelected(self.topLevelItem(0).child(idx), True)
         self.setup()
         return idx
 
