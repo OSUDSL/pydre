@@ -8,7 +8,7 @@ import json
 import logging
 import os
 import pydre
-from PySide2.QtWidgets import QFileDialog, QInputDialog
+from PySide6.QtWidgets import QFileDialog, QInputDialog
 from pydre.gui.config import Config, config_filename, PROJECT_PATH
 from pydre.gui.customs import ProjectTree
 from pydre.gui.handlers import Pydre

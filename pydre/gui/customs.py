@@ -7,12 +7,12 @@ import copy
 import json
 import typing
 from pydre import filters, metrics
-from PySide2.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
+from PySide6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSizePolicy, QSpinBox, QTreeWidget, QTreeWidgetItem, QWidget
 from pydre.gui.config import config_filename, Config
 from pydre.gui.popups import FunctionPopup
 
-from PySide2.QtCore import Qt
+from PySide6.QtCore import Qt
 
 try:
     from importlib.resources import files
