@@ -41,4 +41,4 @@ for fn in args.datafiles:
     filelist.extend(glob.glob(os.path.join(os.getcwd(), fn)))
 print(filelist)
 p.run(filelist)
-p.save(args.outputfile)
+p.save(os.path.join('output', args.outputfile))
