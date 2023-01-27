@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pydre.core
-import pandas as pd
+import polars as pl
 import csv
 import re
 import logging
@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def sliceByTime(begin: float, end: float, column: str, drive_data: pd.DataFrame):
+def sliceByTime(begin: float, end: float, column: str, drive_data: pl.DataFrame):
     """
         args:
             begin: float defnining the start point of the slice
@@ -24,10 +24,10 @@ def sliceByTime(begin: float, end: float, column: str, drive_data: pd.DataFrame)
     only the specified data.
     """
     try:
-        dataframeslice = drive_data[(drive_data[column] >= begin) & (drive_data[column] <= end)]
+        dataframeslice = drive_data.filter(pl.col(column).is_between(begin, end, include_bounds=(True, False)))
     except KeyError:
         logger.error(
-            " Data file(-d) invalid. Data frame slice could not be created. Please check contents of file for \"VidTime\" column.")
+            "Problem applying Time ROI to data file using column " + column)
         sys.exit(1)
     return dataframeslice
 
@@ -132,9 +132,15 @@ class SpaceROI():
 
     def __init__(self, filename, nameprefix=""):
         # parse time filename values
-        self.roi_info = pd.read_csv(filename, skipinitialspace=True)
         # roi_info is a data frame containing the cutoff points for the region in each row.
         # It's columns must be roi, X1, X2, Y1, Y2
+        pl_rois = pl.read_csv(filename)
+        self.roi_info = []
+        for r in pl_rois.rows(named=True):
+            if isinstance(r, dict):
+                self.roi_info.append(r)
+            elif isinstance(r, NamedTuple):
+                self.roi_info.append(r._asdict())
         self.name_prefix = nameprefix
 
     def split(self, datalist):
@@ -145,12 +151,14 @@ class SpaceROI():
         """
         return_list = []
 
-        for i in self.roi_info.index:
+        for roi in self.roi_info:
             for ddata in datalist:
-                xmin = min(self.roi_info.X1[i], self.roi_info.X2[i])
-                xmax = max(self.roi_info.X1[i], self.roi_info.X2[i])
-                ymin = min(self.roi_info.Y1[i], self.roi_info.Y2[i])
-                ymax = max(self.roi_info.Y1[i], self.roi_info.Y2[i])
+                xmin = min(roi.get("X1"), roi.get("X2"))
+                xmax = max(roi.get("X1"), roi.get("X2"))
+                ymin = min(roi.get("Y1"), roi.get("Y2"))
+                ymax = max(roi.get("Y1"), roi.get("Y2"))
+                #region_data = ddata.data
+
                 region_data = ddata.data[(ddata.data.XPos < xmax) &
                                        (ddata.data.XPos > xmin) &
                                        (ddata.data.YPos < ymax) &
@@ -201,11 +209,12 @@ class ColumnROI():
         """
         return_list = []
         for ddata in datalist:
-            for i in ddata.data[self.roi_column].unique():
-                region_data = ddata.data[ddata.data[self.roi_column] == i]
-                if len(region_data.index) > 0:
-                    new_ddata = pydre.core.DriveData(region_data, ddata.sourcefilename)
+            split_list = ddata.partition_by(self.roi_column)
+            for subData in split_list:
+                roi_value = subData.get_column(self.roi_column)[0]
+                if roi_value != pl.Null:
+                    new_ddata = pydre.core.DriveData(subData, ddata.sourcefilename)
                     new_ddata.copyMetaData(ddata)
-                    new_ddata.roi = i
+                    new_ddata.roi = roi_value
                     return_list.append(new_ddata)
         return return_list

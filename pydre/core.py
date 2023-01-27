@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import pandas
+import polars
 import logging
 import sys
 import typing
@@ -55,7 +55,7 @@ def mergeBySpace(tomerge: list):
 
 class DriveData:
 
-    def __init__(self, data: pandas.DataFrame, sourcefilename: typing.Optional[str]):
+    def __init__(self, data: polars.DataFrame, sourcefilename: typing.Optional[str]):
         self.data = data
         self.sourcefilename = sourcefilename
         self.roi = None

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-import pandas
+import polars
 import re
 import sys
 import pydre.core
@@ -23,7 +23,7 @@ class Project:
         self.progress_bar = progressbar
 
         # This will suppress the unnecessary SettingWithCopy Warning.
-        pandas.options.mode.chained_assignment = None
+        #pandas.options.mode.chained_assignment = None
 
         self.definition = None
         with open(self.project_filename) as project_file:
@@ -44,7 +44,7 @@ class Project:
     def __loadSingleFile(self, filename: str):
         file = ntpath.basename(filename)
         """Load a single .dat file (space delimited csv) into a DriveData object"""
-        d = pandas.read_csv(filename, sep=' ', na_values='.')
+        d = polars.read_csv(filename, sep=' ', null_values='.')
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
         datafile_re_format1 = re.compile(
             "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat")  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
@@ -120,7 +120,7 @@ class Project:
                     self.progress_bar.setValue(value)
                 if self.app:
                     self.app.processEvents()
-            report = pandas.DataFrame(x, columns=col_names)
+            report = polars.DataFrame(x, columns=col_names)
         else:
             for d in tqdm(dataset, desc=func_name):
                 x.append(filter_func(d, **filter))
@@ -129,11 +129,11 @@ class Project:
                     self.progress_bar.setValue(value)
                 if self.app:
                     self.app.processEvents()
-            report = pandas.DataFrame(x, columns=[report_name, ])
+            report = polars.DataFrame(x, columns=[report_name, ])
 
         return report
 
-    def processMetric(self, metric: object, dataset: list) -> pandas.DataFrame:
+    def processMetric(self, metric: object, dataset: list) -> polars.DataFrame:
         """
 
         :param metric:
@@ -153,9 +153,9 @@ class Project:
 
         if len(col_names) > 1:
             x = [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)]
-            report = pandas.DataFrame(x, columns=col_names)
+            report = polars.DataFrame(x, columns=col_names)
         else:
-            report = pandas.DataFrame(
+            report = polars.DataFrame(
                 [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)], columns=[report_name, ])
 
         return report

@@ -10,7 +10,7 @@ import pydre.project
 import pydre.core
 import os.path
 import glob
-
+import logging
 
 import argparse
 
@@ -23,6 +23,8 @@ parser.add_argument("-l", "--warninglevel", type=str, default="WARNING",
                     help="Loggging error level. DEBUG, INFO, WARNING, ERROR, and CRITICAL are allowed.")
 
 args = parser.parse_args()
+
+logger = logging.getLogger()
 
 try:
     logger.setLevel(args.warninglevel.upper())
