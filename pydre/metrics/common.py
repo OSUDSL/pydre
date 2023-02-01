@@ -334,79 +334,52 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
 @registerMetric()
 def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
     tail_time = 0
-    table = drivedata.data
-    difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
-    table.loc[:, 'delta_t'] = np.concatenate([np.zeros(1), difftime])
+    tailgating_table = drivedata.data.select([pl.col("SimTime").diff().alias("delta_t"),
+                                              pl.col("HeadwayTime")])
     # find all tailgating instances where the delta time is reasonable.
     # this ensures we don't get screwy data from merged files
-    tail_data = table[(table.HeadwayTime > 0) & (table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
-    tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
+    tail_time += tailgating_table.filter(pl.col("HeadwayTime").is_between(0, cutoff, closed="none") &
+                                         pl.col("delta_t").is_between(0, .5)).select("delta_t").sum().item()
     return tail_time
 
 @registerMetric()
 def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
-    total_time = 0
     tail_time = 0
-    table = drivedata.data
-    difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
-    table.loc[:, 'delta_t'] = np.concatenate([np.zeros(1), difftime])
+    total_time = 0
+    tailgating_table = drivedata.data.select([pl.col("SimTime").diff().alias("delta_t"),
+                                              pl.col("HeadwayTime")])
     # find all tailgating instances where the delta time is reasonable.
     # this ensures we don't get screwy data from merged files
-    tail_data = table[(table.HeadwayTime > 0) & (table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
-    tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
-    total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
+    tail_time += tailgating_table.filter(pl.col("HeadwayTime").is_between(0, cutoff, closed="none") &
+                                         pl.col("delta_t").is_between(0, .5)).select("delta_t").sum().item()
+    total_time += tailgating_table.filter(pl.col("delta_t").is_between(0, .5)).select("delta_t").sum().item()
     return tail_time / total_time
 
 @registerMetric()
 def tailgatingPercentageAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float =2, velocity: float = 13.4112):
-
-    dd = drivedata.data
-    df = drivedata.data
-
-    # filter the table to remove all entries where velocity values are less than the cutoff velocity
-    df = df[dd['Velocity'] >= velocity]
-
-    total_time = 0
     tail_time = 0
-    table = df
-    difftime = table.SimTime.values[1:] - table.SimTime.values[:-1]
-    table.loc[:, 'delta_t'] = np.concatenate([np.zeros(1), difftime])
+    total_time = 0
+    tailgating_table = drivedata.data.select([pl.col("SimTime").diff().alias("delta_t"),
+                                              pl.col("HeadwayTime"),
+                                              pl.col("Velocity")]).filter(pl.col("Velocity") >= velocity)
     # find all tailgating instances where the delta time is reasonable.
     # this ensures we don't get screwy data from merged files
-    tail_data = table[(table.HeadwayTime > 0) & (table.HeadwayTime < cutoff) & (abs(table.delta_t) < .5)]
-    tail_time += tail_data['delta_t'][abs(table.delta_t) < .5].sum()
-    total_time += table['delta_t'][abs(table.delta_t) < .5].sum()
+    tail_time += tailgating_table.filter(pl.col("HeadwayTime").is_between(0, cutoff, closed="none") &
+                                         pl.col("delta_t").is_between(0, .5)).select("delta_t").sum().item()
+    total_time += tailgating_table.filter(pl.col("delta_t").is_between(0, .5)).select("delta_t").sum().item()
     return tail_time / total_time
+
 
 # determines when the ownship collides with another vehicle by examining headway distance as threshold
 @registerMetric()
-def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 1):
+def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 2.85):
     required_col = ["SimTime", "HeadwayDistance"]
-
     drivedata.checkColumns(required_col)
+    # find contiguous instances of headway distance < the cutoff
+    collision_table = drivedata.data.select((pl.col("HeadwayDistance") <= cutoff).alias("CollisionZone"))
+    collisions = collision_table.select(pl.col("CollisionZone").cast(pl.Int32).diff()).sum().item()
+    return collisions
 
-    dd = drivedata.data
-    collisionInstance = 0
-
-    # find instances of headway distance < the cutoff
-    df = dd.loc[dd['HeadwayDistance'] <= cutoff]
-
-    prevIndex = 0
-    # sequences of rows with headway distance <= cutoff must be treated as the same collision
-    for index, row in df.iterrows():
-
-        # if the current index does not directly follow the previous index where a collision was detected, it is a different collision
-        if ((index - prevIndex) > 1):
-            collisionInstance = collisionInstance + 1
-
-        prevIndex = index
-
-    return collisionInstance
-
-
-#cutoff: represents the time in seconds the reaction time should be within for a "Hit"
-
-#cutoff: represents the time in seconds the reaction time should be within for a "Hit"
 
 @registerMetric()
 def firstOccurrence(df: pandas.DataFrame, condition: str):

@@ -139,11 +139,11 @@ class SpaceROI():
         for r in pl_rois.rows(named=True):
             if isinstance(r, dict):
                 self.roi_info.append(r)
-            elif isinstance(r, NamedTuple):
+            elif isinstance(r, tuple):
                 self.roi_info.append(r._asdict())
         self.name_prefix = nameprefix
 
-    def split(self, datalist):
+    def split(self, datalist: list[pydre.core.DriveData]):
         """
         return list of pydre.core.DriveData objects
         the 'roi' field of the objects will be filled with the roi tag listed
@@ -157,14 +157,11 @@ class SpaceROI():
                 xmax = max(roi.get("X1"), roi.get("X2"))
                 ymin = min(roi.get("Y1"), roi.get("Y2"))
                 ymax = max(roi.get("Y1"), roi.get("Y2"))
-                #region_data = ddata.data
 
-                region_data = ddata.data[(ddata.data.XPos < xmax) &
-                                       (ddata.data.XPos > xmin) &
-                                       (ddata.data.YPos < ymax) &
-                                       (ddata.data.YPos > ymin)]
-                if (len(region_data) == 0):
+                region_data = ddata.data.filter(pl.col("XPos").is_between(xmin, xmax) &
+                                                pl.col("YPos").is_between(ymin, ymax))
 
+                if (region_data.height == 0):
                     # try out PartID to get this to run cgw 5/20/2022
                     # logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
                     #    ddata.SubjectID,
@@ -173,7 +170,7 @@ class SpaceROI():
                     logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
                         ddata.PartID,
                         ddata.sourcefilename,
-                        self.roi_info.roi[i]))
+                        roi))
                 else:
                     # try out PartID to get this to run cgw 5/20/2022
                     # logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
@@ -182,13 +179,13 @@ class SpaceROI():
                     #     ddata.SubjectID,
                     #     ddata.sourcefilename))
                     logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
-                        len(region_data),
-                        self.roi_info.roi[i],
+                        region_data.height,
+                        roi,
                         ddata.PartID,
                         ddata.sourcefilename))
                 new_ddata = pydre.core.DriveData(region_data, ddata.sourcefilename)
                 new_ddata.copyMetaData(ddata)
-                new_ddata.roi = self.roi_info.roi[i]
+                new_ddata.roi = roi.get("roi")
                 return_list.append(new_ddata)
 
         return return_list

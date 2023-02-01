@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-import polars
+import polars as pl
 import re
 import sys
 import pydre.core
@@ -44,7 +44,7 @@ class Project:
     def __loadSingleFile(self, filename: str):
         file = ntpath.basename(filename)
         """Load a single .dat file (space delimited csv) into a DriveData object"""
-        d = polars.read_csv(filename, sep=' ', null_values='.')
+        d = pl.read_csv(filename, sep=' ', null_values='.')
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
         datafile_re_format1 = re.compile(
             "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat")  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
@@ -133,7 +133,7 @@ class Project:
 
         return report
 
-    def processMetric(self, metric: object, dataset: list) -> polars.DataFrame:
+    def processMetric(self, metric: object, dataset: list) -> pl.DataFrame:
         """
 
         :param metric:
@@ -153,9 +153,9 @@ class Project:
 
         if len(col_names) > 1:
             x = [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)]
-            report = polars.DataFrame(x, columns=col_names)
+            report = pl.DataFrame(x, columns=col_names)
         else:
-            report = polars.DataFrame(
+            report = pl.DataFrame(
                 [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)], columns=[report_name, ])
 
         return report
@@ -193,52 +193,50 @@ class Project:
 
         self.loadFileList(datafiles)
         data_set = []
-        try:
-            if 'filters' in self.definition:
-                for filter in self.definition['filters']:
-                    self.processFilter(filter, self.raw_data)
 
-            if 'rois' in self.definition:
-                for roi in self.definition['rois']:
-                    data_set.extend(self.processROI(roi, self.raw_data))
-            else:
-                # no ROIs to process, but that's OK
-                logger.warning("No ROIs, processing raw data.")
-                data_set = self.raw_data
+        if 'filters' in self.definition:
+            for filter in self.definition['filters']:
+                self.processFilter(filter, self.raw_data)
 
-            logger.info("number of datafiles: {}, number of rois: {}".format(
-                len(datafiles), len(data_set)))
+        if 'rois' in self.definition:
+            for roi in self.definition['rois']:
+                data_set.extend(self.processROI(roi, self.raw_data))
+        else:
+            # no ROIs to process, but that's OK
+            logger.warning("No ROIs, processing raw data.")
+            data_set = self.raw_data
 
-            # for filter in self.definition['filters']:
-            #     self.processFilter(filter, data_set)
-            result_data = pandas.DataFrame()
-            result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
+        logger.info("number of datafiles: {}, number of rois: {}".format(
+            len(datafiles), len(data_set)))
 
-            if (data_set[0].format_identifier == 2):  # these drivedata object was created from an old format data file
-                result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
-            elif (data_set[
-                      0].format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-                result_data['Mode'] = pandas.Series([self.__clean(str(d.mode)) for d in data_set])
-                result_data['ScenarioName'] = pandas.Series([self.__clean(str(d.scenarioName)) for d in data_set])
-                result_data['UniqueID'] = pandas.Series([self.__clean(str(d.UniqueID)) for d in data_set])
+        # for filter in self.definition['filters']:
+        #     self.processFilter(filter, data_set)
+        result_data = pl.DataFrame()
+        result_data.hstack([pl.Series("Subject", [d.PartID for d in data_set])], in_place=True)
 
-            result_data['ROI'] = pandas.Series([d.roi for d in data_set])
-            # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
-            # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
+        if (data_set[0].format_identifier == 2):  # these drivedata object was created from an old format data file
+            result_data.hstack([pl.Series("DriveID", [d.DriveID for d in data_set])], in_place=True)
+        elif (data_set[
+                  0].format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+            result_data.hstack([
+                pl.Series("Mode", [self.__clean(str(d.mode)) for d in data_set]),
+                pl.Series("ScenarioName", [self.__clean(str(d.scenarioName)) for d in data_set]),
+                pl.Series("UniqueID", [self.__clean(str(d.UniqueID)) for d in data_set])
 
-            processed_metrics = [result_data]
+            ], in_place=True)
 
-            if 'metrics' not in self.definition:
-                logger.critical("No metrics in project file. No results will be generated")
-                return None
-            else:
-                for metric in self.definition['metrics']:
-                    processed_metric = self.processMetric(metric, data_set)
-                    processed_metrics.append(processed_metric)
-                result_data = pandas.concat(processed_metrics, axis=1)
-        except pydre.core.ColumnsMatchError as e:
-            logger.critical(f"Failed to match columns: {e.missing_columns}. No results will be generated")
+        result_data.hstack([pl.Series("ROI", [d.roi for d in data_set])], in_place=True)
+
+        if 'metrics' not in self.definition:
+            logger.critical("No metrics in project file. No results will be generated")
             return None
+        else:
+            for metric in self.definition['metrics']:
+                processed_metric = self.processMetric(metric, data_set)
+                result_data.hstack(processed_metric, in_place=True)
+#        except pydre.core.ColumnsMatchError as e:
+#            logger.critical(f"Failed to match columns: {e.missing_columns}. No results will be generated")
+#           return None
 
         self.results = result_data
         return result_data
@@ -251,6 +249,6 @@ class Project:
             The filename specified will be overwritten automatically.
         """
         try:
-            self.results.to_csv(outfilename, index=False)
+            self.results.write_csv(outfilename)
         except AttributeError:
             logger.error("Results not computed yet")
