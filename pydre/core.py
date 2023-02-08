@@ -62,7 +62,7 @@ class DriveData:
         self.format_identifier = -1
 
     @classmethod
-    def initV2(cls, data: pandas.DataFrame, sourcefilename: str, PartID: typing.Optional[int],
+    def initV2(cls, data: polars.DataFrame, sourcefilename: str, PartID: typing.Optional[int],
                DriveID: typing.Optional[int]):
         obj = cls(data, sourcefilename)
         obj.PartID = PartID
@@ -71,7 +71,7 @@ class DriveData:
         return obj
 
     @classmethod
-    def initV4(cls, data: pandas.DataFrame, sourcefilename: str, PartID: str, UniqueID: typing.Optional[int],
+    def initV4(cls, data: polars.DataFrame, sourcefilename: str, PartID: str, UniqueID: typing.Optional[int],
                scenarioName: typing.Optional[str], mode: typing.Optional[str]):
         obj = cls(data, sourcefilename)
         obj.PartID = PartID

@@ -8,8 +8,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from collections.abc import Iterable
 
-def sliceByTime(begin: float, end: float, column: str, drive_data: pl.DataFrame):
+def sliceByTime(begin: float, end: float, column: str, drive_data: pl.DataFrame) -> pl.DataFrame:
     """
         args:
             begin: float defnining the start point of the slice
@@ -35,97 +36,62 @@ class TimeROI():
 
     def __init__(self, filename, nameprefix=""):
         # parse time filename values
-        self.time_file = open(filename, "r")
+
+        pl_rois = pl.read_csv(filename)
+        rois = []
+        self.rois = {}
+        for r in pl_rois.rows(named=True):
+            if isinstance(r, dict):
+                rois.append(r)
+            elif isinstance(r, tuple):
+                rois.append(r._asdict())
+        for r in rois:
+            participant = r["Participant"]
+            self.rois[participant] = {}
+            for k,v in r:
+                if k != "Participant":
+                    self.rois[participant][k] = self.parseDuration(v)
         self.name_prefix = nameprefix
 
-    def split(self, datalist):
+    def split(self, datalist: list[pydre.core.DriveData]) -> list[pydre.core.DriveData]:
         """
         return list of pydre.core.DriveData objects
         the 'roi' field of the objects will be filled with the roi tag listed
         in the roi definition file column name
         """
-        table = list(csv.reader(self.time_file))
-        titles = table[0]
-        outputs = []
-        for row in range(1, len(table)):
-            subject = int(table[row][0])
-            for roi in range(1, len(table[row])):
-                data_frame = []
-                drives = []
-                source_files = []
-                for drive_info in TimeROI.getCellInfo(table[row][roi]):
-                    # Add each drive specified by a particular cell data
-                    start_time, end_time, driveID = drive_info
-                    for item in datalist:
-                        # Find the proper subject and drive in the input data
-                        #if (item.SubjectID == subject and driveID in item.DriveID): # try out PartID to get this to run cgw 5/20/2022
-                        if (item.PartID == subject and driveID in item.DriveID):
-                            new_ddata = pydre.core.sliceByTime(
-                                start_time, end_time, "VidTime", item.data[0])
-                            new_ddata.copyMetaData(ddata)
-                            new_ddata.roi = titles[roi]
-                            outputs.append(new_ddata)
-
-                            drives.append(item.DriveID)
-                            source_files.append(item.sourcefilename)
-                            break
-                if len(drives) == 0:
-                    logger.warning("No data for ROI (subject: {}, roi: {})".format(
-                        subject, titles[roi]))
-                else:
-                    new_ddata = pydre.core.DriveData(data_frame, ddata.sourcefilename)
+        timecol = "SimTime"
+        output_list = []
+        for ddata in datalist:
+            if ddata.PartID is in self.rois.keys():
+                for roi, duration in self.rois[ddata.PartID]:
+                    start, end = duration
+                    new_data = sliceByTime(start, end, timecol, ddata.data)
+                    new_ddata = pydre.core.DriveData(new_data, ddata.sourcefilename)
                     new_ddata.copyMetaData(ddata)
-                    new_ddata.roi = titles[roi]
-                    outputs.append(new_ddata)
-                    outputs.append(pydre.core.DriveData(
-                        subject, drives, titles[roi], data_frame, source_files))
-        return outputs
+                    new_ddata.roi = roi
+                    output_list.append(new_ddata)
+        return output_list
 
-    def getCellInfo(cell_content):
-        # FORMAT- 1:15:10-1:20:30#2 02:32-08:45#3
-        # GROUPS 0 = start time, 1 = end time, 2 = driveID (1 if not specified)
-        cell_regex = "(\d?:?\d?\d:\d\d)-(\d?:?\d?\d:\d\d)#?(\d+)?"
-        # GROUPS: 0 = hour digit (if nec), 1 = minute digit, 2 = seconds digit
-        time_regex = "(?:(\d):)?(\d\d|^\d):(\d\d)"
-        cell_info = []
-        for drive in cell_content.split():
-            drive_info = re.match(cell_regex, drive)
-            driveID = 1
-            if drive_info.groups()[2] is not None:
-                driveID = int(drive_info.groups()[2])
 
-            start_info = re.match(time_regex, drive_info.groups()[0])
-            end_info = re.match(time_regex, drive_info.groups()[1])
-
-            start_hour = 0
-            start_minute = 0
-            start_second = 0
-            if start_info.groups()[0] is not None:
-                start_hour = int(start_info.groups()[0])
-
-            if start_info.groups()[1] is not None:
-                start_minute = int(start_info.groups()[1])
-
-            if start_info.groups()[2] is not None:
-                start_second = int(start_info.groups()[2])
-
-            end_hour = 0
-            end_minute = 0
-            end_second = 0
-            if end_info.groups()[0] is not None:
-                end_hour = int(end_info.groups()[0])
-
-            if end_info.groups()[1] is not None:
-                end_minute = int(end_info.groups()[1])
-
-            if end_info.groups()[2] is not None:
-                end_second = int(end_info.groups()[2])
-
-            start_VidTime = start_hour * 3600 + start_minute * 60 + start_second
-            end_VidTime = end_hour * 3600 + end_minute * 60 + end_second
-
-            cell_info.append([start_VidTime, end_VidTime, driveID])
-        return cell_info
+    def parseDuration(self, duration: str) -> tuple[float, float]:
+        # parse a string indicating duration into a tuple of (starttime, endtime) in seconds
+        # the string will have the format as:
+        # time1-time2 where time1 or time 2 are either hr:min:sec or min:sec
+        # example:  1:15:10-1:20:30
+        # example : 02:32-08:45
+        pair_regex = r"([\d:])-([\d:])"
+        time_regex = r"(?:(\d+):)?(\d+):(\d+)"
+        pair_result = re.match(pair_regex, duration)
+        first_time_str, second_time_str = pair_result.group(1, 2)
+        first_time_result = re.match(time_regex, first_time_str)
+        second_time_result = re.match(time_regex, second_time_str)
+        first_time = first_time_result.group(2) * 60 + first_time_result.group(3)
+        if first_time_result.group(1):
+            first_time += first_time_result.group(1) * 60*60
+        second_time = second_time_result.group(2) * 60 + second_time_result.group(3)
+        if second_time_result.group(1):
+            second_time += second_time_result.group(1) * 60*60
+        return (first_time, second_time)
 
 
 class SpaceROI():
@@ -193,12 +159,12 @@ class SpaceROI():
 
 class ColumnROI():
 
-    def __init__(self, columnname, nameprefix=""):
+    def __init__(self, columnname: str, nameprefix=""):
         # parse time filename values
         self.roi_column = columnname
         self.name_prefix = nameprefix
 
-    def split(self, datalist):
+    def split(self, datalist: Iterable[pydre.core.DriveData]) -> Iterable[pydre.core.DriveData]:
         """
         return list of pydre.core.DriveData objects
         the 'roi' field of the objects will be filled with the roi tag listed
@@ -206,12 +172,10 @@ class ColumnROI():
         """
         return_list = []
         for ddata in datalist:
-            split_list = ddata.partition_by(self.roi_column)
-            for subData in split_list:
-                roi_value = subData.get_column(self.roi_column)[0]
-                if roi_value != pl.Null:
-                    new_ddata = pydre.core.DriveData(subData, ddata.sourcefilename)
-                    new_ddata.copyMetaData(ddata)
-                    new_ddata.roi = roi_value
+            groups = ddata.groupby(self.roi_column)
+            for gname, gdata in groups:
+                if gname != pl.Null:
+                    new_ddata = pydre.core.DriveData(gdata, ddata.sourcefilename)
+                    new_ddata.roi = gname
                     return_list.append(new_ddata)
         return return_list
