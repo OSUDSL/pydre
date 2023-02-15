@@ -3,8 +3,9 @@
     "filters": [
           {
               "name": "numberBoxBlocks",
-              "function": "numberBoxBlocks",
-              "box_column": "BoxStatus"
+              "function": "numberBinaryBlocks",
+              "binary_column": "BoxStatus",
+              "new_column": "boxBlocks"
           }
       ],
   
@@ -47,7 +48,6 @@
           "function": "timeFirstTrue",
           "var": "ResponseButton"
         }
-  
       ]
    }
   

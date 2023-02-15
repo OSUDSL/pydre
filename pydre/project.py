@@ -59,7 +59,7 @@ class Project:
             return pydre.core.DriveData.initV4(d, filename, subject_id, unique_id, scen_name, mode)
         else:
             logger.warning(
-                "Drivedata filename does not an expected format")
+                "Drivedata filename {} does not an expected format.".format(filename))
             return pydre.core.DriveData(d, filename)
 
     def processROI(self, roi, dataset):
@@ -120,7 +120,7 @@ class Project:
                     self.progress_bar.setValue(value)
                 if self.app:
                     self.app.processEvents()
-            report = polars.DataFrame(x, columns=col_names)
+            report = pl.DataFrame(x, columns=col_names)
         else:
             for d in tqdm(dataset, desc=func_name):
                 x.append(filter_func(d, **filter))
@@ -129,7 +129,7 @@ class Project:
                     self.progress_bar.setValue(value)
                 if self.app:
                     self.app.processEvents()
-            report = polars.DataFrame(x, columns=[report_name, ])
+            report = pl.DataFrame(x, columns=[report_name, ])
 
         return report
 

@@ -396,7 +396,7 @@ def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
     df = drivedata.data.filter(pl.col(var) > 0)
     if drivedata.data.height == 0 or df.height == 0:
         return None
-    return df.select("Simtime").head(1).item() - drivedata.data.select("SimTime").head(1).item()
+    return df.select("SimTime").head(1).item() - drivedata.data.select("SimTime").head(1).item()
 
 
 @registerMetric()
@@ -406,7 +406,7 @@ def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var:str):
     df = drivedata.data.filter(pl.col(var) > 5)
     if drivedata.data.height == 0 or df.height == 0:
         return None
-    return df.select("Simtime").head(1).item() - drivedata.data.select("SimTime").head(1).item()
+    return df.select("SimTime").head(1).item() - drivedata.data.select("SimTime").head(1).item()
 
 @registerMetric()
 def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1:str, var2:str):
@@ -420,7 +420,7 @@ def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1:str, var2:str):
         df = drivedata.data.filter(pl.col(var2) >= 1.2)
         if drivedata.data.height == 0 or df.height == 0:
             return None
-        return df.select("Simtime").head(1).item() - drivedata.data.select("SimTime").head(1).item()
+        return df.select("SimTime").head(1).item() - drivedata.data.select("SimTime").head(1).item()
     
 
 '''
@@ -618,7 +618,8 @@ def R2DIDColumns(drivedata: pydre.core.DriveData):
     ident = drivedata.PartID
     ident_groups = re.match(r'(\d)(\d)(\d)(\d\d\d\d)[wW](\d)', ident)
     if ident_groups is None:
-        return [None, None, None, None, None]
+        logger.warning("Could not parse R2D ID " + ident)
+        return [None, None, None, None, None, None]
     participant_id = ident_groups.group(1) + ident_groups.group(2) + ident_groups.group(3) + ident_groups.group(4)
     case = ident_groups.group(1)
     if case == "3":

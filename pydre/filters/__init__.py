@@ -96,11 +96,11 @@ def registerFilter(jsonname=None, columnnames=None):
 @registerFilter()
 def numberBinaryBlocks(drivedata: pydre.core.DriveData, binary_column="ButtonStatus", new_column="NumberedBlocks",
                        fill_after_block=0):
-    required_col = [box_column]
+    required_col = [binary_column]
     diff = drivedata.checkColumns(required_col)
 
     blocks = drivedata.data.select(
-            (pl.col(box_column).shift() != pl.col(box_column)).cumsum().alias(new_column) / 2
+            (pl.col(binary_column).shift() != pl.col(binary_column)).cumsum().alias(new_column) / 2
     )
     blocks.fill_null(strategy="forward", limit=fill_after_block)
     drivedata.data.hstack(blocks, in_place=True)

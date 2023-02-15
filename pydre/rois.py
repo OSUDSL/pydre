@@ -62,7 +62,7 @@ class TimeROI():
         timecol = "SimTime"
         output_list = []
         for ddata in datalist:
-            if ddata.PartID is in self.rois.keys():
+            if ddata.PartID in self.rois.keys():
                 for roi, duration in self.rois[ddata.PartID]:
                     start, end = duration
                     new_data = sliceByTime(start, end, timecol, ddata.data)
@@ -172,10 +172,10 @@ class ColumnROI():
         """
         return_list = []
         for ddata in datalist:
-            groups = ddata.groupby(self.roi_column)
-            for gname, gdata in groups:
+            for gname, gdata in ddata.data.groupby(self.roi_column):
                 if gname != pl.Null:
                     new_ddata = pydre.core.DriveData(gdata, ddata.sourcefilename)
+                    new_ddata.copyMetaData(ddata)
                     new_ddata.roi = gname
                     return_list.append(new_ddata)
         return return_list
