@@ -393,7 +393,11 @@ def firstOccurrence(df: pandas.DataFrame, condition: str):
 def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
     required_col = [var, "SimTime"]
     diff = drivedata.checkColumns(required_col)
-    df = drivedata.data.filter(pl.col(var) > 0)
+    try:
+        df = drivedata.data.filter(pl.col(var) > 0)
+    except pl.exceptions.ComputeError as e:
+        logger.warning("Failure processing timeFirstTrue metric for variable {} in file {}".format(var, drivedata.sourcefilename))
+        return None
     if drivedata.data.height == 0 or df.height == 0:
         return None
     return df.select("SimTime").head(1).item() - drivedata.data.select("SimTime").head(1).item()
@@ -403,7 +407,11 @@ def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
 def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var:str):
     required_col = [var, "SimTime"]
     diff = drivedata.checkColumns(required_col)
-    df = drivedata.data.filter(pl.col(var) > 5)
+    try:
+        df = drivedata.data.filter(pl.col(var) > 5)
+    except pl.exceptions.ComputeError as e:
+        logger.warning("Brake value non-numeric in {}".format(drivedata.sourcefilename))
+        return None
     if drivedata.data.height == 0 or df.height == 0:
         return None
     return df.select("SimTime").head(1).item() - drivedata.data.select("SimTime").head(1).item()

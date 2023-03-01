@@ -95,18 +95,34 @@ def registerFilter(jsonname=None, columnnames=None):
 
 @registerFilter()
 def numberBinaryBlocks(drivedata: pydre.core.DriveData, binary_column="ButtonStatus", new_column="NumberedBlocks",
-                       fill_after_block=0):
+                       only_on=0, fill_after_block=0):
     required_col = [binary_column]
     diff = drivedata.checkColumns(required_col)
 
     blocks = drivedata.data.select(
-            (pl.col(binary_column).shift() != pl.col(binary_column)).cumsum().alias(new_column) / 2
+            (pl.col(binary_column).shift() != pl.col(binary_column)).cumsum().alias(new_column)
     )
     blocks.fill_null(strategy="forward", limit=fill_after_block)
     drivedata.data.hstack(blocks, in_place=True)
+    if only_on:
+        try:
+            drivedata.data = drivedata.data.filter(pl.col(binary_column) == 1)
+        except pl.exceptions.ComputeError as e:
+            logger.warning("Assumed binary column {} in {} has non-numeric value.".format(binary_column, drivedata.sourcefilename))
+    return drivedata
+
+@registerFilter()
+def SimTimeFromDatTime(drivedata: pydre.core.DriveData):
+    if drivedata.data.get_column("SimTime").max() == 0:
+        drivedata.data.replace("SimTime", drivedata.data.get_column("DatTime"))
     return drivedata
 
 
+@registerFilter()
+def relativeBoxPos(drivedata: pydre.core.DriveData):
+    start_x = drivedata.data.get_column("XPos").min()
+    drivedata.data = drivedata.data.with_columns([(pl.col("BoxPosY").cast(pl.Float32) - start_x).clip_min(0).alias("relativeBoxStart")])
+    return drivedata
 
 @registerFilter()
 def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str = "DatTime",
