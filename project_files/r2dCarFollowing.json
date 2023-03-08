@@ -6,6 +6,10 @@
               "function": "SimTimeFromDatTime"
           },
           {
+            "name": "R2DFixReversedRoad",
+            "function": "R2DFixReversedRoad"
+          },
+          {
               "name": "numberFollowingCarBrakes",
               "function": "numberBinaryBlocks",
               "binary_column": "FollowCarBrakingStatus",

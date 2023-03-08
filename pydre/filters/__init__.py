@@ -119,6 +119,14 @@ def SimTimeFromDatTime(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
+def R2DFixReversedRoad(drivedata: pydre.core.DriveData):
+    drivedata.data = drivedata.data.with_columns(pl.when(pl.col("XPos").cast(pl.Float32).is_between(700, 900)).
+                                                 then(-(pl.col("RoadOffset").cast(pl.Float32))).
+                                                 otherwise(pl.col("RoadOffset").cast(pl.Float32)).alias("RoadOffset"))
+    return drivedata
+
+
+@registerFilter()
 def relativeBoxPos(drivedata: pydre.core.DriveData):
     start_x = drivedata.data.get_column("XPos").min()
     drivedata.data = drivedata.data.with_columns([(pl.col("BoxPosY").cast(pl.Float32) - start_x).clip_min(0).alias("relativeBoxStart")])

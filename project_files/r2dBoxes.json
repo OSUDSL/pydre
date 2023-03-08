@@ -6,6 +6,10 @@
               "function": "SimTimeFromDatTime"
           },
           {
+            "name": "R2DFixReversedRoad",
+            "function": "R2DFixReversedRoad"
+          },
+          {
               "name": "relativeBoxPos",
               "function": "relativeBoxPos"
           },
