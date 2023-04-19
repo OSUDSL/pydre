@@ -125,6 +125,15 @@ def R2DFixReversedRoad(drivedata: pydre.core.DriveData):
                                                  otherwise(pl.col("RoadOffset").cast(pl.Float32)).alias("RoadOffset"))
     return drivedata
 
+@registerFilter()
+def setinrange(drivedata: pydre.core.DriveData, coltoset:str, valtoset:float, colforrange:str,
+               rangemin:float, rangemax:float):
+    drivedata.data = drivedata.data.with_columns(pl.when(
+        pl.col(colforrange).cast(pl.Float32).is_between(rangemin, rangemax)).then(
+            valtoset).otherwise(pl.col(coltoset)).cast(pl.Float32).alias(coltoset))
+
+    return drivedata
+
 
 @registerFilter()
 def relativeBoxPos(drivedata: pydre.core.DriveData):
@@ -249,6 +258,32 @@ def mergeFintoTaskFail(drivedata: pydre.core.DriveData):
         ])
     return drivedata
 
+
+@registerFilter()
+def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: str):
+    speedlimitpos = drivedata.data.select(
+        [(pl.col(speedlimitcol).shift() != pl.col(speedlimitcol)).alias("SpeedLimitPositions"),
+         speedlimitcol,
+         "XPos"
+        ]
+    )
+
+    block_marks = speedlimitpos.filter(pl.col("SpeedLimitPositions") == True)
+    drivedata.data = drivedata.data.with_columns(
+        pl.lit(None).cast(pl.Int32).alias("SpeedLimitBlocks")
+    )
+
+    mph2mps = 0.44704
+
+    blocknumber = 1
+    for row in block_marks.rows(named=True):
+        drivedata.data = drivedata.data.with_columns(pl.when(pl.col("XPos").cast(pl.Float32).is_between(row["XPos"] - row[speedlimitcol]*mph2mps*5,
+                                                                                        row["XPos"] + row[speedlimitcol]*mph2mps*5)).
+                                                 then(blocknumber).
+                                                 otherwise(pl.col("SpeedLimitBlocks")).alias("SpeedLimitBlocks"))
+        blocknumber += 1
+
+    return drivedata
 
 @registerFilter()
 def numberTaskInstance(drivedata: pydre.core.DriveData):

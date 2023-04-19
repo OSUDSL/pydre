@@ -78,6 +78,18 @@ def colMin(drivedata: pydre.core.DriveData, var: str):
     return drivedata.data.get_column(var).min()
 
 @registerMetric()
+def colFirst(drivedata: pydre.core.DriveData, var: str):
+    required_col = [var]
+    drivedata.checkColumns(required_col)
+    return drivedata.data.get_column(var).head(1).item()
+
+@registerMetric()
+def colLast(drivedata: pydre.core.DriveData, var: str):
+    required_col = [var]
+    drivedata.checkColumns(required_col)
+    return drivedata.data.get_column(var).tail(1).item()
+
+@registerMetric()
 def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentage: bool = False):
     required_col = ["SimTime", "Velocity"]
     drivedata.checkColumns(required_col)
@@ -425,7 +437,7 @@ def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1:str, var2:str):
     if break_reaction:
         return break_reaction
     else:
-        df = drivedata.data.filter(pl.col(var2) >= 1.2)
+        df = drivedata.data.filter(abs(pl.col(var2)) >= .2)
         if drivedata.data.height == 0 or df.height == 0:
             return None
         return df.select("SimTime").head(1).item() - drivedata.data.select("SimTime").head(1).item()
