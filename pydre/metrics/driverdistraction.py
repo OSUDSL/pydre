@@ -2,6 +2,7 @@ from __future__ import annotations  # needed for python < 3.9
 
 import logging
 import pandas
+import polars as pl
 import pydre.core
 from pydre.metrics import registerMetric
 import numpy as np
@@ -138,6 +139,43 @@ def crossCorrelate(drivedata: pydre.core.DriveData):
         return cor
     else:
         return 0.0
+
+# find relative time where speed is within [mpsBound] of new speed limit
+# 0 is when the car is crossing the sign.
+# Returns None if the speed is never within 2
+@registerMetric()
+def speedLimitMatchTime(drivedata: pydre.core.DriveData, mpsBound: float, speedLimitCol: str):
+    required_col = ["DatTime", speedLimitCol, "Velocity"]
+    diff = drivedata.checkColumns(required_col)
+
+    speed_limit = drivedata.data.get_column(speedLimitCol).tail(1).item() * 0.44704
+    starting_speed_limit = drivedata.data.get_column(speedLimitCol).head(1).item() * 0.44704
+
+    if speed_limit == 0 or starting_speed_limit == 0:
+        return None
+
+    if speed_limit > starting_speed_limit:
+        # increasing speed
+        match_speed_block = drivedata.data.filter(
+            pl.col("Velocity") >= (speed_limit - mpsBound)
+        )
+    else:
+        match_speed_block = drivedata.data.filter(
+            pl.col("Velocity") <= (speed_limit + mpsBound)
+        )
+
+    if match_speed_block.height > 0:
+        time = match_speed_block.item(0, "DatTime")
+    else:
+        time = drivedata.data.tail(1).get_column("DatTime").item()
+
+    sign_time = drivedata.data.filter( abs(pl.col(speedLimitCol)  * 0.44704 - starting_speed_limit) > 0.1).item(0, "DatTime")
+
+    if time == None:
+        return None
+    else:
+        # print( starting_speed_limit, speed_limit, time, sign_time)
+        return time - sign_time
 
 @registerMetric(columnnames=['total_time_onroad_glance', 'percent_onroad', 'avg_offroad', 'avg_onroad'])
 def speedbumpHondaGaze(drivedata: pydre.core.DriveData):

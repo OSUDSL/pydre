@@ -264,7 +264,8 @@ def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: s
     speedlimitpos = drivedata.data.select(
         [(pl.col(speedlimitcol).shift() != pl.col(speedlimitcol)).alias("SpeedLimitPositions"),
          speedlimitcol,
-         "XPos"
+         "XPos",
+         "DatTime"
         ]
     )
 
@@ -277,8 +278,8 @@ def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: s
 
     blocknumber = 1
     for row in block_marks.rows(named=True):
-        drivedata.data = drivedata.data.with_columns(pl.when(pl.col("XPos").cast(pl.Float32).is_between(row["XPos"] - row[speedlimitcol]*mph2mps*5,
-                                                                                        row["XPos"] + row[speedlimitcol]*mph2mps*5)).
+        drivedata.data = drivedata.data.with_columns(pl.when(pl.col("DatTime").cast(pl.Float32).is_between(row["DatTime"] - 5,
+                                                                                        row["DatTime"] + 5)).
                                                  then(blocknumber).
                                                  otherwise(pl.col("SpeedLimitBlocks")).alias("SpeedLimitBlocks"))
         blocknumber += 1

@@ -44,7 +44,7 @@ class Project:
     def __loadSingleFile(self, filename: str):
         file = ntpath.basename(filename)
         """Load a single .dat file (space delimited csv) into a DriveData object"""
-        d = pl.read_csv(filename, sep=' ', null_values='.')
+        d = pl.read_csv(filename, separator=' ', null_values='.')
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
         datafile_re_format1 = re.compile(
             "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat")  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
@@ -120,7 +120,7 @@ class Project:
                     self.progress_bar.setValue(value)
                 if self.app:
                     self.app.processEvents()
-            report = pl.DataFrame(x, columns=col_names)
+            report = pl.DataFrame(x, schema=col_names)
         else:
             for d in tqdm(dataset, desc=func_name):
                 x.append(filter_func(d, **filter))
@@ -129,7 +129,7 @@ class Project:
                     self.progress_bar.setValue(value)
                 if self.app:
                     self.app.processEvents()
-            report = pl.DataFrame(x, columns=[report_name, ])
+            report = pl.DataFrame(x, schema=[report_name, ])
 
         return report
 
@@ -153,10 +153,10 @@ class Project:
 
         if len(col_names) > 1:
             x = [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)]
-            report = pl.DataFrame(x, columns=col_names)
+            report = pl.DataFrame(x, schema=col_names)
         else:
             report = pl.DataFrame(
-                [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)], columns=[report_name, ])
+                [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)], schema=[report_name, ])
 
         return report
 
