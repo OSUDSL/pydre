@@ -9,7 +9,7 @@ import pydre.rois
 import pydre.metrics
 import ntpath
 from pydre.metrics import *
-import pydre.filters
+from pydre.filters import *
 import pathlib
 from tqdm import tqdm
 import logging
