@@ -2,9 +2,19 @@
 
     "filters": [
           {
+              "name": "SimTimeFromDatTime",
+              "function": "SimTimeFromDatTime"
+          },
+          {
+            "name": "R2DFixReversedRoad",
+            "function": "R2DFixReversedRoad"
+          },
+          {
               "name": "numberFollowingCarBrakes",
-              "function": "numberFollowingCarBrakes",
-              "box_column": "FollowCarBrakingStatus"
+              "function": "numberBinaryBlocks",
+              "binary_column": "FollowCarBrakingStatus",
+              "new_column": "carBlocks",
+              "only_on": 1
           }
       ],
   
@@ -30,6 +40,21 @@
           {
               "name": "sdLP",
               "function": "colSD",
+              "var": "RoadOffset"
+          },
+          {
+              "name": "minLP",
+              "function": "colMin",
+              "var": "RoadOffset"
+          },
+          {
+              "name": "maxLP",
+              "function": "colMax",
+              "var": "RoadOffset"
+          },
+          {
+              "name": "meanLP",
+              "function": "colMean",
               "var": "RoadOffset"
           },
           {
