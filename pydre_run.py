@@ -41,6 +41,5 @@ p = pydre.project.Project(args.projectfile)
 filelist = []
 for fn in args.datafiles:
     filelist.extend(glob.glob(os.path.join(os.getcwd(), fn)))
-print(filelist)
 p.run(filelist)
-p.save(os.path.join('output', args.outputfile))
+p.save(args.outputfile)
