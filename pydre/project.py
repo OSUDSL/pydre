@@ -44,7 +44,7 @@ class Project:
     def __loadSingleFile(self, filename: str):
         file = ntpath.basename(filename)
         """Load a single .dat file (space delimited csv) into a DriveData object"""
-        d = pl.read_csv(filename, separator=' ', null_values='.')
+        d = pl.read_csv(filename, separator=' ', null_values='.', truncate_ragged_lines=True)
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
         datafile_re_format1 = re.compile(
             "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat")  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
