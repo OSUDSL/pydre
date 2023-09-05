@@ -146,10 +146,10 @@ class Project:
             report_name = metric.pop('name')
             col_names = pydre.metrics.metricsColNames[func_name]
         except KeyError as e:
-            logger.warning(
+            logger.error(
                 "Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(
                     e))
-            sys.exit(1)
+            raise RuntimeError("Malformed metric call")
 
         if len(col_names) > 1:
             x = [metric_func(d, **metric) for d in tqdm(dataset, desc=report_name)]

@@ -107,7 +107,35 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
         out = time
     return out
 
+@registerMetric()
+def timeWithinRange(drivedata: pydre.core.DriveData, lowerlimit: int, upperlimit: int, percentage: bool = False):
+    required_col = ["SimTime", "Velocity"]
+    drivedata.checkColumns(required_col)
 
+    df = drivedata.data.select( [pl.col("SimTime"),
+                                 pl.col("Velocity"),
+                                 pl.col("SimTime").diff().clip_min(0).alias("Duration")
+                                 ])
+
+    time = (df.get_column("Duration").filter( (df.get_column("Velocity") < upperlimit) &
+                                              (df.get_column("Velocity") >= lowerlimit)).sum())
+
+    if percentage:
+        total_time = df.get_column("SimTime").max() - df.get_column("SimTime").min()
+        out = time / total_time
+    else:
+        out = time
+    return out
+
+registerMetric()
+def stoppingDist(drivedata : pydre.core.DriveData, lineposition):
+    required_col = ["YPos", "Velocity"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select( [pl.col("YPos"),
+                                 pl.col("Velocity")] )
+
+    stop_velocity = df.select(pl.min("Velocity"))
 
 # Lane metrics
 
