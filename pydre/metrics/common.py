@@ -127,15 +127,21 @@ def timeWithinRange(drivedata: pydre.core.DriveData, lowerlimit: int, upperlimit
         out = time
     return out
 
-registerMetric()
-def stoppingDist(drivedata : pydre.core.DriveData, lineposition):
-    required_col = ["YPos", "Velocity"]
+@registerMetric()
+def stoppingDist(drivedata : pydre.core.DriveData, roadtravelposition = "XPos"):
+    required_col = [roadtravelposition, "Velocity"]
     drivedata.checkColumns(required_col)
 
-    df = drivedata.data.select( [pl.col("YPos"),
+    df = drivedata.data.select( [pl.col(roadtravelposition),
                                  pl.col("Velocity")] )
 
-    stop_velocity = df.select(pl.min("Velocity"))
+    minvelocity = df.get_column("Velocity").min()
+    stopposition = df.filter(pl.col("Velocity") == minvelocity).get_column(roadtravelposition).min()
+
+    lineposition = (df.get_column(roadtravelposition).min() + df.get_column(roadtravelposition).max()) / 2
+    distfromline = lineposition - stopposition
+
+    if ()
 
 # Lane metrics
 
