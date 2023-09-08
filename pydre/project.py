@@ -44,7 +44,7 @@ class Project:
     def __loadSingleFile(self, filename: str):
         file = ntpath.basename(filename)
         """Load a single .dat file (space delimited csv) into a DriveData object"""
-        d = pl.read_csv(filename, separator=' ', null_values='.')
+        d = pl.read_csv(filename, separator=' ', null_values='.', truncate_ragged_lines=True)
         datafile_re_format0 = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")  # old format
         datafile_re_format1 = re.compile(
             "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat")  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
@@ -68,10 +68,10 @@ class Project:
 
                 Args:
                         roi: A dict containing the type of a roi and the filename of the data used to process it
-                        dataset: a list of pandas dataframes containing the source data to partition
+                        dataset: a list of polars dataframes containing the source data to partition
 
                 Returns:
-                        A list of pandas DataFrames containing the data for each region of interest
+                        A list of polars DataFrames containing the data for each region of interest
                 """
         roi_type = roi['type']
         if roi_type == "time":
