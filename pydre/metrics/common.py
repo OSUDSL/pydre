@@ -12,6 +12,8 @@ import pydre.core
 from pydre.metrics import registerMetric
 import numpy as np
 import math
+import datetime
+import time
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
 
@@ -108,24 +110,27 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
     return out
 
 @registerMetric()
-def timeWithinRange(drivedata: pydre.core.DriveData, lowerlimit: int, upperlimit: int, percentage: bool = False):
+def timeWithinSpeedLimit(drivedata: pydre.core.DriveData, lowerlimit: int, percentage: bool = False):
     required_col = ["SimTime", "Velocity"]
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select( [pl.col("SimTime"),
                                  pl.col("Velocity"),
-                                 pl.col("SimTime").diff().clip_min(0).alias("Duration")
+                                 pl.col("Velocity").mul(2.23694).alias("VelocityMPH"),
+                                 pl.col("SimTime").diff().clip_min(0).alias("Duration"),
+                                 pl.col("SpeedLimit")
                                  ])
 
-    time = (df.get_column("Duration").filter( (df.get_column("Velocity") < upperlimit) &
-                                              (df.get_column("Velocity") >= lowerlimit)).sum())
+    limit = df.get_column("SpeedLimit").min()
+    time = (df.get_column("Duration").filter( (df.get_column("VelocityMPH") < limit) &
+                                              (df.get_column("VelocityMPH") >= lowerlimit)).sum())
 
     if percentage:
         total_time = df.get_column("SimTime").max() - df.get_column("SimTime").min()
-        out = time / total_time
+        output = time / total_time
     else:
-        out = time
-    return out
+        output = time
+    return output
 
 @registerMetric()
 def stoppingDist(drivedata : pydre.core.DriveData, roadtravelposition = "XPos"):
@@ -134,14 +139,66 @@ def stoppingDist(drivedata : pydre.core.DriveData, roadtravelposition = "XPos"):
 
     df = drivedata.data.select( [pl.col(roadtravelposition),
                                  pl.col("Velocity")] )
-
-    minvelocity = df.get_column("Velocity").min()
-    stopposition = df.filter(pl.col("Velocity") == minvelocity).get_column(roadtravelposition).min()
+    if df.height == 0:
+        return None
+    # filtering the data to remove any negative velocities and only focus on velocities below 0.01 (chosen epsilon)
+    velocities = df.filter((df.get_column("Velocity") >= 0.0) & (df.get_column("Velocity") < 0.01))
 
     lineposition = (df.get_column(roadtravelposition).min() + df.get_column(roadtravelposition).max()) / 2
-    distfromline = lineposition - stopposition
 
-    if ()
+    if velocities.height == 0:
+        # hard coding a "bad" value for stopposition if vehicle never stopped
+        stopposition = lineposition + 15
+    else:
+        # finding the furthest position where velocity was close to zero
+        stopposition = velocities.item(velocities.height-1, 0)
+    return lineposition - stopposition
+
+@registerMetric()
+def maxdeceleration(drivedata : pydre.core.DriveData, cutofflimit : int = 1):
+    required_col = ["LonAccel", "Velocity", "SimTime"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select( [pl.col("LonAccel"),
+                                 pl.col("Velocity") ] )
+
+    # filtering data to take out all rows with velocities less than cutoff value
+    dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
+    decel = dfupdated.filter(dfupdated.get_column("LonAccel") < 0)
+
+    maxdecel = decel.filter(decel.get_column("LonAccel") == decel.get_column("LonAccel").min())
+    return maxdecel
+
+
+@registerMetric()
+def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
+    required_col = ["LonAccel", "Velocity", "SimTime"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select([pl.col("LonAccel"),
+                                pl.col("Velocity")])
+
+    dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
+
+    accel = dfupdated.filter(dfupdated.get_column("LonAccel") > 0)
+    maxaccel = accel.filter(accel.get_column("LonAccel") == accel.get_column("LonAccel").max())
+
+    return maxaccel
+
+@registerMetric()
+def numbrakes(drivedata : pydre.core.DriveData, cutofflimit : int = 1):
+    required_col = ["Brake"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select( [ pl.col("Brake"),
+                                  pl.col("Brake").gt(0).cast(pl.Float32).diff().alias("BrakeStatus"),
+                                  pl.col("Velocity")
+                                  ])
+    dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
+
+    numberofbrakes = dfupdated.filter(dfupdated.get_column("BrakeStatus") > 0).select(pl.count()).item(0, 0)
+
+    return numberofbrakes
 
 # Lane metrics
 
@@ -331,18 +388,22 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     drivedata.checkColumns(required_col)
 
     out = []
-    df = pandas.DataFrame(drivedata.data, columns=required_col)  # drop other columns
-    df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
+    df = drivedata.data.select( [pl.col("SimTime"),
+                                  pl.col("Steer")
+                                  ])
+    df = df.unique(subset=["Steer"], maintain_order=True)  # remove nans and drop duplicates
 
-    if len(df) == 0:
+    if df.select(pl.count()).item(0,0) == 0:
         return None
 
     # resample data
-    minTime = df.SimTime.values.min()
-    maxTime = df.SimTime.values.max()
-    nsteps = math.floor((maxTime - minTime) / 0.0167)  # divide into 0.0167s increments
-    regTime = np.linspace(minTime, maxTime, num=nsteps)
-    rsSteer = np.interp(regTime, df.SimTime, df.Steer)
+    minTime = df.min().get_column("SimTime").min()
+    maxTime = df.max().get_column("SimTime").min()
+    regTime = np.arange(minTime, maxTime, 0.0167)
+
+    df.set_sorted(column="SimTime")
+    rsSteer = df.upsample(time_column="SimTime", every="167ms").interpolate()
+        #np.interp(regTime, df.SimTime, df.Steer))
     resampdf = np.column_stack((regTime, rsSteer))
     resampdf = pandas.DataFrame(resampdf, columns=("simTime", "rsSteerAngle"))
 
