@@ -13,7 +13,7 @@ from pydre.metrics import registerMetric
 import numpy as np
 import math
 import datetime
-import time
+from datetime import datetime, timedelta
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
 
@@ -401,9 +401,13 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     maxTime = df.max().get_column("SimTime").min()
     regTime = np.arange(minTime, maxTime, 0.0167)
 
-    df.set_sorted(column="SimTime")
-    rsSteer = df.upsample(time_column="SimTime", every="167ms").interpolate()
-        #np.interp(regTime, df.SimTime, df.Steer))
+    # changing all columns of SimTime from seconds to dateTime objects
+    date = (datetime(2000, 1, 1))
+    datetimecolumn = df.get_column("SimTime").apply(lambda seconds: date + timedelta(seconds=seconds))
+    newdf = df.with_columns(datetimecolumn)
+
+    newdf = newdf.set_sorted(column="SimTime")
+    rsSteer = newdf.upsample(time_column="SimTime", every="167ms", maintain_order=True).interpolate()
     resampdf = np.column_stack((regTime, rsSteer))
     resampdf = pandas.DataFrame(resampdf, columns=("simTime", "rsSteerAngle"))
 
