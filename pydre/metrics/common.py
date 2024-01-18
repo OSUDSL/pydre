@@ -15,6 +15,8 @@ import math
 import datetime
 from datetime import datetime, timedelta
 
+from scipy.interpolate import interp1d
+
 # metrics defined here take a list of DriveData objects and return a single floating point value
 
 # not registered & incomplete
@@ -396,23 +398,21 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     if df.select(pl.count()).item(0,0) == 0:
         return None
 
-    # resample data
-    minTime = df.min().get_column("SimTime").min()
-    maxTime = df.max().get_column("SimTime").min()
-    regTime = np.arange(minTime, maxTime, 0.0167)
+    # downsample the array to change the time step to 0.167 seconds.
+    df = df.slice(1, None)
+    numpy_df = df.to_numpy()
+    original_time = numpy_df[:,0]
+    original_steer = numpy_df[:,1]
 
-    # changing all columns of SimTime from seconds to dateTime objects
-    date = (datetime(2000, 1, 1))
-    datetimecolumn = df.get_column("SimTime").apply(lambda seconds: date + timedelta(seconds=seconds))
-    newdf = df.with_columns(datetimecolumn)
+    new_time = np.arange(original_time[0], original_time[-1], 0.167)
+    new_steer = np.interp(new_time, original_time, original_steer)
 
-    newdf = newdf.set_sorted(column="SimTime")
-    rsSteer = newdf.upsample(time_column="SimTime", every="167ms", maintain_order=True).interpolate()
-    resampdf = np.column_stack((regTime, rsSteer))
-    resampdf = pandas.DataFrame(resampdf, columns=("simTime", "rsSteerAngle"))
+    numpy_df = np.column_stack((new_time, new_steer))
+    df = pl.from_numpy(numpy_df, schema=["SimTime", "Steer"], orient="row")
 
     # calculate predicted angle
-    pAngle = (2.5 * df.Steer.values[3:, ]) - (2 * df.Steer.values[2:-1, ]) - (0.5 * df.Steer.values[1:-2, ])
+    end_index = df.height - 3
+    pAngle = (2.5 * df.get_column("Steer").slice(3,None)) - (2 * df.get_column("Steer").slice(2,end_index)) - (0.5 * df.get_column("Steer").slice(1, -2))
 
     # calculate error
     error = df.Steer.values[3:, ] - pAngle
