@@ -398,24 +398,33 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     if df.select(pl.count()).item(0,0) == 0:
         return None
 
-    # downsample the array to change the time step to 0.167 seconds.
+    # downsample the array to change the time step to every 0.15 seconds
+    # based on article "Development of a Steering Entropy Method For Evaluating Driver Workload"
     df = df.slice(1, None)
     numpy_df = df.to_numpy()
     original_time = numpy_df[:,0]
     original_steer = numpy_df[:,1]
 
-    new_time = np.arange(original_time[0], original_time[-1], 0.167)
+    new_time = np.arange(original_time[0], original_time[-1], 0.15)
     new_steer = np.interp(new_time, original_time, original_steer)
 
     numpy_df = np.column_stack((new_time, new_steer))
     df = pl.from_numpy(numpy_df, schema=["SimTime", "Steer"], orient="row")
 
     # calculate predicted angle
-    end_index = df.height - 3
-    pAngle = (2.5 * df.get_column("Steer").slice(3,None)) - (2 * df.get_column("Steer").slice(2,end_index)) - (0.5 * df.get_column("Steer").slice(1, -2))
+    # pAngle(n) = angle(n-1) + (angle(n-1) - angle(n-2)) + 0.5*( (angle(n-1) - angle(n-2)) - (angle(n-2) - angle(n-3)))
+    end_index = df.height - 1
+
+    angle_minus_one = df.get_column("Steer").slice(2, end_index-2).to_numpy()
+    angle_minus_two = df.get_column("Steer").slice(1, end_index-2).to_numpy()
+    angle_minus_three = df.get_column("Steer").slice(0, end_index-2).to_numpy()
+    pAngle = angle_minus_one + (angle_minus_one - angle_minus_two) + 0.5 * ((angle_minus_one - angle_minus_two) - (angle_minus_two - angle_minus_three))
+    pAngle = pl.from_numpy(pAngle, schema=["Steer"], orient="row")
 
     # calculate error
-    error = df.Steer.values[3:, ] - pAngle
+    error = df.get_column("Steer").slice(3, None) - pAngle.get_column("Steer")
+
+    # TIYA - stopped making edits to this function this point onwards
     out.append(error)
 
     # concatenate out (list of np objects) into a single list
@@ -441,6 +450,10 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     Hp = np.sum(Hp)
 
     return Hp
+
+@registerMetric()
+def steeringReversalRate(drivedata: pydre.core.DriveData):
+
 
 @registerMetric()
 def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
