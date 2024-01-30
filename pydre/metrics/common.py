@@ -11,11 +11,8 @@ import polars as pl
 import pydre.core
 from pydre.metrics import registerMetric
 import numpy as np
-import math
-import datetime
-from datetime import datetime, timedelta
 
-from scipy.interpolate import interp1d
+from scipy import signal
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
 
@@ -202,7 +199,50 @@ def numbrakes(drivedata : pydre.core.DriveData, cutofflimit : int = 1):
 
     return numberofbrakes
 
-# Lane metrics
+@registerMetric()
+def steeringReversalRate(drivedata : pydre.core.DriveData):
+    # following this: https://www.auto-ui.org/docs/sae_J2944_appendices_PG_130212.pdf
+    required_col = ["SimTime", "Steer"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select( [ pl.col("SimTime"),
+                                  pl.col("Steer") ] )
+    # convert to numpy and resample data to have even time steps (of 32Hz)
+    df = df.slice(1, None)
+    numpy_df = df.to_numpy()
+    original_time = numpy_df[:, 0]
+    original_steer = numpy_df[:, 1]
+
+    # 32Hz = 0.03125seconds
+    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
+    new_steer = np.interp(new_time, original_time, original_steer)
+    numpy_df = np.column_stack((new_time, new_steer))
+
+    # apply second order butterworth filter at 6z frequency
+    sos = signal.butter(2, 6, output="sos", fs=32)
+    filtered_df = signal.sosfilt(sos, numpy_df[:,1], zi=None)
+
+    # calcuate thetaI
+    theta_i = np.diff(filtered_df)
+    theta_i = np.append(0, theta_i)
+
+    # make column for i and combine with theta_i column
+    i = np.arange(1, len(theta_i)+1)
+    theta_i = np.column_stack((i, theta_i))
+
+    # find all values of i where theta_i is 0
+    df = pl.from_numpy(theta_i, schema=["i", "thetaI"], orient="row")
+    df_except_one = df.filter(df.get_column("i") > 1)
+    zeros = df_except_one.filter(df_except_one.get_column("thetaI") == 0)
+
+    # find values of i where difference between consequential signs of theta_i is 2
+    sign_diff = df.with_columns(df.get_column("thetaI").sign().diff(-1).alias("SignDiff"))
+    diff_two = sign_diff.filter(
+        (sign_diff.get_column("SignDiff") == 2) | (sign_diff.get_column("SignDiff") == -2)).drop("SignDiff")
+
+    # merge list of i's to get one sorted list of i's
+    set_of_i = zeros.merge_sorted(diff_two, key="i")
+
 
 
 # laneExits
@@ -450,10 +490,6 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     Hp = np.sum(Hp)
 
     return Hp
-
-@registerMetric()
-def steeringReversalRate(drivedata: pydre.core.DriveData):
-
 
 @registerMetric()
 def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
