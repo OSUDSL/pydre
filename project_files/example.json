@@ -1,0 +1,15 @@
+{
+    "metrics": [
+    	{
+            "name": "meanVelocity",
+    		"function": "colMean",
+            "var": "Velocity",
+    		"cutoff": 20
+    	},
+		{
+            "name": "meanThrottle",
+    		"function": "colMean",
+            "var": "Throttle"
+    	}
+    ]
+ }

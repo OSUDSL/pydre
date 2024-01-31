@@ -41,7 +41,7 @@ class Project:
 
         self.data = []
 
-    def __loadSingleFile(self, filename: str):
+    def __loadSingleFile(self, filename: str) -> pydre.core.DriveData:
         file = ntpath.basename(filename)
         """Load a single .dat file (space delimited csv) into a DriveData object"""
         d = pl.read_csv(filename, separator=' ', null_values='.', truncate_ragged_lines=True)
@@ -133,6 +133,42 @@ class Project:
 
         return report
 
+    def processFilterSingle(self, filter, dataset):
+        """
+        Handles running any filter definition
+
+        Args:
+            filter: A dict containing the type of a filter and the parameters to process it
+
+        Returns:
+            A list of values with the results
+        """
+
+        try:
+            func_name = filter.pop('function')
+            filter_func = pydre.filters.filtersList[func_name]
+            report_name = filter.pop('name')
+            col_names = pydre.filters.filtersColNames[func_name]
+        except KeyError as e:
+            logger.warning(
+                "Filter definitions require both \"name\" and \"function\". Malformed filters definition: missing " + str(
+                    e))
+            sys.exit(1)
+
+        x = []
+        if len(col_names) > 1:
+            x.append(d)
+            if self.app:
+                self.app.processEvents()
+            report = pl.DataFrame(x, schema=col_names)
+        else:
+            x.append(filter_func(d, **filter))
+            if self.app:
+                self.app.processEvents()
+            report = pl.DataFrame(x, schema=[report_name, ])
+
+        return report
+
     def processMetric(self, metric: object, dataset: list) -> pl.DataFrame:
         """
 
@@ -160,6 +196,34 @@ class Project:
 
         return report
 
+    def processMetricSingle(self, metric: dict, dataset: pydre.core.DriveData) -> pl.DataFrame:
+        """
+
+        :param metric:
+        :param dataset:
+        :return:
+        """
+
+        metric = metric.copy()
+        try:
+            func_name = metric.pop('function')
+            metric_func = pydre.metrics.metricsList[func_name]
+            report_name = metric.pop('name')
+            col_names = pydre.metrics.metricsColNames[func_name]
+        except KeyError as e:
+            logger.warning(
+                "Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(
+                    e))
+            sys.exit(1)
+
+        if len(col_names) > 1:
+            x = [metric_func(dataset, **metric)]
+            report = pl.DataFrame(x, schema=col_names)
+        else:
+            report = pl.DataFrame([metric_func(dataset, **metric)], schema=[report_name, ])
+
+        return report
+
     def loadFileList(self, datafiles):
         """
                 Args:
@@ -183,7 +247,77 @@ class Project:
     def __clean(self, string):
         return string.replace('[', '').replace(']', '').replace('\'', '').split("\\")[-1]
 
-    def run(self, datafiles):
+
+    def run(self, datafilenames: list[str]):
+        """
+                Args:
+                        datafilenames: a list of filename strings (SimObserver .dat files)
+
+                Load all files in datafiles, then process the rois and metrics
+                """
+
+        self.raw_data = []
+        data_set = []
+        result_data = pl.DataFrame()
+        subject_ser = pl.Series("Subject")
+        driveid_ser = pl.Series("DriveID")
+        mode_ser = pl.Series("Mode")
+        scenario_ser = pl.Series("Scenario")
+        uniqueid_ser = pl.Series("UniqueID")
+        roi_ser = pl.Series("ROI")
+        for datafilename in tqdm(datafilenames, desc="Loading files"):
+            logger.info("Loading file #{}: {}".format(
+                len(self.raw_data), datafilename))
+            datafile = self.__loadSingleFile(datafilename)
+            if self.progress_bar:
+                value = self.progress_bar.value() + 100.0 / len(datafilenames)
+                self.progress_bar.setValue(value)
+            if self.app:
+                self.app.processEvents()
+
+            if 'filters' in self.definition:
+                for filter in self.definition['filters']:
+                    self.processFilterSingle(filter, datafile)
+
+            if 'rois' in self.definition:
+                for roi in self.definition['rois']:
+                    data_set.extend(self.processROI(roi, datafile))
+            else:
+                # no ROIs to process, but that's OK
+                logger.warning("No ROIs, processing raw data.")
+                data_set.append(datafile)
+
+            # for filter in self.definition['filters']:
+            #     self.processFilter(filter, data_set)
+            subject_ser.append(pl.Series(datafile.PartID))
+            #result_data.hstack([pl.Series("Subject", [d.PartID for d in data_set])], in_place=True)
+            if (data_set[0].format_identifier == 2):  # these drivedata object was created from an old format data file
+                driveid_ser.append(pl.Series(datafile.DriveID))
+            elif (data_set[0].format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+                mode_ser.append(pl.Series(self.__clean(str(datafile.mode))))
+                scenario_ser.append(pl.Series(self.__clean(str(datafile.scenarioName))))
+                uniqueid_ser.append(pl.Series(self.__clean(str(datafile.UniqueID))))
+            roi_ser.append(pl.Series(datafile.roi))
+            #result_data.hstack([pl.Series("ROI", [d.roi for d in data_set])], in_place=True)
+
+            if 'metrics' not in self.definition:
+                logger.critical("No metrics in project file. No results will be generated")
+                return None
+            else:
+                for metric in self.definition['metrics']:
+                    processed_metric = self.processMetricSingle(metric, datafile)
+                    result_data.hstack(processed_metric, in_place=True)
+            #        except pydre.core.ColumnsMatchError as e:
+            #            logger.critical(f"Failed to match columns: {e.missing_columns}. No results will be generated")
+            #           return None
+
+        logger.info("number of datafiles: {}, number of rois: {}".format(
+            len(datafilenames), len(data_set)))
+
+        self.results = result_data
+        return result_data
+
+    def run_old(self, datafiles):
         """
                 Args:
                         datafiles: a list of filename strings (SimObserver .dat files)
@@ -213,7 +347,6 @@ class Project:
         #     self.processFilter(filter, data_set)
         result_data = pl.DataFrame()
         result_data.hstack([pl.Series("Subject", [d.PartID for d in data_set])], in_place=True)
-
         if (data_set[0].format_identifier == 2):  # these drivedata object was created from an old format data file
             result_data.hstack([pl.Series("DriveID", [d.DriveID for d in data_set])], in_place=True)
         elif (data_set[
