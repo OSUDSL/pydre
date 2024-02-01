@@ -199,6 +199,18 @@ def numbrakes(drivedata : pydre.core.DriveData, cutofflimit : int = 1):
 
     return numberofbrakes
 
+def calculateReversals(df):
+    k = 1
+    n = 0
+    threshold = 0.0523598776 * 2
+    for l in range(2, len(df)):
+        if df[l] - df[k] >= threshold:
+            n = n + 1
+            k = l
+        elif df[l] <= df[k]:
+            k = l
+    return n
+
 @registerMetric()
 def steeringReversalRate(drivedata : pydre.core.DriveData):
     # following this: https://www.auto-ui.org/docs/sae_J2944_appendices_PG_130212.pdf
@@ -220,28 +232,39 @@ def steeringReversalRate(drivedata : pydre.core.DriveData):
 
     # apply second order butterworth filter at 6z frequency
     sos = signal.butter(2, 6, output="sos", fs=32)
-    filtered_df = signal.sosfilt(sos, numpy_df[:,1], zi=None)
+    theta_i = signal.sosfilt(sos, numpy_df[:,1], zi=None)
 
     # calcuate thetaI
-    theta_i = np.diff(filtered_df)
-    theta_i = np.append(0, theta_i)
+    theta_prime_i = np.diff(theta_i)
+    theta_prime_i = np.append(0, theta_prime_i)
 
-    # make column for i and combine with theta_i column
-    i = np.arange(1, len(theta_i)+1)
-    theta_i = np.column_stack((i, theta_i))
+    # make column for i and combine with theta_prime_i column
+    i = np.arange(1, len(theta_prime_i)+1)
+    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
 
-    # find all values of i where theta_i is 0
-    df = pl.from_numpy(theta_i, schema=["i", "thetaI"], orient="row")
+    # find all values of i where theta_prime_i is 0
+    df = pl.from_numpy(df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row")
     df_except_one = df.filter(df.get_column("i") > 1)
-    zeros = df_except_one.filter(df_except_one.get_column("thetaI") == 0)
+    zeros = df_except_one.filter(df_except_one.get_column("thetaPrimeI") == 0).drop("thetaPrimeI")
 
-    # find values of i where difference between consequential signs of theta_i is 2
-    sign_diff = df.with_columns(df.get_column("thetaI").sign().diff(-1).alias("SignDiff"))
+    # find values of i where difference between consequential signs of theta_prime_i is 2
+    sign_diff = df.with_columns(df.get_column("thetaPrimeI").sign().diff(-1).alias("SignDiff"))
     diff_two = sign_diff.filter(
-        (sign_diff.get_column("SignDiff") == 2) | (sign_diff.get_column("SignDiff") == -2)).drop("SignDiff")
+        (sign_diff.get_column("SignDiff") == 2) | (sign_diff.get_column("SignDiff") == -2)).drop(
+        ["SignDiff", "thetaPrimeI"])
 
     # merge list of i's to get one sorted list of i's
-    set_of_i = zeros.merge_sorted(diff_two, key="i")
+    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
+
+    # calculate total reversals
+    n_upwards = calculateReversals(set_of_i[:, 1])
+    set_of_i_down = np.multiply(set_of_i[:, 1], -1)
+    n_downwards = calculateReversals(set_of_i_down)
+    reversals = n_upwards + n_downwards
+
+    # reversal rate as reversals/ minute
+    reversal_rate = reversals / ((np.max(original_time)- np.min(original_time)) / 60)
+    return reversal_rate
 
 
 
