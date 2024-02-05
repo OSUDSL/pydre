@@ -89,6 +89,34 @@ class Project:
         else:
             return []
 
+    def processROISingle(self, roi, datafile):
+        """
+                Handles running region of interest definitions for a dataset
+
+                Args:
+                        roi: A dict containing the type of a roi and the filename of the data used to process it
+                        dataset: a list of polars dataframes containing the source data to partition
+
+                Returns:
+                        A list of polars DataFrames containing the data for each region of interest
+                """
+        roi_type = roi['type']
+        dataset = [datafile]
+        if roi_type == "time":
+            logger.info("Processing ROI file " + roi['filename'])
+            roi_obj = pydre.rois.TimeROI(roi['filename'])
+            return roi_obj.split(dataset)
+        elif roi_type == "rect":
+            logger.info("Processing ROI file " + roi['filename'])
+            roi_obj = pydre.rois.SpaceROI(roi['filename'])
+            return roi_obj.split(dataset)
+        elif roi_type == "column":
+            logger.info("Processing ROI column " + roi['columnname'])
+            roi_obj = pydre.rois.ColumnROI(roi['columnname'])
+            return roi_obj.split(dataset)
+        else:
+            return []
+
     def processFilter(self, filter, dataset):
         """
         Handles running any filter definition
@@ -133,7 +161,7 @@ class Project:
 
         return report
 
-    def processFilterSingle(self, filter, dataset):
+    def processFilterSingle(self, filter, datafile):
         """
         Handles running any filter definition
 
@@ -143,7 +171,7 @@ class Project:
         Returns:
             A list of values with the results
         """
-
+        filter = filter.copy()
         try:
             func_name = filter.pop('function')
             filter_func = pydre.filters.filtersList[func_name]
@@ -157,12 +185,12 @@ class Project:
 
         x = []
         if len(col_names) > 1:
-            x.append(d)
+            x.append(datafile)
             if self.app:
                 self.app.processEvents()
-            report = pl.DataFrame(x, schema=col_names)
+            report = pl.DataFrame(datafile, schema=col_names)
         else:
-            x.append(filter_func(d, **filter))
+            x.append(filter_func(datafile, **filter))
             if self.app:
                 self.app.processEvents()
             report = pl.DataFrame(x, schema=[report_name, ])
@@ -257,7 +285,6 @@ class Project:
                 """
 
         self.raw_data = []
-        data_set = []
         result_data = pl.DataFrame()
         subject_ser = pl.Series("Subject")
         driveid_ser = pl.Series("DriveID")
@@ -273,7 +300,7 @@ class Project:
             metric_data = dict()
             for metric in self.definition['metrics']:
                 fun_name = metric['name']
-                new_metric = pl.Series(fun_name, [0.0], dtype=float)
+                new_metric = pl.Series(fun_name, [], dtype=float)
                 metric_data[fun_name] = new_metric
 
         for datafilename in tqdm(datafilenames, desc="Loading files"):
@@ -290,61 +317,55 @@ class Project:
                 for filter in self.definition['filters']:
                     self.processFilterSingle(filter, datafile)
 
+            data_set = []
             if 'rois' in self.definition:
                 for roi in self.definition['rois']:
-                    data_set.extend(self.processROI(roi, datafile))
+                    data_set.extend(self.processROISingle(roi, datafile))
             else:
                 # no ROIs to process, but that's OK
                 logger.warning("No ROIs, processing raw data.")
                 data_set.append(datafile)
 
-            # for filter in self.definition['filters']:
-            #     self.processFilter(filter, data_set)
-            subject_ser.append(pl.Series(datafile.PartID))
-            #result_data.hstack([pl.Series("Subject", [d.PartID for d in data_set])], in_place=True)
-            if (data_set[0].format_identifier == 2):  # these drivedata object was created from an old format data file
-                driveid_ser.append(pl.Series(datafile.DriveID))
-            elif (data_set[0].format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-                if mode_ser.is_empty():
-                    mode_ser = pl.Series("Mode", [self.__clean(str(datafile.mode))])
-                    scenario_ser = pl.Series("Scenario", [self.__clean(str(datafile.scenarioName))])
-                    uniqueid_ser = pl.Series("UniqueID", [self.__clean(str(datafile.UniqueID))])
+            for data in data_set:
+                if subject_ser.is_empty():
+                    subject_ser = pl.Series("Subject", [data.PartID], dtype=str)
+                    roi_ser = pl.Series("ROI", [data.roi])
                 else:
-                    mode_ser.append(pl.Series([self.__clean(str(datafile.mode))]))
-                    scenario_ser.append(pl.Series([self.__clean(str(datafile.scenarioName))]))
-                    uniqueid_ser.append(pl.Series([self.__clean(str(datafile.UniqueID))]))
-            roi_ser.append(pl.Series(datafile.roi))
-            #result_data.hstack([pl.Series("ROI", [d.roi for d in data_set])], in_place=True)
-
-            if 'metrics' not in self.definition:
-                logger.critical("No metrics in project file. No results will be generated")
-                return None
-            else:
-                for metric in self.definition['metrics']:
-                    processed_metric = self.processMetricSingle(metric, datafile)
-                    fun_name = metric['name']
-                    #print(processed_metric)
-                    #print(metric_data[fun_name])
-                    if metric_data[fun_name].is_empty():
-                        metric_data[fun_name] = pl.Series(fun_name, [processed_metric])
+                    subject_ser.append(pl.Series([data.PartID]))
+                    roi_ser.append(pl.Series([data.roi]))
+                if (data.format_identifier == 2):  # these drivedata object was created from an old format data file
+                    driveid_ser.append(pl.Series(datafile.DriveID))
+                elif (data.format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+                    if mode_ser.is_empty():
+                        mode_ser = pl.Series("Mode", [self.__clean(str(data.mode))])
+                        scenario_ser = pl.Series("ScenarioName", [self.__clean(str(data.scenarioName))])
+                        uniqueid_ser = pl.Series("UniqueID", [self.__clean(str(data.UniqueID))])
                     else:
-                        metric_data[fun_name].append(processed_metric)
-            #        result_data.hstack(processed_metric, in_place=True)
-            #        except pydre.core.ColumnsMatchError as e:
-            #            logger.critical(f"Failed to match columns: {e.missing_columns}. No results will be generated")
-            #           return None
+                        mode_ser.append(pl.Series([self.__clean(str(data.mode))]))
+                        scenario_ser.append(pl.Series([self.__clean(str(data.scenarioName))]))
+                        uniqueid_ser.append(pl.Series([self.__clean(str(data.UniqueID))]))
 
+                if 'metrics' not in self.definition:
+                    logger.critical("No metrics in project file. No results will be generated")
+                    return None
+                else:
+                    for metric in self.definition['metrics']:
+                        processed_metric = self.processMetricSingle(metric, data)
+                        fun_name = metric['name']
+                        if metric_data[fun_name].is_empty():
+                            metric_data[fun_name] = pl.Series(fun_name, processed_metric)
+                        else:
+                            metric_data[fun_name].extend(processed_metric)
         logger.info("number of datafiles: {}, number of rois: {}".format(
             len(datafilenames), len(data_set)))
         print("results:")
-
+        result_data.hstack([subject_ser], in_place=True)
         if data_set[0].format_identifier == 4:
             result_data.hstack([mode_ser, scenario_ser, uniqueid_ser], in_place=True)
-        print(result_data)
-        for metric in self.definition['metrics']:
-            print(metric_data[metric['name']])
+        result_data.hstack([roi_ser], in_place=True)
         result_data.hstack([metric_data[metric['name']] for metric in self.definition['metrics']], in_place=True)
         self.results = result_data
+        print(result_data)
         return result_data
 
     def run_old(self, datafiles):
