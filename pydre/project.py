@@ -224,7 +224,7 @@ class Project:
 
         return report
 
-    def processMetricSingle(self, metric: dict, dataset: pydre.core.DriveData) -> pl.Series:
+    def processMetricSingle(self, metric: dict, dataset: pydre.core.DriveData) -> pl.DataFrame:
         """
 
         :param metric:
@@ -245,10 +245,11 @@ class Project:
             sys.exit(1)
 
         if len(col_names) > 1:
-            x = [metric_func(dataset, **metric)]
-            report = pl.Series(x)
+            x = [metric_func(dataset, **metric) ]
+            report = pl.DataFrame(x, schema=col_names)
         else:
-            report = pl.Series([metric_func(dataset, **metric)])
+            report = pl.DataFrame(
+                [metric_func(dataset, **metric) ], schema=[report_name, ])
 
         return report
 
@@ -285,28 +286,12 @@ class Project:
                 """
 
         self.raw_data = []
-        result_data = pl.DataFrame()
-        subject_ser = pl.Series("Subject")
-        driveid_ser = pl.Series("DriveID")
-        mode_ser = pl.Series("Mode")
-        scenario_ser = pl.Series("Scenario")
-        uniqueid_ser = pl.Series("UniqueID")
-        roi_ser = pl.Series("ROI")
-
-        if 'metrics' not in self.definition:
-            logger.critical("No metrics in project file. No results will be generated")
-            return None
-        else:
-            metric_data = dict()
-            for metric in self.definition['metrics']:
-                fun_name = metric['name']
-                new_metric = pl.Series(fun_name, [], dtype=float)
-                metric_data[fun_name] = new_metric
-
+        result_dataframe = pl.DataFrame()
         for datafilename in tqdm(datafilenames, desc="Loading files"):
             logger.info("Loading file #{}: {}".format(
                 len(self.raw_data), datafilename))
             datafile = self.__loadSingleFile(datafilename)
+            data_set = []
             if self.progress_bar:
                 value = self.progress_bar.value() + 100.0 / len(datafilenames)
                 self.progress_bar.setValue(value)
@@ -316,8 +301,6 @@ class Project:
             if 'filters' in self.definition:
                 for filter in self.definition['filters']:
                     self.processFilterSingle(filter, datafile)
-
-            data_set = []
             if 'rois' in self.definition:
                 for roi in self.definition['rois']:
                     data_set.extend(self.processROISingle(roi, datafile))
@@ -327,46 +310,37 @@ class Project:
                 data_set.append(datafile)
 
             for data in data_set:
-                if subject_ser.is_empty():
-                    subject_ser = pl.Series("Subject", [data.PartID], dtype=str)
-                    roi_ser = pl.Series("ROI", [data.roi])
-                else:
-                    subject_ser.append(pl.Series([data.PartID]))
-                    roi_ser.append(pl.Series([data.roi]))
+                result_dict = {"Subject": [data.PartID]}
                 if (data.format_identifier == 2):  # these drivedata object was created from an old format data file
-                    driveid_ser.append(pl.Series(datafile.DriveID))
+                    result_dict["DriveID"] = [datafile.DriveID]
                 elif (data.format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-                    if mode_ser.is_empty():
-                        mode_ser = pl.Series("Mode", [self.__clean(str(data.mode))])
-                        scenario_ser = pl.Series("ScenarioName", [self.__clean(str(data.scenarioName))])
-                        uniqueid_ser = pl.Series("UniqueID", [self.__clean(str(data.UniqueID))])
-                    else:
-                        mode_ser.append(pl.Series([self.__clean(str(data.mode))]))
-                        scenario_ser.append(pl.Series([self.__clean(str(data.scenarioName))]))
-                        uniqueid_ser.append(pl.Series([self.__clean(str(data.UniqueID))]))
-
+                    result_dict["Mode"] = [self.__clean(str(data.mode))]
+                    result_dict["ScenarioName"] = [self.__clean(str(data.scenarioName))]
+                    result_dict["UniqueID"] = [self.__clean(str(data.UniqueID))]
+                result_dict["ROI"] = data.roi
                 if 'metrics' not in self.definition:
                     logger.critical("No metrics in project file. No results will be generated")
                     return None
                 else:
+                    cur_metric = pl.DataFrame()
                     for metric in self.definition['metrics']:
                         processed_metric = self.processMetricSingle(metric, data)
-                        fun_name = metric['name']
-                        if metric_data[fun_name].is_empty():
-                            metric_data[fun_name] = pl.Series(fun_name, processed_metric)
+                        if cur_metric.is_empty():
+                            cur_metric = processed_metric
                         else:
-                            metric_data[fun_name].extend(processed_metric)
+                            cur_metric.hstack(processed_metric, in_place=True)
+                if result_dataframe.is_empty():
+                    result_dataframe = pl.DataFrame(result_dict)
+                    result_dataframe.hstack(cur_metric, in_place=True)
+                else:
+                    cur_dataframe = pl.DataFrame(result_dict)
+                    cur_dataframe.hstack(cur_metric, in_place=True)
+                    result_dataframe.vstack(cur_dataframe, in_place=True)
         logger.info("number of datafiles: {}, number of rois: {}".format(
             len(datafilenames), len(data_set)))
-        print("results:")
-        result_data.hstack([subject_ser], in_place=True)
-        if data_set[0].format_identifier == 4:
-            result_data.hstack([mode_ser, scenario_ser, uniqueid_ser], in_place=True)
-        result_data.hstack([roi_ser], in_place=True)
-        result_data.hstack([metric_data[metric['name']] for metric in self.definition['metrics']], in_place=True)
-        self.results = result_data
-        print(result_data)
-        return result_data
+        print("result dataframe:", result_dataframe)
+        self.results = result_dataframe
+        return result_dataframe
 
     def run_old(self, datafiles):
         """
@@ -421,7 +395,6 @@ class Project:
 #        except pydre.core.ColumnsMatchError as e:
 #            logger.critical(f"Failed to match columns: {e.missing_columns}. No results will be generated")
 #           return None
-
         self.results = result_data
         return result_data
 
