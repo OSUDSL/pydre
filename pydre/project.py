@@ -254,6 +254,40 @@ class Project:
 
         return report
 
+    def processMetricSinglePar(self, metric: dict, dataset: pydre.core.DriveData) -> dict:
+        """
+
+        :param metric:
+        :param dataset:
+        :return:
+        """
+
+        metric = metric.copy()
+        try:
+            func_name = metric.pop('function')
+            metric_func = pydre.metrics.metricsList[func_name]
+            report_name = metric.pop('name')
+            col_names = pydre.metrics.metricsColNames[func_name]
+        except KeyError as e:
+            logger.warning(
+                "Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(
+                    e))
+            sys.exit(1)
+
+        metric_dict = dict()
+        if len(col_names) > 1:
+            x = [metric_func(dataset, **metric) ]
+            report = pl.DataFrame(x, schema=col_names)
+            for i in range(len(col_names)):
+                name = col_names[i-1]
+                data = x[0][i]
+                metric_dict[name] = data
+        else:
+            #report = pl.DataFrame(
+            #    [metric_func(dataset, **metric) ], schema=[report_name, ])
+            metric_dict[report_name] = metric_func(dataset, **metric)
+        return metric_dict
+
     def loadFileList(self, datafiles):
         """
                 Args:
@@ -292,17 +326,12 @@ class Project:
         results_list = []
         #for datafilename in tqdm(datafilenames, desc="Loading files"):
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=7) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             for result in executor.map(self.processSingleFile, datafilenames):
-                results_list.append(result)
+                for result_dict in result:
+                    results_list.append(result_dict)
 
-        for results in results_list:
-            if results.is_empty():
-                continue
-            if result_dataframe.is_empty():
-                result_dataframe = results
-            else:
-                result_dataframe.vstack(results, in_place=True)
+        result_dataframe = pl.from_dicts(results_list)
         print("result dataframe:", result_dataframe)
         self.results = result_dataframe
         return result_dataframe
@@ -312,6 +341,7 @@ class Project:
             len(self.raw_data), datafilename))
         datafile = self.__loadSingleFile(datafilename)
         roi_datalist = []
+        results_list = []
 
         if 'filters' in self.definition:
             for filter in self.definition['filters']:
@@ -327,27 +357,20 @@ class Project:
             logger.warning("No ROIs found in {}".format(datafilename))
         roi_processed_metrics = []
         for data in roi_datalist:
-            result_dict = {"Subject": [data.PartID]}
+            result_dict = {"Subject": data.PartID}
             if (data.format_identifier == 2):  # these drivedata object was created from an old format data file
-                result_dict["DriveID"] = [datafile.DriveID]
+                result_dict["DriveID"] = datafile.DriveID
             elif (data.format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-                result_dict["Mode"] = [self.__clean(str(data.mode))]
-                result_dict["ScenarioName"] = [self.__clean(str(data.scenarioName))]
-                result_dict["UniqueID"] = [self.__clean(str(data.UniqueID))]
+                result_dict["Mode"] = self.__clean(str(data.mode))
+                result_dict["ScenarioName"] = self.__clean(str(data.scenarioName))
+                result_dict["UniqueID"] = self.__clean(str(data.UniqueID))
             result_dict["ROI"] = data.roi
 
-            all_metrics = pl.DataFrame(result_dict)
             for metric in self.definition['metrics']:
-                processed_metric = self.processMetricSingle(metric, data)
-                all_metrics.hstack(processed_metric, in_place=True)
-            roi_processed_metrics.append(all_metrics)
-        result_dataframe = pl.DataFrame()
-        for m in roi_processed_metrics:
-            if result_dataframe.is_empty():
-                result_dataframe = m
-            else:
-                result_dataframe = result_dataframe.vstack(m)
-        return result_dataframe
+                processed_metric = self.processMetricSinglePar(metric, data)
+                result_dict.update(processed_metric)
+            results_list.append(result_dict)
+        return results_list
 
     def run(self, datafilenames: list[str]):
         """
