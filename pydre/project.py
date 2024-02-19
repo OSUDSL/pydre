@@ -13,6 +13,7 @@ from pydre.filters import *
 import pathlib
 from tqdm import tqdm
 import logging
+import concurrent.futures
 
 logger = logging.getLogger(__name__)
 
@@ -276,6 +277,77 @@ class Project:
     def __clean(self, string):
         return string.replace('[', '').replace(']', '').replace('\'', '').split("\\")[-1]
 
+    def run_par(self, datafilenames: list[str]):
+        """
+                Args:
+                        datafilenames: a list of filename strings (SimObserver .dat files)
+
+                Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
+                """
+        if 'metrics' not in self.definition:
+            logger.critical("No metrics in project file. No results will be generated")
+            return None
+        self.raw_data = []
+        result_dataframe = pl.DataFrame()
+        results_list = []
+        #for datafilename in tqdm(datafilenames, desc="Loading files"):
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=7) as executor:
+            for result in executor.map(self.processSingleFile, datafilenames):
+                results_list.append(result)
+
+        for results in results_list:
+            if results.is_empty():
+                continue
+            if result_dataframe.is_empty():
+                result_dataframe = results
+            else:
+                result_dataframe.vstack(results, in_place=True)
+        print("result dataframe:", result_dataframe)
+        self.results = result_dataframe
+        return result_dataframe
+
+    def processSingleFile(self, datafilename):
+        logger.info("Loading file #{}: {}".format(
+            len(self.raw_data), datafilename))
+        datafile = self.__loadSingleFile(datafilename)
+        roi_datalist = []
+
+        if 'filters' in self.definition:
+            for filter in self.definition['filters']:
+                self.processFilterSingle(filter, datafile)
+        if 'rois' in self.definition:
+            for roi in self.definition['rois']:
+                roi_datalist.extend(self.processROISingle(roi, datafile))
+        else:
+            # no ROIs to process, but that's OK
+            logger.warning("No ROIs, processing raw data.")
+            roi_datalist.append(datafile)
+        if len(roi_datalist) == 0:
+            logger.warning("No ROIs found in {}".format(datafilename))
+        roi_processed_metrics = []
+        for data in roi_datalist:
+            result_dict = {"Subject": [data.PartID]}
+            if (data.format_identifier == 2):  # these drivedata object was created from an old format data file
+                result_dict["DriveID"] = [datafile.DriveID]
+            elif (data.format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+                result_dict["Mode"] = [self.__clean(str(data.mode))]
+                result_dict["ScenarioName"] = [self.__clean(str(data.scenarioName))]
+                result_dict["UniqueID"] = [self.__clean(str(data.UniqueID))]
+            result_dict["ROI"] = data.roi
+
+            all_metrics = pl.DataFrame(result_dict)
+            for metric in self.definition['metrics']:
+                processed_metric = self.processMetricSingle(metric, data)
+                all_metrics.hstack(processed_metric, in_place=True)
+            roi_processed_metrics.append(all_metrics)
+        result_dataframe = pl.DataFrame()
+        for m in roi_processed_metrics:
+            if result_dataframe.is_empty():
+                result_dataframe = m
+            else:
+                result_dataframe = result_dataframe.vstack(m)
+        return result_dataframe
 
     def run(self, datafilenames: list[str]):
         """
