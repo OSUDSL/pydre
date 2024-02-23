@@ -311,7 +311,7 @@ class Project:
     def __clean(self, string):
         return string.replace('[', '').replace(']', '').replace('\'', '').split("\\")[-1]
 
-    def run_par(self, datafilenames: list[str]):
+    def run_par(self, datafilenames: list[str], numThreads: int =12):
         """
                 Args:
                         datafilenames: a list of filename strings (SimObserver .dat files)
@@ -326,13 +326,20 @@ class Project:
         results_list = []
         #for datafilename in tqdm(datafilenames, desc="Loading files"):
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            for result in executor.map(self.processSingleFile, datafilenames):
-                for result_dict in result:
-                    results_list.append(result_dict)
-
+        #with concurrent.futures.ThreadPoolExecutor(max_workers=numThreads) as executor:
+        #    for result in executor.map(self.processSingleFile, datafilenames):
+        #        for result_dict in result:
+        #            results_list.append(result_dict)
+        with tqdm(total=len(datafilenames)) as pbar:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=numThreads) as executor:
+                futures = {executor.submit(self.processSingleFile, singleFile): singleFile for singleFile in datafilenames}
+                results = {}
+                for future in concurrent.futures.as_completed(futures):
+                    arg = futures[future]
+                    results[arg] = future.result()
+                    results_list.extend(future.result())
+                    pbar.update(1)
         result_dataframe = pl.from_dicts(results_list)
-        print("result dataframe:", result_dataframe)
         self.results = result_dataframe
         return result_dataframe
 
@@ -353,8 +360,8 @@ class Project:
             # no ROIs to process, but that's OK
             logger.warning("No ROIs, processing raw data.")
             roi_datalist.append(datafile)
-        if len(roi_datalist) == 0:
-            logger.warning("No ROIs found in {}".format(datafilename))
+        #if len(roi_datalist) == 0:
+            #logger.warning("No ROIs found in {}".format(datafilename))
         roi_processed_metrics = []
         for data in roi_datalist:
             result_dict = {"Subject": data.PartID}

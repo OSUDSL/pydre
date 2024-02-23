@@ -11,7 +11,7 @@ import pydre.core
 import os.path
 import glob
 import logging
-
+import datetime
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -41,6 +41,5 @@ p = pydre.project.Project(args.projectfile)
 filelist = []
 for fn in args.datafiles:
     filelist.extend(glob.glob(os.path.join(os.getcwd(), fn)))
-print(filelist)
-p.run(filelist)
+p.run_par(filelist, 12)
 p.save(args.outputfile)
