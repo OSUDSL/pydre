@@ -11,7 +11,8 @@ import polars as pl
 import pydre.core
 from pydre.metrics import registerMetric
 import numpy as np
-import math
+
+from scipy import signal
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
 
@@ -107,9 +108,164 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
         out = time
     return out
 
+@registerMetric()
+def timeWithinSpeedLimit(drivedata: pydre.core.DriveData, lowerlimit: int, percentage: bool = False):
+    required_col = ["SimTime", "Velocity"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select( [pl.col("SimTime"),
+                                 pl.col("Velocity"),
+                                 pl.col("Velocity").mul(2.23694).alias("VelocityMPH"),
+                                 pl.col("SimTime").diff().clip_min(0).alias("Duration"),
+                                 pl.col("SpeedLimit")
+                                 ])
+
+    limit = df.get_column("SpeedLimit").min()
+    time = (df.get_column("Duration").filter( (df.get_column("VelocityMPH") < limit) &
+                                              (df.get_column("VelocityMPH") >= lowerlimit)).sum())
+
+    if percentage:
+        total_time = df.get_column("SimTime").max() - df.get_column("SimTime").min()
+        output = time / total_time
+    else:
+        output = time
+    return output
+
+@registerMetric()
+def stoppingDist(drivedata : pydre.core.DriveData, roadtravelposition = "XPos"):
+    required_col = [roadtravelposition, "Velocity"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select( [pl.col(roadtravelposition),
+                                 pl.col("Velocity")] )
+    if df.height == 0:
+        return None
+    # filtering the data to remove any negative velocities and only focus on velocities below 0.01 (chosen epsilon)
+    velocities = df.filter((df.get_column("Velocity") >= 0.0) & (df.get_column("Velocity") < 0.01))
+
+    lineposition = (df.get_column(roadtravelposition).min() + df.get_column(roadtravelposition).max()) / 2
+
+    if velocities.height == 0:
+        # hard coding a "bad" value for stopposition if vehicle never stopped
+        stopposition = lineposition + 15
+    else:
+        # finding the furthest position where velocity was close to zero
+        stopposition = velocities.item(velocities.height-1, 0)
+    return lineposition - stopposition
+
+@registerMetric()
+def maxdeceleration(drivedata : pydre.core.DriveData, cutofflimit : int = 1):
+    required_col = ["LonAccel", "Velocity", "SimTime"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select( [pl.col("LonAccel"),
+                                 pl.col("Velocity") ] )
+
+    # filtering data to take out all rows with velocities less than cutoff value
+    dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
+    decel = dfupdated.filter(dfupdated.get_column("LonAccel") < 0)
+
+    maxdecel = decel.filter(decel.get_column("LonAccel") == decel.get_column("LonAccel").min())
+    return maxdecel
 
 
-# Lane metrics
+@registerMetric()
+def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
+    required_col = ["LonAccel", "Velocity", "SimTime"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select([pl.col("LonAccel"),
+                                pl.col("Velocity")])
+
+    dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
+
+    accel = dfupdated.filter(dfupdated.get_column("LonAccel") > 0)
+    maxaccel = accel.filter(accel.get_column("LonAccel") == accel.get_column("LonAccel").max())
+
+    return maxaccel
+
+@registerMetric()
+def numbrakes(drivedata : pydre.core.DriveData, cutofflimit : int = 1):
+    required_col = ["Brake"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select( [ pl.col("Brake"),
+                                  pl.col("Brake").gt(0).cast(pl.Float32).diff().alias("BrakeStatus"),
+                                  pl.col("Velocity")
+                                  ])
+    dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
+
+    numberofbrakes = dfupdated.filter(dfupdated.get_column("BrakeStatus") > 0).select(pl.count()).item(0, 0)
+
+    return numberofbrakes
+
+def calculateReversals(df):
+    k = 1
+    n = 0
+    threshold = 0.0523598776 * 2
+    for l in range(2, len(df)):
+        if df[l] - df[k] >= threshold:
+            n = n + 1
+            k = l
+        elif df[l] <= df[k]:
+            k = l
+    return n
+
+@registerMetric()
+def steeringReversalRate(drivedata : pydre.core.DriveData):
+    # following this: https://www.auto-ui.org/docs/sae_J2944_appendices_PG_130212.pdf
+    required_col = ["SimTime", "Steer"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select( [ pl.col("SimTime"),
+                                  pl.col("Steer") ] )
+    # convert to numpy and resample data to have even time steps (of 32Hz)
+    df = df.slice(1, None)
+    numpy_df = df.to_numpy()
+    original_time = numpy_df[:, 0]
+    original_steer = numpy_df[:, 1]
+
+    # 32Hz = 0.03125seconds
+    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
+    new_steer = np.interp(new_time, original_time, original_steer)
+    numpy_df = np.column_stack((new_time, new_steer))
+
+    # apply second order butterworth filter at 6z frequency
+    sos = signal.butter(2, 6, output="sos", fs=32)
+    theta_i = signal.sosfilt(sos, numpy_df[:,1], zi=None)
+
+    # calcuate thetaI
+    theta_prime_i = np.diff(theta_i)
+    theta_prime_i = np.append(0, theta_prime_i)
+
+    # make column for i and combine with theta_prime_i column
+    i = np.arange(1, len(theta_prime_i)+1)
+    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
+
+    # find all values of i where theta_prime_i is 0
+    df = pl.from_numpy(df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row")
+    df_except_one = df.filter(df.get_column("i") > 1)
+    zeros = df_except_one.filter(df_except_one.get_column("thetaPrimeI") == 0).drop("thetaPrimeI")
+
+    # find values of i where difference between consequential signs of theta_prime_i is 2
+    sign_diff = df.with_columns(df.get_column("thetaPrimeI").sign().diff(-1).alias("SignDiff"))
+    diff_two = sign_diff.filter(
+        (sign_diff.get_column("SignDiff") == 2) | (sign_diff.get_column("SignDiff") == -2)).drop(
+        ["SignDiff", "thetaPrimeI"])
+
+    # merge list of i's to get one sorted list of i's
+    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
+
+    # calculate total reversals
+    n_upwards = calculateReversals(set_of_i[:, 1])
+    set_of_i_down = np.multiply(set_of_i[:, 1], -1)
+    n_downwards = calculateReversals(set_of_i_down)
+    reversals = n_upwards + n_downwards
+
+    # reversal rate as reversals/ minute
+    reversal_rate = reversals / ((np.max(original_time)- np.min(original_time)) / 60)
+    return reversal_rate
+
 
 
 # laneExits
@@ -297,26 +453,41 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     drivedata.checkColumns(required_col)
 
     out = []
-    df = pandas.DataFrame(drivedata.data, columns=required_col)  # drop other columns
-    df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
+    df = drivedata.data.select( [pl.col("SimTime"),
+                                  pl.col("Steer")
+                                  ])
+    df = df.unique(subset=["Steer"], maintain_order=True)  # remove nans and drop duplicates
 
-    if len(df) == 0:
+    if df.select(pl.count()).item(0,0) == 0:
         return None
 
-    # resample data
-    minTime = df.SimTime.values.min()
-    maxTime = df.SimTime.values.max()
-    nsteps = math.floor((maxTime - minTime) / 0.0167)  # divide into 0.0167s increments
-    regTime = np.linspace(minTime, maxTime, num=nsteps)
-    rsSteer = np.interp(regTime, df.SimTime, df.Steer)
-    resampdf = np.column_stack((regTime, rsSteer))
-    resampdf = pandas.DataFrame(resampdf, columns=("simTime", "rsSteerAngle"))
+    # downsample the array to change the time step to every 0.15 seconds
+    # based on article "Development of a Steering Entropy Method For Evaluating Driver Workload"
+    df = df.slice(1, None)
+    numpy_df = df.to_numpy()
+    original_time = numpy_df[:,0]
+    original_steer = numpy_df[:,1]
+
+    new_time = np.arange(original_time[0], original_time[-1], 0.15)
+    new_steer = np.interp(new_time, original_time, original_steer)
+
+    numpy_df = np.column_stack((new_time, new_steer))
+    df = pl.from_numpy(numpy_df, schema=["SimTime", "Steer"], orient="row")
 
     # calculate predicted angle
-    pAngle = (2.5 * df.Steer.values[3:, ]) - (2 * df.Steer.values[2:-1, ]) - (0.5 * df.Steer.values[1:-2, ])
+    # pAngle(n) = angle(n-1) + (angle(n-1) - angle(n-2)) + 0.5*( (angle(n-1) - angle(n-2)) - (angle(n-2) - angle(n-3)))
+    end_index = df.height - 1
+
+    angle_minus_one = df.get_column("Steer").slice(2, end_index-2).to_numpy()
+    angle_minus_two = df.get_column("Steer").slice(1, end_index-2).to_numpy()
+    angle_minus_three = df.get_column("Steer").slice(0, end_index-2).to_numpy()
+    pAngle = angle_minus_one + (angle_minus_one - angle_minus_two) + 0.5 * ((angle_minus_one - angle_minus_two) - (angle_minus_two - angle_minus_three))
+    pAngle = pl.from_numpy(pAngle, schema=["Steer"], orient="row")
 
     # calculate error
-    error = df.Steer.values[3:, ] - pAngle
+    error = df.get_column("Steer").slice(3, None) - pAngle.get_column("Steer")
+
+    # TIYA - stopped making edits to this function this point onwards
     out.append(error)
 
     # concatenate out (list of np objects) into a single list

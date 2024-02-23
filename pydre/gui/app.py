@@ -3,7 +3,7 @@ Created by: Craig Fouts
 Created on: 9/17/2020
 '''
 
-from PySide2.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 from pydre.gui.config import Config, config_filename
 from pydre.gui.gui_log import GUILogHandler
 

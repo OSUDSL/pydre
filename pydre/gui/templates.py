@@ -5,10 +5,10 @@ Created on: 2/4/2021
 
 import logging
 import os
-from PySide2.QtCore import QFile
-from PySide2.QtGui import QIcon, QScreen
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtWidgets import QApplication, QMainWindow
+from PySide6.QtCore import QFile
+from PySide6.QtGui import QIcon, QScreen
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtWidgets import QApplication, QMainWindow
 from pydre.gui.config import Config, config_filename
 
 try:

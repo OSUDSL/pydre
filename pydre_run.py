@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+import logging
 import os
 import sys
 
@@ -27,13 +27,13 @@ args = parser.parse_args()
 logger = logging.getLogger()
 
 try:
-    logger.setLevel(args.warninglevel.upper())
+    pydre.logger.setLevel(args.warninglevel.upper())
 except Exception:
-    logger.setLevel(logging.WARNING)
-    logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
+    pydre.logger.setLevel(logging.WARNING)
+    pydre.logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
 
 if args.outputfile == 'out.csv':
-    logger.warning("No output file specified. Defaulting to 'out.csv'")
+    pydre.logger.warning("No output file specified. Defaulting to 'out.csv'")
 
 p = pydre.project.Project(args.projectfile)
 
