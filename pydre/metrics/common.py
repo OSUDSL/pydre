@@ -639,6 +639,24 @@ This results in 8 reaction times per participant.
 '''
 
 @registerMetric()
+def reactionTime(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "Brake", "CriticalEventStatus", "Steer"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select([pl.col("SimTime"),
+                                pl.col("Steer"),
+                                pl.col("Brake"),
+                                pl.col("CriticalEventStatus"),
+                                pl.col("Brake").gt(0).cast(pl.Float32).diff().alias("BrakeStatus"),
+                                pl.col("CriticalEventStatus").gt(0).cast(pl.Float32).diff().alias("CriticalEvent")])
+    reactionTimes = []
+    # get number of critical events
+    critical_events = df.filter(df.get_column("CriticalEvent") > 0)
+    num_rows = critical_events.select(pl.count())[0,0]
+    for i in range(num_rows):
+        start_time = critical_events[i].get_column("SimTime").item(0)
+
+@registerMetric()
 def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int = 0):
     required_col = ["SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"]
     diff = drivedata.checkColumns(required_col)
@@ -665,8 +683,8 @@ def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int
                                            & (df["Brake"] > startBrake + 0.5))
             if reactionTime:
                 print(
-                    "hazard {} reactiontime {}".format(hazardIndex, simtime.loc[reactionTime] - simtime.loc[start]))
-                reactionTimes.append(simtime.loc[reactionTime] - simtime.loc[start])
+                    "hazard {} reactiontime {}".forcmat(hazardIndex, simtime.loc[reactionTime] - simtime.loc[start]))
+                reactionTimes.append(simtime.loc[reationTime] - simtime.loc[start])
     elif type == "throttle":
         throttlesd = np.std(df[(hazard == 0) | (hazard == 2)].Throttle)
         throttlediff = df["Throttle"].diff()
