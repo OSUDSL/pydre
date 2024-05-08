@@ -7,7 +7,7 @@ import re
 
 import pandas
 import polars as pl
-
+from polars import exceptions
 import pydre.core
 from pydre.metrics import registerMetric
 import numpy as np
@@ -667,7 +667,10 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff = 1, steer_cutoff
         brake_reaction = first_brake - event_start_time
     # calculate swerving reaction time
     first_steer = df.get_column("Steer").item(0)
-    df_steer = df.with_columns((pl.col("Steer") - first_steer).alias("SteerDiff").abs())
+    try:
+        df_steer = df.with_columns((pl.col("Steer") - first_steer).alias("SteerDiff").abs())
+    except exceptions.InvalidOperationError:
+        return None
     df_steer = df_steer.filter(df_steer.get_column("SteerDiff") > steer_cutoff)
     if df_steer.is_empty():
         steer_reaction = 50
