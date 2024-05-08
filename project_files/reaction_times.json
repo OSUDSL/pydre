@@ -1,0 +1,30 @@
+{
+    "filters": [
+          {
+              "name": "numberBoxBlocks",
+              "function": "numberBinaryBlocks",
+              "binary_column": "CriticalEventStatus",
+              "new_column": "CriticalEventNumber",
+              "only_on": 1
+          }
+      ],
+
+      "rois": [
+          {"type": "column", "columnname": "CriticalEventNumber"}
+      ],
+    "metrics": [
+        {
+            "function": "reactionTime",
+            "name": "reactionTime"
+        },
+        {
+            "name": "R2DIDColumns",
+            "function": "R2DIDColumns"
+        },
+      {
+          "function": "colMin",
+          "name": "minHeadwayDist",
+          "var": "HeadwayDistance"
+      }
+    ]
+}
