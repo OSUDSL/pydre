@@ -639,22 +639,37 @@ This results in 8 reaction times per participant.
 '''
 
 @registerMetric()
-def reactionTime(drivedata: pydre.core.DriveData):
-    required_col = ["SimTime", "Brake", "CriticalEventStatus", "Steer"]
+def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff = 1, steer_cutoff = 0.2):
+    required_col = ["SimTime", "Brake", "Steer"]
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select([pl.col("SimTime"),
                                 pl.col("Steer"),
-                                pl.col("Brake"),
-                                pl.col("CriticalEventStatus"),
-                                pl.col("Brake").gt(0).cast(pl.Float32).diff().alias("BrakeStatus"),
-                                pl.col("CriticalEventStatus").gt(0).cast(pl.Float32).diff().alias("CriticalEvent")])
-    reactionTimes = []
-    # get number of critical events
-    critical_events = df.filter(df.get_column("CriticalEvent") > 0)
-    num_rows = critical_events.select(pl.count())[0,0]
-    for i in range(num_rows):
-        start_time = critical_events[i].get_column("SimTime").item(0)
+                                pl.col("Brake")
+                                ])
+
+    event_start_time = df.get_column("SimTime").item(0)
+    # calcualte braking reaction time
+    brake_df = df.filter(df.get_column("Brake") > brake_cutoff)
+    if brake_df.is_empty():
+        brake_reaction = 50
+    else:
+        first_brake = brake_df.get_column("SimTime").item(0)
+        brake_reaction = first_brake - event_start_time
+    # calculate swerving reaction time
+    first_steer = df.get_column("Steer").item(0)
+    df_steer = df.with_columns((pl.col("Steer") - first_steer).alias("SteerDiff").abs())
+    df_steer = df_steer.filter(df_steer.get_column("SteerDiff") > steer_cutoff)
+    if df_steer.is_empty():
+        steer_reaction = 50
+    else:
+        steer_reaction = df_steer.get_column("SimTime").item(0) - event_start_time
+
+    if (steer_reaction > 10 and brake_reaction > 10):
+       reactionTime = None
+    else:
+        reactionTime = min(steer_reaction, brake_reaction)
+    return reactionTime
 
 @registerMetric()
 def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int = 0):
@@ -849,4 +864,4 @@ def R2DIDColumns(drivedata: pydre.core.DriveData):
         gender = "Female"
     match_id = ident_groups.group(4)
     week = ident_groups.group(5)
-    return participant_id, match_id, case, location, gender, week
+    return week, participant_id, match_id, case, location, gender
