@@ -676,6 +676,22 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff = 1, steer_cutoff
     return reactionTime
 
 @registerMetric()
+def criticalEventStartPos(drivedata: pydre.core.DriveData):
+    required_col = ["XPos"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select(pl.col("XPos"))
+    return df.get_column("XPos").item(0)
+
+@registerMetric()
+def criticalEventEndPos(drivedata: pydre.core.DriveData):
+    required_col = ["XPos"]
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select(pl.col("XPos"))
+    return df.get_column("XPos").item(-1)
+
+@registerMetric()
 def tbiReaction(drivedata: pydre.core.DriveData, type: str = "brake", index: int = 0):
     required_col = ["SimTime", "Brake", "Throttle", "MapHalf", "MapSectionLocatedIn", "HazardActivation"]
     diff = drivedata.checkColumns(required_col)

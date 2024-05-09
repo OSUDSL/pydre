@@ -1,8 +1,16 @@
 {
     "filters": [
       {
+        "name": "R2DFixReversedRoad",
+        "function": "R2DFixReversedRoad"
+      },
+      {
         "name": "fixCriticalEvent",
         "function": "modifyCriticalEventsCol"
+      },
+      {
+        "name": "fixUABData",
+        "function": "modifyUABdata"
       },
           {
               "name": "numberBoxBlocks",

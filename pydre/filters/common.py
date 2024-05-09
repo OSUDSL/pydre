@@ -46,6 +46,40 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
                                     .when(pl.col("CriticalEventStatus") == 1)
                                     .then(1).otherwise(0).alias("CriticalEventStatus"))
     return drivedata
+
+@registerFilter()
+def modifyUABdata(drivedata: pydre.core):
+    ident = drivedata.PartID
+    ident_groups = re.match(r'(\d)(\d)(\d)(\d\d\d\d)[wW](\d)', ident)
+    if ident_groups is None:
+        logger.warning("Could not parse R2D ID " + ident)
+        return [None]
+    location = ident_groups.group(2)
+    df = drivedata.data
+    if location == "1":
+        # copy values from datTime into simTime
+        df = df.with_columns(pl.col("DatTime").alias("SimTime"))
+        # for files like Experimenter_3110007w1_No Load, Event_1665239271T-10-07-52.dat where the drive starts at
+        # the end of a previous drive, trim the data leading up to the actual start
+        df = df.with_columns(pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff"))
+        df_actual_start = df.filter(df.get_column("PosDiff") > 500)
+        if not df_actual_start.is_empty():
+            start_time = df_actual_start.get_column("SimTime").item(0)
+            df = df.filter(df.get_column("SimTime") > start_time)
+        # modify xpos to match the starting value of dsl data
+
+        # add critical event status based on scenario type
+        scenario = drivedata.scenarioName
+        if scenario == "Load, Event":
+            cutoff_df = df.filter(drivedata.data.get_column("XPos") > 4450)
+            start_cutoff = cutoff_df.filter(cutoff_df.get_column("HeadwayDistance") < 50).item(0)
+            df = df.with_columns(pl.when(pl.col("XPos") > 2165, pl.col("XPos") < 2239.5)
+                                                         .then(1).when(pl.col("XPos") > 4570, pl.col("XPos") < 4720)
+                                                         .then(1).when(pl.col("XPos") > 6191.4, pl.col("XPos") < 6242)
+                                                         .then(1).otherwise(0).alias("CriticalEventStatus"))
+
+    return df
+
 @registerFilter()
 def SimTimeFromDatTime(drivedata: pydre.core.DriveData):
     if drivedata.data.get_column("SimTime").max() == 0:
