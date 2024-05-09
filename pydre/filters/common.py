@@ -3,7 +3,7 @@ import os
 import struct
 from pathlib import Path
 from typing import List
-
+import re
 import numpy as np
 import pandas
 import polars as pl
@@ -30,7 +30,22 @@ def numberBinaryBlocks(drivedata: pydre.core.DriveData, binary_column="ButtonSta
             logger.warning("Assumed binary column {} in {} has non-numeric value.".format(binary_column, drivedata.sourcefilename))
     return drivedata
 
-
+@registerFilter()
+def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
+    ident = drivedata.PartID
+    ident_groups = re.match(r'(\d)(\d)(\d)(\d\d\d\d)[wW](\d)', ident)
+    if ident_groups is None:
+        logger.warning("Could not parse R2D ID " + ident)
+        return [None]
+    week = ident_groups.group(5)
+    scenario = drivedata.scenarioName
+    if week == '1' and scenario == "Load, Event":
+        # between the x positions, change the critical event status to 1
+        drivedata.data = drivedata.data.with_columns(pl.when(2165 < pl.col("XPos"), pl.col("XPos") < 2240)
+                                    .then(1)
+                                    .when(pl.col("CriticalEventStatus") == 1)
+                                    .then(1).otherwise(0).alias("CriticalEventStatus"))
+    return drivedata
 @registerFilter()
 def SimTimeFromDatTime(drivedata: pydre.core.DriveData):
     if drivedata.data.get_column("SimTime").max() == 0:

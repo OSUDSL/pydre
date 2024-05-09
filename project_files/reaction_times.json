@@ -1,5 +1,9 @@
 {
     "filters": [
+      {
+        "name": "fixCriticalEvent",
+        "function": "modifyCriticalEventsCol"
+      },
           {
               "name": "numberBoxBlocks",
               "function": "numberBinaryBlocks",
