@@ -1,0 +1,55 @@
+Week,ScenarioName,EventId,Event
+1,"Load, Event",1,Cut-in
+1,"Load, Event",2,Cut-off
+1,"Load, Event",3,Trashtip
+1,"No Load, Event",1,Trashtip
+1,"No Load, Event",2,Trashtip
+1,"No Load, Event",3,Cut-off 
+2,"Load, Event",1,Cut-in
+2,"Load, Event",2,Cut-off
+2,"Load, Event",3,Cut-off 
+2,"No Load, Event",1,Cut-in
+2,"No Load, Event",2,Cut-off
+2,"No Load, Event",3,Trashtip
+3,"No Load, Event",1,Trashtip
+3,"No Load, Event",2,Cut-in
+3,"No Load, Event",3,Trashtip
+3,"Load, Event",1,Cut-off
+3,"Load, Event",2,Trashtip
+3,"Load, Event",3,Cut-in
+4,"Load, Event",1,Cut-in
+4,"Load, Event",2,Cut-off 
+4,"Load, Event",3,Cut-off 
+4,"No Load, Event",1,Cut-in
+4,"No Load, Event",2,Cut-off
+4,"No Load, Event",3,Trashtip
+5,"Load, Event",1,Cut-in
+5,"Load, Event",2,Cut-off
+5,"Load, Event",3,Trashtip
+5,"No Load, Event",1,Trashtip
+5,"No Load, Event",2,Trashtip
+5,"No Load, Event",3,Cut-off 
+6,"No Load, Event",1,Trashtip
+6,"No Load, Event",2,Cut-in
+6,"No Load, Event",3,Trashtip
+6,"Load, Event",1,Cut-off 
+6,"Load, Event",2,Trashtip
+6,"Load, Event",3,Cut-in
+7,"Load, Event",1,Cut-in
+7,"Load, Event",2,Cut-off
+7,"Load, Event",3,Trashtip
+7,"No Load, Event",1,Trashtip
+7,"No Load, Event",2,Trashtip
+7,"No Load, Event",3,Cut-off 
+8,"Load, Event",1,Cut-in
+8,"Load, Event",2,Cut-off 
+8,"Load, Event",3,Cut-off 
+8,"No Load, Event",1,Cut-in
+8,"No Load, Event",2,Cut-off 
+8,"No Load, Event",3,Trashtip
+9,"No Load, Event",1,Trashtip
+9,"No Load, Event",2,Cut-in
+9,"No Load, Event",3,Trashtip
+9,"Load, Event",1,Cut-off 
+9,"Load, Event",2,Trashtip
+9,"Load, Event",3,Cut-in

@@ -660,9 +660,10 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff = 1, steer_cutoff
     first_steer = df.get_column("Steer").item(0)
     try:
         df_steer = df.with_columns((pl.col("Steer") - first_steer).alias("SteerDiff").abs())
+        df_steer = df_steer.filter(df_steer.get_column("SteerDiff") > steer_cutoff)
     except exceptions.InvalidOperationError:
         return None
-    df_steer = df_steer.filter(df_steer.get_column("SteerDiff") > steer_cutoff)
+
     if df_steer.is_empty():
         steer_reaction = 50
     else:
