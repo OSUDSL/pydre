@@ -5,12 +5,12 @@
         "function": "R2DFixReversedRoad"
       },
       {
-        "name": "fixCriticalEvent",
-        "function": "modifyCriticalEventsCol"
-      },
-      {
         "name": "fixUABData",
         "function": "modifyUABdata"
+      },
+      {
+        "name": "fixCriticalEvent",
+        "function": "modifyCriticalEventsCol"
       },
           {
               "name": "numberBoxBlocks",

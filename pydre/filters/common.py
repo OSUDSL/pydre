@@ -48,7 +48,7 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
     return drivedata
 
 @registerFilter()
-def modifyUABdata(drivedata: pydre.core):
+def modifyUABdata(drivedata: pydre.core, headwaycutoff = 50):
     ident = drivedata.PartID
     ident_groups = re.match(r'(\d)(\d)(\d)(\d\d\d\d)[wW](\d)', ident)
     if ident_groups is None:
@@ -67,18 +67,27 @@ def modifyUABdata(drivedata: pydre.core):
             start_time = df_actual_start.get_column("SimTime").item(0)
             df = df.filter(df.get_column("SimTime") > start_time)
         # modify xpos to match the starting value of dsl data
-
+        start_pos = df.get_column("XPos").item(0)
         # add critical event status based on scenario type
         scenario = drivedata.scenarioName
         if scenario == "Load, Event":
-            cutoff_df = df.filter(drivedata.data.get_column("XPos") > 4450)
-            start_cutoff = cutoff_df.filter(cutoff_df.get_column("HeadwayDistance") < 50).item(0)
-            df = df.with_columns(pl.when(pl.col("XPos") > 2165, pl.col("XPos") < 2239.5)
-                                                         .then(1).when(pl.col("XPos") > 4570, pl.col("XPos") < 4720)
-                                                         .then(1).when(pl.col("XPos") > 6191.4, pl.col("XPos") < 6242)
+            cutoff_df = df.filter(df.get_column("XPos") > (4350+start_pos))
+            start_cutoff = (cutoff_df.filter(cutoff_df.get_column("HeadwayDistance") < headwaycutoff)
+                            .get_column("XPos").item(0)) + 135
+            df = df.with_columns(pl.when(pl.col("XPos") > start_pos+2155, pl.col("XPos") < start_pos+2239.5)
+                                                         .then(1).when(pl.col("XPos") > start_cutoff, pl.col("XPos") < start_pos+4720)
+                                                         .then(1).when(pl.col("XPos") > start_pos+6191.4, pl.col("XPos") < start_pos+6242)
                                                          .then(1).otherwise(0).alias("CriticalEventStatus"))
-
-    return df
+        else:
+            cutoff_df = df.filter(df.get_column("XPos") > (4550 + start_pos))
+            start_cutoff = (cutoff_df.filter(cutoff_df.get_column("HeadwayDistance") < headwaycutoff)
+                            .get_column("XPos").item(0)) + 135
+            df = df.with_columns(pl.when(pl.col("XPos") > (start_pos+1726), pl.col("XPos") < (start_pos+1790))
+                                 .then(1).when(pl.col("XPos") > (start_pos+3222), pl.col("XPos") < (start_pos+3300))
+                                 .then(1).when(pl.col("XPos") > start_cutoff, pl.col("XPos") < (start_pos+5500))
+                                 .then(1).otherwise(0).alias("CriticalEventStatus"))
+    drivedata.data = df
+    return drivedata
 
 @registerFilter()
 def SimTimeFromDatTime(drivedata: pydre.core.DriveData):

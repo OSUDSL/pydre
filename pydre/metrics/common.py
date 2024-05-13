@@ -645,7 +645,9 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff = 1, steer_cutoff
 
     df = drivedata.data.select([pl.col("SimTime"),
                                 pl.col("Steer"),
-                                pl.col("Brake")
+                                pl.col("Brake"),
+                                pl.col("XPos"),
+                                pl.col("HeadwayDistance")
                                 ])
 
     event_start_time = df.get_column("SimTime").item(0)
