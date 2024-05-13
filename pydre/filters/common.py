@@ -72,20 +72,30 @@ def modifyUABdata(drivedata: pydre.core, headwaycutoff = 50):
         scenario = drivedata.scenarioName
         if scenario == "Load, Event":
             cutoff_df = df.filter(df.get_column("XPos") > (4350+start_pos))
-            start_cutoff = (cutoff_df.filter(cutoff_df.get_column("HeadwayDistance") < headwaycutoff)
+            try:
+                start_cutoff = (cutoff_df.filter(cutoff_df.get_column("HeadwayDistance") < headwaycutoff)
                             .get_column("XPos").item(0)) + 135
-            df = df.with_columns(pl.when(pl.col("XPos") > start_pos+2155, pl.col("XPos") < start_pos+2239.5)
+                df = df.with_columns(pl.when(pl.col("XPos") > start_pos+2155, pl.col("XPos") < start_pos+2239.5)
                                                          .then(1).when(pl.col("XPos") > start_cutoff, pl.col("XPos") < start_pos+4720)
+                                                         .then(1).when(pl.col("XPos") > start_pos+6191.4, pl.col("XPos") < start_pos+6242)
+                                                         .then(1).otherwise(0).alias("CriticalEventStatus"))
+            except IndexError:
+                df = df.with_columns(pl.when(pl.col("XPos") > start_pos+2155, pl.col("XPos") < start_pos+2239.5)
                                                          .then(1).when(pl.col("XPos") > start_pos+6191.4, pl.col("XPos") < start_pos+6242)
                                                          .then(1).otherwise(0).alias("CriticalEventStatus"))
         else:
             cutoff_df = df.filter(df.get_column("XPos") > (4550 + start_pos))
-            start_cutoff = (cutoff_df.filter(cutoff_df.get_column("HeadwayDistance") < headwaycutoff)
+            try:
+                start_cutoff = (cutoff_df.filter(cutoff_df.get_column("HeadwayDistance") < headwaycutoff)
                             .get_column("XPos").item(0)) + 135
-            df = df.with_columns(pl.when(pl.col("XPos") > (start_pos+1726), pl.col("XPos") < (start_pos+1790))
+                df = df.with_columns(pl.when(pl.col("XPos") > (start_pos+1726), pl.col("XPos") < (start_pos+1790))
                                  .then(1).when(pl.col("XPos") > (start_pos+3222), pl.col("XPos") < (start_pos+3300))
                                  .then(1).when(pl.col("XPos") > start_cutoff, pl.col("XPos") < (start_pos+5500))
                                  .then(1).otherwise(0).alias("CriticalEventStatus"))
+            except IndexError:
+                df.with_columns(pl.when(pl.col("XPos") > (start_pos + 1726), pl.col("XPos") < (start_pos + 1790))
+                                .then(1).when(pl.col("XPos") > (start_pos + 3222), pl.col("XPos") < (start_pos + 3300))
+                                .then(1).otherwise(0).alias("CriticalEventStatus"))
     drivedata.data = df
     return drivedata
 
