@@ -25,3 +25,6 @@ by filtering out the rows where the x-positions would start at an extremely high
 ## Extra Notes:
 In the UAB Week 1, No Load, Event scenario, the trashtip event does not occur. A trashcan shows up
 on screen, but it does not tip and thus there is no reaction time detected.
+
+After processing the data files, need to run "join_files.py" on the output file generated
+to associate the ROIs with the correct event id and type.
