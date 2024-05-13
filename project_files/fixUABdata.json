@@ -1,0 +1,15 @@
+{
+
+    "metrics": [
+      {
+        "function": "colMin",
+        "name": "minXPos",
+        "var": "XPos"
+      },
+      {
+        "function": "colMax",
+        "name": "maxXPos",
+        "var": "XPos"
+      }
+    ]
+}

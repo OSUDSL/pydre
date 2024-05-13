@@ -1,6 +1,14 @@
 {
     "filters": [
       {
+        "name": "R2DFixReversedRoad",
+        "function": "R2DFixReversedRoad"
+      },
+      {
+        "name": "fixUABData",
+        "function": "modifyUABdata"
+      },
+      {
         "name": "fixCriticalEvent",
         "function": "modifyCriticalEventsCol"
       },
