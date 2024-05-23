@@ -37,6 +37,26 @@
           "function": "colMin",
           "name": "minHeadwayDist",
           "var": "HeadwayDistance"
+      },
+      {
+          "function": "colMin",
+          "name": "minimumSpeed",
+          "var": "Velocity"
+      },
+            {
+          "function": "colMax",
+          "name": "maximumSpeed",
+          "var": "Velocity"
+      },
+            {
+          "function": "colFirst",
+          "name": "Initial Speed",
+          "var": "Velocity"
+      },
+      {
+          "function": "colMax",
+          "name": "MaxBreakPedalForce",
+          "var": "Brake"
       }
     ]
 }
