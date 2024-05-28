@@ -50,13 +50,28 @@
       },
             {
           "function": "colFirst",
-          "name": "Initial Speed",
+          "name": "InitialSpeed",
           "var": "Velocity"
       },
       {
           "function": "colMax",
           "name": "MaxBreakPedalForce",
           "var": "Brake"
+      },
+            {
+          "function": "colMin",
+          "name": "TimeToCollision",
+          "var": "HeadwayTime"
+      },
+      {
+          "function": "colMin",
+          "name": "SteerMin",
+          "var": "Steer"
+      },
+      {
+          "function": "colMax",
+          "name": "SteerMax",
+          "var": "Steer"
       }
     ]
 }
