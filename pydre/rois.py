@@ -19,7 +19,7 @@ def sliceByTime(begin: float, end: float, column: str, drive_data: pl.DataFrame)
             drive_data: pandas DataFrame containing the data to be sliced
 
         returns:
-            pandas.DataFrame slice containing requested time slice
+            polars.DataFrame slice containing requested time slice
 
     Given a start and end and a column name that represents a time value, output the slice that contains
     only the specified data.
@@ -28,8 +28,8 @@ def sliceByTime(begin: float, end: float, column: str, drive_data: pl.DataFrame)
         dataframeslice = drive_data.filter(pl.col(column).is_between(begin, end, include_bounds=(True, False)))
     except KeyError:
         logger.error(
-            "Problem applying Time ROI to data file using column " + column)
-        sys.exit(1)
+            "Problem in applying Time ROI to using time column " + column)
+        dataframeslice = drive_data
     return dataframeslice
 
 class TimeROI():
@@ -124,8 +124,8 @@ class SpaceROI():
                 ymin = min(roi.get("Y1"), roi.get("Y2"))
                 ymax = max(roi.get("Y1"), roi.get("Y2"))
 
-                region_data = ddata.data.filter(pl.col("XPos").is_between(xmin, xmax) &
-                                                pl.col("YPos").is_between(ymin, ymax))
+                region_data = ddata.data.filter(pl.col("XPos").cast(pl.Float32).is_between(xmin, xmax) &
+                                                pl.col("YPos").cast(pl.Float32).is_between(ymin, ymax))
 
                 if (region_data.height == 0):
                     # try out PartID to get this to run cgw 5/20/2022

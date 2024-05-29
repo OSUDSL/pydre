@@ -101,7 +101,10 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
                                  ])
 
     time = df.get_column("Duration").filter(df.get_column("Velocity") >= cutoff).sum()
-    total_time = df.get_column("SimTime").max() - df.get_column("SimTime").min()
+    try:
+        total_time = df.get_column("SimTime").max() - df.get_column("SimTime").min()
+    except TypeError:
+        return None
     if percentage:
         out = time / total_time
     else:
@@ -536,7 +539,10 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
     tail_time += tailgating_table.filter(pl.col("HeadwayTime").is_between(0, cutoff, closed="none") &
                                          pl.col("delta_t").is_between(0, .5)).select("delta_t").sum().item()
     total_time += tailgating_table.filter(pl.col("delta_t").is_between(0, .5)).select("delta_t").sum().item()
-    return tail_time / total_time
+    if total_time > 0:
+        return tail_time / total_time
+    else:
+        return None
 
 @registerMetric()
 def tailgatingPercentageAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float =2, velocity: float = 13.4112):
@@ -550,7 +556,10 @@ def tailgatingPercentageAboveSpeed(drivedata: pydre.core.DriveData, cutoff: floa
     tail_time += tailgating_table.filter(pl.col("HeadwayTime").is_between(0, cutoff, closed="none") &
                                          pl.col("delta_t").is_between(0, .5)).select("delta_t").sum().item()
     total_time += tailgating_table.filter(pl.col("delta_t").is_between(0, .5)).select("delta_t").sum().item()
-    return tail_time / total_time
+    if total_time > 0:
+        return tail_time / total_time
+    else:
+        return None
 
 
 # determines when the ownship collides with another vehicle by examining headway distance as threshold
@@ -560,7 +569,7 @@ def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 2.85):
     drivedata.checkColumns(required_col)
     # find contiguous instances of headway distance < the cutoff
     collision_table = drivedata.data.select((pl.col("HeadwayDistance") <= cutoff).alias("CollisionZone"))
-    collisions = collision_table.select(pl.col("CollisionZone").cast(pl.Int32).diff()).sum().item()
+    collisions = collision_table.select(pl.col("CollisionZone").cast(pl.Int32).diff().clip(0, 1)).sum().item()
     return collisions
 
 
@@ -649,6 +658,13 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff = 1, steer_cutoff
                                 pl.col("XPos"),
                                 pl.col("HeadwayDistance")
                                 ])
+
+
+
+    if not df.get_column("Steer").is_numeric():
+        return None
+    if not df.get_column("Brake").is_numeric():
+        return None
 
     event_start_time = df.get_column("SimTime").item(0)
     # calcualte braking reaction time
