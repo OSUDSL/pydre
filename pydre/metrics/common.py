@@ -569,7 +569,7 @@ def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 2.85):
     drivedata.checkColumns(required_col)
     # find contiguous instances of headway distance < the cutoff
     collision_table = drivedata.data.select((pl.col("HeadwayDistance") <= cutoff).alias("CollisionZone"))
-    collisions = collision_table.select(pl.col("CollisionZone").cast(pl.Int32).diff()).sum().item()
+    collisions = collision_table.select(pl.col("CollisionZone").cast(pl.Int32).diff().clip(0, 1)).sum().item()
     return collisions
 
 
@@ -658,6 +658,13 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff = 1, steer_cutoff
                                 pl.col("XPos"),
                                 pl.col("HeadwayDistance")
                                 ])
+
+
+
+    if not df.get_column("Steer").is_numeric():
+        return None
+    if not df.get_column("Brake").is_numeric():
+        return None
 
     event_start_time = df.get_column("SimTime").item(0)
     # calcualte braking reaction time
