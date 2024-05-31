@@ -25,17 +25,10 @@
           {"type": "column", "columnname": "CriticalEventNumber"}
       ],
     "metrics": [
-        {
-            "function": "reactionTime",
-            "name": "reactionTime"
-        },
-        {
-            "name": "R2DIDColumns",
-            "function": "R2DIDColumns"
-        },
       {
             "name": "dataTypes",
-            "function": "checkNumeric"
+            "function": "checkNumeric",
+            "var": "BLINKING"
         }
 
     ]
