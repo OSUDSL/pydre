@@ -1,0 +1,42 @@
+{
+    "filters": [
+      {
+        "name": "R2DFixReversedRoad",
+        "function": "R2DFixReversedRoad"
+      },
+      {
+        "name": "fixUABData",
+        "function": "modifyUABdata"
+      },
+      {
+        "name": "fixCriticalEvent",
+        "function": "modifyCriticalEventsCol"
+      },
+          {
+              "name": "numberBoxBlocks",
+              "function": "numberBinaryBlocks",
+              "binary_column": "CriticalEventStatus",
+              "new_column": "CriticalEventNumber",
+              "only_on": 1
+          }
+      ],
+
+      "rois": [
+          {"type": "column", "columnname": "CriticalEventNumber"}
+      ],
+    "metrics": [
+        {
+            "function": "reactionTime",
+            "name": "reactionTime"
+        },
+        {
+            "name": "R2DIDColumns",
+            "function": "R2DIDColumns"
+        },
+      {
+            "name": "dataTypes",
+            "function": "checkNumeric"
+        }
+
+    ]
+}

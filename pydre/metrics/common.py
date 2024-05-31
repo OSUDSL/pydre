@@ -48,6 +48,12 @@ def checkSeriesNan(series: polars.Series):
             return True
     return False
 
+@registerMetric() #working on this
+def checkNumeric(drivedata:pydre.core.DriveData):
+    df = drivedata.data
+    return df.dtypes
+
+
 @registerMetric()
 def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None):
     required_col = [var]
@@ -903,3 +909,9 @@ def R2DIDColumns(drivedata: pydre.core.DriveData):
     match_id = ident_groups.group(4)
     week = ident_groups.group(5)
     return week, participant_id, match_id, case, location, gender
+
+#working
+@registerMetric()
+def error(drivedata: pydre.core.DriveData):
+    return drivedata
+
