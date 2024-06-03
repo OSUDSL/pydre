@@ -26,10 +26,9 @@
       ],
     "metrics": [
       {
-            "name": "dataTypes",
-            "function": "checkNumeric",
-            "var": "BLINKING"
+        "name": "check",
+        "function": "checkerMin",
+        "var": "Velocity"
         }
-
     ]
 }

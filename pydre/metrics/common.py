@@ -48,15 +48,29 @@ def checkSeriesNan(series: polars.Series):
             return True
     return False
 
-@registerMetric() #working on this
 def checkNumeric(drivedata:pydre.core.DriveData, var: str):
     required_col = [var]
     df = drivedata.data
     is_Numeric = df.schema[var] == pl.Float64  or df.schema[var] == pl.Float32 or df.schema[var] == pl.Int32 or df.schema[var] == pl.Int64
     if not is_Numeric:
-        return drivedata.sourcefilename
+        logger.warning("Warning value is not numeric: " + drivedata.sourcefilename)
+        return False
     else:
         return is_Numeric
+
+
+@registerMetric() #working on this
+def checkerMin(drivedata:pydre.core.DriveData, var: str):
+    required_col = [var]
+    checkNumeric(drivedata, var)
+    if checkNumeric:
+        return drivedata.data.get_column(var).min()
+    else:
+        return False
+
+
+
+
 
 @registerMetric()
 def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None):
