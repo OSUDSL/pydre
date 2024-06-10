@@ -27,7 +27,7 @@
     "metrics": [
       {
         "name": "check",
-        "function": "checkListForNumeric",
+        "function": "verifyNumericColumns",
         "var": "Velocity"
         }
     ]
