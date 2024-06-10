@@ -28,7 +28,7 @@
       {
         "name": "check",
         "function": "verifyNumericColumns",
-        "var": "Velocity"
+        "varlist": ["Velocity", "SimTime", "ResponseButton"]
         }
     ]
 }

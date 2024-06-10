@@ -47,6 +47,7 @@ def checkSeriesNan(series: polars.Series):
             return True
     return False
 
+@registerMetric()
 def verifyNumericColumns(drivedata: pydre.core.DriveData, varlist: list):
     # check numeric for a list
     # returns list with any columns from varlist that are non-numeric
@@ -57,7 +58,7 @@ def verifyNumericColumns(drivedata: pydre.core.DriveData, varlist: list):
         if not to_check.dtype.is_numeric():
             non_numeric.append(element)
             logger.warning("Warning value is not numeric: " + element + " in " + drivedata.sourcefilename)
-    return non_numeric
+    return str(non_numeric)
 
 def checkNumeric(drivedata:pydre.core.DriveData, var: str):
     required_col = [var]
