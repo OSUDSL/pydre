@@ -27,7 +27,7 @@
     "metrics": [
       {
         "name": "check",
-        "function": "checkerMin",
+        "function": "checkListForNumeric",
         "var": "Velocity"
         }
     ]

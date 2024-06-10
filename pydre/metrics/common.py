@@ -39,7 +39,6 @@ logger = logging.getLogger(__name__)
 # def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float] = (0, 0, 10000, 10000)):
 # TODO: implement with selection and .head(1)
 
-
 # helper func - check if a series only contains 0
 def checkSeriesNan(series: polars.Series):
     unq = series.unique().sort()
@@ -47,6 +46,20 @@ def checkSeriesNan(series: polars.Series):
         if unq[0] == 0:
             return True
     return False
+
+@registerMetric() #working on it
+def checkListForNumeric(drivedata: pydre.core.DriveData, var: list):
+    # check numeric for a list
+    # returns list with false elements
+    required_col = [var]
+    # drivedata.get_column(required_col)
+    non_numeric = []
+    for element in required_col:
+        df = drivedata.data.select([pl.col(element)])
+        to_check = df.get_column(element)
+        if not to_check.dtype.is_numeric():
+            non_numeric.append(element)
+    return str(non_numeric)
 
 def checkNumeric(drivedata:pydre.core.DriveData, var: str):
     required_col = [var]
@@ -66,25 +79,6 @@ def checkerMin(drivedata:pydre.core.DriveData, var: str):
         return drivedata.data.get_column(var).min()
     else:
         return False
-
-@registerMetric() #working on it
-def checkNumeric(drivedata: pydre.core.DriveData, var: list):
-    # check numeric for a list
-    # return true if all is true false if even one is false
-    required_col = [var]
-    df = drivedata.data
-    check_list = []
-    i = 0
-    while i != len(required_col):
-        element = required_col[i]
-        if not element.dtype.is_numeric():
-            required_col.remove(element)
-            check_list.append(element)
-            return False
-        else:
-            return element.is_numeric()
-
-    return check_list
 
 
 @registerMetric()
