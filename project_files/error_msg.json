@@ -27,8 +27,8 @@
     "metrics": [
       {
         "name": "check",
-        "function": "verifyNumericColumns",
-        "varlist": ["Velocity", "SimTime", "ResponseButton"]
+        "function": "checkDataCol",
+        "varlist": ["SimTime", "ResponseButton"]
         }
     ]
 }

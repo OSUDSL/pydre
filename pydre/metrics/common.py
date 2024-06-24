@@ -57,7 +57,12 @@ def verifyNumericColumns(drivedata: pydre.core.DriveData, varlist: list):
         if not to_check.dtype.is_numeric():
             non_numeric.append(element)
             logger.warning("Warning value is not numeric: " + element + " in " + drivedata.sourcefilename)
-    return non_numeric
+    # converts list to str, for return purposes
+    result = ','.join(map(str, non_numeric))
+    return result
+@registerMetric()# testing verifyNumericColumn
+def checkDataCol(drivedata: pydre.core.DriveData, varlist: list):
+    return verifyNumericColumns(drivedata, varlist)
 
 def checkNumeric(drivedata:pydre.core.DriveData, var: str):
     required_col = [var]
