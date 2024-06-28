@@ -52,11 +52,14 @@ def verifyNumericColumns(drivedata: pydre.core.DriveData, varlist: list):
     # returns list with any columns from varlist that are non-numeric
     non_numeric = []
     for element in varlist:
-        df = drivedata.data.select([pl.col(element)])
-        to_check = df.get_column(element)
-        if not to_check.dtype.is_numeric():
-            non_numeric.append(element)
-            logger.warning("Warning value is not numeric: " + element + " in " + drivedata.sourcefilename)
+        if element in drivedata.data:
+            df = drivedata.data.select([pl.col(element)])
+            to_check = df.get_column(element)
+            if not to_check.dtype.is_numeric():
+                non_numeric.append(element)
+                logger.warning("WARNING: Value(" + element + ") is not numeric in " + drivedata.sourcefilename)
+        else:
+            logger.warning("WARNING: " + element + " in " + drivedata.sourcefilename + " does not exist")
     # converts list to str, for return purposes
     result = ','.join(map(str, non_numeric))
     return result
@@ -87,6 +90,8 @@ def checkerMin(drivedata:pydre.core.DriveData, var: str):
 @registerMetric()
 def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None):
     required_col = [var]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
     if cutoff is not None:
         return drivedata.data.get_column(var).filter(drivedata.data.get_column(var) >= cutoff).mean()
@@ -96,6 +101,8 @@ def colMean(drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] =
 @registerMetric()
 def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None):
     required_col = [var]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
     if cutoff is not None:
         return drivedata.data.get_column(var).filter(drivedata.data.get_column(var) >= cutoff).std()
@@ -105,30 +112,40 @@ def colSD(drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = N
 @registerMetric()
 def colMax(drivedata: pydre.core.DriveData, var: str):
     required_col = [var]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
     return drivedata.data.get_column(var).max()
 
 @registerMetric()
 def colMin(drivedata: pydre.core.DriveData, var: str):
     required_col = [var]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
     return drivedata.data.get_column(var).min()
 
 @registerMetric()
 def colFirst(drivedata: pydre.core.DriveData, var: str):
     required_col = [var]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
     return drivedata.data.get_column(var).head(1).item()
 
 @registerMetric()
 def colLast(drivedata: pydre.core.DriveData, var: str):
     required_col = [var]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
     return drivedata.data.get_column(var).tail(1).item()
 
 @registerMetric()
 def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentage: bool = False):
     required_col = ["SimTime", "Velocity"]
+    #to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select( [pl.col("SimTime"),
@@ -150,6 +167,8 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
 @registerMetric()
 def timeWithinSpeedLimit(drivedata: pydre.core.DriveData, lowerlimit: int, percentage: bool = False):
     required_col = ["SimTime", "Velocity"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select( [pl.col("SimTime"),
@@ -173,6 +192,8 @@ def timeWithinSpeedLimit(drivedata: pydre.core.DriveData, lowerlimit: int, perce
 @registerMetric()
 def stoppingDist(drivedata : pydre.core.DriveData, roadtravelposition = "XPos"):
     required_col = [roadtravelposition, "Velocity"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select( [pl.col(roadtravelposition),
@@ -195,6 +216,8 @@ def stoppingDist(drivedata : pydre.core.DriveData, roadtravelposition = "XPos"):
 @registerMetric()
 def maxdeceleration(drivedata : pydre.core.DriveData, cutofflimit : int = 1):
     required_col = ["LonAccel", "Velocity", "SimTime"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select( [pl.col("LonAccel"),
@@ -211,6 +234,8 @@ def maxdeceleration(drivedata : pydre.core.DriveData, cutofflimit : int = 1):
 @registerMetric()
 def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
     required_col = ["LonAccel", "Velocity", "SimTime"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select([pl.col("LonAccel"),
@@ -226,6 +251,8 @@ def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
 @registerMetric()
 def numbrakes(drivedata : pydre.core.DriveData, cutofflimit : int = 1):
     required_col = ["Brake"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select( [ pl.col("Brake"),
@@ -254,6 +281,8 @@ def calculateReversals(df):
 def steeringReversalRate(drivedata : pydre.core.DriveData):
     # following this: https://www.auto-ui.org/docs/sae_J2944_appendices_PG_130212.pdf
     required_col = ["SimTime", "Steer"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select( [ pl.col("SimTime"),
@@ -312,6 +341,9 @@ def steeringReversalRate(drivedata : pydre.core.DriveData):
 # the 'sign' function will remove transitions from (lane+1) to (lane+2) or similar
 @registerMetric()
 def laneExits(drivedata: pydre.core.DriveData, lane=2, lane_column = "Lane"):
+    required_col = [lane_column]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns([lane_column, ])
     return drivedata.data.select((pl.col(lane_column) - lane).sign().diff().abs()).sum().item()
 
@@ -319,6 +351,10 @@ def laneExits(drivedata: pydre.core.DriveData, lane=2, lane_column = "Lane"):
 def laneViolations(drivedata: pydre.core.DriveData, offset: str = "LaneOffset",
                    lane: int = 2, lane_column: str = "Lane",
                    lane_width: float = 3.65, car_width: float = 2.1):
+    # to verify if column is numeric
+    required_col = [lane_column]
+    verifyNumericColumns(drivedata, required_col)
+
     drivedata.checkColumns([lane_column, ])
     # tolerance is the maximum allowable offset deviation from 0
     tolerance = lane_width / 2 - car_width / 2
@@ -329,6 +365,10 @@ def laneViolations(drivedata: pydre.core.DriveData, offset: str = "LaneOffset",
 def laneViolationDuration(drivedata: pydre.core.DriveData, offset: str = "LaneOffset",
                    lane: int = 2, lane_column: str = "Lane",
                    lane_width: float = 3.65, car_width: float = 2.1):
+
+    required_col = [offset, lane_column, "LaneDuration", "SimTime", "Duration"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
 
     tolerance = lane_width / 2 - car_width / 2
     lane_data = drivedata.data.filter(pl.col(lane_column) == 2)
@@ -445,6 +485,8 @@ def laneViolationDuration(drivedata: pydre.core.DriveData, offset: str = "LaneOf
 @registerMetric()
 def roadExits(drivedata: pydre.core.DriveData):
     required_col = ["SimTime", "RoadOffset", "Velocity"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
@@ -466,6 +508,8 @@ def roadExits(drivedata: pydre.core.DriveData):
 @registerMetric()
 def roadExitsY(drivedata: pydre.core.DriveData):
     required_col = ["SimTime", "YPos", "Velocity"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     # assuming a two lane road, determine the amount of time they were not in the legal roadway
@@ -489,6 +533,8 @@ def roadExitsY(drivedata: pydre.core.DriveData):
 @registerMetric()
 def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
     required_col = ["SimTime", "Steer"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     out = []
@@ -555,6 +601,9 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
 @registerMetric()
 def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
+    # to verify if column is numeric
+    required_col = ["SimTime", "HeadwayTime", "delta_t"]
+    verifyNumericColumns(drivedata, required_col)
     tail_time = 0
     tailgating_table = drivedata.data.select([pl.col("SimTime").diff().alias("delta_t"),
                                               pl.col("HeadwayTime")])
@@ -568,6 +617,9 @@ def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
 def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
     tail_time = 0
     total_time = 0
+    # to verify if column is numeric
+    required_col = ["SimTime", "HeadwayTime", "delta_t"]
+    verifyNumericColumns(drivedata, required_col)
     tailgating_table = drivedata.data.select([pl.col("SimTime").diff().alias("delta_t"),
                                               pl.col("HeadwayTime")])
     # find all tailgating instances where the delta time is reasonable.
@@ -584,6 +636,9 @@ def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
 def tailgatingPercentageAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float =2, velocity: float = 13.4112):
     tail_time = 0
     total_time = 0
+    # to verify if column is numeric
+    required_col = ["SimTime", "HeadwayTime", "delta_t"]
+    verifyNumericColumns(drivedata, required_col)
     tailgating_table = drivedata.data.select([pl.col("SimTime").diff().alias("delta_t"),
                                               pl.col("HeadwayTime"),
                                               pl.col("Velocity")]).filter(pl.col("Velocity") >= velocity)
@@ -602,6 +657,8 @@ def tailgatingPercentageAboveSpeed(drivedata: pydre.core.DriveData, cutoff: floa
 @registerMetric()
 def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 2.85):
     required_col = ["SimTime", "HeadwayDistance"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
     # find contiguous instances of headway distance < the cutoff
     collision_table = drivedata.data.select((pl.col("HeadwayDistance") <= cutoff).alias("CollisionZone"))
@@ -686,7 +743,10 @@ This results in 8 reaction times per participant.
 @registerMetric()
 def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff = 1, steer_cutoff = 0.2):
     required_col = ["SimTime", "Brake", "Steer"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
+
 
     df = drivedata.data.select([pl.col("SimTime"),
                                 pl.col("Steer"),
@@ -732,6 +792,8 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff = 1, steer_cutoff
 @registerMetric()
 def criticalEventStartPos(drivedata: pydre.core.DriveData):
     required_col = ["XPos"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select(pl.col("XPos"))
@@ -740,6 +802,8 @@ def criticalEventStartPos(drivedata: pydre.core.DriveData):
 @registerMetric()
 def criticalEventEndPos(drivedata: pydre.core.DriveData):
     required_col = ["XPos"]
+    # to verify if column is numeric
+    verifyNumericColumns(drivedata, required_col)
     drivedata.checkColumns(required_col)
 
     df = drivedata.data.select(pl.col("XPos"))
