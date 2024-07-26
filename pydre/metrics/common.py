@@ -4,15 +4,18 @@ from typing import Optional
 
 import logging
 import re
-
+import sys
 import pandas
 import polars as pl
 from polars import exceptions
 import pydre.core
 from pydre.metrics import registerMetric
+from loguru import logger
 import numpy as np
 
 from scipy import signal
+
+from pydre.pydre.core import DriveData
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
 
@@ -63,9 +66,8 @@ def verifyNumericColumns(drivedata: pydre.core.DriveData, varlist: list):
     # converts list to str, for return purposes
     result = ','.join(map(str, non_numeric))
     return result
-@registerMetric()# testing verifyNumericColumn
-def checkDataCol(drivedata: pydre.core.DriveData, varlist: list):
-    return verifyNumericColumns(drivedata, varlist)
+
+
 
 def checkNumeric(drivedata:pydre.core.DriveData, var: str):
     required_col = [var]
@@ -76,6 +78,14 @@ def checkNumeric(drivedata:pydre.core.DriveData, var: str):
         return False
     else:
         return is_Numeric
+
+@registerMetric()  # testing logger
+def checkLogger(drivedata: pydre.core.DriveData):
+    # file = ntpath.basename(filename)
+        if not checkNumeric(drivedata, "DatTime"):
+            logger.level("CUSTOM", no=60, color="<red>", icon="!!!")
+            logger.log("CUSTOM", "There is an error in file: " + drivedata)
+            logger.add(sys.stderr, format="{time:MMMM D, YYYY > HH:mm:ss} | {level} | {message}")
 
 @registerMetric() #working on this
 def checkerMin(drivedata:pydre.core.DriveData, var: str):
