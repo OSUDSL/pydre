@@ -132,6 +132,13 @@ def relativeBoxPos(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
+def zscoreCol(drivedata: pydre.core.DriveData, col: str, newcol:str):
+    colMean = drivedata.data.get_column(col).mean()
+    colSD = drivedata.data.get_column(col).std()
+    drivedata.data = drivedata.data.with_columns(((pl.col(col)-colMean)/colSD).alias(newcol))
+    return drivedata
+
+@registerFilter()
 def smoothGazeData(drivedata: pydre.core.DriveData, timeColName: str = "DatTime",
                    gazeColName: str = "FILTERED_GAZE_OBJ_NAME", latencyShift=6):
 
