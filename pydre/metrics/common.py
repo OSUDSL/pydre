@@ -79,7 +79,7 @@ def checkNumeric(drivedata:pydre.core.DriveData, var: str):
     else:
         return is_Numeric
 
-@registerMetric()  # testing processSingleFile
+@registerMetric() #testing processSingleFile
 def test_processSingleFile(self, datafilename):
     logger.info("Loading file #{}: {}".format(
         len(self.raw_data), datafilename))

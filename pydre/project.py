@@ -232,7 +232,6 @@ class Project:
 
     def processMetricSingle(self, metric: dict, dataset: pydre.core.DriveData) -> pl.DataFrame:
         """
-
         :param metric:
         :param dataset:
         :return:
