@@ -15,7 +15,7 @@ import numpy as np
 
 from scipy import signal
 
-from pydre.pydre.core import DriveData
+from pydre.core import DriveData
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
 
@@ -79,13 +79,58 @@ def checkNumeric(drivedata:pydre.core.DriveData, var: str):
     else:
         return is_Numeric
 
-@registerMetric()  # testing logger
-def checkLogger(drivedata: pydre.core.DriveData):
-    # file = ntpath.basename(filename)
-        if not checkNumeric(drivedata, "DatTime"):
-            logger.level("CUSTOM", no=60, color="<red>", icon="!!!")
-            logger.log("CUSTOM", "There is an error in file: " + drivedata)
-            logger.add(sys.stderr, format="{time:MMMM D, YYYY > HH:mm:ss} | {level} | {message}")
+@registerMetric()  # testing processSingleFile
+def test_processSingleFile(self, datafilename):
+    logger.info("Loading file #{}: {}".format(
+        len(self.raw_data), datafilename))
+    datafile = self.__loadSingleFile(datafilename)
+    roi_datalist = []
+    results_list = []
+
+    if 'filters' in self.definition:
+        for filter in self.definition['filters']:
+            try:
+                self.processFilterSingle(filter, datafile)
+            except Exception as e:
+                logger.critical(
+                    "Unhandled exception in {} while processing {}.".format(filter, datafilename))
+    if 'rois' in self.definition:
+        for roi in self.definition['rois']:
+            try:
+                roi_datalist.extend(self.processROISingle(roi, datafile))
+            except Exception as e:
+                logger.critical(
+                    "Unhandled exception in {} while processing {}.".format(roi, datafilename))
+
+    else:
+        # no ROIs to process, but that's OK
+        logger.warning("No ROIs, processing raw data.")
+        roi_datalist.append(datafile)
+
+    # if len(roi_datalist) == 0:
+    # logger.warning("No ROIs found in {}".format(datafilename))
+    roi_processed_metrics = []
+    for data in roi_datalist:
+        result_dict = {"Subject": data.PartID}
+        if (data.format_identifier == 2):  # these drivedata object was created from an old format data file
+            result_dict["DriveID"] = datafile.DriveID
+        elif (
+                data.format_identifier == 4):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
+            result_dict["Mode"] = self.__clean(str(data.mode))
+            result_dict["ScenarioName"] = self.__clean(str(data.scenarioName))
+            result_dict["UniqueID"] = self.__clean(str(data.UniqueID))
+        result_dict["ROI"] = data.roi
+
+        for metric in self.definition['metrics']:
+            try:
+                processed_metric = self.processMetricSinglePar(metric, data)
+                result_dict.update(processed_metric)
+            except Exception as e:
+                logger.critical(
+                    "Unhandled exception in {} while processing {}.".format(metric, datafilename))
+        results_list.append(result_dict)
+    return results_list
+
 
 @registerMetric() #working on this
 def checkerMin(drivedata:pydre.core.DriveData, var: str):

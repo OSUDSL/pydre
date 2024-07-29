@@ -11,13 +11,14 @@ import ntpath
 from pydre.metrics import *
 from pydre.filters import *
 import pathlib
+from loguru import logger
 from tqdm import tqdm
 import logging
 import concurrent.futures
 
 logger = logging.getLogger(__name__)
-
 class Project:
+
     def __init__(self,  projectfilename: str, progressbar=None, app=None):
         self.app = app
         self.project_filename = projectfilename
@@ -50,6 +51,7 @@ class Project:
         datafile_re_format1 = re.compile(
             "([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat")  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
         match_format0 = datafile_re_format0.search(filename)
+
         if match_format0:
             experiment_name, subject_id, drive_id = match_format0.groups()
             drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
@@ -62,6 +64,9 @@ class Project:
             logger.warning(
                 "Drivedata filename {} does not an expected format.".format(filename))
             return pydre.core.DriveData(d, filename)
+
+
+#testing
 
     def processROI(self, roi, dataset):
         """
@@ -350,16 +355,27 @@ class Project:
         roi_datalist = []
         results_list = []
 
+
         if 'filters' in self.definition:
             for filter in self.definition['filters']:
-                self.processFilterSingle(filter, datafile)
+                try:
+                    self.processFilterSingle(filter, datafile)
+                except Exception as e:
+                    logger.critical(
+                        "Unhandled exception in {} while processing {}.".format(filter, datafilename))
         if 'rois' in self.definition:
             for roi in self.definition['rois']:
-                roi_datalist.extend(self.processROISingle(roi, datafile))
+                try:
+                    roi_datalist.extend(self.processROISingle(roi, datafile))
+                except Exception as e:
+                    logger.critical(
+                        "Unhandled exception in {} while processing {}.".format(roi, datafilename))
+
         else:
             # no ROIs to process, but that's OK
             logger.warning("No ROIs, processing raw data.")
             roi_datalist.append(datafile)
+
         #if len(roi_datalist) == 0:
             #logger.warning("No ROIs found in {}".format(datafilename))
         roi_processed_metrics = []
@@ -374,8 +390,12 @@ class Project:
             result_dict["ROI"] = data.roi
 
             for metric in self.definition['metrics']:
-                processed_metric = self.processMetricSinglePar(metric, data)
-                result_dict.update(processed_metric)
+                try:
+                    processed_metric = self.processMetricSinglePar(metric, data)
+                    result_dict.update(processed_metric)
+                except Exception as e:
+                    logger.critical(
+                        "Unhandled exception in {} while processing {}.".format(metric, datafilename))
             results_list.append(result_dict)
         return results_list
 
