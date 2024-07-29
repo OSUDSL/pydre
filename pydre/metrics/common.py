@@ -60,7 +60,7 @@ def verifyNumericColumns(drivedata: pydre.core.DriveData, varlist: list):
             to_check = df.get_column(element)
             if not to_check.dtype.is_numeric():
                 non_numeric.append(element)
-                logger.warning(element + " is not numeric in " + drivedata.sourcefilename)
+                logger.warning("Value(" + element + ") is not numeric in " + drivedata.sourcefilename)
         else:
             logger.warning(element + " in " + drivedata.sourcefilename + " does not exist")
     # converts list to str, for return purposes
@@ -205,7 +205,7 @@ def timeAboveSpeed(drivedata: pydre.core.DriveData, cutoff: float = 0, percentag
 
     df = drivedata.data.select( [pl.col("SimTime"),
                                  pl.col("Velocity"),
-                                 pl.col("SimTime").diff().clip_min(0).alias("Duration")
+                                 pl.col("SimTime").diff().clip(lower_bound=0).alias("Duration")
                                  ])
 
     time = df.get_column("Duration").filter(df.get_column("Velocity") >= cutoff).sum()

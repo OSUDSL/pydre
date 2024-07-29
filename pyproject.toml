@@ -1,0 +1,16 @@
+[project]
+name = "pydre"
+version = "2024.0.0"
+readme = "readme.md"
+dependencies = [
+    "polars",
+    "numpy",
+    "scipy",
+    "icecream",
+    "tqdm",
+    "pandas" # hope we can remove this soon
+]
+
+[tool.rye]
+managed = true
+dev-dependencies = ["ptpython"]
