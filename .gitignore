@@ -12,3 +12,4 @@ __pycache__/
 out.csv
 /requirements.lock
 /requirements-dev.lock
+/pydre.egg-info/
