@@ -6,9 +6,7 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-import pydre.merge_tool
-import os.path
-import glob
+import preprocessing_tools.merge_tool
 
 import argparse
 
@@ -25,4 +23,4 @@ parser.add_argument("-r", "--fileNameIndex", type=int,
 
 args = parser.parse_args()
 
-p = pydre.merge_tool.MergeTool(args.mergeDirectory, args.mergeType, args.fileNameIndex)
+p = preprocessing_tools.merge_tool.MergeTool(args.mergeDirectory, args.mergeType, args.fileNameIndex)

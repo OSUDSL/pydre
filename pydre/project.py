@@ -13,10 +13,7 @@ from pydre.filters import *
 import pathlib
 from loguru import logger
 from tqdm import tqdm
-import logging
 import concurrent.futures
-
-logger = logging.getLogger(__name__)
 
 
 class Project:

@@ -2,12 +2,8 @@
 
 import pydre.core
 import polars as pl
-import csv
 import re
-import logging
-
-logger = logging.getLogger(__name__)
-
+from loguru import logger
 from collections.abc import Iterable
 
 

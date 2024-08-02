@@ -1,5 +1,5 @@
 import unittest
-import pydre.merge_tool as p_merge
+import preprocessing_tools.merge_tool as p_merge
 import shutil
 import os
 import glob

@@ -13,3 +13,4 @@ out.csv
 /requirements.lock
 /requirements-dev.lock
 /pydre.egg-info/
+/.python-version

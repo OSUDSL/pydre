@@ -4,10 +4,9 @@ import math
 import glob
 import pandas as pd
 import re
-import logging
+from loguru import logger
 import shutil
 
-logger = logging.getLogger(__name__)
 
 regular_expressions = [
     "(?:.*\\\)?(.*)_Sub_(\d+)_Drive_\d+\.dat",

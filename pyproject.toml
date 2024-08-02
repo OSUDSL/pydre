@@ -8,8 +8,10 @@ dependencies = [
     "scipy",
     "icecream",
     "tqdm",
+    "loguru",
     "pandas" # hope we can remove this soon
 ]
+requires-python = ">= 3.9"
 
 [tool.rye]
 managed = true

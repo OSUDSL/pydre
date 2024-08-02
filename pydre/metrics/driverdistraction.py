@@ -1,6 +1,5 @@
-from __future__ import annotations  # needed for python < 3.9
 
-import logging
+from loguru import logger
 import pandas
 import polars as pl
 import pydre.core
@@ -9,7 +8,6 @@ import numpy as np
 import math
 from scipy import signal
 
-logger = logging.getLogger(__name__)
 
 
 @registerMetric()

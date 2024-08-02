@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import polars
-import logging
+from loguru import logger
 import sys
 import typing
 from typing import List
-
-logger = logging.getLogger(__name__)
 
 
 def mergeBySpace(tomerge: list):
