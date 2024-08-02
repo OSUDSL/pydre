@@ -1,18 +1,20 @@
- #!/usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 from __future__ import annotations  # needed for python < 3.9
 
-__all__ = ['common', 'box', 'driverdistraction']
+__all__ = ["common", "box", "driverdistraction"]
 
 import typing
 from typing import List
 from functools import partial, wraps
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 metricsList = {}
 metricsColNames = {}
+
 
 def registerMetric(jsonname=None, columnnames=None):
     def registering_decorator(func):
@@ -24,17 +26,23 @@ def registerMetric(jsonname=None, columnnames=None):
         if columnnames:
             metricsColNames[jname] = columnnames
         else:
-            metricsColNames[jname] = [jname, ]
+            metricsColNames[jname] = [
+                jname,
+            ]
         return func
+
     return registering_decorator
+
 
 def check_data_columns(arg):
     def argwrapper(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            logger.debug(f'{f} was called with arguments={args} and kwargs={kwargs}')
+            logger.debug(f"{f} was called with arguments={args} and kwargs={kwargs}")
             value = f(*args, **kwargs)
-            logger.debug(f'{f} return value {value}')
+            logger.debug(f"{f} return value {value}")
             return value
+
         return wrapper
+
     return argwrapper

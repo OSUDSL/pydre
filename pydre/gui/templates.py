@@ -1,7 +1,7 @@
-'''
+"""
 Created by: Craig Fouts
 Created on: 2/4/2021
-'''
+"""
 
 import logging
 import os
@@ -21,18 +21,22 @@ config.read(config_filename)
 logger = logging.getLogger(__file__)
 loader = QUiLoader()
 
+
 class Window(QMainWindow):
-    '''Parent window class that configures window UI, icon, and title if given.
-    '''
+    """Parent window class that configures window UI, icon, and title if given."""
 
     def __init__(self, name, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.name = name
-        file = QFile(str(files("pydre.gui.ui_files").joinpath(config.get('UI Files', self.name))))
+        file = QFile(
+            str(files("pydre.gui.ui_files").joinpath(config.get("UI Files", self.name)))
+        )
         file.open(QFile.ReadOnly)
         self.ui = loader.load(file)
-        icon = QIcon(str(files("pydre.gui.images").joinpath(config.get('Icons', self.name))))
+        icon = QIcon(
+            str(files("pydre.gui.images").joinpath(config.get("Icons", self.name)))
+        )
         self.ui.setWindowIcon(icon)
         self.setWindowIcon(icon)
         self.screen = QApplication.primaryScreen()
@@ -43,11 +47,11 @@ class Window(QMainWindow):
         self.window_size = None
 
     def resize_and_center(self, width, height):
-        '''Resizes and centers the child window on the current screen.
+        """Resizes and centers the child window on the current screen.
 
         :param width: Target window width
         :param height: Target window height
-        '''
+        """
 
         current_size = (float(self.ui.width()), float(self.ui.height()))
         match = (not self.ui.isMaximized()) and self.window_size == current_size
@@ -60,7 +64,6 @@ class Window(QMainWindow):
             self.ui.move(self.frame.topLeft())
 
     def start(self):
-        '''Displays the child window and initiates functionality.
-        '''
+        """Displays the child window and initiates functionality."""
 
         self.ui.show()

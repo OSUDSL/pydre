@@ -10,3 +10,5 @@ venv/
 .DS_Store
 __pycache__/
 out.csv
+/requirements.lock
+/requirements-dev.lock

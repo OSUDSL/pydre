@@ -10,18 +10,19 @@ from typing import List
 
 logger = logging.getLogger(__name__)
 
+
 def mergeBySpace(tomerge: list):
     """
-        args:
-            tomerge: list of DriveData objects to merge
+    args:
+        tomerge: list of DriveData objects to merge
 
-        returns:
-            DriveData object containing merged data and Drive ID of first element in the tomerge list
+    returns:
+        DriveData object containing merged data and Drive ID of first element in the tomerge list
 
-        Takes the first DriveData in 'tomerge', finds the last X and Y position, matches the closest X and Y
-        position in the next DriveData object in 'tomerge'.  The time stamps for the second data list are
-        altered appropriately.
-        This repeats for all elements in 'tomerge'.
+    Takes the first DriveData in 'tomerge', finds the last X and Y position, matches the closest X and Y
+    position in the next DriveData object in 'tomerge'.  The time stamps for the second data list are
+    altered appropriately.
+    This repeats for all elements in 'tomerge'.
     """
     out_frame = tomerge[0].data
 
@@ -36,11 +37,11 @@ def mergeBySpace(tomerge: list):
             last_y = last_line.YPos.iloc[0]
             last_time = last_line.SimTime.iloc[0]
             next_frame = tomerge[i].data
-            min_dist = float('inf')
+            min_dist = float("inf")
             min_index = 0
             for index, row in next_frame.iterrows():
                 dist = (row.XPos - last_x) ** 2 + (row.YPos - last_y) ** 2
-                if (dist < min_dist):
+                if dist < min_dist:
                     min_index = index
                     min_dist = dist
             start_time = next_frame.iloc[min_index].SimTime
@@ -54,7 +55,6 @@ def mergeBySpace(tomerge: list):
 
 
 class DriveData:
-
     def __init__(self, data: polars.DataFrame, sourcefilename: typing.Optional[str]):
         self.data = data
         self.sourcefilename = sourcefilename
@@ -62,8 +62,13 @@ class DriveData:
         self.format_identifier = -1
 
     @classmethod
-    def initV2(cls, data: polars.DataFrame, sourcefilename: str, PartID: typing.Optional[int],
-               DriveID: typing.Optional[int]):
+    def initV2(
+        cls,
+        data: polars.DataFrame,
+        sourcefilename: str,
+        PartID: typing.Optional[int],
+        DriveID: typing.Optional[int],
+    ):
         obj = cls(data, sourcefilename)
         obj.PartID = PartID
         obj.DriveID = DriveID
@@ -71,8 +76,15 @@ class DriveData:
         return obj
 
     @classmethod
-    def initV4(cls, data: polars.DataFrame, sourcefilename: str, PartID: str, UniqueID: typing.Optional[int],
-               scenarioName: typing.Optional[str], mode: typing.Optional[str]):
+    def initV4(
+        cls,
+        data: polars.DataFrame,
+        sourcefilename: str,
+        PartID: str,
+        UniqueID: typing.Optional[int],
+        scenarioName: typing.Optional[str],
+        mode: typing.Optional[str],
+    ):
         obj = cls(data, sourcefilename)
         obj.PartID = PartID
         obj.UniqueID = UniqueID
@@ -92,7 +104,6 @@ class DriveData:
             self.mode = other.mode
         self.format_identifier = other.format_identifier
 
-
     def checkColumns(self, required_columns: List[str]):
         difference = set(required_columns) - set(list(self.data.columns))
         if len(difference) > 0:
@@ -100,6 +111,7 @@ class DriveData:
 
 
 # ------ exception handling ------
+
 
 def funcName():  #:return: name of caller
     return sys._getframe(1).f_code.co_name

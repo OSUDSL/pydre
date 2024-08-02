@@ -12,31 +12,50 @@ def averageBoxReactionTime(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
     diff = drivedata.checkColumns(required_col)
     # Filter all reaction times that are negative (missed boxes) then output mean
-    return drivedata.data.filter(pl.col("ReactionTime") > 0).select("ReactionTime").mean().item()
+    return (
+        drivedata.data.filter(pl.col("ReactionTime") > 0)
+        .select("ReactionTime")
+        .mean()
+        .item()
+    )
+
 
 @registerMetric()
 def sdBoxReactionTime(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
     diff = drivedata.checkColumns(required_col)
-    return drivedata.data.filter(pl.col("ReactionTime") > 0).select("ReactionTime").std().item()
+    return (
+        drivedata.data.filter(pl.col("ReactionTime") > 0)
+        .select("ReactionTime")
+        .std()
+        .item()
+    )
 
 
-def countBoxHits(drivedata: pydre.core.DriveData, cutoff = 5):
+def countBoxHits(drivedata: pydre.core.DriveData, cutoff=5):
     required_col = ["ReactionTime"]
     diff = drivedata.checkColumns(required_col)
-    return drivedata.data.filter(pl.col("ReactionTime").is_between(0, cutoff, closed=None)).height
+    return drivedata.data.filter(
+        pl.col("ReactionTime").is_between(0, cutoff, closed=None)
+    ).height
 
-def percentBoxHits(drivedata: pydre.core.DriveData, cutoff = 5):
+
+def percentBoxHits(drivedata: pydre.core.DriveData, cutoff=5):
     required_col = ["ReactionTime"]
     diff = drivedata.checkColumns(required_col)
     df = drivedata.data.select(pl.col("ReactionTime"))
-    return (df.filter(pl.col("ReactionTime").is_between(0, cutoff, closed=None)).height / df.height) * 100
+    return (
+        df.filter(pl.col("ReactionTime").is_between(0, cutoff, closed=None)).height
+        / df.height
+    ) * 100
+
 
 # negative reaction time from the filter indicates a missed box
 def countBoxMisses(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
     diff = drivedata.checkColumns(required_col)
     return drivedata.data.filter(pl.col("ReactionTime") < 0).height
+
 
 def percentBoxMisses(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
@@ -50,7 +69,7 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "
     required_col = ["SimTime", "FeedbackButton", "BoxAppears"]
     diff = drivedata.checkColumns(required_col)
 
-    total_boxclicks = pandas.Series(dtype='float64')
+    total_boxclicks = pandas.Series(dtype="float64")
     # original code here: total_boxclicks = pandas.Series()
     # Got this warning on pandas 1.2.4: " DeprecationWarning: The default dtype for empty Series will be 'object'
     # instead of 'float64' in a future version. Specify a dtype explicitly to silence this warning."
@@ -59,40 +78,44 @@ def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "
     time_buttonclicked = 0.0
     hitButton = 0
     df = pandas.DataFrame(drivedata.data, columns=required_col)  # drop other columns
-    df = pandas.DataFrame.drop_duplicates(df.dropna(axis=0, how='any'))  # remove nans and drop duplicates
+    df = pandas.DataFrame.drop_duplicates(
+        df.dropna(axis=0, how="any")
+    )  # remove nans and drop duplicates
     if len(df) == 0:
         return None
-    boxAppearsdf = df['BoxAppears']
-    simTimedf = df['SimTime']
+    boxAppearsdf = df["BoxAppears"]
+    simTimedf = df["SimTime"]
     boxOndf = boxAppearsdf.diff(1)
-    indicesBoxOn = boxOndf[boxOndf.values > .5].index[0:]
+    indicesBoxOn = boxOndf[boxOndf.values > 0.5].index[0:]
     indicesBoxOff = boxOndf[boxOndf.values < 0.0].index[0:]
-    feedbackButtondf = df['FeedbackButton']
+    feedbackButtondf = df["FeedbackButton"]
     reactionTimeList = list()
     for counter in range(0, len(indicesBoxOn)):
         boxOn = int(indicesBoxOn[counter])
         boxOff = int(indicesBoxOff[counter])
         startTime = simTimedf.loc[boxOn]
         buttonClickeddf = feedbackButtondf.loc[boxOn:boxOff].diff(1)
-        buttonClickedIndices = buttonClickeddf[buttonClickeddf.values > .5].index[0:]
+        buttonClickedIndices = buttonClickeddf[buttonClickeddf.values > 0.5].index[0:]
 
-        if (len(buttonClickedIndices) > 0):
+        if len(buttonClickedIndices) > 0:
             indexClicked = int(buttonClickedIndices[0])
             clickTime = simTimedf.loc[indexClicked]
             reactionTime = clickTime - startTime
             reactionTimeList.append(reactionTime)
         else:
-            if (counter < len(indicesBoxOn) - 1):
+            if counter < len(indicesBoxOn) - 1:
                 endIndex = counter + 1
                 endOfBox = int(indicesBoxOn[endIndex])
-                buttonClickeddf = feedbackButtondf.loc[boxOn:endOfBox - 1].diff(1)
-                buttonClickedIndices = buttonClickeddf[buttonClickeddf.values > .5].index[0:]
-                if (len(buttonClickedIndices) > 0):
+                buttonClickeddf = feedbackButtondf.loc[boxOn : endOfBox - 1].diff(1)
+                buttonClickedIndices = buttonClickeddf[
+                    buttonClickeddf.values > 0.5
+                ].index[0:]
+                if len(buttonClickedIndices) > 0:
                     indexClicked = int(buttonClickedIndices[0])
                     clickTime = simTimedf.loc[indexClicked]
                     reactionTime = clickTime - startTime
                     reactionTimeList.append(reactionTime)
-        sum = feedbackButtondf.loc[boxOn:boxOff].sum();
+        sum = feedbackButtondf.loc[boxOn:boxOff].sum()
         if sum > 0.000:
             hitButton = hitButton + 1
     if stat == "count":

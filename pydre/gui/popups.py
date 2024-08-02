@@ -1,7 +1,7 @@
-'''
+"""
 Created by: Craig Fouts
 Created on: 2/4/2021
-'''
+"""
 
 import os
 from PySide6.QtGui import QIcon
@@ -18,9 +18,7 @@ config.read(config_filename)
 
 
 class SavePopup(QMessageBox):
-    '''TODO
-
-    '''
+    """TODO"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,34 +26,28 @@ class SavePopup(QMessageBox):
         self._configure_popup()
 
     def _configure_popup(self):
-        '''TODO
-
-        '''
+        """TODO"""
 
         icon_path = files("pydre.gui.images").joinpath("main.ico")
         self.icon = QIcon(str(icon_path))
         self.setWindowIcon(self.icon)
-        self.setWindowTitle('PyDre')
+        self.setWindowTitle("PyDre")
         self.setIcon(QMessageBox.Warning)
         buttons = QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
         self.setStandardButtons(buttons)
         self.setDefaultButton(QMessageBox.Yes)
 
     def _callback(self, callback, e):
-        '''TODO
+        """TODO"""
 
-        '''
-
-        if e.text() == '&Yes':
+        if e.text() == "&Yes":
             callback(True)
-        elif e.text() == '&No':
+        elif e.text() == "&No":
             callback(False)
         self.buttonClicked.disconnect()
 
     def show_(self, text, callback):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self.setText(text)
         self.buttonClicked.connect(lambda e: self._callback(callback, e))
@@ -64,23 +56,19 @@ class SavePopup(QMessageBox):
 
 
 class FunctionPopup(QMessageBox):
-    '''TODO
-
-    '''
+    """TODO"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        icon_path = os.path.join(GUI_PATH, config.get('Icons', 'main'))
+        icon_path = os.path.join(GUI_PATH, config.get("Icons", "main"))
         self.icon = QIcon(icon_path)
         self.setWindowIcon(self.icon)
-        self.setWindowTitle('PyDre')
+        self.setWindowTitle("PyDre")
         self._configure_popup()
 
     def _configure_popup(self):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self.setIcon(QMessageBox.Warning)
         buttons = QMessageBox.Yes | QMessageBox.No
@@ -88,20 +76,16 @@ class FunctionPopup(QMessageBox):
         self.setDefaultButton(QMessageBox.Yes)
 
     def _callback(self, callback, e):
-        '''TODO
+        """TODO"""
 
-        '''
-
-        if e.text() == '&Yes':
+        if e.text() == "&Yes":
             callback(True)
-        elif e.text() == '&No':
+        elif e.text() == "&No":
             callback(False)
         self.buttonClicked.disconnect()
 
     def show_(self, text, callback):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self.setText(text)
         self.buttonClicked.connect(lambda e: self._callback(callback, e))
@@ -110,23 +94,19 @@ class FunctionPopup(QMessageBox):
 
 
 class OutputPopup(QMessageBox):
-    '''TODO
-
-    '''
+    """TODO"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        icon_path = os.path.join(GUI_PATH, config.get('Icons', 'main'))
+        icon_path = os.path.join(GUI_PATH, config.get("Icons", "main"))
         self.icon = QIcon(icon_path)
         self.setWindowIcon(self.icon)
-        self.setWindowTitle('PyDre')
+        self.setWindowTitle("PyDre")
         self._configure_popup()
 
     def _configure_popup(self):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self.setIcon(QMessageBox.Warning)
         buttons = QMessageBox.Yes | QMessageBox.No
@@ -134,20 +114,16 @@ class OutputPopup(QMessageBox):
         self.setDefaultButton(QMessageBox.Yes)
 
     def _callback(self, callback, e):
-        '''TODO
+        """TODO"""
 
-        '''
-
-        if e.text() == '&Yes':
+        if e.text() == "&Yes":
             callback(True)
-        elif e.text() == '&No':
+        elif e.text() == "&No":
             callback(False)
         self.buttonClicked.disconnect()
 
     def show_(self, text, callback):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self.setText(text)
         self.buttonClicked.connect(lambda e: self._callback(callback, e))
@@ -156,9 +132,7 @@ class OutputPopup(QMessageBox):
 
 
 class ProgressPopup(QProgressDialog):
-    '''TODO
-
-    '''
+    """TODO"""
 
     def __init__(self, app, auto_close=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -167,29 +141,23 @@ class ProgressPopup(QProgressDialog):
         self._configure_popup(auto_close)
 
     def _configure_popup(self, auto_close):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self._configure_geometry(500, 170)
-        self.setWindowTitle('PyDre')
+        self.setWindowTitle("PyDre")
         self.setMinimum(0)
         self.setMaximum(100)
         self.setValue(0)
         self.setAutoClose(auto_close)
 
     def _configure_geometry(self, width, height):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self.setMinimumWidth(width)
         self.setMinimumHeight(height)
 
     def show_(self, text, _=None):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self.setLabelText(text)
         self.show()
@@ -198,23 +166,19 @@ class ProgressPopup(QProgressDialog):
 
 
 class ErrorPopup(QMessageBox):
-    '''TODO
-
-    '''
+    """TODO"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        icon_path = os.path.join(GUI_PATH, config.get('Icons', 'main'))
+        icon_path = os.path.join(GUI_PATH, config.get("Icons", "main"))
         self.icon = QIcon(icon_path)
         self.setWindowIcon(self.icon)
-        self.setWindowTitle('PyDre')
+        self.setWindowTitle("PyDre")
         self._configure_popup()
 
     def _configure_popup(self):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self.setIcon(QMessageBox.Critical)
         buttons = QMessageBox.Ok
@@ -222,9 +186,7 @@ class ErrorPopup(QMessageBox):
         self.setDefaultButton(QMessageBox.Ok)
 
     def show_(self, text, _=None):
-        '''TODO
-
-        '''
+        """TODO"""
 
         self.setText(text)
         self.show()
@@ -232,15 +194,13 @@ class ErrorPopup(QMessageBox):
 
 
 class NewFilePopup(QInputDialog):
-    '''TODO
-
-    '''
+    """TODO"""
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent=parent, *args, **kwargs)
 
         self.parent = parent
-        icon_path = os.path.join(GUI_PATH, config.get('Icons', 'main'))
+        icon_path = os.path.join(GUI_PATH, config.get("Icons", "main"))
         self.icon = QIcon(icon_path)
         self.setWindowIcon(self.icon)
-        self.setWindowTitle('PyDre')
+        self.setWindowTitle("PyDre")
