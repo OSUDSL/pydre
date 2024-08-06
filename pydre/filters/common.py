@@ -9,8 +9,9 @@ import pandas
 import polars as pl
 
 import pydre.core
-from pydre.filters import registerFilter, logger
+from . import registerFilter
 
+from loguru import logger
 
 @registerFilter()
 def numberBinaryBlocks(

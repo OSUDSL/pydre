@@ -5,8 +5,9 @@ theme:
 
 nav:
   - Home: 'index.md'
+  - Running the software: 'pydre_run.md'
   - Metrics: 'metrics.md'
   - SAE Standards: 'metricStandards.md'
   - Regions of Interest: 'rois.md'
   - Merge Tool: 'mergetool.md'
-
+  - Developer Notes: 'developernotes.md'

@@ -14,3 +14,5 @@ out.csv
 /requirements-dev.lock
 /pydre.egg-info/
 /.python-version
+.DS_Store
+**/.DS_Store

@@ -15,4 +15,7 @@ requires-python = ">= 3.9"
 
 [tool.rye]
 managed = true
-dev-dependencies = ["ptpython"]
+dev-dependencies = [
+    "ptpython",
+    "mkdocs>=1.6.0",
+]
