@@ -53,6 +53,11 @@ def mergeBySpace(tomerge: list):
 
 
 class DriveData:
+    data: polars.dataframe
+    sourcefilename: str
+    roi: typing.Optional[str]
+    format_identifier: int
+
     def __init__(self, data: polars.DataFrame, sourcefilename: typing.Optional[str]):
         self.data = data
         self.sourcefilename = sourcefilename
