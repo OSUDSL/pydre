@@ -1,17 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import logging
-import os
-import sys
-
-sys.path.append(os.path.join(os.path.dirname(__file__)))
-
+from loguru import logger
 import pydre.project
 import pydre.core
+import sys
 import os.path
 import glob
-import logging
-import datetime
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -24,16 +18,15 @@ parser.add_argument("-l", "--warninglevel", type=str, default="WARNING",
 
 args = parser.parse_args()
 
-logger = logging.getLogger()
-
+logger.remove(0)
 try:
-    pydre.logger.setLevel(args.warninglevel.upper())
+    logger.add(sys.stderr, level=args.warninglevel.upper())
 except Exception:
-    pydre.logger.setLevel(logging.WARNING)
-    pydre.logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
+    logger.add(sys.stderr, level="WARNING")
+    logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
 
 if args.outputfile == 'out.csv':
-    pydre.logger.warning("No output file specified. Defaulting to 'out.csv'")
+    logger.warning("No output file specified. Defaulting to 'out.csv'")
 
 p = pydre.project.Project(args.projectfile)
 
