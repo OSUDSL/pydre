@@ -343,7 +343,7 @@ def mergeEvents(drivedata: pydre.core.DriveData, eventDirectory: str):
         event_filename = Path(eventDirectory) / Path(filename).with_suffix(".evt").name
         event_data = pandas.read_csv(
             event_filename,
-            sep="\s+",
+            sep="\\s+",
             na_values=".",
             header=0,
             skiprows=0,

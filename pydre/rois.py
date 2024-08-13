@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import pydre.core
 import polars as pl
 import re

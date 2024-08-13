@@ -1,6 +1,5 @@
 
 from loguru import logger
-import pandas
 import polars as pl
 import pydre.core
 from pydre.metrics import registerMetric
@@ -9,6 +8,8 @@ import math
 from scipy import signal
 
 
+# TODO: This whole file needs to be converted to use polars correctly instead of the pandas code that is here
+# I don't think any of these functions will work correctly
 
 @registerMetric()
 def getTaskNum(drivedata: pydre.core.DriveData):
@@ -16,7 +17,7 @@ def getTaskNum(drivedata: pydre.core.DriveData):
     diff = drivedata.checkColumns(required_col)
 
     taskNum = 0
-    df = pandas.DataFrame(drivedata.data)
+    df = drivedata.data
     taskNum = df["TaskNum"].mode()
     if len(taskNum) > 0:
         return taskNum[0]
@@ -30,8 +31,8 @@ def numOfErrorPresses(drivedata: pydre.core.DriveData):
     diff = drivedata.checkColumns(required_col)
 
     presses = 0
-    df = pandas.DataFrame(drivedata.data, columns=(required_col))  # drop other columns
-    df = pandas.DataFrame.drop_duplicates(
+    df = pl.DataFrame(drivedata.data, columns=(required_col))  # drop other columns
+    df = pl.DataFrame.drop_duplicates(
         df.dropna(axis=0, how="any")
     )  # remove nans and drop duplicates
     p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
@@ -44,16 +45,16 @@ def appendDFToCSV_void(df, csvFilePath: str, sep: str = ","):
 
     if not os.path.isfile(csvFilePath):
         df.to_csv(csvFilePath, mode="a", index=False, sep=sep)
-    elif len(df.columns) != len(pandas.read_csv(csvFilePath, nrows=1, sep=sep).columns):
+    elif len(df.columns) != len(pl.read_csv(csvFilePath, nrows=1, sep=sep).columns):
         raise Exception(
             "Columns do not match!! Dataframe has "
             + str(len(df.columns))
             + " columns. CSV file has "
-            + str(len(pandas.read_csv(csvFilePath, nrows=1, sep=sep).columns))
+            + str(len(pl.read_csv(csvFilePath, nrows=1, sep=sep).columns))
             + " columns."
         )
     elif not (
-        df.columns == pandas.read_csv(csvFilePath, nrows=1, sep=sep).columns
+        df.columns == pl.read_csv(csvFilePath, nrows=1, sep=sep).columns
     ).all():
         raise Exception(
             "Columns and column order of dataframe and csv file do not match!!"
@@ -75,8 +76,8 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
     diff = drivedata.checkColumns(required_col)
 
     numofglances = 0
-    df = pandas.DataFrame(drivedata.data, columns=(required_col))  # drop other columns
-    df = pandas.DataFrame.drop_duplicates(
+    df = pl.DataFrame(drivedata.data, columns=(required_col))  # drop other columns
+    df = pl.DataFrame.drop_duplicates(
         df.dropna(axis=0, how="any")
     )  # remove nans and drop duplicates
 
@@ -86,7 +87,7 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
     locations = gr["gaze"].first()
     error_list = gr["TaskFail"].any()
 
-    glancelist = pandas.DataFrame(
+    glancelist = pl.DataFrame(
         {"duration": durations, "locations": locations, "errors": error_list}
     )
     glancelist["locations"].fillna("offroad", inplace=True)
@@ -139,7 +140,7 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
 
 # not working
 def addVelocities(drivedata: pydre.core.DriveData):
-    df = pandas.DataFrame(drivedata.data)
+    df = pl.DataFrame(drivedata.data)
     # add column with ownship velocity
     g = np.gradient(df.XPos.values, df.SimTime.values)
     df.insert(len(df.columns), "OwnshipVelocity", g, True)
@@ -155,7 +156,7 @@ def addVelocities(drivedata: pydre.core.DriveData):
 
 @registerMetric()
 def crossCorrelate(drivedata: pydre.core.DriveData):
-    df = pandas.DataFrame(drivedata.data)
+    df = drivedata.data
     if "OwnshipVelocity" not in df.columns or "LeadCarVelocity" not in df.columns:
         df = addVelocities(drivedata)
         print("calling addVelocities()")
@@ -217,7 +218,7 @@ def speedLimitMatchTime(
         abs(pl.col(speedLimitCol) * 0.44704 - starting_speed_limit) > 0.1
     ).item(0, "DatTime")
 
-    if time == None:
+    if time is None:
         return None
     else:
         # print( starting_speed_limit, speed_limit, time, sign_time)
@@ -237,8 +238,8 @@ def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
     diff = drivedata.checkColumns(required_col)
 
     numofglances = 0
-    df = pandas.DataFrame(drivedata.data, columns=required_col)  # drop other columns
-    df = pandas.DataFrame.drop_duplicates(
+    df = pl.DataFrame(drivedata.data, columns=required_col)  # drop other columns
+    df = pl.DataFrame.drop_duplicates(
         df.dropna(axis=0, how="any")
     )  # remove nans and drop duplicates
 
@@ -321,7 +322,7 @@ def speedbumpHondaGaze2(
         return [None, None, None, None]
     # if d.TaskNum.mean() == 4:
     #    d.to_csv('4.csv')
-    df = pandas.DataFrame(drivedata.data, columns=required_col)  # drop other columns
+    df = pl.DataFrame(drivedata.data, columns=required_col)  # drop other columns
     df = df.fillna(0)  # remove nans and drop duplicates
 
     df["time_diff"] = df[
@@ -344,7 +345,7 @@ def speedbumpHondaGaze2(
 
     # get first 8 task instances
     number_valid_instance = df["TaskInstance"].unique()
-    print(pandas.unique(df.TaskInstance))
+    print(pl.unique(df.TaskInstance))
     if len(number_valid_instance) > 8:
         lowest_instance_no = number_valid_instance.min()
         len_of_drop = len(
@@ -394,7 +395,7 @@ def eventCount(drivedata: pydre.core.DriveData, event="KEY_EVENT_S"):
     required_col = [event]
     diff = drivedata.checkColumns(required_col)
 
-    df = pandas.DataFrame(drivedata.data, columns=required_col)
+    df = pl.DataFrame(drivedata.data, columns=required_col)
     col_name = event + "_ocurrance"
     df[col_name] = df[event].diff()
     occur = df[col_name].value_counts().get(1)
@@ -408,7 +409,7 @@ def insDuration(drivedata: pydre.core.DriveData):
     required_col = ["DatTime", "TaskInstance"]
     diff = drivedata.checkColumns(required_col)
 
-    df = pandas.DataFrame(drivedata.data, columns=required_col)
+    df = pl.DataFrame(drivedata.data, columns=required_col)
     return df.tail(1).iat[0, 0] - df.head(1).iat[0, 0]
 
 
@@ -440,14 +441,14 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
     ):
         return [None, None, None, None]
 
-    df = pandas.DataFrame(drivedata.data, columns=required_col)  # drop other columns
+    df = pl.DataFrame(drivedata.data, columns=required_col)  # drop other columns
     # df.to_csv("df.csv")
     # df = df.loc[(df['TaskInstance'] != 0) & (df['TaskInstance'] != np.nan)] # drop all rows that are not in any task instance
     # dropped_instances = df.loc[(df['TaskFail'] == 1)]
     # dropped_instances = dropped_instances['TaskInstance'].drop_duplicates() # get all the task instances that contains a fail and needs to be dropped
     # df = df.loc[~df['TaskInstance'].isin(dropped_instances)] # drop all the failed task instances
 
-    event_s = pandas.DataFrame(
+    event_s = pl.DataFrame(
         df, columns=[timecolumn, "gazenum", "gaze", "KEY_EVENT_S"]
     )
     event_s["diff"] = event_s["KEY_EVENT_S"].diff()
@@ -470,11 +471,11 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
     # event_s.to_csv("e.csv")
 
     group_by_gazenum = event_s.groupby("gazenum", sort=False)
-    durations = pandas.DataFrame(group_by_gazenum.sum(), columns=["s_begin"])
+    durations = pl.DataFrame(group_by_gazenum.sum(), columns=["s_begin"])
 
-    durations_begin = pandas.DataFrame(group_by_gazenum.min(), columns=[timecolumn])
+    durations_begin = pl.DataFrame(group_by_gazenum.min(), columns=[timecolumn])
     durations_begin = durations_begin.rename(columns={timecolumn: "begin"})
-    durations_end = pandas.DataFrame(group_by_gazenum.max(), columns=[timecolumn])
+    durations_end = pl.DataFrame(group_by_gazenum.max(), columns=[timecolumn])
     durations_end = durations_end.rename(columns={timecolumn: "end"})
 
     durations["begin"] = durations_begin["begin"]

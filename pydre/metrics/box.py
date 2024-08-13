@@ -1,8 +1,5 @@
-from __future__ import annotations
-
 import numpy as np
 import polars as pl
-
 import pydre.core
 from pydre.metrics import registerMetric
 

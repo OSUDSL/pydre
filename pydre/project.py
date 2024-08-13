@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import json
 import polars as pl
 import re
 import sys
+from typing import Dict, List
 import pydre.core
 import pydre.rois
 import pydre.metrics
@@ -85,7 +84,7 @@ class Project:
 
     # testing
 
-    def processROI(self, roi, dataset):
+    def processROI(self, roi: Dict[str, str], dataset: List[pl.DataFrame]):
         """
         Handles running region of interest definitions for a dataset
 
@@ -125,20 +124,25 @@ class Project:
         """
         roi_type = roi["type"]
         dataset = [datafile]
-        if roi_type == "time":
-            logger.info("Processing ROI file " + roi["filename"])
-            roi_obj = pydre.rois.TimeROI(roi["filename"])
-            return roi_obj.split(dataset)
-        elif roi_type == "rect":
-            logger.info("Processing ROI file " + roi["filename"])
-            roi_obj = pydre.rois.SpaceROI(roi["filename"])
-            return roi_obj.split(dataset)
-        elif roi_type == "column":
-            logger.info("Processing ROI column " + roi["columnname"])
-            roi_obj = pydre.rois.ColumnROI(roi["columnname"])
-            return roi_obj.split(dataset)
-        else:
+        try:
+            if roi_type == "time":
+                logger.info("Processing time ROI " + roi["filename"])
+                roi_obj = pydre.rois.TimeROI(roi["filename"])
+                return roi_obj.split(dataset)
+            elif roi_type == "rect":
+                logger.info("Processing space ROI " + roi["filename"])
+                roi_obj = pydre.rois.SpaceROI(roi["filename"])
+                return roi_obj.split(dataset)
+            elif roi_type == "column":
+                logger.info("Processing column ROI " + roi["columnname"])
+                roi_obj = pydre.rois.ColumnROI(roi["columnname"])
+                return roi_obj.split(dataset)
+            else:
+                return []
+        except FileNotFoundError as e:
+            logger.error(e.args)
             return []
+
 
     def processFilter(self, filter, dataset):
         """
@@ -405,8 +409,8 @@ class Project:
             for filter in self.definition["filters"]:
                 try:
                     self.processFilterSingle(filter, datafile)
-                except Exception as e:
-                    logger.critical(
+                except Exception:
+                    logger.exception(
                         "Unhandled exception in {} while processing {}.".format(
                             filter, datafilename
                         )
@@ -416,7 +420,7 @@ class Project:
                 try:
                     roi_datalist.extend(self.processROISingle(roi, datafile))
                 except Exception as e:
-                    logger.critical(
+                    logger.exception(
                         "Unhandled exception in {} while processing {}.".format(
                             roi, datafilename
                         )
@@ -450,7 +454,7 @@ class Project:
                     result_dict.update(processed_metric)
                 except Exception as e:
                     logger.critical(
-                        "Unhandled exception in {} while processing {}.".format(
+                        "Unhandled exception {} in {} while processing {}.".format( e.args,
                             metric, datafilename
                         )
                     )
