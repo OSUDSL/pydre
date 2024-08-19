@@ -80,7 +80,7 @@ def relativeBoxPos(drivedata: pydre.core.DriveData):
     drivedata.data = drivedata.data.with_columns(
         [
             (pl.col("BoxPosY").cast(pl.Float32) - start_x)
-            .clip_min(0)
+            .clip(lower_bound=0)
             .alias("relativeBoxStart")
         ]
     )

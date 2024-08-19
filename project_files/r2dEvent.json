@@ -2,9 +2,11 @@
 
     "filters": [
           {
-              "name": "numberEventBlocks",
-              "function": "numberEventBlocks",
-              "box_column": "CriticalEventStatus"
+              "name": "numberBoxBlocks",
+              "function": "numberBinaryBlocks",
+              "binary_column": "CriticalEventStatus",
+              "new_column": "eventBlocks",
+              "only_on": 1
           }
       ],
   

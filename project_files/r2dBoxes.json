@@ -6,8 +6,8 @@
               "function": "SimTimeFromDatTime"
           },
           {
-            "name": "R2DFixReversedRoad",
-            "function": "R2DFixReversedRoad"
+            "name": "FixReversedRoadLinearLand",
+            "function": "FixReversedRoadLinearLand"
           },
           {
               "name": "relativeBoxPos",

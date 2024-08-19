@@ -786,7 +786,11 @@ def firstOccurrence(df: pl.DataFrame, column: str):
 @registerMetric()
 def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
     required_col = [var, "SimTime"]
-    diff = drivedata.checkColumns(required_col)
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
+
     try:
         df = drivedata.data.filter(pl.col(var) > 0)
     except pl.exceptions.ComputeError as e:
@@ -796,7 +800,7 @@ def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
             )
         )
         return None
-    if drivedata.data.height == 0 or df.height == 0:
+    if df.height == 0:
         return None
     return (
         df.select("SimTime").head(1).item()
