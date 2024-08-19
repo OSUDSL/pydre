@@ -25,11 +25,11 @@ class DriveData:
 
     @classmethod
     def initV2(
-            cls,
-            data: polars.DataFrame,
-            sourcefilename: str,
-            PartID: Optional[int],
-            DriveID: Optional[int],
+        cls,
+        data: polars.DataFrame,
+        sourcefilename: str,
+        PartID: Optional[int],
+        DriveID: Optional[int],
     ):
         obj = cls(data, sourcefilename)
         obj.PartID = PartID
@@ -39,13 +39,13 @@ class DriveData:
 
     @classmethod
     def initV4(
-            cls,
-            data: polars.DataFrame,
-            sourcefilename: str,
-            PartID: str,
-            UniqueID: Optional[int],
-            scenarioName: Optional[str],
-            mode: Optional[str],
+        cls,
+        data: polars.DataFrame,
+        sourcefilename: str,
+        PartID: str,
+        UniqueID: Optional[int],
+        scenarioName: Optional[str],
+        mode: Optional[str],
     ):
         obj = cls(data, sourcefilename)
         obj.PartID = PartID
@@ -69,7 +69,9 @@ class DriveData:
     def checkColumns(self, required_columns: List[str]) -> None:
         difference = set(required_columns) - set(list(self.data.columns))
         if len(difference) > 0:
-            raise polars.exceptions.ColumnNotFoundError("Columns {} not found.".format(difference))
+            raise polars.exceptions.ColumnNotFoundError(
+                "Columns {} not found.".format(difference)
+            )
 
     def checkColumnsNumeric(self, columns: List[str]) -> Optional[List[str]]:
         # check numeric for a list
@@ -80,10 +82,7 @@ class DriveData:
                 to_check = self.data.get_column(column)
                 if not to_check.dtype.is_numeric():
                     logger.warning(
-                        "col("
-                        + column
-                        + ") is not numeric in "
-                        + self.sourcefilename
+                        "col(" + column + ") is not numeric in " + self.sourcefilename
                     )
                     non_numeric.append(column)
             else:
@@ -92,7 +91,9 @@ class DriveData:
                 )
                 non_numeric.append(column)
         if len(non_numeric) > 0:
-            raise polars.exceptions.PolarsError("Columns {} not numeric.".format(non_numeric))
+            raise polars.exceptions.PolarsError(
+                "Columns {} not numeric.".format(non_numeric)
+            )
 
 
 ## TODO: Update this to polars style.

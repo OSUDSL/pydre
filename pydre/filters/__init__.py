@@ -1,6 +1,6 @@
 from loguru import logger
 
-__all__ = ["common"]
+__all__ = ["common", "eyetracking", "R2D"]
 
 filtersList = {}
 filtersColNames = {}

@@ -12,11 +12,10 @@ import pathlib
 from tqdm import tqdm
 import logging
 
-logger = logging.getLogger('PydreLogger')
+logger = logging.getLogger("PydreLogger")
 
 
-class Project():
-
+class Project:
     def __init__(self, projectfilename):
         self.project_filename = projectfilename
 
@@ -32,8 +31,15 @@ class Project():
                 # 	editors used, the line number was consistently 1 more than the actual location of the syntax error.
                 # 	Hence, the "e.lineno -1" in the logger error below.
 
-                logger.error("In " + projectfilename + ": " + str(e.msg) + ". Invalid JSON syntax found at Line: "
-                             + str(e.lineno - 1) + ".")
+                logger.error(
+                    "In "
+                    + projectfilename
+                    + ": "
+                    + str(e.msg)
+                    + ". Invalid JSON syntax found at Line: "
+                    + str(e.lineno - 1)
+                    + "."
+                )
                 # exited as a general error because it is seemingly best suited for the problem encountered
                 sys.exit(1)
 
@@ -42,43 +48,49 @@ class Project():
     def __loadSingleFile(self, filename):
         """Load a single .dat file (whitespace delmited csv) into a DriveData object"""
         # Could cache this re, probably affect performance
-        d = pandas.read_csv(filename, sep='\s+', na_values='.')
+        d = pandas.read_csv(filename, sep="\s+", na_values=".")
         datafile_re = re.compile("([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat")
         match = datafile_re.search(filename)
         if match:
             experiment_name, subject_id, drive_id = match.groups()
         else:
             logger.warning(
-                "Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat")
+                "Drivedata filename does not match expected format: ExperimentName_Subject_0_Drive_0.dat"
+            )
             experiment_name = pathlib.Path(filename).stem
             subject_id = 1
             drive_id = 1
-        return tests.sample_pydre.core.DriveData(PartID=int(subject_id), DriveID=int(drive_id),
-                                    roi=None, data=d, sourcefilename=filename)
+        return tests.sample_pydre.core.DriveData(
+            PartID=int(subject_id),
+            DriveID=int(drive_id),
+            roi=None,
+            data=d,
+            sourcefilename=filename,
+        )
 
     def processROI(self, roi, dataset):
         """
-                Handles running region of interest definitions for a dataset
+        Handles running region of interest definitions for a dataset
 
-                Args:
-                        roi: A dict containing the type of a roi and the filename of the data used to process it
-                        dataset: a list of pandas dataframes containing the source data to partition
+        Args:
+                roi: A dict containing the type of a roi and the filename of the data used to process it
+                dataset: a list of pandas dataframes containing the source data to partition
 
-                Returns:
-                        A list of pandas DataFrames containing the data for each region of interest
-                """
-        roi_type = roi['type']
+        Returns:
+                A list of pandas DataFrames containing the data for each region of interest
+        """
+        roi_type = roi["type"]
         if roi_type == "time":
-            logger.info("Processing ROI file " + roi['filename'])
-            roi_obj = tests.sample_pydre.rois.TimeROI(roi['filename'])
+            logger.info("Processing ROI file " + roi["filename"])
+            roi_obj = tests.sample_pydre.rois.TimeROI(roi["filename"])
             return roi_obj.split(dataset)
         elif roi_type == "rect":
-            logger.info("Processing ROI file " + roi['filename'])
-            roi_obj = tests.sample_pydre.rois.SpaceROI(roi['filename'])
+            logger.info("Processing ROI file " + roi["filename"])
+            roi_obj = tests.sample_pydre.rois.SpaceROI(roi["filename"])
             return roi_obj.split(dataset)
         elif roi_type == "column":
-            logger.info("Processing ROI column " + roi['columnname'])
-            roi_obj = tests.sample_pydre.rois.ColumnROI(roi['columnname'])
+            logger.info("Processing ROI column " + roi["columnname"])
+            roi_obj = tests.sample_pydre.rois.ColumnROI(roi["columnname"])
             return roi_obj.split(dataset)
         else:
             return []
@@ -95,46 +107,51 @@ class Project():
         """
 
         try:
-            func_name = filter.pop('function')
+            func_name = filter.pop("function")
             filter_func = tests.sample_pydre.filters.filtersList[func_name]
-            report_name = filter.pop('name')
+            report_name = filter.pop("name")
             col_names = tests.sample_pydre.filters.filtersColNames[func_name]
         except KeyError as e:
             logger.warning(
-                "Filter definitions require both \"name\" and \"function\". Malformed filters definition: missing " + str(
-                    e))
+                'Filter definitions require both "name" and "function". Malformed filters definition: missing '
+                + str(e)
+            )
             sys.exit(1)
 
         if len(col_names) > 1:
-            x = [filter_func(d, **filter)
-                 for d in tqdm(dataset, desc=func_name)]
+            x = [filter_func(d, **filter) for d in tqdm(dataset, desc=func_name)]
             report = pandas.DataFrame(x, columns=col_names)
         else:
-            report = pandas.DataFrame([filter_func(
-                d, **filter) for d in tqdm(dataset, desc=func_name)], columns=[report_name, ])
+            report = pandas.DataFrame(
+                [filter_func(d, **filter) for d in tqdm(dataset, desc=func_name)],
+                columns=[
+                    report_name,
+                ],
+            )
 
         return report
 
     def processMetric(self, metric, dataset):
         """
-                Handles running any metric definition
+        Handles running any metric definition
 
-                Args:
-                        metric: A dict containing the type of a metric and the parameters to process it
+        Args:
+                metric: A dict containing the type of a metric and the parameters to process it
 
-                Returns:
-                        A list of values with the results
-                """
+        Returns:
+                A list of values with the results
+        """
 
         try:
-            func_name = metric.pop('function')
+            func_name = metric.pop("function")
             metric_func = tests.sample_pydre.metrics.metricsList[func_name]
-            report_name = metric.pop('name')
+            report_name = metric.pop("name")
             col_names = tests.sample_pydre.metrics.metricsColNames[func_name]
         except KeyError as e:
             logger.warning(
-                "Metric definitions require both \"name\" and \"function\". Malformed metrics definition: missing " + str(
-                    e))
+                'Metric definitions require both "name" and "function". Malformed metrics definition: missing '
+                + str(e)
+            )
             sys.exit(1)
 
         if len(col_names) > 1:
@@ -142,62 +159,68 @@ class Project():
             report = pandas.DataFrame(x, columns=col_names)
         else:
             report = pandas.DataFrame(
-                [metric_func(d, **metric) for d in dataset], columns=[report_name, ])
+                [metric_func(d, **metric) for d in dataset],
+                columns=[
+                    report_name,
+                ],
+            )
 
         return report
 
     def loadFileList(self, datafiles):
         """
-                Args:
-                        datafiles: a list of filename strings (SimObserver .dat files)
+        Args:
+                datafiles: a list of filename strings (SimObserver .dat files)
 
-                Loads all datafiles into the project raw data list.
-                Before loading, the internal list is cleared.
-                """
+        Loads all datafiles into the project raw data list.
+        Before loading, the internal list is cleared.
+        """
         self.raw_data = []
         for datafile in tqdm(datafiles, desc="Loading files"):
-            logger.info("Loading file #{}: {}".format(
-                len(self.raw_data), datafile))
+            logger.info("Loading file #{}: {}".format(len(self.raw_data), datafile))
             self.raw_data.append(self.__loadSingleFile(datafile))
 
     def run(self, datafiles):
         """
-                Args:
-                        datafiles: a list of filename strings (SimObserver .dat files)
+        Args:
+                datafiles: a list of filename strings (SimObserver .dat files)
 
-                Load all files in datafiles, then process the rois and metrics
-                """
+        Load all files in datafiles, then process the rois and metrics
+        """
 
         self.loadFileList(datafiles)
         data_set = []
 
-        if 'filters' in self.definition:
-            for filter in self.definition['filters']:
+        if "filters" in self.definition:
+            for filter in self.definition["filters"]:
                 self.processFilter(filter, self.raw_data)
 
-        if 'rois' in self.definition:
-            for roi in self.definition['rois']:
+        if "rois" in self.definition:
+            for roi in self.definition["rois"]:
                 data_set.extend(self.processROI(roi, self.raw_data))
         else:
             # no ROIs to process, but that's OK
             logger.warning("No ROIs, processing raw data.")
             data_set = self.raw_data
 
-        logger.info("number of datafiles: {}, number of rois: {}".format(
-            len(datafiles), len(data_set)))
+        logger.info(
+            "number of datafiles: {}, number of rois: {}".format(
+                len(datafiles), len(data_set)
+            )
+        )
 
         # for filter in self.definition['filters']:
         #     self.processFilter(filter, data_set)
         result_data = pandas.DataFrame()
-        result_data['Subject'] = pandas.Series([d.PartID for d in data_set])
-        result_data['DriveID'] = pandas.Series([d.DriveID for d in data_set])
-        result_data['ROI'] = pandas.Series([d.roi for d in data_set])
+        result_data["Subject"] = pandas.Series([d.PartID for d in data_set])
+        result_data["DriveID"] = pandas.Series([d.DriveID for d in data_set])
+        result_data["ROI"] = pandas.Series([d.roi for d in data_set])
         # result_data['TaskNum'] = pandas.Series([d.TaskNum for d in data_set])
         # result_data['TaskStatus'] = pandas.Series([d.TaskStatus for d in data_set])
 
         processed_metrics = [result_data]
 
-        for metric in self.definition['metrics']:
+        for metric in self.definition["metrics"]:
             processed_metric = self.processMetric(metric, data_set)
             processed_metrics.append(processed_metric)
         result_data = pandas.concat(processed_metrics, axis=1)
@@ -206,11 +229,11 @@ class Project():
 
     def save(self, outfilename="out.csv"):
         """
-                Args:
-                        outfilename: filename to output csv data to.
+        Args:
+                outfilename: filename to output csv data to.
 
-                The filename specified will be overwritten automatically.
-                """
+        The filename specified will be overwritten automatically.
+        """
 
         try:
             self.results.to_csv(outfilename, index=False)

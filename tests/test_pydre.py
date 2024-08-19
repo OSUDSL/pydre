@@ -13,7 +13,6 @@ class WritableObject:
 
 
 class TestPydre(unittest.TestCase):
-
     def setUp(self):
         # self.whatever to access them in the rest of the script, runs before other scripts
         self.projectlist = ["test1_pf.json"]

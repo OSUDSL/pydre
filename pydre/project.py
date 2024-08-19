@@ -2,6 +2,7 @@ import json
 import polars as pl
 import re
 import sys
+import os
 from typing import Dict, List
 import pydre.core
 import pydre.rois
@@ -143,7 +144,6 @@ class Project:
             logger.error(e.args)
             return []
 
-
     def processFilter(self, filter, dataset):
         """
         Handles running any filter definition
@@ -211,11 +211,11 @@ class Project:
             report_name = filter.pop("name")
             col_names = pydre.filters.filtersColNames[func_name]
         except KeyError as e:
-            logger.warning(
+            logger.error(
                 'Filter definitions require both "name" and "function". Malformed filters definition: missing '
                 + str(e)
             )
-            sys.exit(1)
+            raise e
 
         x = []
         if len(col_names) > 1:
@@ -329,7 +329,7 @@ class Project:
         metric_dict = dict()
         if len(col_names) > 1:
             x = [metric_func(dataset, **metric)]
-            report = pl.DataFrame(x, schema=col_names)
+            report = pl.DataFrame(x, schema=col_names, orient="row")
             for i in range(len(col_names)):
                 name = col_names[i - 1]
                 data = x[0][i]
@@ -392,7 +392,13 @@ class Project:
                 results = {}
                 for future in concurrent.futures.as_completed(futures):
                     arg = futures[future]
-                    results[arg] = future.result()
+                    try:
+                        results[arg] = future.result()
+                    except Exception as exc:
+                        executor.shutdown(cancel_futures=True)
+                        logger.critical('Unhandled Exception {}'.format(exc))
+                        sys.exit(1)
+
                     results_list.extend(future.result())
                     pbar.update(1)
         result_dataframe = pl.from_dicts(results_list)
@@ -409,12 +415,13 @@ class Project:
             for filter in self.definition["filters"]:
                 try:
                     self.processFilterSingle(filter, datafile)
-                except Exception:
+                except Exception as e:
                     logger.exception(
                         "Unhandled exception in {} while processing {}.".format(
                             filter, datafilename
                         )
                     )
+                    raise e
         if "rois" in self.definition:
             for roi in self.definition["rois"]:
                 try:
@@ -425,6 +432,7 @@ class Project:
                             roi, datafilename
                         )
                     )
+                    raise e
 
         else:
             # no ROIs to process, but that's OK
@@ -454,10 +462,11 @@ class Project:
                     result_dict.update(processed_metric)
                 except Exception as e:
                     logger.critical(
-                        "Unhandled exception {} in {} while processing {}.".format( e.args,
-                            metric, datafilename
+                        "Unhandled exception {} in {} while processing {}.".format(
+                            e.args, metric, datafilename
                         )
                     )
+                    raise e
             results_list.append(result_dict)
         return results_list
 

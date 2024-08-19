@@ -172,7 +172,8 @@ class ColumnROI:
         """
         return_list = []
         for ddata in datalist:
-            for gname, gdata in ddata.data.groupby(self.roi_column):
+            for gname, gdata in ddata.data.group_by(self.roi_column):
+                gname = gname[0]
                 if gname != pl.Null:
                     new_ddata = pydre.core.DriveData(gdata, ddata.sourcefilename)
                     new_ddata.copyMetaData(ddata)

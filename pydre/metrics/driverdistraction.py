@@ -1,4 +1,3 @@
-
 from loguru import logger
 import polars as pl
 import pydre.core
@@ -10,6 +9,7 @@ from scipy import signal
 
 # TODO: This whole file needs to be converted to use polars correctly instead of the pandas code that is here
 # I don't think any of these functions will work correctly
+
 
 @registerMetric()
 def getTaskNum(drivedata: pydre.core.DriveData):
@@ -53,9 +53,7 @@ def appendDFToCSV_void(df, csvFilePath: str, sep: str = ","):
             + str(len(pl.read_csv(csvFilePath, nrows=1, sep=sep).columns))
             + " columns."
         )
-    elif not (
-        df.columns == pl.read_csv(csvFilePath, nrows=1, sep=sep).columns
-    ).all():
+    elif not (df.columns == pl.read_csv(csvFilePath, nrows=1, sep=sep).columns).all():
         raise Exception(
             "Columns and column order of dataframe and csv file do not match!!"
         )
@@ -448,9 +446,7 @@ def speedbump2Gaze(drivedata: pydre.core.DriveData, timecolumn="DatTime", durati
     # dropped_instances = dropped_instances['TaskInstance'].drop_duplicates() # get all the task instances that contains a fail and needs to be dropped
     # df = df.loc[~df['TaskInstance'].isin(dropped_instances)] # drop all the failed task instances
 
-    event_s = pl.DataFrame(
-        df, columns=[timecolumn, "gazenum", "gaze", "KEY_EVENT_S"]
-    )
+    event_s = pl.DataFrame(df, columns=[timecolumn, "gazenum", "gaze", "KEY_EVENT_S"])
     event_s["diff"] = event_s["KEY_EVENT_S"].diff()
     event_s["s_begin"] = 0
     event_s.loc[event_s["diff"] == 1, "s_begin"] = (
