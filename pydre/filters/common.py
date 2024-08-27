@@ -36,7 +36,6 @@ def numberBinaryBlocks(
             )
     return drivedata
 
-
 @registerFilter()
 def SimTimeFromDatTime(drivedata: pydre.core.DriveData):
     drivedata.data = drivedata.data.with_columns(pl.col("DatTime").alias("SimTime"))

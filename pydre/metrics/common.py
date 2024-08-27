@@ -832,7 +832,10 @@ def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var: str):
 @registerMetric()
 def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1: str, var2: str):
     required_col = [var1, var2, "SimTime"]
-    diff = drivedata.checkColumns(required_col)
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
     break_reaction = reactionBrakeFirstTrue(drivedata, var1)
 
     if break_reaction:

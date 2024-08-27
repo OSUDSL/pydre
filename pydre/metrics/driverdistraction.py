@@ -7,18 +7,14 @@ import math
 from scipy import signal
 
 
-# TODO: This whole file needs to be converted to use polars correctly instead of the pandas code that is here
-# I don't think any of these functions will work correctly
-
+# These metrics were used in driving distraction evaluation. They have not been fully tested after conversion from
+# Pandas to Polars.
 
 @registerMetric()
 def getTaskNum(drivedata: pydre.core.DriveData):
     required_col = ["TaskNum"]
-    diff = drivedata.checkColumns(required_col)
-
-    taskNum = 0
-    df = drivedata.data
-    taskNum = df["TaskNum"].mode()
+    drivedata.checkColumnsNumeric(required_col)
+    taskNum = drivedata.data.get_column("TaskNum").mode()
     if len(taskNum) > 0:
         return taskNum[0]
     else:
@@ -28,21 +24,14 @@ def getTaskNum(drivedata: pydre.core.DriveData):
 @registerMetric("errorPresses")
 def numOfErrorPresses(drivedata: pydre.core.DriveData):
     required_col = ["SimTime", "TaskFail"]
-    diff = drivedata.checkColumns(required_col)
-
-    presses = 0
-    df = pl.DataFrame(drivedata.data, columns=(required_col))  # drop other columns
-    df = pl.DataFrame.drop_duplicates(
-        df.dropna(axis=0, how="any")
-    )  # remove nans and drop duplicates
-    p = ((df.TaskFail - df.TaskFail.shift(1)) > 0).sum()
-    presses += p
+    drivedata.checkColumnsNumeric(required_col)
+    df = drivedata.data.select(required_col)
+    df = df.unique(maintain_order=True).drop_nulls()
+    presses = df.select((pl.col("TaskFail").shift() != pl.col("TaskFail")) > 0).sum()
     return presses
 
 
 def appendDFToCSV_void(df, csvFilePath: str, sep: str = ","):
-    import os
-
     if not os.path.isfile(csvFilePath):
         df.to_csv(csvFilePath, mode="a", index=False, sep=sep)
     elif len(df.columns) != len(pl.read_csv(csvFilePath, nrows=1, sep=sep).columns):
@@ -71,40 +60,25 @@ def appendDFToCSV_void(df, csvFilePath: str, sep: str = ","):
 )
 def gazeNHTSA(drivedata: pydre.core.DriveData):
     required_col = ["VidTime", "gaze", "gazenum", "TaskFail", "taskblocks", "PartID"]
-    diff = drivedata.checkColumns(required_col)
+    drivedata.checkColumns(required_col)
 
     numofglances = 0
-    df = pl.DataFrame(drivedata.data, columns=(required_col))  # drop other columns
-    df = pl.DataFrame.drop_duplicates(
-        df.dropna(axis=0, how="any")
-    )  # remove nans and drop duplicates
+
+    df = drivedata.data.select(required_col).unique(maintain_order=True).drop_nulls()
 
     # construct table with columns [glanceduration, glancelocation, error]
-    gr = df.groupby("gazenum", sort=False)
-    durations = gr["VidTime"].max() - gr["VidTime"].min()
-    locations = gr["gaze"].first()
-    error_list = gr["TaskFail"].any()
+    gr = df.group_by("gazenum")
 
-    glancelist = pl.DataFrame(
-        {"duration": durations, "locations": locations, "errors": error_list}
-    )
-    glancelist["locations"].fillna("offroad", inplace=True)
-    glancelist["locations"].replace(
-        ["car.WindScreen", "car.dashPlane", "None"],
-        ["onroad", "offroad", "offroad"],
-        inplace=True,
-    )
+    glancelist = gr.agg(durations = (pl.col("VidTime").max() - pl.col("VidTime").min()),
+                        locations = pl.col("gaze").first().fill_null("offroad").replace(
+                            ["car.WindScreen", "car.dashPlane", "None"],
+                            ["onroad", "offroad", "offroad"]),
+                        error_list = pl.col("TaskFail").any(),
+                        TaskID=pl.col("TaskID").min(),
+                        taskblock=pl.col("taskblocks").min(),
+                        Subject = pl.col("PartID").min())
 
-    # print(d.columns.values)
-    # print("Task {}, Trial {}".format(d["TaskID"].min(), d["taskblocks"].min()))
-    # print(glancelist)
-
-    glancelist_aug = glancelist
-    glancelist_aug["TaskID"] = d["TaskID"].min()
-    glancelist_aug["taskblock"] = d["taskblocks"].min()
-    glancelist_aug["Subject"] = d["PartID"].min()
-
-    appendDFToCSV_void(glancelist_aug, "glance_list.csv")
+    #appendDFToCSV_void(glancelist_aug, "glance_list.csv")
 
     # table constructed, now find metrics
     # glancelist['over2s'] = glancelist['duration'] > 2

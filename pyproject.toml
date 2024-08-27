@@ -11,7 +11,7 @@ dependencies = [
     "loguru",
     "pandas" # hope we can remove this soon
 ]
-requires-python = ">= 3.9"
+requires-python = ">= 3.11"
 
 [tool.rye]
 managed = true
