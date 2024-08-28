@@ -11,13 +11,14 @@ import ntpath
 from pydre.metrics import *
 from pydre.filters import *
 import pathlib
+from pathlib import Path
 from loguru import logger
 from tqdm import tqdm
 import concurrent.futures
 
 
 class Project:
-    project_filename: pathlib.Path
+    project_filename: Path
     definition: dict
 
     def __init__(self, projectfilename: str):
@@ -59,8 +60,7 @@ class Project:
             new_def.append(v)
         return new_def
 
-    def __loadSingleFile(self, filename: str) -> pydre.core.DriveData:
-        file = ntpath.basename(filename)
+    def __loadSingleFile(self, filename: Path) -> pydre.core.DriveData:
         """Load a single .dat file (space delimited csv) into a DriveData object"""
         d = pl.read_csv(
             filename,
@@ -75,15 +75,15 @@ class Project:
         datafile_re_format1 = re.compile(
             "([^_]+)_([^_]+)_([^_]+)_(\\d+)(?:.*).dat"
         )  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
-        match_format0 = datafile_re_format0.search(filename)
+        match_format0 = datafile_re_format0.search(str(filename))
 
         if match_format0:
             experiment_name, subject_id, drive_id = match_format0.groups()
             drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
             return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
         elif (
-            match_format1 := datafile_re_format1.search(file)
-        ):  # assign bool value to var "match_format1", only available in python 3.8 or higher
+            match_format1 := datafile_re_format1.search(filename.name)
+        ):
             mode, subject_id, scen_name, unique_id = match_format1.groups()
             return pydre.core.DriveData.initV4(
                 d, filename, subject_id, unique_id, scen_name, mode
@@ -208,7 +208,7 @@ class Project:
     def __clean(self, string):
         return string.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
 
-    def run_par(self, datafilenames: list[str], numThreads: int = 12):
+    def processDatafiles(self, datafilenames: list[Path], numThreads: int = 12):
         """
         Args:
                 datafilenames: a list of filename strings (SimObserver .dat files)
@@ -251,7 +251,7 @@ class Project:
         self.results = result_dataframe
         return result_dataframe
 
-    def processSingleFile(self, datafilename):
+    def processSingleFile(self, datafilename: Path):
         logger.info("Loading file #{}: {}".format(len(self.raw_data), datafilename))
         datafile = self.__loadSingleFile(datafilename)
         roi_datalist = []
@@ -316,7 +316,7 @@ class Project:
             results_list.append(result_dict)
         return results_list
 
-    def save(self, outfilename="out.csv"):
+    def saveResults(self, outfilename: pathlib.Path):
         """
         Args:
             outfilename: filename to output csv data to.

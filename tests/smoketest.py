@@ -21,4 +21,4 @@ filelist = glob.glob(
     os.path.join(os.path.dirname(__file__), "testdata\Bushman1_Sub_*.dat")
 )
 p.run(filelist)
-p.save()
+p.saveResults()

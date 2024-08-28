@@ -1,10 +1,9 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 from loguru import logger
 import pydre.project
 import pydre.core
 import sys
 import os.path
+import pathlib
 import glob
 import argparse
 
@@ -48,6 +47,9 @@ p = pydre.project.Project(args.projectfile)
 # test the data files
 filelist = []
 for fn in args.datafiles:
-    filelist.extend(glob.glob(os.path.join(os.getcwd(), fn)))
-p.run_par(filelist, 12)
-p.save(args.outputfile)
+    # convert relative path to absolute path
+    datapath = pathlib.Path(fn).resolve()
+    datafiles = datapath.parent.glob(datapath.name)
+    filelist.extend(datafiles)
+p.processDatafiles(filelist, 12)
+p.saveResults(pathlib.Path(args.outputfile))
