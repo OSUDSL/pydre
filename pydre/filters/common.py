@@ -14,7 +14,9 @@ def numberBinaryBlocks(
     new_column="NumberedBlocks",
     only_on=0,
     fill_after_block=0,
+    extend_blocks=0,
 ):
+
     required_col = [binary_column]
     diff = drivedata.checkColumns(required_col)
 
@@ -23,7 +25,7 @@ def numberBinaryBlocks(
         .cum_sum()
         .alias(new_column)
     )
-    blocks.fill_null(strategy="forward", limit=fill_after_block)
+
     drivedata.data.hstack(blocks, in_place=True)
     if only_on:
         try:
@@ -34,6 +36,14 @@ def numberBinaryBlocks(
                     binary_column, drivedata.sourcefilename
                 )
             )
+
+    if extend_blocks:
+        drivedata.data = drivedata.data.with_columns(
+            pl.when(pl.col(binary_column) == 0).then(None).otherwise(pl.col(new_column)).alias(new_column)
+        )
+        drivedata.data = drivedata.data.with_columns(pl.col(new_column).fill_null(strategy="forward"))
+        drivedata.data = drivedata.data.filter(pl.col(new_column).is_not_null())
+
     return drivedata
 
 

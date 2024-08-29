@@ -350,6 +350,23 @@ def steeringReversalRate(drivedata: pydre.core.DriveData):
     reversal_rate = reversals / ((np.max(original_time) - np.min(original_time)) / 60)
     return reversal_rate
 
+@registerMetric()
+def throttleReactionTime(drivedata: pydre.core.DriveData):
+    required_col = ["FollowCarBrakingStatus", "LonAccel", "SimTime"]
+
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
+
+    df = drivedata.data.select(
+        [
+            pl.col("FollowingCarBrakeStatus"),
+            pl.col("SimTime"),
+            pl.col("LonAccel"),
+        ]
+    )
+
 
 # laneExits
 # Will compute the number of transitions from the lane number specified to (lane+1) or (lane-1)

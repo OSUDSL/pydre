@@ -14,7 +14,8 @@
               "function": "numberBinaryBlocks",
               "binary_column": "FollowCarBrakingStatus",
               "new_column": "carBlocks",
-              "only_on": 1
+              "only_on": 0,
+              "extend_blocks": 1
           }
       ],
   
@@ -23,6 +24,11 @@
       ],
   
       "metrics": [
+
+        {
+          "name": "throttleReactionTime",
+          "function": "throttleReactionTime"
+        },
           {
             "name": "R2DIDColumns",
             "function": "R2DIDColumns"
