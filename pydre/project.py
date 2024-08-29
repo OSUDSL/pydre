@@ -24,27 +24,39 @@ class Project:
     def __init__(self, projectfilename: str):
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
-        with open(self.project_filename, 'rb') as project_file:
+        with open(self.project_filename, "rb") as project_file:
             if self.project_filename.suffix == ".json":
                 try:
                     self.definition = json.load(project_file)
                 except json.decoder.JSONDecodeError as e:
-                    logger.exception("Error parsing JSON in {}".format(self.project_filename), exception=e)
+                    logger.exception(
+                        "Error parsing JSON in {}".format(self.project_filename),
+                        exception=e,
+                    )
                     # exited as a general error because it is seemingly best suited for the problem encountered
                     sys.exit(1)
             elif self.project_filename.suffix == ".toml":
                 try:
                     self.definition = tomllib.load(project_file)
                 except tomllib.TOMLDecodeError as e:
-                    logger.exception("Error parsing TOML in {}".format(self.project_filename), exception=e)
+                    logger.exception(
+                        "Error parsing TOML in {}".format(self.project_filename),
+                        exception=e,
+                    )
                 # convert toml to previous project structure:
                 new_definition = {}
                 if "rois" in self.definition.keys():
-                    new_definition["rois"] = Project.__restructureProjectDefinition(self.definition["rois"])
+                    new_definition["rois"] = Project.__restructureProjectDefinition(
+                        self.definition["rois"]
+                    )
                 if "metrics" in self.definition.keys():
-                    new_definition["metrics"] = Project.__restructureProjectDefinition(self.definition["metrics"])
+                    new_definition["metrics"] = Project.__restructureProjectDefinition(
+                        self.definition["metrics"]
+                    )
                 if "filters" in self.definition.keys():
-                    new_definition["filters"] = Project.__restructureProjectDefinition(self.definition["filters"])
+                    new_definition["filters"] = Project.__restructureProjectDefinition(
+                        self.definition["filters"]
+                    )
                 self.definition = new_definition
             else:
                 logger.error("Unsupported project file type")
@@ -56,7 +68,7 @@ class Project:
     def __restructureProjectDefinition(def_dict: dict) -> list:
         new_def = []
         for k, v in def_dict.items():
-            v['name'] = k
+            v["name"] = k
             new_def.append(v)
         return new_def
 
@@ -81,9 +93,7 @@ class Project:
             experiment_name, subject_id, drive_id = match_format0.groups()
             drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
             return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
-        elif (
-            match_format1 := datafile_re_format1.search(filename.name)
-        ):
+        elif match_format1 := datafile_re_format1.search(filename.name):
             mode, subject_id, scen_name, unique_id = match_format1.groups()
             return pydre.core.DriveData.initV4(
                 d, filename, subject_id, unique_id, scen_name, mode
@@ -203,7 +213,6 @@ class Project:
             metric_dict[report_name] = metric_func(dataset, **metric)
         return metric_dict
 
-
     # remove any parenthesis, quote mark and un-necessary directory names from a str
     def __clean(self, string):
         return string.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
@@ -242,7 +251,7 @@ class Project:
                         results[arg] = future.result()
                     except Exception as exc:
                         executor.shutdown(cancel_futures=True)
-                        logger.critical('Unhandled Exception {}'.format(exc))
+                        logger.critical("Unhandled Exception {}".format(exc))
                         sys.exit(1)
 
                     results_list.extend(future.result())

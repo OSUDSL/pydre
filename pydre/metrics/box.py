@@ -59,6 +59,7 @@ def percentBoxMisses(drivedata: pydre.core.DriveData):
     df = drivedata.data.select(pl.col("ReactionTime"))
     return (df.filter(pl.col("ReactionTime") < 0).height / df.height) * 100
 
+
 #
 # @registerMetric()
 # def boxMetrics(drivedata: pydre.core.DriveData, cutoff: float = 0, stat: str = "count"):

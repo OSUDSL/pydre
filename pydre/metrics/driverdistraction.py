@@ -10,6 +10,7 @@ from scipy import signal
 # These metrics were used in driving distraction evaluation. They have not been fully tested after conversion from
 # Pandas to Polars.
 
+
 @registerMetric()
 def getTaskNum(drivedata: pydre.core.DriveData):
     required_col = ["TaskNum"]
@@ -69,16 +70,22 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
     # construct table with columns [glanceduration, glancelocation, error]
     gr = df.group_by("gazenum")
 
-    glancelist = gr.agg(durations = (pl.col("VidTime").max() - pl.col("VidTime").min()),
-                        locations = pl.col("gaze").first().fill_null("offroad").replace(
-                            ["car.WindScreen", "car.dashPlane", "None"],
-                            ["onroad", "offroad", "offroad"]),
-                        error_list = pl.col("TaskFail").any(),
-                        TaskID=pl.col("TaskID").min(),
-                        taskblock=pl.col("taskblocks").min(),
-                        Subject = pl.col("PartID").min())
+    glancelist = gr.agg(
+        durations=(pl.col("VidTime").max() - pl.col("VidTime").min()),
+        locations=pl.col("gaze")
+        .first()
+        .fill_null("offroad")
+        .replace(
+            ["car.WindScreen", "car.dashPlane", "None"],
+            ["onroad", "offroad", "offroad"],
+        ),
+        error_list=pl.col("TaskFail").any(),
+        TaskID=pl.col("TaskID").min(),
+        taskblock=pl.col("taskblocks").min(),
+        Subject=pl.col("PartID").min(),
+    )
 
-    #appendDFToCSV_void(glancelist_aug, "glance_list.csv")
+    # appendDFToCSV_void(glancelist_aug, "glance_list.csv")
 
     # table constructed, now find metrics
     # glancelist['over2s'] = glancelist['duration'] > 2

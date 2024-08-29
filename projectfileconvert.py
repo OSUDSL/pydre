@@ -1,19 +1,19 @@
-
 from loguru import logger
 import json
 import pathlib
 import tomlkit
 
+
 def convertProjToToml(proj: dict) -> tomlkit.TOMLDocument:
     new_proj = tomlkit.TOMLDocument()
-    filters = proj.get('filters', [])
-    rois = proj.get('rois', [])
-    metrics = proj.get('metrics', [])
+    filters = proj.get("filters", [])
+    rois = proj.get("rois", [])
+    metrics = proj.get("metrics", [])
 
     if len(filters) > 0:
         filters_table = tomlkit.table(True)
         for filter in filters:
-            name = filter.pop('name', None)
+            name = filter.pop("name", None)
             f_tab = tomlkit.table()
             f_tab.update(filter)
             filters_table.add(name, f_tab)
@@ -33,12 +33,13 @@ def convertProjToToml(proj: dict) -> tomlkit.TOMLDocument:
     if len(metrics) > 0:
         metrics_table = tomlkit.table(True)
         for metric in metrics:
-            name = metric.pop('name', None)
+            name = metric.pop("name", None)
             m_tab = tomlkit.table()
             m_tab.update(metric)
             metrics_table.add(name, m_tab)
         new_proj.add("metrics", metrics_table)
     return new_proj
+
 
 def main():
     proj_dir = pathlib.Path("./project_files")
@@ -56,5 +57,5 @@ def main():
             tomlkit.dump(new_proj, fs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

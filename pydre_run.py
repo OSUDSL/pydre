@@ -16,7 +16,12 @@ def main():
         "-p", "--projectfile", type=str, help="the project file path", required=True
     )
     parser.add_argument(
-        "-d", "--datafiles", type=str, help="the data file path", nargs="+", required=True
+        "-d",
+        "--datafiles",
+        type=str,
+        help="the data file path",
+        nargs="+",
+        required=True,
     )
     parser.add_argument(
         "-o",
@@ -51,6 +56,7 @@ def main():
         filelist.extend(datafiles)
     p.processDatafiles(filelist, 12)
     p.saveResults(pathlib.Path(args.outputfile))
+
 
 if __name__ == "__main__":
     main()

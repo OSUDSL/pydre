@@ -36,6 +36,7 @@ def numberBinaryBlocks(
             )
     return drivedata
 
+
 @registerFilter()
 def SimTimeFromDatTime(drivedata: pydre.core.DriveData):
     drivedata.data = drivedata.data.with_columns(pl.col("DatTime").alias("SimTime"))
@@ -95,6 +96,7 @@ def zscoreCol(drivedata: pydre.core.DriveData, col: str, newcol: str):
     )
     return drivedata
 
+
 @registerFilter()
 def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: str):
     speedlimitpos = drivedata.data.select(
@@ -132,7 +134,6 @@ def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: s
     return drivedata
 
 
-
 @registerFilter()
 def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
     sourcefilename = Path(drivedata.sourcefilename).stem
@@ -158,5 +159,3 @@ def filetimeToDatetime(ft: int):
 
 def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack("Q", struct.pack("LL", lo, hi))[0]
-
-
