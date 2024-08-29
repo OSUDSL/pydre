@@ -9,9 +9,13 @@ dependencies = [
     "icecream",
     "tqdm",
     "loguru",
-    "pandas" # hope we can remove this soon
+    # hope we can remove this soon
+    "pandas"
 ]
 requires-python = ">= 3.11"
+
+[tool.setuptools]
+py-modules = []
 
 [tool.rye]
 managed = true

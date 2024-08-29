@@ -4,15 +4,18 @@ function = "SimTimeFromDatTime"
 [filters.FixReversedRoadLinearLand]
 function = "FixReversedRoadLinearLand"
 
-[filters.numberFollowingCarBrakes]
+[filters.relativeBoxPos]
+function = "relativeBoxPos"
+
+[filters.numberBoxBlocks]
 function = "numberBinaryBlocks"
-binary_column = "FollowCarBrakingStatus"
-new_column = "carBlocks"
+binary_column = "BoxStatus"
+new_column = "boxBlocks"
 only_on = 1
 
 [rois.roi1]
 type = "column"
-columnname = "carBlocks"
+columnname = "boxBlocks"
 
 [metrics.R2DIDColumns]
 function = "R2DIDColumns"
@@ -45,14 +48,14 @@ var = "RoadOffset"
 function = "colMin"
 var = "SimTime"
 
+[metrics.relBoxPos]
+function = "colMin"
+var = "relativeBoxStart"
+
 [metrics.startXPos]
 function = "colMin"
 var = "XPos"
 
 [metrics.reactionTime]
-function = "reactionBrakeFirstTrue"
-var = "Brake"
-
-[metrics.minHeadwayDistance]
-function = "colMin"
-var = "HeadwayDistance"
+function = "timeFirstTrue"
+var = "ResponseButton"
