@@ -13,7 +13,7 @@ def sliceByTime(
             begin: float defnining the start point of the slice
             end: float defining the end part of the slice
             column: which column in the drive_data frame to use for the time.  This is usually SimTime or VidTime.
-            drive_data: pandas DataFrame containing the data to be sliced
+            drive_data: polars DataFrame containing the data to be sliced
 
         returns:
             polars.DataFrame slice containing requested time slice

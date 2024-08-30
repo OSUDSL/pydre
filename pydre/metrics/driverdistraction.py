@@ -204,169 +204,172 @@ def speedLimitMatchTime(
         return time - sign_time
 
 
-@registerMetric(
-    columnnames=[
-        "total_time_onroad_glance",
-        "percent_onroad",
-        "avg_offroad",
-        "avg_onroad",
-    ]
-)
-def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
-    required_col = ["DatTime", "gaze", "gazenum", "TaskNum", "taskblocks", "PartID"]
-    diff = drivedata.checkColumns(required_col)
+# The following functions need to be revised to work with polars rather than pandas
 
-    numofglances = 0
-    df = pl.DataFrame(drivedata.data, columns=required_col)  # drop other columns
-    df = pl.DataFrame.drop_duplicates(
-        df.dropna(axis=0, how="any")
-    )  # remove nans and drop duplicates
-
-    if len(df) == 0:
-        return
-
-    # construct table with columns [glanceduration, glancelocation, error]
-    gr = df.groupby("gazenum", sort=False)
-    durations = gr["DatTime"].max() - gr["DatTime"].min()
-    locations = gr["gaze"].first()
-    error_list = gr["TaskNum"].any()
-
-    glancelist = pandas.DataFrame(
-        {"duration": durations, "locations": locations, "errors": error_list}
-    )
-    glancelist["locations"].fillna("offroad", inplace=True)
-    glancelist["locations"].replace(
-        ["car.WindScreen", "car.dashPlane", "None"],
-        ["onroad", "offroad", "offroad"],
-        inplace=True,
-    )
-
-    glancelist_aug = glancelist
-    glancelist_aug["TaskNum"] = drivedata.data["TaskNum"].min()
-    glancelist_aug["taskblock"] = drivedata.data["taskblocks"].min()
-    glancelist_aug["Subject"] = drivedata.data["PartID"].min()
-
-    appendDFToCSV_void(glancelist_aug, "glance_list.csv")
-
-    # table constructed, now find metrics
-
-    num_onroad_glances = glancelist[(glancelist["locations"] == "onroad")][
-        "duration"
-    ].count()
-
-    total_time_onroad_glances = glancelist[(glancelist["locations"] == "onroad")][
-        "duration"
-    ].sum()
-    percent_onroad = total_time_onroad_glances / (
-        df["DatTime"].max() - df["DatTime"].min()
-    )
-
-    mean_time_offroad_glances = glancelist[(glancelist["locations"] == "offroad")][
-        "duration"
-    ].mean()
-    mean_time_onroad_glances = glancelist[(glancelist["locations"] == "onroad")][
-        "duration"
-    ].mean()
-
-    return [
-        total_time_onroad_glances,
-        percent_onroad,
-        mean_time_offroad_glances,
-        mean_time_onroad_glances,
-    ]
-
-
-@registerMetric(
-    columnnames=["85th_percentile", "duration_mean", "duration_median", "duration_std"]
-)
-def speedbumpHondaGaze2(
-    drivedata: pydre.core.DriveData, timecolumn="DatTime", maxtasknum=5
-):
-    required_col = [
-        timecolumn,
-        "gaze",
-        "gazenum",
-        "TaskNum",
-        "TaskFail",
-        "TaskInstance",
-        "KEY_EVENT_T",
-        "KEY_EVENT_P",
-    ]
-    # filters.numberTaskInstances() is required.
-    # for now I just assume the input dataframe has a TaskInstance column
-    # diff = drivedata.checkColumns(required_col)
-
-    logger.warning("Processing Task {}".format(drivedata.data.TaskNum.mean()))
-    if drivedata.data.TaskNum.mean() == 0 or drivedata.data.TaskNum.mean() > maxtasknum:
-        return [None, None, None, None]
-    # if d.TaskNum.mean() == 4:
-    #    d.to_csv('4.csv')
-    df = pl.DataFrame(drivedata.data, columns=required_col)  # drop other columns
-    df = df.fillna(0)  # remove nans and drop duplicates
-
-    df["time_diff"] = df[
-        timecolumn
-    ].diff()  # get durations by calling time_column.diff()
-
-    df = df.loc[df.gaze != "onroad"]  # remove onroad rows
-    # df.to_csv('AAM_cp1.csv')
-    df = df.loc[
-        (df["TaskInstance"] != 0) & (df["TaskInstance"] != np.nan)
-    ]  # drop all rows that are not in any task instance
-    dropped_instances = df.loc[(df["TaskFail"] == 1)]
-    dropped_instances = (
-        dropped_instances["TaskInstance"].drop_duplicates()
-    )  # get all the task instances that contains a fail and needs to be dropped
-    df = df.loc[
-        ~df["TaskInstance"].isin(dropped_instances)
-    ]  # drop all the failed task instances
-    # df.to_csv('AAM_cp2.csv')
-
-    # get first 8 task instances
-    number_valid_instance = df["TaskInstance"].unique()
-    print(pl.unique(df.TaskInstance))
-    if len(number_valid_instance) > 8:
-        lowest_instance_no = number_valid_instance.min()
-        len_of_drop = len(
-            dropped_instances.loc[dropped_instances < (lowest_instance_no + 8)]
-        )
-        highest_instance_no = lowest_instance_no + 8 + len_of_drop
-        df = df.loc[
-            (df["TaskInstance"] < highest_instance_no)
-            & (df["TaskInstance"] >= lowest_instance_no)
-        ]
-        # logger.warning(highest_instance_no)
-        # logger.warning(lowest_instance_no)
-    elif len(number_valid_instance) < 8:
-        logger.warning(
-            "Not enough valid task instances. Found {}".format(
-                len(number_valid_instance)
-            )
-        )
-
-    # df = df[df.TaskInstance < 9] # only keep the glance data for the first eight task instances for each task per person.
-
-    # print(df)
-    # df.to_csv('df.csv')
-
-    group_by_gazenum = df.groupby("gazenum", sort=False)
-    durations_by_gazenum = group_by_gazenum.sum()
-    durations_by_gazenum = durations_by_gazenum.loc[
-        (durations_by_gazenum["time_diff"] != 0.0)
-    ]
-    # print(durations_by_gazenum)
-    percentile = np.percentile(
-        durations_by_gazenum.time_diff, 85
-    )  # find the 85th percentile value (A1)
-
-    group_by_instance = df.groupby("TaskInstance", sort=False)  # A2
-    durations_by_instance = group_by_instance.sum()
-    print(durations_by_instance)
-    sum_mean = (durations_by_instance.time_diff).mean()  # mean of duration sum
-    sum_median = (durations_by_instance.time_diff).median()  # median of duration sum
-    sum_std = (durations_by_instance.time_diff).std()  # std of duration sum
-
-    return [percentile, sum_mean, sum_median, sum_std]
+#
+# @registerMetric(
+#     columnnames=[
+#         "total_time_onroad_glance",
+#         "percent_onroad",
+#         "avg_offroad",
+#         "avg_onroad",
+#     ]
+# )
+# def speedbumpHondaGaze(drivedata: pydre.core.DriveData):
+#     required_col = ["DatTime", "gaze", "gazenum", "TaskNum", "taskblocks", "PartID"]
+#     diff = drivedata.checkColumns(required_col)
+#
+#     numofglances = 0
+#     df = pl.DataFrame(drivedata.data, columns=required_col)  # drop other columns
+#     df = pl.DataFrame.drop_duplicates(
+#         df.dropna(axis=0, how="any")
+#     )  # remove nans and drop duplicates
+#
+#     if len(df) == 0:
+#         return
+#
+#     # construct table with columns [glanceduration, glancelocation, error]
+#     gr = df.groupby("gazenum", sort=False)
+#     durations = gr["DatTime"].max() - gr["DatTime"].min()
+#     locations = gr["gaze"].first()
+#     error_list = gr["TaskNum"].any()
+#
+#     glancelist = pl.DataFrame(
+#         {"duration": durations, "locations": locations, "errors": error_list}
+#     )
+#     glancelist["locations"].fillna("offroad", inplace=True)
+#     glancelist["locations"].replace(
+#         ["car.WindScreen", "car.dashPlane", "None"],
+#         ["onroad", "offroad", "offroad"],
+#         inplace=True,
+#     )
+#
+#     glancelist_aug = glancelist
+#     glancelist_aug["TaskNum"] = drivedata.data["TaskNum"].min()
+#     glancelist_aug["taskblock"] = drivedata.data["taskblocks"].min()
+#     glancelist_aug["Subject"] = drivedata.data["PartID"].min()
+#
+#     appendDFToCSV_void(glancelist_aug, "glance_list.csv")
+#
+#     # table constructed, now find metrics
+#
+#     num_onroad_glances = glancelist[(glancelist["locations"] == "onroad")][
+#         "duration"
+#     ].count()
+#
+#     total_time_onroad_glances = glancelist[(glancelist["locations"] == "onroad")][
+#         "duration"
+#     ].sum()
+#     percent_onroad = total_time_onroad_glances / (
+#         df["DatTime"].max() - df["DatTime"].min()
+#     )
+#
+#     mean_time_offroad_glances = glancelist[(glancelist["locations"] == "offroad")][
+#         "duration"
+#     ].mean()
+#     mean_time_onroad_glances = glancelist[(glancelist["locations"] == "onroad")][
+#         "duration"
+#     ].mean()
+#
+#     return [
+#         total_time_onroad_glances,
+#         percent_onroad,
+#         mean_time_offroad_glances,
+#         mean_time_onroad_glances,
+#     ]
+#
+#
+# @registerMetric(
+#     columnnames=["85th_percentile", "duration_mean", "duration_median", "duration_std"]
+# )
+# def speedbumpHondaGaze2(
+#     drivedata: pydre.core.DriveData, timecolumn="DatTime", maxtasknum=5
+# ):
+#     required_col = [
+#         timecolumn,
+#         "gaze",
+#         "gazenum",
+#         "TaskNum",
+#         "TaskFail",
+#         "TaskInstance",
+#         "KEY_EVENT_T",
+#         "KEY_EVENT_P",
+#     ]
+#     # filters.numberTaskInstances() is required.
+#     # for now I just assume the input dataframe has a TaskInstance column
+#     # diff = drivedata.checkColumns(required_col)
+#
+#     logger.warning("Processing Task {}".format(drivedata.data.TaskNum.mean()))
+#     if drivedata.data.TaskNum.mean() == 0 or drivedata.data.TaskNum.mean() > maxtasknum:
+#         return [None, None, None, None]
+#     # if d.TaskNum.mean() == 4:
+#     #    d.to_csv('4.csv')
+#     df = pl.DataFrame(drivedata.data, columns=required_col)  # drop other columns
+#     df = df.fillna(0)  # remove nans and drop duplicates
+#
+#     df["time_diff"] = df[
+#         timecolumn
+#     ].diff()  # get durations by calling time_column.diff()
+#
+#     df = df.loc[df.gaze != "onroad"]  # remove onroad rows
+#     # df.to_csv('AAM_cp1.csv')
+#     df = df.loc[
+#         (df["TaskInstance"] != 0) & (df["TaskInstance"] != np.nan)
+#     ]  # drop all rows that are not in any task instance
+#     dropped_instances = df.loc[(df["TaskFail"] == 1)]
+#     dropped_instances = (
+#         dropped_instances["TaskInstance"].drop_duplicates()
+#     )  # get all the task instances that contains a fail and needs to be dropped
+#     df = df.loc[
+#         ~df["TaskInstance"].isin(dropped_instances)
+#     ]  # drop all the failed task instances
+#     # df.to_csv('AAM_cp2.csv')
+#
+#     # get first 8 task instances
+#     number_valid_instance = df["TaskInstance"].unique()
+#     print(pl.unique(df.TaskInstance))
+#     if len(number_valid_instance) > 8:
+#         lowest_instance_no = number_valid_instance.min()
+#         len_of_drop = len(
+#             dropped_instances.loc[dropped_instances < (lowest_instance_no + 8)]
+#         )
+#         highest_instance_no = lowest_instance_no + 8 + len_of_drop
+#         df = df.loc[
+#             (df["TaskInstance"] < highest_instance_no)
+#             & (df["TaskInstance"] >= lowest_instance_no)
+#         ]
+#         # logger.warning(highest_instance_no)
+#         # logger.warning(lowest_instance_no)
+#     elif len(number_valid_instance) < 8:
+#         logger.warning(
+#             "Not enough valid task instances. Found {}".format(
+#                 len(number_valid_instance)
+#             )
+#         )
+#
+#     # df = df[df.TaskInstance < 9] # only keep the glance data for the first eight task instances for each task per person.
+#
+#     # print(df)
+#     # df.to_csv('df.csv')
+#
+#     group_by_gazenum = df.groupby("gazenum", sort=False)
+#     durations_by_gazenum = group_by_gazenum.sum()
+#     durations_by_gazenum = durations_by_gazenum.loc[
+#         (durations_by_gazenum["time_diff"] != 0.0)
+#     ]
+#     # print(durations_by_gazenum)
+#     percentile = np.percentile(
+#         durations_by_gazenum.time_diff, 85
+#     )  # find the 85th percentile value (A1)
+#
+#     group_by_instance = df.groupby("TaskInstance", sort=False)  # A2
+#     durations_by_instance = group_by_instance.sum()
+#     print(durations_by_instance)
+#     sum_mean = (durations_by_instance.time_diff).mean()  # mean of duration sum
+#     sum_median = (durations_by_instance.time_diff).median()  # median of duration sum
+#     sum_std = (durations_by_instance.time_diff).std()  # std of duration sum
+#
+#     return [percentile, sum_mean, sum_median, sum_std]
 
 
 @registerMetric()

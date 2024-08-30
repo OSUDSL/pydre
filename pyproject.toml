@@ -1,6 +1,6 @@
 [project]
 name = "pydre"
-version = "2024.0.0"
+version = "24.0"
 readme = "readme.md"
 dependencies = [
     "polars",
@@ -8,9 +8,7 @@ dependencies = [
     "scipy",
     "icecream",
     "tqdm",
-    "loguru",
-    # hope we can remove this soon
-    "pandas"
+    "loguru"
 ]
 requires-python = ">= 3.11"
 

@@ -72,7 +72,7 @@ class Project:
             new_def.append(v)
         return new_def
 
-    def __loadSingleFile(self, filename: Path) -> pydre.core.DriveData:
+    def __load_single_datfile(self, filename: Path) -> pydre.core.DriveData:
         """Load a single .dat file (space delimited csv) into a DriveData object"""
         d = pl.read_csv(
             filename,
@@ -257,12 +257,17 @@ class Project:
                     results_list.extend(future.result())
                     pbar.update(1)
         result_dataframe = pl.from_dicts(results_list)
+        try:
+            result_dataframe = result_dataframe.sort(["Subject", "ScenarioName", "ROI"])
+        except Exception as e:
+            logger.warning("Can't sort results, must be missing a column.")
+
         self.results = result_dataframe
         return result_dataframe
 
     def processSingleFile(self, datafilename: Path):
         logger.info("Loading file #{}: {}".format(len(self.raw_data), datafilename))
-        datafile = self.__loadSingleFile(datafilename)
+        datafile = self.__load_single_datfile(datafilename)
         roi_datalist = []
         results_list = []
 
