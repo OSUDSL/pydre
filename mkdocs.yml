@@ -1,7 +1,15 @@
-site_name: pydre documentation
+site_name: Pydre documentation
 
-theme: 
-  name: readthedocs
+theme:
+  name: material
+  font:
+    text: BuckeyeSans
+  palette:
+    scheme: OSU
+extra_css:
+  - stylesheets/extra.css
+
+remote_name: GitHub
 
 nav:
   - Home: 'index.md'

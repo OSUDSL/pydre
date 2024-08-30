@@ -20,5 +20,6 @@ managed = true
 dev-dependencies = [
     "ptpython",
     "mkdocs>=1.6.0",
+    "mkdocs-material",
     "pytest>=8.3.2",
 ]
