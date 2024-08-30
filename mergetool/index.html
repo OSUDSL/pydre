@@ -1,0 +1,707 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../rois/">
+      
+      
+        <link rel="next" href="../developernotes/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.33">
+    
+    
+      
+        <title>Merge Tool - Pydre documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.3cba04c6.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#merge-tool" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Pydre documentation" class="md-header__button md-logo" aria-label="Pydre documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pydre documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Merge Tool
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Pydre documentation" class="md-nav__button md-logo" aria-label="Pydre documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Pydre documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pydre_run/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Running the software
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Metrics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metricStandards/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SAE Standards
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rois/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Regions of Interest
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Merge Tool
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Merge Tool
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#merge-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merge Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Merge Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sequential" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sequential
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatial" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spatial
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#testing-explanation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing Explanation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing Explanation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#results-and-expected" class="md-nav__link">
+    <span class="md-ellipsis">
+      Results and Expected
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developernotes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Developer Notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#merge-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merge Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Merge Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sequential" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sequential
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spatial" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spatial
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#testing-explanation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing Explanation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing Explanation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#results-and-expected" class="md-nav__link">
+    <span class="md-ellipsis">
+      Results and Expected
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="merge-tool">Merge Tool</h1>
+<p>Merge Tool is a program designed to effectively merge SimObserver data in the event that a
+participant's drive is interrupted. This often occurs due to study interruptions such as
+SimCreator shut downs. Merge Tools is run on these separate data files from the same participant's drives and
+merges them into one file to ensure a uniform presentation of the data. </p>
+<p>For example, if during a study, called 'ExampleProject', Participant 3's original drive 1 was interrupted<br />
+prematurely two times, there would be 3 separate data files created, with different drive IDs. These 
+drive files could be merged to create a single drive file for further processing.</p>
+<h2 id="merge-types">Merge Types</h2>
+<p>Merge Tool has two different kinds of merge options. This section will highlight each of them.</p>
+<h3 id="sequential">Sequential</h3>
+<p>Sequential Merge is a file merge based on time. Once all the files in the 
+<code>merge directory (-d)</code> have been processed by the program, Merge Tool will use the SimCreator's recorded
+<code>SimTime</code> metric to concatenate the files. This is accomplished by iterating 
+through every <code>SimTime</code> column, reading the last <code>SimTime</code> value of the current data file, and adding that
+value as a constant through the next data file's <code>SimTime</code> column. </p>
+<h3 id="spatial">Spatial</h3>
+<p>Spatial Merge is a file merge based on X &amp; Y coordinate positions. Much like the <code>Sequential</code>
+   merge, Spatial Merge will perform the same <code>SimTime</code> corrections as multiple drives for the same participant are merged.
+   However, along with the time correction, Spatial Merge also analyzes SimCreator's recorded <code>XPos</code> and <code>YPos</code> metrics.
+   <code>out_frame</code> is the variable name in which all the merged data will end up, before a csv is created. For every 
+   <code>next_frame</code> (files that comes after the first for the participant), the row with the minimum distance from the 
+   last position in <code>out_frame</code> will be the starting index of the data that is appended to <code>out_frame</code>.</p>
+<h2 id="usage">Usage</h2>
+<p>This section covers how Merge Tool is executed as well as the command line parameters that the user is expected to supply.
+   - Command Line execution
+        - Ran from where pydre is ran from
+        - Ex: <code>python pydre_merge.py -d 'exampleMergeDirectory' -t 'spatial or sequential'</code>
+   - Two Args. 
+        1. -d (DataFile directory). The directory to be merged, is occupied by multiple drives for at least one participant.
+        2. -t (Merge Type). Chosen as either "Spatial" or "Sequential", determines which type of merge will be performed.</p>
+<h2 id="testing">Testing</h2>
+<p>Within the <code>pydre</code> folder, there will be a <code>test</code> directory with a sub-directory called 
+<code>MergeTools</code>. This sub-directory contains all the materials for testing <code>pydre_merge.py</code>.
+To run the tests, navigate to the pydre module directory (top level) and use the command:
+<code>python -m unittest tests\MergeTools\test_merge.py</code>. </p>
+<h3 id="testing-explanation">Testing Explanation</h3>
+<ul>
+<li>
+<p>There are two, primary functions to test within <code>merge_tool.py</code>, one for each merge 
+          type (<code>Sequential</code> and <code>Spatial</code>). These two functions are found at (considering 
+          <code>pydre.merge_tool</code> as <code>p_merge</code>) <code>p_merge.MergeTool.sequential_merge()</code> and 
+          <code>p_merge.MergeTool.spatial_merge()</code>(see <code>Overview</code> above for merge-type
+           explanations).</p>
+</li>
+<li>
+<p>To properly test each of these, the testing functions must supply the two,
+          required parameters without using the command line (refer to <code>Usage</code> above).
+          Briefly, below will address how each argument is supplied in the testing. <br></p>
+</li>
+<li>
+<p>Merge Directory (-d) - Within <code>MergeTools\test_dats_to_merge\</code> there are a host of 
+directories. Each of these directories is unique per test
+case and will contain particular data files to simulate the 
+intended use of the program.</p>
+</li>
+<li>
+<p>Merge Type (-t) - Supplied as a string within the test case, unique to the target 
+<code>MergeTool()</code> function of the current test.</p>
+</li>
+</ul>
+<h4 id="results-and-expected">Results and Expected</h4>
+<p>This section will cover the results from running the program, the expected
+results, and how the two will be compared for the sake of testing.</p>
+<p>Results:</p>
+<p>After calling the target function (either <code>Sequential</code> or <code>Spatial</code>) with the two
+parameters from the test case, the program, after running successfully, will create
+a <code>.csv</code> file per participant found in the <code>Merge Directory (-d)</code>. This <code>.csv</code> file(s)
+can always be found in <code>MergeTools\test_dats_to_merge\current-dir\MergedData\</code>. With that, using the
+<code>pandas</code> module for Python, it is easy to recover the contents of the <code>.csv</code>.</p>
+<p>Expected:</p>
+<p>Within <code>MergeTools\expected_csv</code> there will be a sub-directory for every test.
+Each of these sub-directories will be named with the prefix <code>expected_</code> followed
+by the <code>Merge Directory (-d)</code> name. (Ex: with "-d test_dats_to_merge/ref_dir"
+the expected csv will be found at <code>MergeTools\expected_csv\expected_ref_dir\</code>).
+These directories and their contents must be prepared prior to testing, as these 
+<code>.csv</code> files' are recovered using <code>pandas</code> as well.</p>
+<p>With both the results and expected results in the testing program, the contents
+of both <code>.csv</code> files will be compared. In order for the <code>MergeTool()</code> function
+to pass the test, it must produce a <code>.csv</code> file that is exactly the same as the
+corresponding file found in <code>expected_csv</code>.</p>
+<p>Note: For streamlined testing, <code>MergedData</code> is completely removed after
+each test case. This ensures <code>test_merge.py</code> will have easy access to only the
+pertinent results of the current, running test case.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.af256bd8.min.js"></script>
+      
+    
+  </body>
+</html>
