@@ -1,5 +1,3 @@
-from __future__ import annotations  # needed for python < 3.9
-
 from typing import Optional
 
 import re
@@ -325,7 +323,7 @@ def stoppingDist(drivedata: pydre.core.DriveData, roadtravelposition="XPos") -> 
 
 
 @registerMetric()
-def maxdeceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
+def maxdeceleration(drivedata: pydre.core.DriveData, cutofflimit: float = 1) -> Optional[float]:
     """Returns the maximum deceleration value
 
     Parameters:
