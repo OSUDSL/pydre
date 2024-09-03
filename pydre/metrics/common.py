@@ -36,7 +36,13 @@ from scipy import signal
 
 
 # helper func - check if a series only contains 0
-def checkSeriesNan(series: pl.Series) -> bool:
+def _checkSeriesNan(series: pl.Series) -> bool:
+    """Check if a series has only 0
+
+    Returns:
+        True if series contains only 0, False otherwise
+
+    """
     unq = series.unique().sort()
     if unq.size == 1:
         if unq[0] == 0:
@@ -48,6 +54,20 @@ def checkSeriesNan(series: pl.Series) -> bool:
 def colMean(
     drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
 ) -> Optional[float]:
+    """Calculates the mean of the specified column
+
+    If `cutoff` is not `None`, then all values less than `cutoff` are ignored.
+    If column is not numeric, `None` is returned.
+
+    Parameters:
+        var: The column name to process. Must be numeric.
+        cutoff: Lower bound on data processed.
+
+    Returns:
+        Mean of selected column.
+            If `cutoff` is not `None`, then all values less than `cutoff` are ignored.
+            If column is not numeric, `None` is returned.
+    """
     try:
         drivedata.checkColumnsNumeric([var])
     except pl.exceptions.PolarsError:
@@ -66,6 +86,17 @@ def colMean(
 def colSD(
     drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
 ) -> Optional[float]:
+    """Calculates the standard deviation of the specified column
+
+    Parameters:
+        var: The column name to process. Must be numeric.
+        cutoff: Lower bound on data processed.
+
+    Returns:
+        Standard deviation of selected column.
+            If `cutoff` is not `None`, then all values less than `cutoff` are ignored.
+            If column is not numeric, `None` is returned.
+    """
     try:
         drivedata.checkColumnsNumeric([var])
     except pl.exceptions.PolarsError:
@@ -82,6 +113,14 @@ def colSD(
 
 @registerMetric()
 def colMax(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
+    """Calculates the maximum of the specified column
+
+    Parameters:
+        var: The column name to process. Must be numeric.
+
+    Returns:
+        Maximum value of selected column.
+    """
     try:
         drivedata.checkColumnsNumeric([var])
     except pl.exceptions.PolarsError:
@@ -91,6 +130,14 @@ def colMax(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
 
 @registerMetric()
 def colMin(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
+    """Calculates the minimum of the specified column
+
+    Parameters:
+        var: The column name to process. Must be numeric.
+
+    Returns:
+        Minimum value of selected column.
+    """
     try:
         drivedata.checkColumnsNumeric([var])
     except pl.exceptions.PolarsError:
@@ -99,7 +146,16 @@ def colMin(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
 
 
 @registerMetric()
-def colFirst(drivedata: pydre.core.DriveData, var: str):
+def colFirst(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
+    """Returns the first value of the specified column
+
+    Parameters:
+        var: The column name to process. Must be numeric.
+
+    Returns:
+        First value of selected column.
+    """
+
     try:
         drivedata.checkColumnsNumeric([var])
     except pl.exceptions.PolarsError:
@@ -108,7 +164,15 @@ def colFirst(drivedata: pydre.core.DriveData, var: str):
 
 
 @registerMetric()
-def colLast(drivedata: pydre.core.DriveData, var: str):
+def colLast(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
+    """Returns the last value of the specified column
+
+    Parameters:
+        var: The column name to process. Must be numeric.
+
+    Returns:
+        Last value of selected column.
+    """
     try:
         drivedata.checkColumnsNumeric([var])
     except pl.exceptions.PolarsError:
@@ -119,7 +183,21 @@ def colLast(drivedata: pydre.core.DriveData, var: str):
 @registerMetric()
 def timeAboveSpeed(
     drivedata: pydre.core.DriveData, cutoff: float = 0, percentage: bool = False
-):
+) -> Optional[float]:
+    """Returns the amount of seconds travelling above the specified speed
+
+    Parameters:
+        cutoff: Speed threshold value
+        percentage: If true, return the percentage of total time in the DriveData object where the speed was
+            above the cutoff.
+
+    Receives:
+        SimTime: Time in seconds
+        Velocity: Speed
+
+    Returns:
+        Number of seconds travelling above the specified speed.
+    """
     required_col = ["SimTime", "Velocity"]
     # to verify if column is numeric
     try:
@@ -150,9 +228,23 @@ def timeAboveSpeed(
 
 @registerMetric()
 def timeWithinSpeedLimit(
-    drivedata: pydre.core.DriveData, lowerlimit: int, percentage: bool = False
-):
-    required_col = ["SimTime", "Velocity"]
+    drivedata: pydre.core.DriveData, lowerlimit: float = 0, percentage: bool = False
+) -> Optional[float]:
+    """Returns the amount of seconds travelling below the speed limit
+
+    Parameters:
+        lowerlimit: Filter out all velocities lower than this value.
+        percentage: If true, return the percentage of total time in the DriveData object where the speed was under the limit
+
+    Receives:
+        SimTime: Time in seconds
+        Velocity: Speed in meters per second
+        SpeedLimit: Speed limit in miles per hour
+
+    Returns:
+        Number of seconds travelling above the specified speed.
+    """
+    required_col = ["SimTime", "Velocity", "SpeedLimit"]
     # to verify if column is numeric
     try:
         drivedata.checkColumnsNumeric(required_col)
@@ -188,11 +280,27 @@ def timeWithinSpeedLimit(
 
 
 @registerMetric()
-def stoppingDist(drivedata: pydre.core.DriveData, roadtravelposition="XPos"):
+def stoppingDist(drivedata: pydre.core.DriveData, roadtravelposition="XPos") -> Optional[float]:
+    """Returns the position of the first complete stop of the vehicle, relative to the center position of the
+    DriveData object, as measured by the `roadtravelposition` column.
+
+    This metric is designed to be used with the position-based ROI to define ROIs that have the stop line for a
+    stop sign or stop light as the middle value in the direction of travel.
+
+    Parameters:
+        roadtravelposition: column name of increasing distance of travel, in meters
+
+    Receives:
+        Velocity: Speed in meters per second
+
+    Returns:
+        Number of meters the detected stop is away from the stop line. If no stops detected, return `10000`
+    """
     required_col = [roadtravelposition, "Velocity"]
-    # to verify if column is numeric
-    drivedata.checkColumnsNumeric(required_col)
-    drivedata.checkColumns(required_col)
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
 
     df = drivedata.data.select([pl.col(roadtravelposition), pl.col("Velocity")])
     if df.height == 0:
@@ -209,7 +317,7 @@ def stoppingDist(drivedata: pydre.core.DriveData, roadtravelposition="XPos"):
 
     if velocities.height == 0:
         # hard coding a "bad" value for stopposition if vehicle never stopped
-        stopposition = lineposition + 15
+        return 10000
     else:
         # finding the furthest position where velocity was close to zero
         stopposition = velocities.item(velocities.height - 1, 0)
@@ -218,10 +326,24 @@ def stoppingDist(drivedata: pydre.core.DriveData, roadtravelposition="XPos"):
 
 @registerMetric()
 def maxdeceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
-    required_col = ["LonAccel", "Velocity", "SimTime"]
+    """Returns the maximum deceleration value
+
+    Parameters:
+        cutofflimit: all rows with velocities less than this value will be removed
+
+    Receives:
+        LonAccel: Acceleration value in the direction of travel, in meters per second per second
+        Velocity: Speed in meters per second
+
+    Returns:
+        maximum negative acceleration value (i.e. minimum acceleration value)
+    """
+    required_col = ["LonAccel", "Velocity"]
     # to verify if column is numeric
-    drivedata.checkColumnsNumeric(required_col)
-    drivedata.checkColumns(required_col)
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
 
     df = drivedata.data.select([pl.col("LonAccel"), pl.col("Velocity")])
 
@@ -237,15 +359,27 @@ def maxdeceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
 
 @registerMetric()
 def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
-    required_col = ["LonAccel", "Velocity", "SimTime"]
+    """Returns the maximum acceleration value
+
+    Parameters:
+        cutofflimit: all rows with velocities less than this value will be removed
+
+    Receives:
+        LonAccel: Acceleration value in the direction of travel, in meters per second per second
+        Velocity: Speed in meters per second
+
+    Returns:
+        maximum acceleration value
+    """
+    required_col = ["LonAccel", "Velocity"]
     # to verify if column is numeric
-    drivedata.checkColumnsNumeric(required_col)
-    drivedata.checkColumns(required_col)
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
 
     df = drivedata.data.select([pl.col("LonAccel"), pl.col("Velocity")])
-
     dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
-
     accel = dfupdated.filter(dfupdated.get_column("LonAccel") > 0)
     maxaccel = accel.filter(
         accel.get_column("LonAccel") == accel.get_column("LonAccel").max()
@@ -279,7 +413,7 @@ def numbrakes(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
     return numberofbrakes
 
 
-def calculateReversals(df):
+def _calculateReversals(df):
     k = 1
     n = 0
     threshold = 0.0523598776 * 2
@@ -346,9 +480,9 @@ def steeringReversalRate(drivedata: pydre.core.DriveData):
     set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
 
     # calculate total reversals
-    n_upwards = calculateReversals(set_of_i[:, 1])
+    n_upwards = _calculateReversals(set_of_i[:, 1])
     set_of_i_down = np.multiply(set_of_i[:, 1], -1)
-    n_downwards = calculateReversals(set_of_i_down)
+    n_downwards = _calculateReversals(set_of_i_down)
     reversals = n_upwards + n_downwards
 
     # reversal rate as reversals/ minute

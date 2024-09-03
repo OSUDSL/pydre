@@ -21,5 +21,6 @@ dev-dependencies = [
     "ptpython",
     "mkdocs>=1.6.0",
     "mkdocs-material",
+    "mkdocstrings[python]",
     "pytest>=8.3.2",
 ]

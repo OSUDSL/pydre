@@ -9,13 +9,29 @@ theme:
 extra_css:
   - stylesheets/extra.css
 
+plugins:
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        options:
+          show_root_heading: false
+          show_source: false
+          separate_signature: true
+          show_signature_annotations: true
+          signature_crossrefs: true
+        import:
+          - https://docs.python-requests.org/en/master/objects.inv
+
 remote_name: GitHub
 
 nav:
   - Home: 'index.md'
-  - Running the software: 'pydre_run.md'
-  - Metrics: 'metrics.md'
-  - SAE Standards: 'metricStandards.md'
-  - Regions of Interest: 'rois.md'
-  - Merge Tool: 'mergetool.md'
-  - Developer Notes: 'developernotes.md'
+  - Tutorial:
+      - Getting Started: 'tutorial/pydre_run.md'
+  - Reference:
+    - Metrics: 'reference/metrics.md'
+    - SAE Standards: 'reference/metricStandards.md'
+  - Explanation:
+    - Regions of Interest: 'explanation/rois.md'
+    - Developer Notes: 'explanation/developernotes.md'
