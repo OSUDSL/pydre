@@ -12,8 +12,8 @@ dependencies = [
 ]
 requires-python = ">= 3.11"
 
-[tool.setuptools]
-py-modules = []
+[project.scripts]
+pydre-run = 'pydre:run.py'
 
 [tool.rye]
 managed = true
@@ -24,3 +24,11 @@ dev-dependencies = [
     "mkdocstrings[python]",
     "pytest>=8.3.2",
 ]
+
+# Build System
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pydre"]

@@ -28,26 +28,6 @@ from scipy import signal
 #
 #     return timestepID
 
-
-# def findFirstTimeOutside(drivedata: pydre.core.DriveData, area: list[float] = (0, 0, 10000, 10000)):
-# TODO: implement with selection and .head(1)
-
-
-# helper func - check if a series only contains 0
-def _checkSeriesNan(series: pl.Series) -> bool:
-    """Check if a series has only 0
-
-    Returns:
-        True if series contains only 0, False otherwise
-
-    """
-    unq = series.unique().sort()
-    if unq.size == 1:
-        if unq[0] == 0:
-            return True
-    return False
-
-
 @registerMetric()
 def colMean(
     drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
@@ -254,7 +234,7 @@ def timeWithinSpeedLimit(
             pl.col("SimTime"),
             pl.col("Velocity"),
             pl.col("Velocity").mul(2.23694).alias("VelocityMPH"),
-            pl.col("SimTime").diff().clip_min(0).alias("Duration"),
+            pl.col("SimTime").diff().clip(lower_bound=0).alias("Duration"),
             pl.col("SpeedLimit"),
         ]
     )
@@ -387,11 +367,25 @@ def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
 
 
 @registerMetric()
-def numbrakes(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
-    required_col = ["Brake"]
+def numbrakes(drivedata: pydre.core.DriveData, cutofflimit: float = 1) -> Optional[float]:
+    """Returns the number of times the brakes were pressed
+
+    Parameters:
+        cutofflimit: minimum velocity at which braking should be considered
+
+    Receives:
+        BrakeStatus: Column indicating braking. 0: no braking, greater than 0: braking
+        Velocity: Speed
+
+    Returns:
+        number of separate braking events
+    """
+    required_col = ["Brake", "Velocity"]
     # to verify if column is numeric
-    drivedata.checkColumnsNumeric(required_col)
-    drivedata.checkColumns(required_col)
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
 
     df = drivedata.data.select(
         [
