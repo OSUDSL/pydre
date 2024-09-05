@@ -461,11 +461,12 @@ class Project:
                     processed_metric = self.processMetricSinglePar(metric, data)
                     result_dict.update(processed_metric)
                 except Exception as e:
-                    logger.critical(
-                        "Unhandled exception {} in {} while processing {}.".format(
-                            e.args, metric, datafilename
-                        )
-                    )
+                    #logger.critical(
+                    #    "Unhandled exception {} in {} while processing {}.".format(
+                    #        e, metric, datafilename
+                    #    )
+                    #)
+                    logger.exception(e)
                     raise e
             results_list.append(result_dict)
         return results_list

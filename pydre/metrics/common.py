@@ -352,7 +352,7 @@ def steeringReversalRate(drivedata: pydre.core.DriveData):
 
 @registerMetric()
 def throttleReactionTime(drivedata: pydre.core.DriveData):
-    required_col = ["FollowCarBrakingStatus", "LonAccel", "SimTime"]
+    required_col = ["FollowCarBrakingStatus", "LonAccel", "SimTime", "Brake"]
 
     try:
         drivedata.checkColumnsNumeric(required_col)
@@ -361,11 +361,33 @@ def throttleReactionTime(drivedata: pydre.core.DriveData):
 
     df = drivedata.data.select(
         [
-            pl.col("FollowingCarBrakeStatus"),
+            pl.col("FollowCarBrakingStatus"),
             pl.col("SimTime"),
             pl.col("LonAccel"),
+            pl.col("Brake"),
         ]
     )
+
+    if df.height < 1:
+        return None
+
+    initial_time = df.get_column("SimTime").item(0)
+
+    try:
+        time_braking_stopped = df.filter(df.get_column("Brake") > 0).get_column("SimTime").item(-1)
+    except IndexError:
+        return None
+
+    df_after_brake = df.filter(pl.col("SimTime") > time_braking_stopped)
+
+    try:
+        time_of_accel = df_after_brake.filter(pl.col("LonAccel") > 0).get_column("SimTime").item(0)
+    except IndexError:
+        return None
+
+    throttle_reaction_time = time_of_accel - initial_time
+
+    return throttle_reaction_time
 
 
 # laneExits
