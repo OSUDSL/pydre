@@ -1,33 +1,25 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-from __future__ import annotations  # needed for python < 3.9
-
 __all__ = ["common", "box", "driverdistraction"]
 
-import typing
-from typing import List
 from functools import partial, wraps
+from typing import Optional, List
 
-import logging
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 metricsList = {}
 metricsColNames = {}
 
-
-def registerMetric(jsonname=None, columnnames=None):
+def registerMetric(metricname: Optional[str] =None, columnnames: Optional[List[str]]=None):
     def registering_decorator(func):
-        jname = jsonname
-        if not jname:
-            jname = func.__name__
+        name = metricname
+        if not metricname:
+            name = func.__name__
         # register function
-        metricsList[jname] = func
+        metricsList[name] = func
         if columnnames:
-            metricsColNames[jname] = columnnames
+            metricsColNames[name] = columnnames
         else:
-            metricsColNames[jname] = [
-                jname,
+            metricsColNames[name] = [
+                name,
             ]
         return func
 

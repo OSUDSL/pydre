@@ -1,3 +1,6 @@
+import pathlib
+from os import PathLike
+
 import pydre.core
 import polars as pl
 import re
@@ -32,7 +35,7 @@ def sliceByTime(
 
 
 class TimeROI:
-    def __init__(self, filename, nameprefix=""):
+    def __init__(self, filename: str | pathlib.Path, nameprefix: str =""):
         # parse time filename values
 
         pl_rois = pl.read_csv(filename)
@@ -92,7 +95,7 @@ class TimeROI:
 
 
 class SpaceROI:
-    def __init__(self, filename, nameprefix=""):
+    def __init__(self, filename: str | pathlib.Path, nameprefix=""):
         # parse time filename values
         # roi_info is a data frame containing the cutoff points for the region in each row.
         # It's columns must be roi, X1, X2, Y1, Y2

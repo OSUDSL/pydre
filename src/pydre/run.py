@@ -1,15 +1,10 @@
 from loguru import logger
-import pydre.project
-import pydre.core
+from . import project
 import sys
-import os.path
 import pathlib
-import glob
 import argparse
 
-
 def main():
-    global parser, args, p
     parser = argparse.ArgumentParser()
     # command line arguments for project file (pf) and data file (df)
     parser.add_argument(
@@ -46,7 +41,7 @@ def main():
         logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
     if args.outputfile == "out.csv":
         logger.warning("No output file specified. Defaulting to 'out.csv'")
-    p = pydre.project.Project(args.projectfile)
+    p = project.Project(args.projectfile)
     # test the data files
     filelist = []
     for fn in args.datafiles:
