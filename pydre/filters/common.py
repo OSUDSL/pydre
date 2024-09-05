@@ -13,7 +13,7 @@ def numberBinaryBlocks(
     binary_column="ButtonStatus",
     new_column="NumberedBlocks",
     only_on=0,
-    fill_after_block=0,
+    limit_fill_null=700,
     extend_blocks=0,
 ):
 
@@ -41,7 +41,7 @@ def numberBinaryBlocks(
         drivedata.data = drivedata.data.with_columns(
             pl.when(pl.col(binary_column) == 0).then(None).otherwise(pl.col(new_column)).alias(new_column)
         )
-        drivedata.data = drivedata.data.with_columns(pl.col(new_column).fill_null(strategy="forward"))
+        drivedata.data = drivedata.data.with_columns(pl.col(new_column).fill_null(strategy="forward", limit=limit_fill_null))
         drivedata.data = drivedata.data.filter(pl.col(new_column).is_not_null())
 
     return drivedata

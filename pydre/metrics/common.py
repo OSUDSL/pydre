@@ -365,6 +365,7 @@ def throttleReactionTime(drivedata: pydre.core.DriveData):
             pl.col("SimTime"),
             pl.col("LonAccel"),
             pl.col("Brake"),
+            pl.col("Throttle")
         ]
     )
 
@@ -374,19 +375,22 @@ def throttleReactionTime(drivedata: pydre.core.DriveData):
     initial_time = df.get_column("SimTime").item(0)
 
     try:
-        time_braking_stopped = df.filter(df.get_column("Brake") > 0).get_column("SimTime").item(-1)
+        df = df.filter(pl.col("SimTime") > df.filter(pl.col("Brake") > 3.0).get_column("SimTime").item(0))
     except IndexError:
+        logger.warning(f'No braking detected for roi {drivedata.roi} in file {drivedata.sourcefilename}')
         return None
 
-    df_after_brake = df.filter(pl.col("SimTime") > time_braking_stopped)
+    df_after_brake = df.filter(pl.col("Brake") == 0)
 
+    if drivedata.roi == "5":
+        x = 5
     try:
         time_of_accel = df_after_brake.filter(pl.col("LonAccel") > 0).get_column("SimTime").item(0)
     except IndexError:
+        logger.warning(f'No subsequent acceleration detected for roi {drivedata.roi} in file {drivedata.sourcefilename}')
         return None
 
     throttle_reaction_time = time_of_accel - initial_time
-
     return throttle_reaction_time
 
 
