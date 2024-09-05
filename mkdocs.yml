@@ -33,7 +33,7 @@ markdown_extensions:
 nav:
   - Home: 'index.md'
   - Tutorial:
-      - Getting Started: 'tutorial/pydre_run.md'
+      - Getting Started: 'tutorial/getting_started.md'
   - Reference:
     - Metrics: 'reference/metrics.md'
     - SAE Standards: 'reference/metricStandards.md'

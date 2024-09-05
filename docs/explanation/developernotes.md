@@ -1,3 +1,20 @@
+# Developer notes
+
+If you want to create your own metrics or filters, we recommend
+setting up a local development environment. 
+
+The recommended way to set up your local 
+environment to run Pydre is to use [Rye](https://rye.astral.sh/):
+
+1. Install Rye.
+2. Either clone the Git repository to a local directory or unzip a release package of Pydre
+3. Navigate to the Pydre directory in the terminal.
+4. Run `rye sync`
+
+This will download the appropriate python packages needed to run Pydre.
+
+
+
 # pydre/core.py
 
 This script contains code that is intergral to the pydre module
