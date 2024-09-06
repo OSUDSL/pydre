@@ -1,15 +1,15 @@
 __all__ = ["common", "box", "driverdistraction"]
 
-from functools import partial, wraps
-from typing import Optional, List
+from functools import wraps
+from typing import Optional, Callable
 
 from loguru import logger
 
 metricsList = {}
 metricsColNames = {}
 
-def registerMetric(metricname: Optional[str] =None, columnnames: Optional[List[str]]=None):
-    def registering_decorator(func):
+def registerMetric(metricname: Optional[str] =None, columnnames: Optional[list[str]]=None) -> Callable:
+    def registering_decorator(func: Callable) -> Callable:
         name = metricname
         if not metricname:
             name = func.__name__

@@ -4,6 +4,7 @@ import re
 import polars as pl
 from polars import exceptions
 import pydre.core
+from pydre.core import ColumnsMatchError
 from pydre.metrics import registerMetric
 from loguru import logger
 import numpy as np
@@ -48,7 +49,7 @@ def colMean(
     """
     try:
         drivedata.checkColumnsNumeric([var])
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
     if cutoff is not None:
         return (
@@ -77,7 +78,7 @@ def colSD(
     """
     try:
         drivedata.checkColumnsNumeric([var])
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
     if cutoff is not None:
         return (
@@ -101,7 +102,7 @@ def colMax(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
     """
     try:
         drivedata.checkColumnsNumeric([var])
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
     return drivedata.data.get_column(var).max()
 
@@ -118,7 +119,7 @@ def colMin(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
     """
     try:
         drivedata.checkColumnsNumeric([var])
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
     return drivedata.data.get_column(var).min()
 
@@ -136,7 +137,7 @@ def colFirst(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
 
     try:
         drivedata.checkColumnsNumeric([var])
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
     return drivedata.data.get_column(var).head(1).item()
 
@@ -153,7 +154,7 @@ def colLast(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
     """
     try:
         drivedata.checkColumnsNumeric([var])
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
     return drivedata.data.get_column(var).tail(1).item()
 
@@ -180,7 +181,7 @@ def timeAboveSpeed(
     # to verify if column is numeric
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
     drivedata.checkColumns(required_col)
 
@@ -226,7 +227,7 @@ def timeWithinSpeedLimit(
     # to verify if column is numeric
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
 
     df = drivedata.data.select(
@@ -277,7 +278,7 @@ def stoppingDist(drivedata: pydre.core.DriveData, roadtravelposition="XPos") -> 
     required_col = [roadtravelposition, "Velocity"]
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
 
     df = drivedata.data.select([pl.col(roadtravelposition), pl.col("Velocity")])
@@ -320,7 +321,7 @@ def maxdeceleration(drivedata: pydre.core.DriveData, cutofflimit: float = 1) -> 
     # to verify if column is numeric
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
 
     df = drivedata.data.select([pl.col("LonAccel"), pl.col("Velocity")])
@@ -353,7 +354,7 @@ def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
     # to verify if column is numeric
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
 
     df = drivedata.data.select([pl.col("LonAccel"), pl.col("Velocity")])
@@ -384,7 +385,7 @@ def numbrakes(drivedata: pydre.core.DriveData, cutofflimit: float = 1) -> Option
     # to verify if column is numeric
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
 
     df = drivedata.data.select(
@@ -919,7 +920,7 @@ def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
     required_col = [var, "SimTime"]
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
 
     try:
@@ -944,7 +945,7 @@ def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var: str):
     required_col = [var, "SimTime"]
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
 
     try:
@@ -965,7 +966,7 @@ def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1: str, var2: str)
     required_col = [var1, var2, "SimTime"]
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
     break_reaction = reactionBrakeFirstTrue(drivedata, var1)
 
@@ -1012,7 +1013,7 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff=1, steer_cutoff=0
     # to verify if column is numeric
     try:
         drivedata.checkColumnsNumeric(required_col)
-    except pl.exceptions.PolarsError:
+    except ColumnsMatchError:
         return None
 
     df = drivedata.data.select(

@@ -1,11 +1,23 @@
 import pathlib
 from os import PathLike
+from abc import ABCMeta, abstractmethod
 
 import pydre.core
 import polars as pl
 import re
 from loguru import logger
 from collections.abc import Iterable
+
+class ROIProcessor(object, metaclass=ABCMeta):
+    roi_list = []
+
+    @abstractmethod
+    def __init__(self, filename: str | pathlib.Path, nameprefix: str =""):
+        pass
+
+    @abstractmethod
+    def split(self, datalist: list[pydre.core.DriveData]):
+        pass
 
 
 def sliceByTime(
@@ -26,7 +38,7 @@ def sliceByTime(
     """
     try:
         dataframeslice = drive_data.filter(
-            pl.col(column).is_between(begin, end, include_bounds=(True, False))
+            pl.col(column).is_between(begin, end, closed="left")
         )
     except KeyError:
         logger.error("Problem in applying Time ROI to using time column " + column)
@@ -34,10 +46,9 @@ def sliceByTime(
     return dataframeslice
 
 
-class TimeROI:
-    def __init__(self, filename: str | pathlib.Path, nameprefix: str =""):
+class TimeROI(ROIProcessor):
+    def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
         # parse time filename values
-
         pl_rois = pl.read_csv(filename)
         rois = []
         self.rois = {}
@@ -94,18 +105,17 @@ class TimeROI:
         return (first_time, second_time)
 
 
-class SpaceROI:
-    def __init__(self, filename: str | pathlib.Path, nameprefix=""):
+class SpaceROI(ROIProcessor):
+    x_column_name = "XPos"
+    y_column_name = "YPos"
+
+    def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
         # parse time filename values
         # roi_info is a data frame containing the cutoff points for the region in each row.
         # It's columns must be roi, X1, X2, Y1, Y2
-        pl_rois = pl.read_csv(filename)
-        self.roi_info = []
-        for r in pl_rois.rows(named=True):
-            if isinstance(r, dict):
-                self.roi_info.append(r)
-            elif isinstance(r, tuple):
-                self.roi_info.append(r._asdict())
+        pl_rois = pl.read_csv(filename, columns=["roi", "X1", "X2", "Y1", "Y2"], has_header=True)
+        # convert polars table into dictionary with 'roi' as the key and a dict as the value
+        self.roi_info = pl_rois.rows_by_key("roi", unique=True, named=True)
         self.name_prefix = nameprefix
 
     def split(self, datalist: list[pydre.core.DriveData]):
@@ -116,16 +126,16 @@ class SpaceROI:
         """
         return_list = []
 
-        for roi in self.roi_info:
+        for roi_name, roi_location in self.roi_info.items():
             for ddata in datalist:
-                xmin = min(roi.get("X1"), roi.get("X2"))
-                xmax = max(roi.get("X1"), roi.get("X2"))
-                ymin = min(roi.get("Y1"), roi.get("Y2"))
-                ymax = max(roi.get("Y1"), roi.get("Y2"))
+                xmin = min(roi_location.get("X1"), roi_location.get("X2"))
+                xmax = max(roi_location.get("X1"), roi_location.get("X2"))
+                ymin = min(roi_location.get("Y1"), roi_location.get("Y2"))
+                ymax = max(roi_location.get("Y1"), roi_location.get("Y2"))
 
                 region_data = ddata.data.filter(
-                    pl.col("XPos").cast(pl.Float32).is_between(xmin, xmax)
-                    & pl.col("YPos").cast(pl.Float32).is_between(ymin, ymax)
+                    pl.col(self.x_column_name).cast(pl.Float32).is_between(xmin, xmax)
+                    & pl.col(self.y_column_name).cast(pl.Float32).is_between(ymin, ymax)
                 )
 
                 if region_data.height == 0:
@@ -136,7 +146,7 @@ class SpaceROI:
                     #    self.roi_info.roi[i]))
                     logger.warning(
                         "No data for SubjectID: {}, Source: {},  ROI: {}".format(
-                            ddata.PartID, ddata.sourcefilename, roi
+                            ddata.PartID, ddata.sourcefilename, roi_name
                         )
                     )
                 else:
@@ -148,12 +158,12 @@ class SpaceROI:
                     #     ddata.sourcefilename))
                     logger.info(
                         "{} Line(s) read into ROI {} for Subject {} From file {}".format(
-                            region_data.height, roi, ddata.PartID, ddata.sourcefilename
+                            region_data.height, roi_name, ddata.PartID, ddata.sourcefilename
                         )
                     )
                 new_ddata = pydre.core.DriveData(region_data, ddata.sourcefilename)
                 new_ddata.copyMetaData(ddata)
-                new_ddata.roi = roi.get("roi")
+                new_ddata.roi = roi_name
                 return_list.append(new_ddata)
 
         return return_list
@@ -180,6 +190,6 @@ class ColumnROI:
                 if gname != pl.Null:
                     new_ddata = pydre.core.DriveData(gdata, ddata.sourcefilename)
                     new_ddata.copyMetaData(ddata)
-                    new_ddata.roi = gname
+                    new_ddata.roi = str(gname)
                     return_list.append(new_ddata)
         return return_list

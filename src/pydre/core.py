@@ -69,31 +69,30 @@ class DriveData:
     def checkColumns(self, required_columns: List[str]) -> None:
         difference = set(required_columns) - set(list(self.data.columns))
         if len(difference) > 0:
-            raise polars.exceptions.ColumnNotFoundError(
-                "Columns {} not found.".format(difference)
-            )
+            raise ColumnsMatchError(f"Columns {difference} not found.", list(difference))
 
-    def checkColumnsNumeric(self, columns: List[str]) -> Optional[List[str]]:
-        # check numeric for a list
-        # returns list with any columns from `columns` that are non-numeric
+    def checkColumnsNumeric(self, columns: List[str]) -> None:
+        """Scans data for required column. If columns do not exist or are not numeric, raise an exception.
+
+            args:
+                columns: List of required numeric columns.
+        """
         non_numeric = []
         for column in columns:
             if column in self.data:
                 to_check = self.data.get_column(column)
                 if not to_check.dtype.is_numeric():
-                    logger.warning(
+                    logger.info(
                         "col(" + column + ") is not numeric in " + self.sourcefilename
                     )
                     non_numeric.append(column)
             else:
-                logger.warning(
+                logger.info(
                     column + " in " + self.sourcefilename + " does not exist."
                 )
                 non_numeric.append(column)
         if len(non_numeric) > 0:
-            raise polars.exceptions.PolarsError(
-                "Columns {} not numeric.".format(non_numeric)
-            )
+            raise ColumnsMatchError(f"Columns {non_numeric} not numeric.", non_numeric)
 
 
 ## TODO: Update this to polars style.
@@ -143,29 +142,10 @@ class DriveData:
 
 # ------ exception handling ------
 
-
-def funcName():  #:return: name of caller
-    return sys._getframe(1).f_code.co_name
-
-    # @contextmanager
-    # def disable_exception_traceback():
-    """
-    All traceback information is suppressed and only the exception type and value are printed
-    """
-
-
-#    default_value = getattr(sys, "tracebacklimit", 1000)  # `1000` is Python's default value
-#    sys.tracebacklimit = 0
-#    yield
-#    sys.tracebacklimit = default_value  # revert changes
-
-# def columnException(drivedata, required_col):
-#    diff = drivedata.checkColumns(required_col)
-#    if (len(diff) > 0):
-#        with disable_exception_traceback():
-#            raise ColumnsMatchError("Can't find needed columns " + str(diff) + " in data file " + drivedata.sourcefilename)
-
-
 class ColumnsMatchError(Exception):
-    def __init__(self, missing_columns):
+    """Exception when a filter or metric expects a certain column in DriveData but it is not present or an unexpected type"""
+    default_message = "Columns in DriveData object not as expected."
+
+    def __init__(self, message: str, missing_columns: list[str]):
+        super().__init__(message or f"{self.default_message} {missing_columns}")
         self.missing_columns = missing_columns

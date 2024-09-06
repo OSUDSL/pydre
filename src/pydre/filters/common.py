@@ -2,6 +2,7 @@ import datetime
 import struct
 from loguru import logger
 from pathlib import Path
+from typing import Optional
 import polars as pl
 import pydre.core
 from . import registerFilter
@@ -14,7 +15,7 @@ def numberBinaryBlocks(
     new_column="NumberedBlocks",
     only_on=0,
     fill_after_block=0,
-):
+) -> pydre.core.DriveData:
     required_col = [binary_column]
     diff = drivedata.checkColumns(required_col)
 
@@ -38,13 +39,13 @@ def numberBinaryBlocks(
 
 
 @registerFilter()
-def SimTimeFromDatTime(drivedata: pydre.core.DriveData):
+def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
     drivedata.data = drivedata.data.with_columns(pl.col("DatTime").alias("SimTime"))
     return drivedata
 
 
 @registerFilter()
-def FixReversedRoadLinearLand(drivedata: pydre.core.DriveData):
+def FixReversedRoadLinearLand(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
     drivedata.data = drivedata.data.with_columns(
         pl.when(pl.col("XPos").cast(pl.Float32).is_between(700, 900))
         .then(-(pl.col("RoadOffset").cast(pl.Float32)))
@@ -62,7 +63,7 @@ def setinrange(
     colforrange: str,
     rangemin: float,
     rangemax: float,
-):
+) -> pydre.core.DriveData:
     drivedata.data = drivedata.data.with_columns(
         pl.when(pl.col(colforrange).cast(pl.Float32).is_between(rangemin, rangemax))
         .then(valtoset)
@@ -75,7 +76,7 @@ def setinrange(
 
 
 @registerFilter()
-def relativeBoxPos(drivedata: pydre.core.DriveData):
+def relativeBoxPos(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
     start_x = drivedata.data.get_column("XPos").min()
     drivedata.data = drivedata.data.with_columns(
         [
@@ -88,7 +89,7 @@ def relativeBoxPos(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
-def zscoreCol(drivedata: pydre.core.DriveData, col: str, newcol: str):
+def zscoreCol(drivedata: pydre.core.DriveData, col: str, newcol: str) -> pydre.core.DriveData:
     colMean = drivedata.data.get_column(col).mean()
     colSD = drivedata.data.get_column(col).std()
     drivedata.data = drivedata.data.with_columns(
@@ -98,7 +99,7 @@ def zscoreCol(drivedata: pydre.core.DriveData, col: str, newcol: str):
 
 
 @registerFilter()
-def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: str):
+def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: str) -> pydre.core.DriveData:
     speedlimitpos = drivedata.data.select(
         [
             (pl.col(speedlimitcol).shift() != pl.col(speedlimitcol)).alias(
@@ -135,15 +136,14 @@ def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: s
 
 
 @registerFilter()
-def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str):
+def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str) -> pydre.core.DriveData:
     sourcefilename = Path(drivedata.sourcefilename).stem
     outputfilename = Path(outputDirectory).with_stem(sourcefilename).with_suffix(".csv")
     drivedata.data.write_csv(outputfilename)
     return drivedata
 
 
-@registerFilter()
-def filetimeToDatetime(ft: int):
+def filetimeToDatetime(ft: int) -> Optional[datetime.datetime]:
     EPOCH_AS_FILETIME = 116444736000000000  # January 1, 1970 as filetime
     HUNDREDS_OF_NS = 10000000
     s, ns100 = divmod(ft - EPOCH_AS_FILETIME, HUNDREDS_OF_NS)
@@ -155,7 +155,6 @@ def filetimeToDatetime(ft: int):
         # happens when the input to fromtimestamp is outside of the legal range
         result = None
     return result
-
 
 def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack("Q", struct.pack("LL", lo, hi))[0]
