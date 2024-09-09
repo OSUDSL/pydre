@@ -18,6 +18,7 @@ plugins:
           show_root_heading: false
           show_source: false
           separate_signature: true
+          line_length: 100
           show_signature_annotations: true
           signature_crossrefs: true
         import:
@@ -27,6 +28,7 @@ remote_name: GitHub
 
 markdown_extensions:
   - admonition
+  - footnotes
   - pymdownx.details
   - pymdownx.superfences
 
@@ -35,8 +37,10 @@ nav:
   - Tutorial:
       - Getting Started: 'tutorial/getting_started.md'
   - Reference:
-    - Metrics: 'reference/metrics.md'
+    - Filter definitions: 'reference/filters.md'
+    - Metric definitions: 'reference/metrics.md'
     - SAE Standards: 'reference/metricStandards.md'
   - Explanation:
+    - Project files: 'explanation/project_files.md'
     - Regions of Interest: 'explanation/rois.md'
     - Developer Notes: 'explanation/developernotes.md'

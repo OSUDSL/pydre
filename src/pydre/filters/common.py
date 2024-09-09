@@ -46,6 +46,9 @@ def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
 
 @registerFilter()
 def FixReversedRoadLinearLand(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
+    """Fixes a section of reversed road in the LinearLand map
+
+    """
     drivedata.data = drivedata.data.with_columns(
         pl.when(pl.col("XPos").cast(pl.Float32).is_between(700, 900))
         .then(-(pl.col("RoadOffset").cast(pl.Float32)))
@@ -64,6 +67,19 @@ def setinrange(
     rangemin: float,
     rangemax: float,
 ) -> pydre.core.DriveData:
+    """Set values of one column based on the values of another column
+
+    If the value of *colforrange* is outside the range of (*rangemin*, *rangemax*), then
+    the value of *coltoset* will be unchanged. Otherwise, the value of *coltoset* will be changed to *valtoset*.
+
+    Parameters:
+        coltoset: The name of the column to modify
+        valtoset: The new value to set for the
+        colforrange: The name of the column to look up to decide to set a new value or not
+        rangemin: Minimum value of the range
+        rangemax: Maximum value of the range
+
+    """
     drivedata.data = drivedata.data.with_columns(
         pl.when(pl.col(colforrange).cast(pl.Float32).is_between(rangemin, rangemax))
         .then(valtoset)
@@ -92,6 +108,12 @@ def relativeBoxPos(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
 def zscoreCol(
     drivedata: pydre.core.DriveData, col: str, newcol: str
 ) -> pydre.core.DriveData:
+    """Transform a column into a standardized z-score column
+
+    Parameters:
+        col: The name of the column to transform
+        newcol: The name of the new z-score column
+    """
     colMean = drivedata.data.get_column(col).mean()
     colSD = drivedata.data.get_column(col).std()
     drivedata.data = drivedata.data.with_columns(

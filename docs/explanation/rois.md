@@ -13,6 +13,7 @@ Each region of interest is an area of data that the user is interested in examin
 
 For analysis, it is often useful to define ROIs in the data.  Pydre uses csv files to define spatial and temporal ROIs.
 The spatial regions are defined over the scenario course, while the temporal regions are defined per subject.
+This is due to their expected usages: Space ROIs are considered to be 
 
 #### Time ROI table format
 

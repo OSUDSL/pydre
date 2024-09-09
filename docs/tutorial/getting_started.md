@@ -1,6 +1,6 @@
 # Getting Started
 
-Pydre is a python application, run from the command line. 
+Pydre is a Python application, run from the command line. 
 
 # pydre.run
 
@@ -29,3 +29,6 @@ python -m pydre.run -p C:\Users\pveith\Documents\pydre\docs\bioptics.json
     -d C:\Users\pveith\Documents\bioptics\pydreDataSet\*.dat 
     -o bioptics.csv -l debug
 ```
+
+# Example data processing
+
