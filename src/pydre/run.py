@@ -4,6 +4,7 @@ import sys
 import pathlib
 import argparse
 
+
 def main():
     parser = argparse.ArgumentParser()
     # command line arguments for project file (pf) and data file (df)

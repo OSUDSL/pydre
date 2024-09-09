@@ -8,11 +8,12 @@ import re
 from loguru import logger
 from collections.abc import Iterable
 
+
 class ROIProcessor(object, metaclass=ABCMeta):
     roi_list = []
 
     @abstractmethod
-    def __init__(self, filename: str | pathlib.Path, nameprefix: str =""):
+    def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
         pass
 
     @abstractmethod
@@ -113,7 +114,9 @@ class SpaceROI(ROIProcessor):
         # parse time filename values
         # roi_info is a data frame containing the cutoff points for the region in each row.
         # It's columns must be roi, X1, X2, Y1, Y2
-        pl_rois = pl.read_csv(filename, columns=["roi", "X1", "X2", "Y1", "Y2"], has_header=True)
+        pl_rois = pl.read_csv(
+            filename, columns=["roi", "X1", "X2", "Y1", "Y2"], has_header=True
+        )
         # convert polars table into dictionary with 'roi' as the key and a dict as the value
         self.roi_info = pl_rois.rows_by_key("roi", unique=True, named=True)
         self.name_prefix = nameprefix
@@ -158,7 +161,10 @@ class SpaceROI(ROIProcessor):
                     #     ddata.sourcefilename))
                     logger.info(
                         "{} Line(s) read into ROI {} for Subject {} From file {}".format(
-                            region_data.height, roi_name, ddata.PartID, ddata.sourcefilename
+                            region_data.height,
+                            roi_name,
+                            ddata.PartID,
+                            ddata.sourcefilename,
                         )
                     )
                 new_ddata = pydre.core.DriveData(region_data, ddata.sourcefilename)

@@ -69,13 +69,15 @@ class DriveData:
     def checkColumns(self, required_columns: List[str]) -> None:
         difference = set(required_columns) - set(list(self.data.columns))
         if len(difference) > 0:
-            raise ColumnsMatchError(f"Columns {difference} not found.", list(difference))
+            raise ColumnsMatchError(
+                f"Columns {difference} not found.", list(difference)
+            )
 
     def checkColumnsNumeric(self, columns: List[str]) -> None:
         """Scans data for required column. If columns do not exist or are not numeric, raise an exception.
 
-            args:
-                columns: List of required numeric columns.
+        args:
+            columns: List of required numeric columns.
         """
         non_numeric = []
         for column in columns:
@@ -87,9 +89,7 @@ class DriveData:
                     )
                     non_numeric.append(column)
             else:
-                logger.info(
-                    column + " in " + self.sourcefilename + " does not exist."
-                )
+                logger.info(column + " in " + self.sourcefilename + " does not exist.")
                 non_numeric.append(column)
         if len(non_numeric) > 0:
             raise ColumnsMatchError(f"Columns {non_numeric} not numeric.", non_numeric)
@@ -142,8 +142,10 @@ class DriveData:
 
 # ------ exception handling ------
 
+
 class ColumnsMatchError(Exception):
     """Exception when a filter or metric expects a certain column in DriveData but it is not present or an unexpected type"""
+
     default_message = "Columns in DriveData object not as expected."
 
     def __init__(self, message: str, missing_columns: list[str]):

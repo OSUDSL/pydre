@@ -89,7 +89,9 @@ def relativeBoxPos(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
 
 
 @registerFilter()
-def zscoreCol(drivedata: pydre.core.DriveData, col: str, newcol: str) -> pydre.core.DriveData:
+def zscoreCol(
+    drivedata: pydre.core.DriveData, col: str, newcol: str
+) -> pydre.core.DriveData:
     colMean = drivedata.data.get_column(col).mean()
     colSD = drivedata.data.get_column(col).std()
     drivedata.data = drivedata.data.with_columns(
@@ -99,7 +101,9 @@ def zscoreCol(drivedata: pydre.core.DriveData, col: str, newcol: str) -> pydre.c
 
 
 @registerFilter()
-def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: str) -> pydre.core.DriveData:
+def speedLimitTransitionMarker(
+    drivedata: pydre.core.DriveData, speedlimitcol: str
+) -> pydre.core.DriveData:
     speedlimitpos = drivedata.data.select(
         [
             (pl.col(speedlimitcol).shift() != pl.col(speedlimitcol)).alias(
@@ -136,7 +140,9 @@ def speedLimitTransitionMarker(drivedata: pydre.core.DriveData, speedlimitcol: s
 
 
 @registerFilter()
-def writeToCSV(drivedata: pydre.core.DriveData, outputDirectory: str) -> pydre.core.DriveData:
+def writeToCSV(
+    drivedata: pydre.core.DriveData, outputDirectory: str
+) -> pydre.core.DriveData:
     sourcefilename = Path(drivedata.sourcefilename).stem
     outputfilename = Path(outputDirectory).with_stem(sourcefilename).with_suffix(".csv")
     drivedata.data.write_csv(outputfilename)
@@ -155,6 +161,7 @@ def filetimeToDatetime(ft: int) -> Optional[datetime.datetime]:
         # happens when the input to fromtimestamp is outside of the legal range
         result = None
     return result
+
 
 def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack("Q", struct.pack("LL", lo, hi))[0]

@@ -8,7 +8,10 @@ from loguru import logger
 metricsList = {}
 metricsColNames = {}
 
-def registerMetric(metricname: Optional[str] =None, columnnames: Optional[list[str]]=None) -> Callable:
+
+def registerMetric(
+    metricname: Optional[str] = None, columnnames: Optional[list[str]] = None
+) -> Callable:
     def registering_decorator(func: Callable) -> Callable:
         name = metricname
         if not metricname:

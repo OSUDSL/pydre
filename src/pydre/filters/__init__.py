@@ -6,7 +6,10 @@ __all__ = ["common", "eyetracking", "R2D"]
 filtersList = {}
 filtersColNames = {}
 
-def registerFilter(filtername: Optional[str] =None, columnnames: Optional[list[str]]=None) -> Callable:
+
+def registerFilter(
+    filtername: Optional[str] = None, columnnames: Optional[list[str]] = None
+) -> Callable:
     def registering_decorator(func) -> Callable:
         name = filtername
         if not name:

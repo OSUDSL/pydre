@@ -1,9 +1,11 @@
 import json
+
+import polars
 import polars as pl
 import re
 import sys
 import tomllib
-from typing import Dict, List
+from typing import Optional
 import pydre.core
 import pydre.rois
 import pydre.metrics
@@ -18,12 +20,14 @@ import concurrent.futures
 
 
 class Project:
-    project_filename: Path
+    project_filename: Path  # used only for information
     definition: dict
+    results: Optional[polars.DataFrame]
 
     def __init__(self, projectfilename: str):
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
+        self.results = None
         with open(self.project_filename, "rb") as project_file:
             if self.project_filename.suffix == ".json":
                 try:
@@ -63,6 +67,16 @@ class Project:
                 sys.exit(1)
 
         self.data = []
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return (
+                self.definition == other.definition
+                and self.data == other.data
+                and self.results == other.results
+            )
+        else:
+            return False
 
     @staticmethod
     def __restructureProjectDefinition(def_dict: dict) -> list:

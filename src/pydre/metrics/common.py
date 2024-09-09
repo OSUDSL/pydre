@@ -29,6 +29,7 @@ from scipy import signal
 #
 #     return timestepID
 
+
 @registerMetric()
 def colMean(
     drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
@@ -259,7 +260,9 @@ def timeWithinSpeedLimit(
 
 
 @registerMetric()
-def stoppingDist(drivedata: pydre.core.DriveData, roadtravelposition="XPos") -> Optional[float]:
+def stoppingDist(
+    drivedata: pydre.core.DriveData, roadtravelposition="XPos"
+) -> Optional[float]:
     """Returns the position of the first complete stop of the vehicle, relative to the center position of the
     DriveData object, as measured by the `roadtravelposition` column.
 
@@ -304,7 +307,9 @@ def stoppingDist(drivedata: pydre.core.DriveData, roadtravelposition="XPos") -> 
 
 
 @registerMetric()
-def maxdeceleration(drivedata: pydre.core.DriveData, cutofflimit: float = 1) -> Optional[float]:
+def maxdeceleration(
+    drivedata: pydre.core.DriveData, cutofflimit: float = 1
+) -> Optional[float]:
     """Returns the maximum deceleration value
 
     Parameters:
@@ -368,7 +373,9 @@ def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
 
 
 @registerMetric()
-def numbrakes(drivedata: pydre.core.DriveData, cutofflimit: float = 1) -> Optional[float]:
+def numbrakes(
+    drivedata: pydre.core.DriveData, cutofflimit: float = 1
+) -> Optional[float]:
     """Returns the number of times the brakes were pressed
 
     Parameters:
