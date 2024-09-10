@@ -489,6 +489,49 @@ def steeringReversalRate(drivedata: pydre.core.DriveData):
     reversal_rate = reversals / ((np.max(original_time) - np.min(original_time)) / 60)
     return reversal_rate
 
+@registerMetric()
+def throttleReactionTime(drivedata: pydre.core.DriveData):
+    required_col = ["FollowCarBrakingStatus", "LonAccel", "SimTime", "Brake"]
+
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
+
+    df = drivedata.data.select(
+        [
+            pl.col("FollowCarBrakingStatus"),
+            pl.col("SimTime"),
+            pl.col("LonAccel"),
+            pl.col("Brake"),
+            pl.col("Throttle")
+        ]
+    )
+
+    if df.height < 1:
+        return None
+
+    initial_time = df.get_column("SimTime").item(0)
+
+    try:
+        df = df.filter(pl.col("SimTime") > df.filter(pl.col("Brake") > 3.0).get_column("SimTime").item(0))
+    except IndexError:
+        logger.warning(f'No braking detected for roi {drivedata.roi} in file {drivedata.sourcefilename}')
+        return None
+
+    df_after_brake = df.filter(pl.col("Brake") == 0)
+
+    if drivedata.roi == "5":
+        x = 5
+    try:
+        time_of_accel = df_after_brake.filter(pl.col("LonAccel") > 0).get_column("SimTime").item(0)
+    except IndexError:
+        logger.warning(f'No subsequent acceleration detected for roi {drivedata.roi} in file {drivedata.sourcefilename}')
+        return None
+
+    throttle_reaction_time = time_of_accel - initial_time
+    return throttle_reaction_time
+
 
 # laneExits
 # Will compute the number of transitions from the lane number specified to (lane+1) or (lane-1)
