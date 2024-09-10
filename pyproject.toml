@@ -10,7 +10,7 @@ dependencies = [
     "tqdm",
     "loguru"
 ]
-requires-python = ">= 3.11"
+requires-python = ">= 3.12"
 
 [project.scripts]
 pydre-run = 'pydre:run.py'
@@ -24,7 +24,8 @@ dev-dependencies = [
     "mkdocstrings[python]",
     "black",
     "pytest>=8.3.2",
-    "pytest-datafiles"
+    "pytest-datafiles",
+    "griffe==1.2.0"
 ]
 
 # Build System

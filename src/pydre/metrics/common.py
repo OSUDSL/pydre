@@ -342,7 +342,7 @@ def maxdeceleration(
 
 
 @registerMetric()
-def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1):
+def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1) -> Optional[float]:
     """Returns the maximum acceleration value
 
     Parameters:
@@ -490,7 +490,13 @@ def steeringReversalRate(drivedata: pydre.core.DriveData):
     return reversal_rate
 
 @registerMetric()
-def throttleReactionTime(drivedata: pydre.core.DriveData):
+def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
+    """ Calculates the time it takes to accelerate once green car brakes (r2d)
+
+        Returns:
+            Time in seconds from when the green car braked to when the ownship started accelerating forward.
+    """
+
     required_col = ["FollowCarBrakingStatus", "LonAccel", "SimTime", "Brake"]
 
     try:

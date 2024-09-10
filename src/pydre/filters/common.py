@@ -4,6 +4,7 @@ from loguru import logger
 from pathlib import Path
 import polars as pl
 import pydre.core
+from typing import Optional
 from . import registerFilter
 
 
@@ -16,6 +17,19 @@ def numberBinaryBlocks(
     limit_fill_null=700,
     extend_blocks=0,
 ):
+    """ Adds a column that separates data into blocks based on the value of another column
+
+        If only_on is set to 1, it filters the data to only include rows where binary_col is set to 1.
+        If extend_blocks is set to 1, it extends the blocks.
+
+        Parameters:
+            binary_column: The name of the column to reference
+            new_column: The name of the new column with blocks
+            only_on: Determines whether to filter the data after adding blocks.
+            extend_blocks: Determines whether to extend the blocks.
+            limit_fill_null: Determines how many rows to fill using fill_null (only applies when extend_blocks is set to 1).
+
+        """
 
     required_col = [binary_column]
     diff = drivedata.checkColumns(required_col)
