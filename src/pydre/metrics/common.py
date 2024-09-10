@@ -171,9 +171,9 @@ def timeAboveSpeed(
         percentage: If true, return the percentage of total time in the DriveData object where the speed was
             above the cutoff.
 
-    Receives:
-        SimTime: Time in seconds
-        Velocity: Speed
+    Note: Requires data columns
+        - SimTime: Time in seconds
+        - Velocity: Speed
 
     Returns:
         Number of seconds travelling above the specified speed.
@@ -216,10 +216,10 @@ def timeWithinSpeedLimit(
         lowerlimit: Filter out all velocities lower than this value.
         percentage: If true, return the percentage of total time in the DriveData object where the speed was under the limit
 
-    Receives:
-        SimTime: Time in seconds
-        Velocity: Speed in meters per second
-        SpeedLimit: Speed limit in miles per hour
+    Note: Requires data columns
+        - SimTime: Time in seconds
+        - Velocity: Speed in meters per second
+        - SpeedLimit: Speed limit in miles per hour
 
     Returns:
         Number of seconds travelling above the specified speed.
@@ -272,8 +272,8 @@ def stoppingDist(
     Parameters:
         roadtravelposition: column name of increasing distance of travel, in meters
 
-    Receives:
-        Velocity: Speed in meters per second
+    Note: Requires data columns
+        - Velocity: Speed in meters per second
 
     Returns:
         Number of meters the detected stop is away from the stop line. If no stops detected, return `10000`
@@ -315,9 +315,9 @@ def maxdeceleration(
     Parameters:
         cutofflimit: all rows with velocities less than this value will be removed
 
-    Receives:
-        LonAccel: Acceleration value in the direction of travel, in meters per second per second
-        Velocity: Speed in meters per second
+    Note: Requires data columns
+        - LonAccel: Acceleration value in the direction of travel, in meters per second per second
+        - Velocity: Speed in meters per second
 
     Returns:
         maximum negative acceleration value (i.e. minimum acceleration value)
@@ -348,9 +348,9 @@ def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1) -> Op
     Parameters:
         cutofflimit: all rows with velocities less than this value will be removed
 
-    Receives:
-        LonAccel: Acceleration value in the direction of travel, in meters per second per second
-        Velocity: Speed in meters per second
+    Note: Requires data columns
+        - LonAccel: Acceleration value in the direction of travel, in meters per second per second
+        - Velocity: Speed in meters per second
 
     Returns:
         maximum acceleration value
@@ -381,9 +381,9 @@ def numbrakes(
     Parameters:
         cutofflimit: minimum velocity at which braking should be considered
 
-    Receives:
-        BrakeStatus: Column indicating braking. 0: no braking, greater than 0: braking
-        Velocity: Speed
+    Note: Requires data columns
+        - BrakeStatus: Column indicating braking. 0: no braking, greater than 0: braking
+        - Velocity: Speed
 
     Returns:
         number of separate braking events
