@@ -427,8 +427,20 @@ def _calculateReversals(df):
 
 
 @registerMetric()
-def steeringReversalRate(drivedata: pydre.core.DriveData):
-    # following this: https://www.auto-ui.org/docs/sae_J2944_appendices_PG_130212.pdf
+def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
+    """Steering reversal rate
+
+    As defined in [SAE j2944](https://www.auto-ui.org/docs/sae_J2944_appendices_PG_130212.pdf)
+
+    Note: Requires data columns
+        - SimTime: simulation time
+        - Steer: orientation of steering wheel in radians
+
+    Returns:
+        reversals per minute
+
+    """
+    #
     required_col = ["SimTime", "Steer"]
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
@@ -848,109 +860,88 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
     return Hp
 
-
 @registerMetric()
-def tailgatingTime(drivedata: pydre.core.DriveData, cutoff=2):
-    # to verify if column is numeric
-    required_col = ["SimTime", "HeadwayTime", "delta_t"]
-    drivedata.checkColumnsNumeric(required_col)
-    tail_time = 0
-    tailgating_table = drivedata.data.select(
-        [pl.col("SimTime").diff().alias("delta_t"), pl.col("HeadwayTime")]
-    )
-    # find all tailgating instances where the delta time is reasonable.
-    # this ensures we don't get screwy data from merged files
-    tail_time += (
-        tailgating_table.filter(
-            pl.col("HeadwayTime").is_between(0, cutoff, closed="none")
-            & pl.col("delta_t").is_between(0, 0.5)
-        )
-        .select("delta_t")
-        .sum()
-        .item()
-    )
-    return tail_time
+def closeFollowing(drivedata: pydre.core.DriveData, threshold: float=2,
+                   percentage:bool=False, minvelocity: Optional[float] = None) -> Optional[float]:
+    """Close following is the amount of time where the headway time was lower than a threshold
 
+    Very close following is sometimes called tailgating
 
-@registerMetric()
-def tailgatingPercentage(drivedata: pydre.core.DriveData, cutoff: float = 2):
-    tail_time = 0
-    total_time = 0
+    Parameters:
+        threshold: maximum following time to collision, in seconds
+        percentage: flag to output a percentage of total time spent
+            following closely, rather than the number of seconds
+        minvelocity: minimum velocity to consider rows as part of total time.
+            If None, consider all times
+
+    Note: Requires data columns:
+        - SimTime: Simulation time in seconds
+        - HeadwayTime: Headway time in seconds. This is the headway distance multiplied by the current
+            speed of the vehicle.
+
+    Returns:
+        number of seconds or percentage of close following, under the specified threshold
+
+    """
     # to verify if column is numeric
-    required_col = ["SimTime", "HeadwayTime", "delta_t"]
-    drivedata.checkColumnsNumeric(required_col)
-    tailgating_table = drivedata.data.select(
-        [pl.col("SimTime").diff().alias("delta_t"), pl.col("HeadwayTime")]
-    )
-    # find all tailgating instances where the delta time is reasonable.
-    # this ensures we don't get screwy data from merged files
-    tail_time += (
-        tailgating_table.filter(
-            pl.col("HeadwayTime").is_between(0, cutoff, closed="none")
-            & pl.col("delta_t").is_between(0, 0.5)
-        )
-        .select("delta_t")
-        .sum()
-        .item()
-    )
-    total_time += (
-        tailgating_table.filter(pl.col("delta_t").is_between(0, 0.5))
-        .select("delta_t")
-        .sum()
-        .item()
-    )
-    if total_time > 0:
-        return tail_time / total_time
-    else:
+    required_col = ["SimTime", "HeadwayTime"]
+    if minvelocity:
+        required_col.append("Velocity")
+
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
         return None
 
+    following_df = drivedata.data.with_columns(
+        pl.col("SimTime").diff().alias("delta_t")
+    )
 
-@registerMetric()
-def tailgatingPercentageAboveSpeed(
-    drivedata: pydre.core.DriveData, cutoff: float = 2, velocity: float = 13.4112
-):
-    tail_time = 0
-    total_time = 0
-    # to verify if column is numeric
-    required_col = ["SimTime", "HeadwayTime", "delta_t"]
-    drivedata.checkColumnsNumeric(required_col)
-    tailgating_table = drivedata.data.select(
-        [
-            pl.col("SimTime").diff().alias("delta_t"),
-            pl.col("HeadwayTime"),
-            pl.col("Velocity"),
-        ]
-    ).filter(pl.col("Velocity") >= velocity)
     # find all tailgating instances where the delta time is reasonable.
     # this ensures we don't get screwy data from merged files
-    tail_time += (
-        tailgating_table.filter(
-            pl.col("HeadwayTime").is_between(0, cutoff, closed="none")
-            & pl.col("delta_t").is_between(0, 0.5)
-        )
-        .select("delta_t")
-        .sum()
-        .item()
-    )
-    total_time += (
-        tailgating_table.filter(pl.col("delta_t").is_between(0, 0.5))
-        .select("delta_t")
-        .sum()
-        .item()
-    )
-    if total_time > 0:
-        return tail_time / total_time
-    else:
-        return None
+    following_df = following_df.filter(pl.col("delta_t").is_between(0, 0.5))
 
+    if minvelocity:
+        following_df = following_df.filter(pl.col("Velocity") >= velocity)
+
+    tail_time = (following_df.filter(pl.col("HeadwayTime").is_between(0, threshold, closed="none"))
+                 .select("delta_t").sum().item())
+
+    total_time = following_df.select("delta_t").sum().item()
+
+    if percentage:
+        if total_time > 0:
+            return tail_time / total_time
+        else:
+            return None
+    else:
+        return tail_time
 
 # determines when the ownship collides with another vehicle by examining headway distance as threshold
 @registerMetric()
-def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 2.85):
+def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 2.85) -> Optional[float]:
+    """Number of collisions between the ownship and the lead vehicle.
+
+    Parameters:
+        cutoff: number of meters below wich the headway distance is considered "collided".
+            Since headway distance is measured center-to-center of the two vehicles, 2.85m is used
+            as the default value based on the size of sedans in the simulation.
+
+    Note: Requires data columns
+        - SimTime: Simulation time in seconds
+        - HeadwayDistance: distance between the ownship and the lead vehicle in meters
+
+    Returns:
+        number of collision events
+
+    """
     required_col = ["SimTime", "HeadwayDistance"]
     # to verify if column is numeric
-    drivedata.checkColumnsNumeric(required_col)
-    drivedata.checkColumns(required_col)
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
+
     # find contiguous instances of headway distance < the cutoff
     collision_table = drivedata.data.select(
         (pl.col("HeadwayDistance") <= cutoff).alias("CollisionZone")
@@ -963,7 +954,7 @@ def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 2.85):
     return collisions
 
 
-def firstOccurrence(df: pl.DataFrame, column: str):
+def _firstOccurrence(df: pl.DataFrame, column: str):
     try:
         output = df[column].head(1)
         return output.index[0]
@@ -972,8 +963,20 @@ def firstOccurrence(df: pl.DataFrame, column: str):
 
 
 @registerMetric()
-def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
-    required_col = [var, "SimTime"]
+def timeFirstTrue(drivedata: pydre.core.DriveData, var: str, timecol: str = "SimTime") -> Optional[float]:
+    """Time of the first true (>0) value in the specified variable column
+
+    Parameters:
+        var: column to check for first true value
+        timecol: column to use for for time
+
+    Returns:
+        earliest value of the time column when the var column is true (above 0). None is returned if
+            the var column is never true or if there is a error in processing.
+
+    """
+
+    required_col = [var, timecol]
     try:
         drivedata.checkColumnsNumeric(required_col)
     except ColumnsMatchError:
@@ -997,7 +1000,7 @@ def timeFirstTrue(drivedata: pydre.core.DriveData, var: str):
 
 
 @registerMetric()
-def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var: str):
+def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
     required_col = [var, "SimTime"]
     try:
         drivedata.checkColumnsNumeric(required_col)

@@ -63,6 +63,13 @@ def numberBinaryBlocks(
 
 @registerFilter()
 def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
+    """Copies DatTime to SimTime
+
+    Note: Requiers data columns
+        - SimTime: simulation time
+        = DatTime: time from simobserver recording start
+
+    """
     drivedata.data = drivedata.data.with_columns(pl.col("DatTime").alias("SimTime"))
     return drivedata
 
@@ -70,6 +77,12 @@ def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
 @registerFilter()
 def FixReversedRoadLinearLand(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
     """Fixes a section of reversed road in the LinearLand map
+
+    RoadOffset becomes -RoadOffset between XPos 700 and 900
+
+    Note: Requires data columns
+        - XPos: X position of ownship
+        - RoadOffset: lateral distance on roadway
 
     """
     drivedata.data = drivedata.data.with_columns(
