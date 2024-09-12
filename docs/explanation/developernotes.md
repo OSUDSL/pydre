@@ -1,5 +1,7 @@
 # Developer notes
 
+## Development environment
+
 If you want to create your own metrics or filters, we recommend
 setting up a local development environment. 
 
@@ -13,31 +15,18 @@ environment to run Pydre is to use [Rye](https://rye.astral.sh/):
 
 This will download the appropriate python packages needed to run Pydre.
 
+## DriveData objects
 
-
-# pydre/core.py
-
-This script contains code that is intergral to the pydre module
-
-### DriveData
-
-This is the unit of data storage for the module. Each DriveData object contains a singular SubjectID, a list of DriveIDs, a single (optional) region of interest, a list of Pandas DataFrames created from the associated.dat files, and a list of the source file names. 
+This is the primary unit of data storage for the module. DriveData objects are initially created from dat files, and then they are split by the ROI functions. 
 
   - SubjectID: Unique identifier for this object. Any file loaded into a DriveData object should ONLY be data from this subject number, however, this is not currently enforced
-  - DriveID: List of all of the drive ids for each DataFrame in the DriveData object
   - roi: Singular string denoting the region of interest of the particular DriveData. There can currently only be one region of interest per DriveData object
-  - data: List of the DataFrames corresponding to each drive from the DriveIDs
-  - sourcefilename: The names of each source file used in the data argument
+  - data: Polars dataframe containing the rows of the drive data
+  - sourcefilename: The filename of where the data originally came from
   
-### `SliceByTime()`
 
-This is a simple helper method to take a particular data frame and trim it to only entries that fall within a given range of times.
+# Project objects
 
-### `MergeBySpace()`
+This is where the processing actually takes place. A project is constructed by reading in a project file (either JSON or TOML). 
 
-This is a utility to merge an ordered list of DriveData objects based on the point where the beginning of the next is closest (by X,Y position) to the end of the most previous DataFrame. The input should all be from the same subject, same region of interest, and should go in a logical order. The output will be a DriveData object with one element in the data list. The drive IDs and source file names of the outputted DriveData object will simply be an aggregation of all drive IDs and source files from the input list.
-
-# pydre/project.py
-
-This is where the processing actually takes place. The only functions that should be called outside of the project.py class are `__init(projectfilename)__`, `run(datafiles)`, and `save(outfilename)`. The basic idea is that "init" will load the json projectfile, "run" will convert all of the datafiles into DriveData objects and do all of the processing specified in the json file, and "save" will write all of the results to a csv file. For further details, investigate the project.py script.
 
