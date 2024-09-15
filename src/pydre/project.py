@@ -1,6 +1,5 @@
 import json
 
-import polars
 import polars as pl
 import re
 import sys
@@ -9,9 +8,8 @@ from typing import Optional
 import pydre.core
 import pydre.rois
 import pydre.metrics
-import ntpath
 from pydre.metrics import *
-from pydre.filters import *
+import pydre.filters
 import pathlib
 from pathlib import Path
 from loguru import logger
@@ -22,7 +20,7 @@ import concurrent.futures
 class Project:
     project_filename: Path  # used only for information
     definition: dict
-    results: Optional[polars.DataFrame]
+    results: Optional[pl.DataFrame]
 
     def __init__(self, projectfilename: str):
         self.project_filename = pathlib.Path(projectfilename)
@@ -120,39 +118,37 @@ class Project:
 
     # testing
 
-    def processROISingle(self, roi, datafile):
+    def processROI(
+        self, roi: dict, datafile: pydre.core.DriveData
+    ) -> list[pydre.core.DriveData]:
         """
         Handles running region of interest definitions for a dataset
 
         Args:
                 roi: A dict containing the type of a roi and the filename of the data used to process it
-                dataset: a list of polars dataframes containing the source data to partition
+                datafile: drive data object to process with the roi
 
         Returns:
-                A list of polars DataFrames containing the data for each region of interest
+                A list of drivedata objects containing the data for each region of interest
         """
         roi_type = roi["type"]
-        dataset = [datafile]
-        try:
-            if roi_type == "time":
-                logger.info("Processing time ROI " + roi["filename"])
-                roi_obj = pydre.rois.TimeROI(roi["filename"])
-                return roi_obj.split(dataset)
-            elif roi_type == "rect":
-                logger.info("Processing space ROI " + roi["filename"])
-                roi_obj = pydre.rois.SpaceROI(roi["filename"])
-                return roi_obj.split(dataset)
-            elif roi_type == "column":
-                logger.info("Processing column ROI " + roi["columnname"])
-                roi_obj = pydre.rois.ColumnROI(roi["columnname"])
-                return roi_obj.split(dataset)
-            else:
-                return []
-        except FileNotFoundError as e:
-            logger.error(e.args)
-            return []
+        if roi_type == "time":
+            logger.info("Processing time ROI " + roi["filename"])
+            roi_obj = pydre.rois.TimeROI(roi["filename"])
+        elif roi_type == "rect":
+            logger.info("Processing space ROI " + roi["filename"])
+            roi_obj = pydre.rois.SpaceROI(roi["filename"])
+        elif roi_type == "column":
+            logger.info("Processing column ROI " + roi["columnname"])
+            roi_obj = pydre.rois.ColumnROI(roi["columnname"])
+        else:
+            logger.warning("Unknown ROI type {}".format(roi_type))
+            return [datafile]
+        return roi_obj.split(datafile)
 
-    def processFilterSingle(self, filter, datafile):
+    def processFilter(
+        self, filter: dict, datafile: pydre.core.DriveData
+    ) -> list[pydre.core.DriveData]:
         """
         Handles running any filter definition
 
@@ -190,9 +186,7 @@ class Project:
 
         return report
 
-    def processMetricSinglePar(
-        self, metric: dict, dataset: pydre.core.DriveData
-    ) -> dict:
+    def processMetric(self, metric: dict, dataset: pydre.core.DriveData) -> dict:
         """
 
         :param metric:
@@ -271,9 +265,20 @@ class Project:
                     results_list.extend(future.result())
                     pbar.update(1)
         result_dataframe = pl.from_dicts(results_list)
+
+        result_dataframe = result_dataframe.with_columns(
+            pl.col("Subject").cast(pl.String),
+            pl.col("ScenarioName").cast(pl.String),
+            pl.col("ROI").cast(pl.String)
+        )
+
+        # Would just use try/except but polars throws overly alarming PanicException
+        sorting_columns = ["Subject", "ScenarioName", "ROI"]
+        #sorting_columns = [col for col in sorting_columns if col in result_dataframe.dtypes ]
+
         try:
-            result_dataframe = result_dataframe.sort(["Subject", "ScenarioName", "ROI"])
-        except Exception as e:
+            result_dataframe = result_dataframe.sort(sorting_columns)
+        except pl.exceptions.PanicException as e:
             logger.warning("Can't sort results, must be missing a column.")
 
         self.results = result_dataframe
@@ -288,7 +293,7 @@ class Project:
         if "filters" in self.definition:
             for filter in self.definition["filters"]:
                 try:
-                    self.processFilterSingle(filter, datafile)
+                    self.processFilter(filter, datafile)
                 except Exception as e:
                     logger.exception(
                         "Unhandled exception in {} while processing {}.".format(
@@ -299,7 +304,7 @@ class Project:
         if "rois" in self.definition:
             for roi in self.definition["rois"]:
                 try:
-                    roi_datalist.extend(self.processROISingle(roi, datafile))
+                    roi_datalist.extend(self.processROI(roi, datafile))
                 except Exception as e:
                     logger.exception(
                         "Unhandled exception in {} while processing {}.".format(
@@ -332,7 +337,7 @@ class Project:
 
             for metric in self.definition["metrics"]:
                 try:
-                    processed_metric = self.processMetricSinglePar(metric, data)
+                    processed_metric = self.processMetric(metric, data)
                     result_dict.update(processed_metric)
                 except Exception as e:
                     logger.critical(

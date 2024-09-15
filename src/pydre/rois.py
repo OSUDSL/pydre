@@ -1,5 +1,4 @@
 import pathlib
-from os import PathLike
 from abc import ABCMeta, abstractmethod
 
 import pydre.core
@@ -17,7 +16,17 @@ class ROIProcessor(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def split(self, datalist: list[pydre.core.DriveData]):
+    def split(
+        self, sourcedrivedata: pydre.core.DriveData
+    ) -> list[pydre.core.DriveData]:
+        """Splits the drivedata object according to the ROI specifications.
+
+        Parameters:
+            sourcedrivedata: input drivedata object
+
+        Returns:
+            list of drivedata objects after splitting
+        """
         pass
 
 
@@ -66,7 +75,9 @@ class TimeROI(ROIProcessor):
                     self.rois[participant][k] = self.parseDuration(v)
         self.name_prefix = nameprefix
 
-    def split(self, datalist: list[pydre.core.DriveData]) -> list[pydre.core.DriveData]:
+    def split(
+        self, sourcedrivedata: pydre.core.DriveData
+    ) -> list[pydre.core.DriveData]:
         """
         return list of pydre.core.DriveData objects
         the 'roi' field of the objects will be filled with the roi tag listed
@@ -74,15 +85,17 @@ class TimeROI(ROIProcessor):
         """
         timecol = "SimTime"
         output_list = []
-        for ddata in datalist:
-            if ddata.PartID in self.rois.keys():
-                for roi, duration in self.rois[ddata.PartID]:
-                    start, end = duration
-                    new_data = sliceByTime(start, end, timecol, ddata.data)
-                    new_ddata = pydre.core.DriveData(new_data, ddata.sourcefilename)
-                    new_ddata.copyMetaData(ddata)
-                    new_ddata.roi = roi
-                    output_list.append(new_ddata)
+
+        if sourcedrivedata.PartID in self.rois.keys():
+            for roi, duration in self.rois[sourcedrivedata.PartID]:
+                start, end = duration
+                new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
+                new_ddata = pydre.core.DriveData(
+                    new_data, sourcedrivedata.sourcefilename
+                )
+                new_ddata.copyMetaData(sourcedrivedata)
+                new_ddata.roi = roi
+                output_list.append(new_ddata)
         return output_list
 
     def parseDuration(self, duration: str) -> tuple[float, float]:
@@ -114,88 +127,85 @@ class SpaceROI(ROIProcessor):
         # parse time filename values
         # roi_info is a data frame containing the cutoff points for the region in each row.
         # It's columns must be roi, X1, X2, Y1, Y2
-        pl_rois = pl.read_csv(
-            filename, columns=["roi", "X1", "X2", "Y1", "Y2"], has_header=True
-        )
+        pl_rois = pl.read_csv(filename, has_header=True)
+        expected_columns = ["roi", "X1", "X2", "Y1", "Y2"]
+        if not set(expected_columns).issubset(set(pl_rois.columns)):
+            logger.error(
+                f"SpaceROI file {filename} does not contain expected columns {expected_columns}"
+            )
+            raise ValueError
         # convert polars table into dictionary with 'roi' as the key and a dict as the value
         self.roi_info = pl_rois.rows_by_key("roi", unique=True, named=True)
         self.name_prefix = nameprefix
 
-    def split(self, datalist: list[pydre.core.DriveData]):
-        """
-        return list of pydre.core.DriveData objects
-        the 'roi' field of the objects will be filled with the roi tag listed
-        in the roi definition file column name
-        """
+    def split(
+        self, sourcedrivedata: pydre.core.DriveData
+    ) -> list[pydre.core.DriveData]:
         return_list = []
 
         for roi_name, roi_location in self.roi_info.items():
-            for ddata in datalist:
-                xmin = min(roi_location.get("X1"), roi_location.get("X2"))
-                xmax = max(roi_location.get("X1"), roi_location.get("X2"))
-                ymin = min(roi_location.get("Y1"), roi_location.get("Y2"))
-                ymax = max(roi_location.get("Y1"), roi_location.get("Y2"))
+            xmin = min(roi_location.get("X1"), roi_location.get("X2"))
+            xmax = max(roi_location.get("X1"), roi_location.get("X2"))
+            ymin = min(roi_location.get("Y1"), roi_location.get("Y2"))
+            ymax = max(roi_location.get("Y1"), roi_location.get("Y2"))
 
-                region_data = ddata.data.filter(
-                    pl.col(self.x_column_name).cast(pl.Float32).is_between(xmin, xmax)
-                    & pl.col(self.y_column_name).cast(pl.Float32).is_between(ymin, ymax)
+            region_data = sourcedrivedata.data.filter(
+                pl.col(self.x_column_name).cast(pl.Float32).is_between(xmin, xmax)
+                & pl.col(self.y_column_name).cast(pl.Float32).is_between(ymin, ymax)
+            )
+
+            if region_data.height == 0:
+                # try out PartID to get this to run cgw 5/20/2022
+                # logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
+                #    ddata.SubjectID,
+                #    ddata.sourcefilename,
+                #    self.roi_info.roi[i]))
+                logger.warning(
+                    "No data for SubjectID: {}, Source: {},  ROI: {}".format(
+                        ddata.PartID, ddata.sourcefilename, roi_name
+                    )
                 )
-
-                if region_data.height == 0:
-                    # try out PartID to get this to run cgw 5/20/2022
-                    # logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
-                    #    ddata.SubjectID,
-                    #    ddata.sourcefilename,
-                    #    self.roi_info.roi[i]))
-                    logger.warning(
-                        "No data for SubjectID: {}, Source: {},  ROI: {}".format(
-                            ddata.PartID, ddata.sourcefilename, roi_name
-                        )
+            else:
+                # try out PartID to get this to run cgw 5/20/2022
+                # logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
+                #     len(region_data),
+                #     self.roi_info.roi[i],
+                #     ddata.SubjectID,
+                #     ddata.sourcefilename))
+                logger.info(
+                    "{} Line(s) read into ROI {} for Subject {} From file {}".format(
+                        region_data.height,
+                        roi_name,
+                        sourcedrivedata.PartID,
+                        sourcedrivedata.sourcefilename,
                     )
-                else:
-                    # try out PartID to get this to run cgw 5/20/2022
-                    # logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
-                    #     len(region_data),
-                    #     self.roi_info.roi[i],
-                    #     ddata.SubjectID,
-                    #     ddata.sourcefilename))
-                    logger.info(
-                        "{} Line(s) read into ROI {} for Subject {} From file {}".format(
-                            region_data.height,
-                            roi_name,
-                            ddata.PartID,
-                            ddata.sourcefilename,
-                        )
-                    )
-                new_ddata = pydre.core.DriveData(region_data, ddata.sourcefilename)
-                new_ddata.copyMetaData(ddata)
-                new_ddata.roi = roi_name
-                return_list.append(new_ddata)
+                )
+            new_ddata = pydre.core.DriveData(
+                region_data, sourcedrivedata.sourcefilename
+            )
+            new_ddata.copyMetaData(sourcedrivedata)
+            new_ddata.roi = roi_name
+            return_list.append(new_ddata)
 
         return return_list
 
 
-class ColumnROI:
+class ColumnROI(ROIProcessor):
     def __init__(self, columnname: str, nameprefix=""):
         # parse time filename values
         self.roi_column = columnname
         self.name_prefix = nameprefix
 
     def split(
-        self, datalist: Iterable[pydre.core.DriveData]
+        self, sourcedrivedata: pydre.core.DriveData
     ) -> Iterable[pydre.core.DriveData]:
-        """
-        return list of pydre.core.DriveData objects
-        the 'roi' field of the objects will be filled with the roi tag listed
-        in the roi definition file column name
-        """
         return_list = []
-        for ddata in datalist:
-            for gname, gdata in ddata.data.group_by(self.roi_column):
-                gname = gname[0]
-                if gname != pl.Null:
-                    new_ddata = pydre.core.DriveData(gdata, ddata.sourcefilename)
-                    new_ddata.copyMetaData(ddata)
-                    new_ddata.roi = str(gname)
-                    return_list.append(new_ddata)
+
+        for gname, gdata in sourcedrivedata.data.group_by(self.roi_column):
+            gname = gname[0]
+            if gname != pl.Null:
+                new_ddata = pydre.core.DriveData(gdata, sourcedrivedata.sourcefilename)
+                new_ddata.copyMetaData(sourcedrivedata)
+                new_ddata.roi = str(gname)
+                return_list.append(new_ddata)
         return return_list

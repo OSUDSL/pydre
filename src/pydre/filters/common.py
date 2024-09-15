@@ -17,19 +17,19 @@ def numberBinaryBlocks(
     limit_fill_null=700,
     extend_blocks=0,
 ):
-    """ Adds a column that separates data into blocks based on the value of another column
+    """Adds a column that separates data into blocks based on the value of another column
 
-        If only_on is set to 1, it filters the data to only include rows where binary_col is set to 1.
-        If extend_blocks is set to 1, it extends the blocks.
+    If only_on is set to 1, it filters the data to only include rows where binary_col is set to 1.
+    If extend_blocks is set to 1, it extends the blocks.
 
-        Parameters:
-            binary_column: The name of the column to reference
-            new_column: The name of the new column with blocks
-            only_on: Determines whether to filter the data after adding blocks.
-            extend_blocks: Determines whether to extend the blocks.
-            limit_fill_null: Determines how many rows to fill using fill_null (only applies when extend_blocks is set to 1).
+    Parameters:
+        binary_column: The name of the column to reference
+        new_column: The name of the new column with blocks
+        only_on: Determines whether to filter the data after adding blocks.
+        extend_blocks: Determines whether to extend the blocks.
+        limit_fill_null: Determines how many rows to fill using fill_null (only applies when extend_blocks is set to 1).
 
-        """
+    """
 
     required_col = [binary_column]
     diff = drivedata.checkColumns(required_col)
@@ -53,9 +53,14 @@ def numberBinaryBlocks(
 
     if extend_blocks:
         drivedata.data = drivedata.data.with_columns(
-            pl.when(pl.col(binary_column) == 0).then(None).otherwise(pl.col(new_column)).alias(new_column)
+            pl.when(pl.col(binary_column) == 0)
+            .then(None)
+            .otherwise(pl.col(new_column))
+            .alias(new_column)
         )
-        drivedata.data = drivedata.data.with_columns(pl.col(new_column).fill_null(strategy="forward", limit=limit_fill_null))
+        drivedata.data = drivedata.data.with_columns(
+            pl.col(new_column).fill_null(strategy="forward", limit=limit_fill_null)
+        )
         drivedata.data = drivedata.data.filter(pl.col(new_column).is_not_null())
 
     return drivedata
@@ -197,7 +202,6 @@ def speedLimitTransitionMarker(
     return drivedata
 
 
-
 @registerFilter()
 def writeToCSV(
     drivedata: pydre.core.DriveData, outputDirectory: str
@@ -224,5 +228,3 @@ def filetimeToDatetime(ft: int) -> Optional[datetime.datetime]:
 
 def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack("Q", struct.pack("LL", lo, hi))[0]
-
-

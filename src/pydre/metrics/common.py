@@ -342,7 +342,9 @@ def maxdeceleration(
 
 
 @registerMetric()
-def maxacceleration(drivedata: pydre.core.DriveData, cutofflimit: int = 1) -> Optional[float]:
+def maxacceleration(
+    drivedata: pydre.core.DriveData, cutofflimit: int = 1
+) -> Optional[float]:
     """Returns the maximum acceleration value
 
     Parameters:
@@ -501,12 +503,13 @@ def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
     reversal_rate = reversals / ((np.max(original_time) - np.min(original_time)) / 60)
     return reversal_rate
 
+
 @registerMetric()
 def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
-    """ Calculates the time it takes to accelerate once green car brakes (r2d)
+    """Calculates the time it takes to accelerate once green car brakes (r2d)
 
-        Returns:
-            Time in seconds from when the green car braked to when the ownship started accelerating forward.
+    Returns:
+        Time in seconds from when the green car braked to when the ownship started accelerating forward.
     """
 
     required_col = ["FollowCarBrakingStatus", "LonAccel", "SimTime", "Brake"]
@@ -522,7 +525,7 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
             pl.col("SimTime"),
             pl.col("LonAccel"),
             pl.col("Brake"),
-            pl.col("Throttle")
+            pl.col("Throttle"),
         ]
     )
 
@@ -532,9 +535,14 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
     initial_time = df.get_column("SimTime").item(0)
 
     try:
-        df = df.filter(pl.col("SimTime") > df.filter(pl.col("Brake") > 3.0).get_column("SimTime").item(0))
+        df = df.filter(
+            pl.col("SimTime")
+            > df.filter(pl.col("Brake") > 3.0).get_column("SimTime").item(0)
+        )
     except IndexError:
-        logger.warning(f'No braking detected for roi {drivedata.roi} in file {drivedata.sourcefilename}')
+        logger.warning(
+            f"No braking detected for roi {drivedata.roi} in file {drivedata.sourcefilename}"
+        )
         return None
 
     df_after_brake = df.filter(pl.col("Brake") == 0)
@@ -542,9 +550,13 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
     if drivedata.roi == "5":
         x = 5
     try:
-        time_of_accel = df_after_brake.filter(pl.col("LonAccel") > 0).get_column("SimTime").item(0)
+        time_of_accel = (
+            df_after_brake.filter(pl.col("LonAccel") > 0).get_column("SimTime").item(0)
+        )
     except IndexError:
-        logger.warning(f'No subsequent acceleration detected for roi {drivedata.roi} in file {drivedata.sourcefilename}')
+        logger.warning(
+            f"No subsequent acceleration detected for roi {drivedata.roi} in file {drivedata.sourcefilename}"
+        )
         return None
 
     throttle_reaction_time = time_of_accel - initial_time
@@ -860,9 +872,14 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
     return Hp
 
+
 @registerMetric()
-def closeFollowing(drivedata: pydre.core.DriveData, threshold: float=2,
-                   percentage:bool=False, minvelocity: Optional[float] = None) -> Optional[float]:
+def closeFollowing(
+    drivedata: pydre.core.DriveData,
+    threshold: float = 2,
+    percentage: bool = False,
+    minvelocity: Optional[float] = None,
+) -> Optional[float]:
     """Close following is the amount of time where the headway time was lower than a threshold
 
     Very close following is sometimes called tailgating
@@ -904,8 +921,14 @@ def closeFollowing(drivedata: pydre.core.DriveData, threshold: float=2,
     if minvelocity:
         following_df = following_df.filter(pl.col("Velocity") >= velocity)
 
-    tail_time = (following_df.filter(pl.col("HeadwayTime").is_between(0, threshold, closed="none"))
-                 .select("delta_t").sum().item())
+    tail_time = (
+        following_df.filter(
+            pl.col("HeadwayTime").is_between(0, threshold, closed="none")
+        )
+        .select("delta_t")
+        .sum()
+        .item()
+    )
 
     total_time = following_df.select("delta_t").sum().item()
 
@@ -917,9 +940,12 @@ def closeFollowing(drivedata: pydre.core.DriveData, threshold: float=2,
     else:
         return tail_time
 
+
 # determines when the ownship collides with another vehicle by examining headway distance as threshold
 @registerMetric()
-def leadVehicleCollision(drivedata: pydre.core.DriveData, cutoff: float = 2.85) -> Optional[float]:
+def leadVehicleCollision(
+    drivedata: pydre.core.DriveData, cutoff: float = 2.85
+) -> Optional[float]:
     """Number of collisions between the ownship and the lead vehicle.
 
     Parameters:
@@ -963,7 +989,9 @@ def _firstOccurrence(df: pl.DataFrame, column: str):
 
 
 @registerMetric()
-def timeFirstTrue(drivedata: pydre.core.DriveData, var: str, timecol: str = "SimTime") -> Optional[float]:
+def timeFirstTrue(
+    drivedata: pydre.core.DriveData, var: str, timecol: str = "SimTime"
+) -> Optional[float]:
     """Time of the first true (>0) value in the specified variable column
 
     Parameters:
@@ -1000,7 +1028,9 @@ def timeFirstTrue(drivedata: pydre.core.DriveData, var: str, timecol: str = "Sim
 
 
 @registerMetric()
-def reactionBrakeFirstTrue(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
+def reactionBrakeFirstTrue(
+    drivedata: pydre.core.DriveData, var: str
+) -> Optional[float]:
     required_col = [var, "SimTime"]
     try:
         drivedata.checkColumnsNumeric(required_col)

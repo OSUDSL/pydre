@@ -2,17 +2,19 @@ __all__ = ["common", "box", "driverdistraction"]
 
 from functools import wraps
 from typing import Optional, Callable
-
 from loguru import logger
+import pydre.core
 
-metricsList = {}
-metricsColNames = {}
+metricsList: dict[str, Callable[[pydre.core.DriveData, ...], ...]] = {}
+metricsColNames: dict[str, list[str]] = {}
 
 
 def registerMetric(
     metricname: Optional[str] = None, columnnames: Optional[list[str]] = None
 ) -> Callable:
-    def registering_decorator(func: Callable) -> Callable:
+    def registering_decorator(
+        func: Callable[[pydre.core.DriveData, ...], ...],
+    ) -> Callable[[pydre.core.DriveData, ...], ...]:
         name = metricname
         if not metricname:
             name = func.__name__
