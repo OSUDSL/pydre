@@ -10,6 +10,7 @@ import pydre.rois
 import pydre.metrics
 from pydre.metrics import *
 import pydre.filters
+from pydre.filters import *
 import pathlib
 from pathlib import Path
 from loguru import logger
@@ -155,44 +156,30 @@ class Project:
         return roi_obj.split(datafile)
 
     def processFilter(
-        self, filter: dict, datafile: pydre.core.DriveData
-    ) -> list[pydre.core.DriveData]:
+        self, datafilter: dict, datafile: pydre.core.DriveData
+    ) -> pydre.core.DriveData:
         """
         Handles running any filter definition
 
         Args:
-            filter: A dict containing the type of a filter and the parameters to process it
+            datafilter: A dict containing the function of a filter and the parameters to process it
 
         Returns:
-            A list of values with the results
+            The augmented DriveData object
         """
-        filter = filter.copy()
+        ldatafilter = datafilter.copy()
         try:
-            func_name = filter.pop("function")
+            func_name = ldatafilter.pop("function")
             filter_func = pydre.filters.filtersList[func_name]
-            report_name = filter.pop("name")
-            col_names = pydre.filters.filtersColNames[func_name]
+            datafilter_name = ldatafilter.pop("name")
         except KeyError as e:
             logger.error(
-                'Filter definitions require both "name" and "function". Malformed filters definition: missing '
+                'Filter definitions require a "function". Malformed filters definition: missing '
                 + str(e)
             )
             raise e
 
-        x = []
-        if len(col_names) > 1:
-            x.append(datafile)
-            report = pl.DataFrame(datafile, schema=col_names)
-        else:
-            x.append(filter_func(datafile, **filter))
-            report = pl.DataFrame(
-                x,
-                schema=[
-                    report_name,
-                ],
-            )
-
-        return report
+        return filter_func(datafile, **ldatafilter)
 
     def processMetric(self, metric: dict, dataset: pydre.core.DriveData) -> dict:
         """
@@ -210,10 +197,9 @@ class Project:
             col_names = pydre.metrics.metricsColNames[func_name]
         except KeyError as e:
             logger.warning(
-                'Metric definitions require both "name" and "function". Malformed metrics definition: missing '
-                + str(e)
+                'Metric definitions require both "name" and "function". Malformed metrics definition'
             )
-            sys.exit(1)
+            raise e
 
         metric_dict = dict()
         if len(col_names) > 1:
@@ -299,13 +285,13 @@ class Project:
         results_list = []
 
         if "filters" in self.definition:
-            for filter in self.definition["filters"]:
+            for datafilter in self.definition["filters"]:
                 try:
-                    self.processFilter(filter, datafile)
+                    datafile = self.processFilter(datafilter, datafile)
                 except Exception as e:
                     logger.exception(
                         "Unhandled exception in {} while processing {}.".format(
-                            filter, datafilename
+                            datafilter, datafilename
                         )
                     )
                     raise e
