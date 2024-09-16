@@ -63,10 +63,44 @@ def colMean(
 
 
 @registerMetric()
+def colMedian(
+    drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
+) -> Optional[float]:
+    """Calculates the median of the specified column
+
+    If `cutoff` is not `None`, then all values less than `cutoff` are ignored.
+    If column is not numeric, `None` is returned.
+
+    Parameters:
+        var: The column name to process. Must be numeric.
+        cutoff: Lower bound on data processed.
+
+    Returns:
+        Median of selected column.
+            If `cutoff` is not `None`, then all values less than `cutoff` are ignored.
+            If column is not numeric, `None` is returned.
+    """
+    try:
+        drivedata.checkColumnsNumeric([var])
+    except ColumnsMatchError:
+        return None
+    if cutoff is not None:
+        return (
+            drivedata.data.get_column(var)
+            .filter(drivedata.data.get_column(var) >= cutoff)
+            .median()
+        )
+    else:
+        return drivedata.data.get_column(var).median()
+
+
+@registerMetric()
 def colSD(
     drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
 ) -> Optional[float]:
     """Calculates the standard deviation of the specified column
+
+    Uses Bessel's correction (denominator of N-1) for SD calculation.
 
     Parameters:
         var: The column name to process. Must be numeric.
@@ -241,13 +275,12 @@ def timeWithinSpeedLimit(
         ]
     )
 
-    limit = df.get_column("SpeedLimit").min()
     time = (
-        df.get_column("Duration")
-        .filter(
-            (df.get_column("VelocityMPH") < limit)
-            & (df.get_column("VelocityMPH") >= lowerlimit)
+        df.filter(
+            (pl.col("VelocityMPH") <= pl.col("SpeedLimit"))
+            & (pl.col("VelocityMPH") >= lowerlimit)
         )
+        .get_column("Duration")
         .sum()
     )
 
@@ -335,9 +368,7 @@ def maxdeceleration(
     dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
     decel = dfupdated.filter(dfupdated.get_column("LonAccel") < 0)
 
-    maxdecel = decel.filter(
-        decel.get_column("LonAccel") == decel.get_column("LonAccel").min()
-    )
+    maxdecel = decel.get_column("LonAccel").min()
     return maxdecel
 
 
@@ -588,6 +619,10 @@ def laneViolations(
     # tolerance is the maximum allowable offset deviation from 0
     tolerance = lane_width / 2 - car_width / 2
     lane_data = drivedata.data.filter(pl.col(lane_column) == 2)
+    lane_data = lane_data.with_columns(
+        pl.col(offset).abs().is_between(upper_bound=tolerance)
+    )
+
     is_violating = lane_data.get_column(offset).abs() > tolerance
     return is_violating.diff().clip_min(0).sum()
 
@@ -919,7 +954,7 @@ def closeFollowing(
     following_df = following_df.filter(pl.col("delta_t").is_between(0, 0.5))
 
     if minvelocity:
-        following_df = following_df.filter(pl.col("Velocity") >= velocity)
+        following_df = following_df.filter(pl.col("Velocity") >= minvelocity)
 
     tail_time = (
         following_df.filter(

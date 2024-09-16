@@ -26,43 +26,51 @@ class Project:
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
         self.results = None
-        with open(self.project_filename, "rb") as project_file:
-            if self.project_filename.suffix == ".json":
-                try:
-                    self.definition = json.load(project_file)
-                except json.decoder.JSONDecodeError as e:
-                    logger.exception(
-                        "Error parsing JSON in {}".format(self.project_filename),
-                        exception=e,
-                    )
-                    # exited as a general error because it is seemingly best suited for the problem encountered
-                    sys.exit(1)
-            elif self.project_filename.suffix == ".toml":
-                try:
-                    self.definition = tomllib.load(project_file)
-                except tomllib.TOMLDecodeError as e:
-                    logger.exception(
-                        "Error parsing TOML in {}".format(self.project_filename),
-                        exception=e,
-                    )
-                # convert toml to previous project structure:
-                new_definition = {}
-                if "rois" in self.definition.keys():
-                    new_definition["rois"] = Project.__restructureProjectDefinition(
-                        self.definition["rois"]
-                    )
-                if "metrics" in self.definition.keys():
-                    new_definition["metrics"] = Project.__restructureProjectDefinition(
-                        self.definition["metrics"]
-                    )
-                if "filters" in self.definition.keys():
-                    new_definition["filters"] = Project.__restructureProjectDefinition(
-                        self.definition["filters"]
-                    )
-                self.definition = new_definition
-            else:
-                logger.error("Unsupported project file type")
-                sys.exit(1)
+        try:
+            with open(self.project_filename, "rb") as project_file:
+                if self.project_filename.suffix == ".json":
+                    try:
+                        self.definition = json.load(project_file)
+                    except json.decoder.JSONDecodeError as e:
+                        logger.exception(
+                            "Error parsing JSON in {}".format(self.project_filename),
+                            exception=e,
+                        )
+                        # exited as a general error because it is seemingly best suited for the problem encountered
+                        sys.exit(1)
+                elif self.project_filename.suffix == ".toml":
+                    try:
+                        self.definition = tomllib.load(project_file)
+                    except tomllib.TOMLDecodeError as e:
+                        logger.exception(
+                            "Error parsing TOML in {}".format(self.project_filename),
+                            exception=e,
+                        )
+                    # convert toml to previous project structure:
+                    new_definition = {}
+                    if "rois" in self.definition.keys():
+                        new_definition["rois"] = Project.__restructureProjectDefinition(
+                            self.definition["rois"]
+                        )
+                    if "metrics" in self.definition.keys():
+                        new_definition["metrics"] = (
+                            Project.__restructureProjectDefinition(
+                                self.definition["metrics"]
+                            )
+                        )
+                    if "filters" in self.definition.keys():
+                        new_definition["filters"] = (
+                            Project.__restructureProjectDefinition(
+                                self.definition["filters"]
+                            )
+                        )
+                    self.definition = new_definition
+                else:
+                    logger.error("Unsupported project file type")
+                    raise
+        except FileNotFoundError as e:
+            logger.error(f"File '{projectfilename}' not found.")
+            raise e
 
         self.data = []
 
@@ -269,12 +277,12 @@ class Project:
         result_dataframe = result_dataframe.with_columns(
             pl.col("Subject").cast(pl.String),
             pl.col("ScenarioName").cast(pl.String),
-            pl.col("ROI").cast(pl.String)
+            pl.col("ROI").cast(pl.String),
         )
 
         # Would just use try/except but polars throws overly alarming PanicException
         sorting_columns = ["Subject", "ScenarioName", "ROI"]
-        #sorting_columns = [col for col in sorting_columns if col in result_dataframe.dtypes ]
+        # sorting_columns = [col for col in sorting_columns if col in result_dataframe.dtypes ]
 
         try:
             result_dataframe = result_dataframe.sort(sorting_columns)

@@ -18,6 +18,11 @@ def test_project_loadtoml(datafiles):
     assert isinstance(proj, pydre.project.Project)
 
 
+def test_project_loadbadtoml():
+    with pytest.raises(FileNotFoundError):
+        proj = pydre.project.Project("doesnotexist.toml")
+
+
 @pytest.mark.datafiles(
     FIXTURE_DIR / "good_projectfiles" / "test1_pf.json",
     FIXTURE_DIR / "good_projectfiles" / "test1_pf.toml",
