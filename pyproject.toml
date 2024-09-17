@@ -1,6 +1,6 @@
 [project]
 name = "pydre"
-version = "24.0"
+version = "24.0.1"
 readme = "readme.md"
 dependencies = [
     "polars",
@@ -11,9 +11,26 @@ dependencies = [
     "loguru"
 ]
 requires-python = ">= 3.12"
+authors = [ {name = "Thomas Kerwin", email = "kerwin.6@osu.edu"} ]
+description = "Driving simulation data processing engine"
+keywords = ["driving simulation"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+
+  "Intended Audience :: Science/Research",
+  "Topic :: Software Development :: Build Tools",
+
+  "License :: OSI Approved :: Apache Software License",
+
+  "Programming Language :: Python :: 3.12",
+]
 
 [project.scripts]
-pydre-run = 'pydre:run.py'
+pydre-run = "pydre:run"
+
+[project.urls]
+Documentation = "https://osudsl.github.io/pydre/"
+Repository = "https://github.com/OSUDSL/pydre"
 
 [tool.rye]
 managed = true
