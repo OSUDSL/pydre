@@ -3,11 +3,12 @@ from __future__ import annotations
 import polars
 from loguru import logger
 from typing import List, Optional
+from pathlib import Path
 
 
 class DriveData:
     data: polars.dataframe
-    sourcefilename: str
+    sourcefilename: Path
     roi: Optional[str]
     format_identifier: int
     PartID: Optional[int]
@@ -16,7 +17,7 @@ class DriveData:
     scenarioName: Optional[int]
     mode: Optional[int]
 
-    def __init__(self, data: polars.DataFrame, sourcefilename: Optional[str]):
+    def __init__(self, data: polars.DataFrame, sourcefilename: Path):
         self.data = data
         self.sourcefilename = sourcefilename
         self.roi = None
@@ -26,7 +27,7 @@ class DriveData:
     def initV2(
         cls,
         data: polars.DataFrame,
-        sourcefilename: str,
+        sourcefilename: Path,
         PartID: Optional[int],
         DriveID: Optional[int],
     ):
@@ -40,7 +41,7 @@ class DriveData:
     def initV4(
         cls,
         data: polars.DataFrame,
-        sourcefilename: str,
+        sourcefilename: Path,
         PartID: str,
         UniqueID: Optional[int],
         scenarioName: Optional[str],
@@ -84,11 +85,16 @@ class DriveData:
                 to_check = self.data.get_column(column)
                 if not to_check.dtype.is_numeric():
                     logger.info(
-                        "col(" + column + ") is not numeric in " + self.sourcefilename
+                        "col("
+                        + column
+                        + ") is not numeric in "
+                        + str(self.sourcefilename)
                     )
                     non_numeric.append(column)
             else:
-                logger.info(column + " in " + self.sourcefilename + " does not exist.")
+                logger.info(
+                    column + " in " + str(self.sourcefilename) + " does not exist."
+                )
                 non_numeric.append(column)
         if len(non_numeric) > 0:
             raise ColumnsMatchError(f"Columns {non_numeric} not numeric.", non_numeric)

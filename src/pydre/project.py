@@ -219,12 +219,18 @@ class Project:
     def __clean(self, string):
         return string.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
 
-    def processDatafiles(self, datafilenames: list[Path], numThreads: int = 12):
-        """
+    def processDatafiles(
+        self, datafilenames: list[Path], numThreads: int = 12
+    ) -> Optional[pl.DataFrame]:
+        """Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
+
         Args:
                 datafilenames: a list of filename strings (SimObserver .dat files)
+                numThreads: number of threads to run simultaneously in the thread pool
 
-        Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
+        Returns:
+            metrics data for all metrics, or None on error
+
         """
         if "metrics" not in self.definition:
             logger.critical("No metrics in project file. No results will be generated")

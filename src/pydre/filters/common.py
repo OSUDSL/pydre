@@ -16,7 +16,7 @@ def numberBinaryBlocks(
     only_on=0,
     limit_fill_null=700,
     extend_blocks=0,
-):
+) -> pydre.core.DriveData:
     """Adds a column that separates data into blocks based on the value of another column
 
     If only_on is set to 1, it filters the data to only include rows where binary_col is set to 1.
@@ -29,10 +29,12 @@ def numberBinaryBlocks(
         extend_blocks: Determines whether to extend the blocks.
         limit_fill_null: Determines how many rows to fill using fill_null (only applies when extend_blocks is set to 1).
 
+    Returns:
+        Original drive data object augmented with new column
     """
 
     required_col = [binary_column]
-    diff = drivedata.checkColumns(required_col)
+    drivedata.checkColumns(required_col)
 
     blocks = drivedata.data.select(
         (pl.col(binary_column).shift() != pl.col(binary_column))
@@ -70,10 +72,12 @@ def numberBinaryBlocks(
 def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
     """Copies DatTime to SimTime
 
-    Note: Requiers data columns
+    Note: Requires data columns
         - SimTime: simulation time
         = DatTime: time from simobserver recording start
 
+    Returns:
+        Original DriveData object with identical DatTime and SimTime
     """
     drivedata.data = drivedata.data.with_columns(pl.col("DatTime").alias("SimTime"))
     return drivedata
@@ -89,6 +93,8 @@ def FixReversedRoadLinearLand(drivedata: pydre.core.DriveData) -> pydre.core.Dri
         - XPos: X position of ownship
         - RoadOffset: lateral distance on roadway
 
+    Returns:
+        Original DriveData object with altered RoadOffset column data
     """
     drivedata.data = drivedata.data.with_columns(
         pl.when(pl.col("XPos").cast(pl.Float32).is_between(700, 900))
@@ -120,6 +126,8 @@ def setinrange(
         rangemin: Minimum value of the range
         rangemax: Maximum value of the range
 
+    Returns:
+        Original DriveData object with modified column
     """
     drivedata.data = drivedata.data.with_columns(
         pl.when(pl.col(colforrange).cast(pl.Float32).is_between(rangemin, rangemax))
@@ -154,6 +162,9 @@ def zscoreCol(
     Parameters:
         col: The name of the column to transform
         newcol: The name of the new z-score column
+
+    Returns:
+        Original DriveData object augmented with new z-score column
     """
     colMean = drivedata.data.get_column(col).mean()
     colSD = drivedata.data.get_column(col).std()
@@ -221,7 +232,7 @@ def filetimeToDatetime(ft: int) -> Optional[datetime.datetime]:
             microsecond=(ns100 // 10)
         )
     except OSError:
-        # happens when the input to fromtimestamp is outside of the legal range
+        # happens when the input to fromtimestamp is outside the legal range
         result = None
     return result
 
