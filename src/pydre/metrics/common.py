@@ -537,16 +537,16 @@ def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
 
 @registerMetric()
 def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
-    """ Calculates the time it takes to accelerate once follow car brakes (r2d)
+    """Calculates the time it takes to accelerate once follow car brakes (r2d)
 
-        Note: Requires data columns
-            - SimTime: Simulation time in secondsSimTime: simulation time
-            - FollowCarBraking Status: Whether the follow car is braking
-            - LonAccel: Longitude acceleration
-            - Brake: Whether the ownship is braking
+    Note: Requires data columns
+        - SimTime: Simulation time in secondsSimTime: simulation time
+        - FollowCarBraking Status: Whether the follow car is braking
+        - LonAccel: Longitude acceleration
+        - Brake: Whether the ownship is braking
 
-        Returns:
-            Time in seconds from when the follow car braked to when the ownship started accelerating forward.
+    Returns:
+        Time in seconds from when the follow car braked to when the ownship started accelerating forward.
     """
 
     required_col = ["FollowCarBrakingStatus", "LonAccel", "SimTime", "Brake"]
@@ -597,18 +597,23 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
     throttle_reaction_time = time_of_accel - initial_time
     return throttle_reaction_time
 
+
 @registerMetric()
 def maxAcceleration(drivedata: pydre.core.DriveData) -> Optional[float]:
     required_col = ["LatAccel", "LonAccel", "SimTime"]
 
     drivedata.checkColumnsNumeric(required_col)
 
-    df = drivedata.data.select([pl.col("LatAccel"), pl.col("LonAccel"), pl.col("SimTime")])
+    df = drivedata.data.select(
+        [pl.col("LatAccel"), pl.col("LonAccel"), pl.col("SimTime")]
+    )
 
-    df = df.with_columns(((pl.col("LonAccel") ** 2) + (pl.col("LatAccel") ** 2)).sqrt().alias("Total_Accel"))
+    df = df.with_columns(
+        ((pl.col("LonAccel") ** 2) + (pl.col("LatAccel") ** 2))
+        .sqrt()
+        .alias("Total_Accel")
+    )
     return df.get_column("Total_Accel").max()
-
-
 
 
 # laneExits
