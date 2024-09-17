@@ -21,8 +21,7 @@ plugins:
           line_length: 100
           show_signature_annotations: true
           signature_crossrefs: true
-        import:
-          - https://docs.python-requests.org/en/master/objects.inv
+
 
 remote_name: GitHub
 

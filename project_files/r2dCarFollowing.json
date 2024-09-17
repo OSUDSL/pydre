@@ -29,6 +29,10 @@
           "name": "throttleReactionTime",
           "function": "throttleReactionTime"
         },
+        {
+          "name": "maxAcceleration",
+          "function": "maxAcceleration"
+        },
           {
             "name": "R2DIDColumns",
             "function": "R2DIDColumns"

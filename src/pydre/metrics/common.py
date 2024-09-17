@@ -537,10 +537,16 @@ def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
 
 @registerMetric()
 def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
-    """Calculates the time it takes to accelerate once green car brakes (r2d)
+    """ Calculates the time it takes to accelerate once follow car brakes (r2d)
 
-    Returns:
-        Time in seconds from when the green car braked to when the ownship started accelerating forward.
+        Note: Requires data columns
+            - SimTime: Simulation time in secondsSimTime: simulation time
+            - FollowCarBraking Status: Whether the follow car is braking
+            - LonAccel: Longitude acceleration
+            - Brake: Whether the ownship is braking
+
+        Returns:
+            Time in seconds from when the follow car braked to when the ownship started accelerating forward.
     """
 
     required_col = ["FollowCarBrakingStatus", "LonAccel", "SimTime", "Brake"]
@@ -578,8 +584,6 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
 
     df_after_brake = df.filter(pl.col("Brake") == 0)
 
-    if drivedata.roi == "5":
-        x = 5
     try:
         time_of_accel = (
             df_after_brake.filter(pl.col("LonAccel") > 0).get_column("SimTime").item(0)
@@ -592,6 +596,19 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
 
     throttle_reaction_time = time_of_accel - initial_time
     return throttle_reaction_time
+
+@registerMetric()
+def maxAcceleration(drivedata: pydre.core.DriveData) -> Optional[float]:
+    required_col = ["LatAccel", "LonAccel", "SimTime"]
+
+    drivedata.checkColumnsNumeric(required_col)
+
+    df = drivedata.data.select([pl.col("LatAccel"), pl.col("LonAccel"), pl.col("SimTime")])
+
+    df = df.with_columns(((pl.col("LonAccel") ** 2) + (pl.col("LatAccel") ** 2)).sqrt().alias("Total_Accel"))
+    return df.get_column("Total_Accel").max()
+
+
 
 
 # laneExits

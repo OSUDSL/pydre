@@ -29,4 +29,23 @@ This is the primary unit of data storage for the module. DriveData objects are i
 
 This is where the processing actually takes place. A project is constructed by reading in a project file (either JSON or TOML). 
 
+## Tips for Writing New Metrics
 
+Metrics are used to calculate values from the data, and the calculations are done after the data is filtered.
+
+Everytime you want to make a new metric, you need to use the `@registerMetric` decorator followed by the function definition.
+
+Generally, every metric begins with the same two lines:  
+```
+required_col = [array of column names]  
+try:
+    drivedata.checkColumnsNumeric(required_col)
+except pl.exceptions.PolarsError:
+    return None  
+```
+This is to ensure that the columns you need in order to calculate your metric are part of the dataset.  
+
+As metrics calculate some value, every metric has a return statement.  
+If no output is specified, the return value gets outputted in an out.csv file under a column titled the metrics name.  
+If the data is sectioned into multiple regions of interests (rois), the metric will be processed on each roi and produce
+a row for each roi in the output file.  
