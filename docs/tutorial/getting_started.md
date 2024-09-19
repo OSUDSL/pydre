@@ -32,3 +32,47 @@ python -m pydre.run -p C:\Users\pveith\Documents\pydre\docs\bioptics.json
 
 # Example data processing
 
+## Source files
+
+We'll walk through the creation of a project file and running that project file on an [example data file](Experimenter_S1_Tutorial_11002233.dat).
+
+| DatTime | SimTime | MediaTime | LonAccel | LatAccel | Throttle | Brake | Gear | Heading  | HeadwayDistance | HeadwayTime | Lane | LaneOffset | RoadOffset | Steer    | Velocity | XPos      | YPos  | GazeObj           |
+|---------|---------|-----------|----------|----------|----------|-------|------|----------|-----------------|-------------|------|------------|------------|----------|----------|-----------|-------|-------------------|
+| 1.1     | 9.1     | 5.2       | 0.014943 | 0.020915 | 0        | 0     | 3    | 0.116032 | 10000           | 486.5342    | 2    | 0.1        | 5.1        | 0.003261 | 20.55353 | \-6470.89 | 14.6  | InstrumentCluster |
+| 2.1     | 10.1    | 6.2       | 0.017797 | 0.020037 | 0        | 0     | 3    | 0.116593 | 10000           | 486.5269    | 2    | 0.12       | 5.12       | 0.003104 | 20.55384 | \-6460    | 15.1  | InstrumentCluster |
+| 3.1     | 11.1    | 7.2       | 0.019815 | 0.019082 | 9.814428 | 0     | 3    | 0.117187 | 10000           | 486.5185    | 2    | 0.15       | 5.15       | 0.002947 | 20.5542  | \-6449.11 | 14.6  | None              |
+| 4.1     | 12.1    | 8.2       | 0.02161  | 0.017984 | 9.814428 | 0     | 3    | 0.11781  | 10000           | 486.5088    | 2    | 0.2        | 5.2        | 0.002633 | 20.55461 | \-6438.21 | 14.65 | None              |
+| 5.1     | 13.1    | 9.2       | 0.023096 | 0.016835 | 0        | 4.3   | 3    | 0.118379 | 10000           | 486.4993    | 2    | 0.2        | 5.2        | 0.002319 | 20.55501 | \-6427.32 | 15.2  | None              |
+
+
+The example file is only five rows of a data file, where real data files are tens of thousands of lines. Also, this is synthetic data, for example purposes only, not real data from a driving simulator run.
+
+## Goals
+
+Say you wanted to find the standard deviation of lane position (SDLP) for this data. Pydre comes with a [standard deviation metric function](../reference/metrics.md#pydre.metrics.common.colSD), so you can use that. To do that, you would write a project file like so:
+
+```toml title="tutorial_project.toml"
+
+[metrics.SDLP]
+function = "colSD"
+var = "LanePosition"
+
+```
+The `colSD` function requires a parameter `var` that is the column name in the dat files to calculate the SD over.
+
+After saving the project file, you can then run:
+
+```bash
+
+python -m pydre.run -p tutorial_project.toml -d Experimenter_S1_Tutorial_11002233.dat -o tutorial_out.csv
+
+```
+
+This will run the project commands on the specified data file and out the result in `tutorial_out.csv`. If you wanted to run on multiple data files, you could do `-d *.dat` or `-d ../datafiles/tutorialdata/*.dat` or something similar. Since we have no ROIs, the output csv will contain one row per input data file:
+
+| Subject | Mode         | ScenarioName | UniqueID | ROI | SDLP                |
+|---------|--------------|--------------|----------|-----|---------------------|
+| S1      | Experimenter | Tutorial     | 11002233 |     | 0.04560701700396553 |
+
+In this example, ROI is blank since we did not specify any ROIs. The metric column header is "SDLP", since we defined it under the category "metrics.**SDLP**" in the TOML project file. 
+

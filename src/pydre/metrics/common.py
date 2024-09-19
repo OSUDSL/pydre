@@ -113,7 +113,8 @@ def colSD(
     """
     try:
         drivedata.checkColumnsNumeric([var])
-    except ColumnsMatchError:
+    except ColumnsMatchError as e:
+        logger.warning(f"Columns not numeric: {e.missing_columns}")
         return None
     if cutoff is not None:
         return (
