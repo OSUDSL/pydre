@@ -529,6 +529,175 @@
     -o bioptics.csv -l debug
 </code></pre></div></p>
 <h1 id="example-data-processing">Example data processing</h1>
+<h2 id="source-files">Source files</h2>
+<p>We'll walk through the creation of a project file and running that project file on an <a href="../Experimenter_S1_Tutorial_11002233.dat">example data file</a>.</p>
+<table>
+<thead>
+<tr>
+<th>DatTime</th>
+<th>SimTime</th>
+<th>MediaTime</th>
+<th>LonAccel</th>
+<th>LatAccel</th>
+<th>Throttle</th>
+<th>Brake</th>
+<th>Gear</th>
+<th>Heading</th>
+<th>HeadwayDistance</th>
+<th>HeadwayTime</th>
+<th>Lane</th>
+<th>LaneOffset</th>
+<th>RoadOffset</th>
+<th>Steer</th>
+<th>Velocity</th>
+<th>XPos</th>
+<th>YPos</th>
+<th>GazeObj</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td>9.1</td>
+<td>5.2</td>
+<td>0.014943</td>
+<td>0.020915</td>
+<td>0</td>
+<td>0</td>
+<td>3</td>
+<td>0.116032</td>
+<td>10000</td>
+<td>486.5342</td>
+<td>2</td>
+<td>0.1</td>
+<td>5.1</td>
+<td>0.003261</td>
+<td>20.55353</td>
+<td>-6470.89</td>
+<td>14.6</td>
+<td>InstrumentCluster</td>
+</tr>
+<tr>
+<td>2.1</td>
+<td>10.1</td>
+<td>6.2</td>
+<td>0.017797</td>
+<td>0.020037</td>
+<td>0</td>
+<td>0</td>
+<td>3</td>
+<td>0.116593</td>
+<td>10000</td>
+<td>486.5269</td>
+<td>2</td>
+<td>0.12</td>
+<td>5.12</td>
+<td>0.003104</td>
+<td>20.55384</td>
+<td>-6460</td>
+<td>15.1</td>
+<td>InstrumentCluster</td>
+</tr>
+<tr>
+<td>3.1</td>
+<td>11.1</td>
+<td>7.2</td>
+<td>0.019815</td>
+<td>0.019082</td>
+<td>9.814428</td>
+<td>0</td>
+<td>3</td>
+<td>0.117187</td>
+<td>10000</td>
+<td>486.5185</td>
+<td>2</td>
+<td>0.15</td>
+<td>5.15</td>
+<td>0.002947</td>
+<td>20.5542</td>
+<td>-6449.11</td>
+<td>14.6</td>
+<td>None</td>
+</tr>
+<tr>
+<td>4.1</td>
+<td>12.1</td>
+<td>8.2</td>
+<td>0.02161</td>
+<td>0.017984</td>
+<td>9.814428</td>
+<td>0</td>
+<td>3</td>
+<td>0.11781</td>
+<td>10000</td>
+<td>486.5088</td>
+<td>2</td>
+<td>0.2</td>
+<td>5.2</td>
+<td>0.002633</td>
+<td>20.55461</td>
+<td>-6438.21</td>
+<td>14.65</td>
+<td>None</td>
+</tr>
+<tr>
+<td>5.1</td>
+<td>13.1</td>
+<td>9.2</td>
+<td>0.023096</td>
+<td>0.016835</td>
+<td>0</td>
+<td>4.3</td>
+<td>3</td>
+<td>0.118379</td>
+<td>10000</td>
+<td>486.4993</td>
+<td>2</td>
+<td>0.2</td>
+<td>5.2</td>
+<td>0.002319</td>
+<td>20.55501</td>
+<td>-6427.32</td>
+<td>15.2</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<p>The example file is only five rows of a data file, where real data files are tens of thousands of lines. Also, this is synthetic data, for example purposes only, not real data from a driving simulator run.</p>
+<h2 id="goals">Goals</h2>
+<p>Say you wanted to find the standard deviation of lane position (SDLP) for this data. Pydre comes with a <a href="../../reference/metrics/#pydre.metrics.common.colSD">standard deviation metric function</a>, so you can use that. To do that, you would write a project file like so:</p>
+<p><div class="highlight"><span class="filename">tutorial_project.toml</span><pre><span></span><code><span class="k">[metrics.SDLP]</span>
+<span class="n">function</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;colSD&quot;</span>
+<span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;LanePosition&quot;</span>
+</code></pre></div>
+The <code>colSD</code> function requires a parameter <code>var</code> that is the column name in the dat files to calculate the SD over.</p>
+<p>After saving the project file, you can then run:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pydre.run<span class="w"> </span>-p<span class="w"> </span>tutorial_project.toml<span class="w"> </span>-d<span class="w"> </span>Experimenter_S1_Tutorial_11002233.dat<span class="w"> </span>-o<span class="w"> </span>tutorial_out.csv
+</code></pre></div>
+<p>This will run the project commands on the specified data file and out the result in <code>tutorial_out.csv</code>. If you wanted to run on multiple data files, you could do <code>-d *.dat</code> or <code>-d ../datafiles/tutorialdata/*.dat</code> or something similar. Since we have no ROIs, the output csv will contain one row per input data file:</p>
+<table>
+<thead>
+<tr>
+<th>Subject</th>
+<th>Mode</th>
+<th>ScenarioName</th>
+<th>UniqueID</th>
+<th>ROI</th>
+<th>SDLP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>Experimenter</td>
+<td>Tutorial</td>
+<td>11002233</td>
+<td></td>
+<td>0.04560701700396553</td>
+</tr>
+</tbody>
+</table>
+<p>In this example, ROI is blank since we did not specify any ROIs. The metric column header is "SDLP", since we defined it under the category "metrics.<strong>SDLP</strong>" in the TOML project file. </p>
 
 
 

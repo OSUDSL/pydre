@@ -2028,8 +2028,18 @@ stop sign or stop light as the middle value in the direction of travel.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Calculates the time it takes to accelerate once green car brakes (r2d)</p>
+        <p>Calculates the time it takes to accelerate once follow car brakes (r2d)</p>
 
+
+<details class="note" open>
+  <summary>Requires data columns</summary>
+  <ul>
+<li>SimTime: Simulation time in secondsSimTime: simulation time</li>
+<li>FollowCarBraking Status: Whether the follow car is braking</li>
+<li>LonAccel: Longitude acceleration</li>
+<li>Brake: Whether the ownship is braking</li>
+</ul>
+</details>
 
     <p><span class="doc-section-title">Returns:</span></p>
     <table>
@@ -2046,7 +2056,7 @@ stop sign or stop light as the middle value in the direction of travel.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Time in seconds from when the green car braked to when the ownship started accelerating forward.</p>
+                <p>Time in seconds from when the follow car braked to when the ownship started accelerating forward.</p>
               </div>
             </td>
           </tr>
