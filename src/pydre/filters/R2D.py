@@ -65,9 +65,9 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
         pl.lit("").alias("EventName")
     )
 
-    mergeDataPath = pathlib.Path(THISDIR, "data", dataFile)
-    logger.debug(f"{dataFile} exists: {mergeDataPath.exists()}")
-    merge_df = pl.read_csv(source=mergeDataPath)
+    # mergeDataPath = pathlib.Path(THISDIR, "data", dataFile)
+    #logger.debug(f"{dataFile} exists: {mergeDataPath.exists()}")
+    merge_df = pl.read_csv(source=dataFile)
     merge_df = merge_df.filter(
             merge_df.get_column("ScenarioName") == scenario,
             merge_df.get_column("Week") == week
@@ -117,7 +117,8 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
 
 
 """
-"Start Difference" code in-question:
+"Start Difference" code in-question: 
+    --> Make new filter, that checks for this situation (High XPos --> low XPos value,)
 
     # copy values from datTime into simTime
     df = df.with_columns(pl.col("DatTime").alias("SimTime"))
@@ -132,7 +133,8 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
         df = df.filter(df.get_column("SimTime") > start_time)
     # modify xpos to match the starting value of dsl data
     start_pos = df.get_column("XPos").item(0)
-
+"""
+"""
 =================
 TODO DEPRECATE:
 =================

@@ -6,13 +6,20 @@ function = "FixReversedRoadLinearLand"
 
 [filters.MergeCriticalEventPositions]
 function = "MergeCriticalEventPositions"
+dataFile = 'C:\Users\Owner\Desktop\work\bama_work\internal_code\pydre\src\pydre\filters\data\r2dEventPositions_uab.csv'
 
 [rois.roi1]
 type = "column"
 columnname = "CriticalEventNum"
 
-[metrics.ceStartPos]
-function = "criticalEventStartPos"
+[metrics.CriticalEventStart]
+function = "colMin"
+var = "XPos"
 
-[metrics.ceEndPos]
-function = "criticalEventEndPos"
+[metrics.CriticalEventEnd]
+function = "colMax"
+var = "XPos"
+
+[metrics.EventName]
+function = "colFirst"
+var = "EventName"

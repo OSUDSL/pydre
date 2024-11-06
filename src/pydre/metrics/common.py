@@ -165,14 +165,14 @@ def colFirst(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
     """Returns the first value of the specified column
 
     Parameters:
-        var: The column name to process. Must be numeric.
+        var: The column name to process.
 
     Returns:
         First value of selected column.
     """
 
     try:
-        drivedata.checkColumnsNumeric([var])
+        drivedata.checkColumns([var])
     except ColumnsMatchError:
         return None
     return drivedata.data.get_column(var).head(1).item()
@@ -183,13 +183,13 @@ def colLast(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
     """Returns the last value of the specified column
 
     Parameters:
-        var: The column name to process. Must be numeric.
+        var: The column name to process
 
     Returns:
         Last value of selected column.
     """
     try:
-        drivedata.checkColumnsNumeric([var])
+        drivedata.checkColumns([var])
     except ColumnsMatchError:
         return None
     return drivedata.data.get_column(var).tail(1).item()
