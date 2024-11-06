@@ -1,10 +1,13 @@
 import re
+import pathlib
 
 import polars as pl
 from loguru import logger
 
 import pydre.core
 from pydre.filters import registerFilter
+
+THISDIR = pathlib.Path(__file__).resolve().parent
 
 
 @registerFilter()
@@ -29,6 +32,110 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
     return drivedata
 
 
+@registerFilter()
+def MergeCriticalEventPositions(drivedata: pydre.core,
+                                dataFile="r2dEventPositions_uab.csv",
+                                criticalEventDist=100):
+    """
+    :arg: criticalEventDist: determines how many meters on the X-axis
+        is determined to be "within the critical event duration"
+
+    Imports specified csv dataFile for use in XPos-based filtering,
+    using 'manuever pos'. dataFile also determines additional columns
+    in the filtered result:
+        - CriticalEventNum
+        - EventName
+    """
+    ceDist = criticalEventDist
+    ident = drivedata.PartID
+    scenario = drivedata.scenarioName
+    # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
+    ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
+    if ident_groups is None:
+        logger.warning("Could not parse R2D ID " + ident)
+        return [None]
+    location = ident_groups.group(2)
+    week = ident_groups.group(5)
+    df = drivedata.data
+
+    # adding cols with meaningless values for later CE info, ensuring shape
+    df = df.with_columns(
+        pl.lit(-1).alias("CriticalEventNum"),
+        pl.lit("").alias("EventName")
+    )
+
+    mergeDataPath = pathlib.Path(THISDIR, "data", dataFile)
+    logger.debug(f"{dataFile} exists: {mergeDataPath.exists()}")
+    merge_df = pl.read_csv(source=mergeDataPath)
+    merge_df = merge_df.filter(
+            merge_df.get_column("ScenarioName") == scenario,
+            merge_df.get_column("Week") == week
+    )
+
+    if location == '1':
+        logger.debug("UAB Processing Case - data unaffected")
+        # Does start difference from below still apply
+        # --> if so, just bring up that logic to here.
+        start_pos = 0
+    else:
+        logger.debug("OSU/UA Processing Case - data unaffected.")
+        start_pos = 0
+
+    # This is generalized, and could be applied to any site's data.
+    ceInfo_df = merge_df.select(
+        pl.col("manuever pos"),
+        pl.col("CENum"),
+        pl.col("Event")
+        )
+    filter_df = df.clear()
+    for ceRow in ceInfo_df.rows():
+        # critical event position, number, and name
+        cePos = ceRow[0]
+        ceNum = ceRow[1]
+        event = ceRow[2]
+
+        # xPos based bounding, consider
+        ceROI = df.filter(
+                df.get_column('XPos') >= cePos + start_pos,
+                df.get_column('XPos') < cePos + start_pos + ceDist
+            )
+        # update existing columns with Critical Event values
+        ceROI = ceROI.with_columns(
+            pl.lit(ceNum).alias("CriticalEventNum"),
+            pl.lit(event).alias("EventName")
+        )
+        # logger.debug(f"Filtered '{event}' crit. event: {ceROI}")
+        filter_df.extend(ceROI)
+
+    logger.debug("Critical Event ROIs for {0}, '{1}' (XPos Bound): {2}".format
+                 (ident, scenario, filter_df))
+
+    # ! standardized return ###
+    # drivedata.data = filter_df
+    drivedata.data = df
+    return drivedata
+
+
+"""
+"Start Difference" code in-question:
+
+# copy values from datTime into simTime
+df = df.with_columns(pl.col("DatTime").alias("SimTime"))
+# for files like Experimenter_3110007w1_No Load, Event_1665239271T-10-07-52.dat where the drive starts at
+# the end of a previous drive, trim the data leading up to the actual start
+df = df.with_columns(
+    pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
+)
+df_actual_start = df.filter(df.get_column("PosDiff") > 500)
+if not df_actual_start.is_empty():
+    start_time = df_actual_start.get_column("SimTime").item(0)
+    df = df.filter(df.get_column("SimTime") > start_time)
+# modify xpos to match the starting value of dsl data
+start_pos = df.get_column("XPos").item(0)
+
+=================
+TODO DEPRECATE:
+=================
 @registerFilter()
 def modifyUABdata(drivedata: pydre.core, headwaycutoff=50):
     ident = drivedata.PartID
@@ -143,3 +250,4 @@ def modifyUABdata(drivedata: pydre.core, headwaycutoff=50):
                 )
     drivedata.data = df
     return drivedata
+"""

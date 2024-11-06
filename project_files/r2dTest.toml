@@ -1,0 +1,12 @@
+[filters.SimTimeFromDatTime]
+function = "SimTimeFromDatTime"
+
+[filters.FixReversedRoadLinearLand]
+function = "FixReversedRoadLinearLand"
+
+[filters.MergeCriticalEventPositions]
+function = "MergeCriticalEventPositions"
+
+[metrics.meanVelocity]
+function = "colMean"
+var = "Velocity"
