@@ -1203,26 +1203,27 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff=1, steer_cutoff=0
     return reactionTime
 
 
-@registerMetric()
+@registerMetric("criticalEventStartPos", ["ceName", "ceStartPos"])
 def criticalEventStartPos(drivedata: pydre.core.DriveData):
     required_col = ["XPos"]
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
+    required_col.append("EventName")
     drivedata.checkColumns(required_col)
+    df = drivedata.data
+    return df.get_column("XPos").item(0), df.get_column("EventName").item(0)
 
-    df = drivedata.data.select(pl.col("XPos"))
-    return df.get_column("XPos").item(0)
 
-
-@registerMetric()
+@registerMetric("criticalEventEndPos", ["ceName", "ceEndPos"])
 def criticalEventEndPos(drivedata: pydre.core.DriveData):
     required_col = ["XPos"]
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
+    required_col.append("EventName")
     drivedata.checkColumns(required_col)
 
-    df = drivedata.data.select(pl.col("XPos"))
-    return df.get_column("XPos").item(-1)
+    df = drivedata.data
+    return df.get_column("XPos").item(-1), df.get_column("EventName").item(-1)
 
 
 @registerMetric(

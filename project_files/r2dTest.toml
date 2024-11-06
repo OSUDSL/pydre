@@ -7,6 +7,12 @@ function = "FixReversedRoadLinearLand"
 [filters.MergeCriticalEventPositions]
 function = "MergeCriticalEventPositions"
 
-[metrics.meanVelocity]
-function = "colMean"
-var = "Velocity"
+[rois.roi1]
+type = "column"
+columnname = "CriticalEventNum"
+
+[metrics.ceStartPos]
+function = "criticalEventStartPos"
+
+[metrics.ceEndPos]
+function = "criticalEventEndPos"

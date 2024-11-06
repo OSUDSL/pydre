@@ -37,6 +37,7 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
                                 dataFile="r2dEventPositions_uab.csv",
                                 criticalEventDist=100):
     """
+    :arg: dataFile: the file name of the csv that maps CE positions.
     :arg: criticalEventDist: determines how many meters on the X-axis
         is determined to be "within the critical event duration"
 
@@ -107,31 +108,30 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
         # logger.debug(f"Filtered '{event}' crit. event: {ceROI}")
         filter_df.extend(ceROI)
 
-    logger.debug("Critical Event ROIs for {0}, '{1}' (XPos Bound): {2}".format
-                 (ident, scenario, filter_df))
+    # logger.debug("Critical Event ROIs for {0}, '{1}' (XPos Bound): {2}".
+    #   format(ident, scenario, filter_df))
 
     # ! standardized return ###
-    # drivedata.data = filter_df
-    drivedata.data = df
+    drivedata.data = filter_df
     return drivedata
 
 
 """
 "Start Difference" code in-question:
 
-# copy values from datTime into simTime
-df = df.with_columns(pl.col("DatTime").alias("SimTime"))
-# for files like Experimenter_3110007w1_No Load, Event_1665239271T-10-07-52.dat where the drive starts at
-# the end of a previous drive, trim the data leading up to the actual start
-df = df.with_columns(
-    pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
-)
-df_actual_start = df.filter(df.get_column("PosDiff") > 500)
-if not df_actual_start.is_empty():
-    start_time = df_actual_start.get_column("SimTime").item(0)
-    df = df.filter(df.get_column("SimTime") > start_time)
-# modify xpos to match the starting value of dsl data
-start_pos = df.get_column("XPos").item(0)
+    # copy values from datTime into simTime
+    df = df.with_columns(pl.col("DatTime").alias("SimTime"))
+    # for files like Experimenter_3110007w1_No Load, Event_1665239271T-10-07-52.dat where the drive starts at
+    # the end of a previous drive, trim the data leading up to the actual start
+    df = df.with_columns(
+        pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
+    )
+    df_actual_start = df.filter(df.get_column("PosDiff") > 500)
+    if not df_actual_start.is_empty():
+        start_time = df_actual_start.get_column("SimTime").item(0)
+        df = df.filter(df.get_column("SimTime") > start_time)
+    # modify xpos to match the starting value of dsl data
+    start_pos = df.get_column("XPos").item(0)
 
 =================
 TODO DEPRECATE:
