@@ -35,11 +35,20 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
 @registerFilter()
 def MergeCriticalEventPositions(drivedata: pydre.core,
                                 dataFile="r2dEventPositions_uab.csv",
-                                criticalEventDist=100):
+                                analyzePriorCutIn=True,
+                                criticalEventDist=150.0,
+                                cutInDelta=2.0,
+                                headwayThreshold=200.0):
     """
     :arg: dataFile: the file name of the csv that maps CE positions.
+        -> required cols:
+        'Week','ScenarioName','Event','maneuver pos','CENum'
+    :arg: analyzePriorCutIn: True: analyze Subject's reaction before cut-In CE
+                            False: analyze Subject's reaction after cut-In CE
     :arg: criticalEventDist: determines how many meters on the X-axis
         is determined to be "within the critical event duration"
+    :arg: cutInDelta: time, in seconds, to account for subject
+        reaction inclusion to ROI for Cut-In Critical Event.
 
     Imports specified csv dataFile for use in XPos-based filtering,
     using 'manuever pos'. dataFile also determines additional columns
@@ -47,7 +56,6 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
         - CriticalEventNum
         - EventName
     """
-    ceDist = criticalEventDist
     ident = drivedata.PartID
     scenario = drivedata.scenarioName
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
@@ -98,7 +106,7 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
         # xPos based bounding, consider
         ceROI = df.filter(
                 df.get_column('XPos') >= cePos + start_pos,
-                df.get_column('XPos') < cePos + start_pos + ceDist
+                df.get_column('XPos') < cePos + start_pos + criticalEventDist
             )
         # update existing columns with Critical Event values
         ceROI = ceROI.with_columns(
@@ -106,12 +114,33 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
             pl.lit(event).alias("EventName")
         )
         # logger.debug(f"Filtered '{event}' crit. event: {ceROI}")
+
+        # cut-in needs better filtering, based on headway + XPos
+        if "cut-in" in event.lower():
+            headwayROI = ceROI.filter(
+                ceROI.get_column('HeadwayDistance') <= headwayThreshold
+            )
+            if not headwayROI.is_empty():
+                # rewind and/or expand timeframe (for now, just rewind)
+                simTimeStart = headwayROI.get_column('SimTime').head(1).item()
+                simTimeEnd = headwayROI.get_column('SimTime').tail(1).item()
+                if analyzePriorCutIn:
+                    ceROI = ceROI.filter(
+                        ceROI.get_column('SimTime') >= simTimeStart - cutInDelta,
+                        ceROI.get_column('SimTime') <= simTimeEnd
+                    )
+                else:
+                    ceROI = ceROI.filter(
+                        ceROI.get_column('SimTime') >= simTimeStart,
+                        ceROI.get_column('SimTime') <= simTimeEnd + cutInDelta
+                    )
+            else:
+                logger.warning("Cut-In Event for {0} in scenario '{1}' does not display expected headway behavior.".format(ident, scenario))
+
         filter_df.extend(ceROI)
 
     # logger.debug("Critical Event ROIs for {0}, '{1}' (XPos Bound): {2}".
     #   format(ident, scenario, filter_df))
-
-    # ! standardized return ###
     drivedata.data = filter_df
     return drivedata
 
