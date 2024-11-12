@@ -6,7 +6,7 @@ function = "FixReversedRoadLinearLand"
 
 [filters.MergeCriticalEventPositions]
 function = "MergeCriticalEventPositions"
-dataFile = 'C:\Users\Owner\Desktop\work\bama_work\internal_code\pydre\src\pydre\filters\data\r2dEventPositions_uab.csv'
+dataFile = 'C:\Users\Owner\Desktop\work\bama_work\internal_code\merge_data\r2dEventPositions_uab_1.2.csv'
 
 [rois.roi1]
 type = "column"

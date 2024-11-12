@@ -33,8 +33,29 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
+def CropStartPosition(drivedata: pydre.core):
+    """
+    Ensure that drive data starts from consistent point between sites.
+    This code was decoupled from merge filter to zero UAB start points.
+    """
+    df = drivedata.data
+    # copy values from datTime into simTime
+    df = df.with_columns(pl.col("DatTime").alias("SimTime"))
+    df = df.with_columns(
+        pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
+    )
+    df_actual_start = df.filter(df.get_column("PosDiff") > 500)
+    if not df_actual_start.is_empty():
+        start_time = df_actual_start.get_column("SimTime").item(0)
+        df = df.filter(df.get_column("SimTime") > start_time)
+
+    drivedata.data = df
+    return drivedata
+
+
+@registerFilter()
 def MergeCriticalEventPositions(drivedata: pydre.core,
-                                dataFile="r2dEventPositions_uab.csv",
+                                dataFile="",
                                 analyzePriorCutIn=True,
                                 criticalEventDist=150.0,
                                 cutInDelta=2.0,
@@ -63,7 +84,6 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
     if ident_groups is None:
         logger.warning("Could not parse R2D ID " + ident)
         return [None]
-    location = ident_groups.group(2)
     week = ident_groups.group(5)
     df = drivedata.data
 
@@ -73,24 +93,13 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
         pl.lit("").alias("EventName")
     )
 
-    # mergeDataPath = pathlib.Path(THISDIR, "data", dataFile)
-    #logger.debug(f"{dataFile} exists: {mergeDataPath.exists()}")
-    merge_df = pl.read_csv(source=dataFile)
-    merge_df = merge_df.filter(
-            merge_df.get_column("ScenarioName") == scenario,
-            merge_df.get_column("Week") == week
-    )
-
-    if location == '1':
-        logger.debug("UAB Processing Case - data unaffected")
-        # Does start difference from below still apply
-        # --> if so, just bring up that logic to here.
-        start_pos = 0
-    else:
-        logger.debug("OSU/UA Processing Case - data unaffected.")
-        start_pos = 0
-
-    # This is generalized, and could be applied to any site's data.
+    if dataFile != "":
+        merge_df = pl.read_csv(source=dataFile)
+        merge_df = merge_df.filter(
+                merge_df.get_column("ScenarioName") == scenario,
+                merge_df.get_column("Week") == week
+        )
+         # This is generalized, and could be applied to any site's data.
     ceInfo_df = merge_df.select(
         pl.col("manuever pos"),
         pl.col("CENum"),
@@ -105,15 +114,14 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
 
         # xPos based bounding, consider
         ceROI = df.filter(
-                df.get_column('XPos') >= cePos + start_pos,
-                df.get_column('XPos') < cePos + start_pos + criticalEventDist
+                df.get_column('XPos') >= cePos,
+                df.get_column('XPos') < cePos + criticalEventDist
             )
         # update existing columns with Critical Event values
         ceROI = ceROI.with_columns(
             pl.lit(ceNum).alias("CriticalEventNum"),
             pl.lit(event).alias("EventName")
         )
-        # logger.debug(f"Filtered '{event}' crit. event: {ceROI}")
 
         # cut-in needs better filtering, based on headway + XPos
         if "cut-in" in event.lower():
@@ -138,31 +146,12 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
                 logger.warning("Cut-In Event for {0} in scenario '{1}' does not display expected headway behavior.".format(ident, scenario))
 
         filter_df.extend(ceROI)
-
-    # logger.debug("Critical Event ROIs for {0}, '{1}' (XPos Bound): {2}".
-    #   format(ident, scenario, filter_df))
-    drivedata.data = filter_df
+        drivedata.data = filter_df
+    else:
+        logger.warning("No imported merge file - no known CE positions.")
     return drivedata
 
 
-"""
-"Start Difference" code in-question: 
-    --> Make new filter, that checks for this situation (High XPos --> low XPos value,)
-
-    # copy values from datTime into simTime
-    df = df.with_columns(pl.col("DatTime").alias("SimTime"))
-    # for files like Experimenter_3110007w1_No Load, Event_1665239271T-10-07-52.dat where the drive starts at
-    # the end of a previous drive, trim the data leading up to the actual start
-    df = df.with_columns(
-        pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
-    )
-    df_actual_start = df.filter(df.get_column("PosDiff") > 500)
-    if not df_actual_start.is_empty():
-        start_time = df_actual_start.get_column("SimTime").item(0)
-        df = df.filter(df.get_column("SimTime") > start_time)
-    # modify xpos to match the starting value of dsl data
-    start_pos = df.get_column("XPos").item(0)
-"""
 """
 =================
 TODO DEPRECATE:
