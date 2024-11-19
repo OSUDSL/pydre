@@ -36,16 +36,16 @@ def numberBinaryBlocks(
     required_col = [binary_column]
     drivedata.checkColumns(required_col)
 
-    blocks = drivedata.data.select(
+    new_dd = drivedata.data.with_columns(
         (pl.col(binary_column).shift() != pl.col(binary_column))
         .cum_sum()
-        .alias(new_column)
-    )
+        .alias(new_column))
 
-    drivedata.data.hstack(blocks, in_place=True)
+    # drivedata.data.hstack(blocks, in_place=True)
     if only_on:
         try:
-            drivedata.data = drivedata.data.filter(pl.col(binary_column) == 1)
+            new_dd = new_dd.filter(pl.col(binary_column) == 1)
+            new_dd = new_dd.with_columns((pl.col(new_column)+1.0)/2.0)
         except pl.exceptions.ComputeError as e:
             logger.warning(
                 "Assumed binary column {} in {} has non-numeric value.".format(
@@ -54,17 +54,18 @@ def numberBinaryBlocks(
             )
 
     if extend_blocks:
-        drivedata.data = drivedata.data.with_columns(
+        new_dd = new_dd.with_columns(
             pl.when(pl.col(binary_column) == 0)
             .then(None)
             .otherwise(pl.col(new_column))
             .alias(new_column)
         )
-        drivedata.data = drivedata.data.with_columns(
+        new_dd = new_dd.with_columns(
             pl.col(new_column).fill_null(strategy="forward", limit=limit_fill_null)
         )
-        drivedata.data = drivedata.data.filter(pl.col(new_column).is_not_null())
+        new_dd = new_dd.filter(pl.col(new_column).is_not_null())
 
+    drivedata.data = new_dd
     return drivedata
 
 
