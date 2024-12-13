@@ -6,7 +6,7 @@ function = "FixReversedRoadLinearLand"
 
 [filters.MergeCriticalEventPositions]
 function = "MergeCriticalEventPositions"
-dataFile = 'C:\Users\Owner\Desktop\work\bama_work\internal_code\merge_data\r2dEventPositions_uab_1.2.csv'
+dataFile = 'C:\Users\Owner\Desktop\work\bama_work\internal_code\osu\merge_data\r2dEventPositions_uab_1.2.csv'
 
 [rois.roi1]
 type = "column"
@@ -23,3 +23,21 @@ var = "XPos"
 [metrics.EventName]
 function = "colFirst"
 var = "EventName"
+
+[metrics.maxAcceleration]
+function = "maxAcceleration"
+
+[metrics.reactionTime]
+function = "reactionTimeEventTrue"
+var1 = "Brake"
+var2 = "LaneOffset"
+
+[metrics.maxLaneDeviation]
+function = "colMax"
+var = "LaneOffset"
+
+[metrics.timeToVeloRecovery]
+function = "eventSpeedRecoveryTime"
+
+[metrics.timeToPosRecovery]
+function = "eventRecenterRecoveryTime"

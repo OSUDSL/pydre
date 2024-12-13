@@ -17,6 +17,9 @@ columnname = "carBlocks"
 [metrics.R2DIDColumns]
 function = "R2DIDColumns"
 
+[metrics.maxAcceleration]
+function = "maxAcceleration"
+
 [metrics.meanVelocity]
 function = "colMean"
 var = "Velocity"

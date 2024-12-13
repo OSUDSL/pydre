@@ -56,10 +56,10 @@ def CropStartPosition(drivedata: pydre.core):
 @registerFilter()
 def MergeCriticalEventPositions(drivedata: pydre.core,
                                 dataFile="",
-                                analyzePriorCutIn=True,
-                                criticalEventDist=150.0,
-                                cutInDelta=2.0,
-                                headwayThreshold=200.0):
+                                analyzePriorCutIn=False,
+                                criticalEventDist=250.0,
+                                cutInDelta=5.0,
+                                headwayThreshold=150.0):
     """
     :arg: dataFile: the file name of the csv that maps CE positions.
         -> required cols:
@@ -87,68 +87,74 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
     week = ident_groups.group(5)
     df = drivedata.data
 
-    # adding cols with meaningless values for later CE info, ensuring shape
-    df = df.with_columns(
-        pl.lit(-1).alias("CriticalEventNum"),
-        pl.lit("").alias("EventName")
-    )
-
-    if dataFile != "":
-        merge_df = pl.read_csv(source=dataFile)
-        merge_df = merge_df.filter(
-                merge_df.get_column("ScenarioName") == scenario,
-                merge_df.get_column("Week") == week
+    if "No Event" not in scenario:
+        # adding cols with meaningless values for later CE info, ensuring shape
+        df = df.with_columns(
+            pl.lit(-1).alias("CriticalEventNum"),
+            pl.lit("").alias("EventName")
         )
-         # This is generalized, and could be applied to any site's data.
-    ceInfo_df = merge_df.select(
-        pl.col("manuever pos"),
-        pl.col("CENum"),
-        pl.col("Event")
-        )
-    filter_df = df.clear()
-    for ceRow in ceInfo_df.rows():
-        # critical event position, number, and name
-        cePos = ceRow[0]
-        ceNum = ceRow[1]
-        event = ceRow[2]
-
-        # xPos based bounding, consider
-        ceROI = df.filter(
-                df.get_column('XPos') >= cePos,
-                df.get_column('XPos') < cePos + criticalEventDist
+        if dataFile != "":
+            merge_df = pl.read_csv(source=dataFile)
+            merge_df = merge_df.filter(
+                    merge_df.get_column("ScenarioName") == scenario,
+                    merge_df.get_column("Week") == week
             )
-        # update existing columns with Critical Event values
-        ceROI = ceROI.with_columns(
-            pl.lit(ceNum).alias("CriticalEventNum"),
-            pl.lit(event).alias("EventName")
-        )
+            # This is generalized, and could be applied to any site's data.
+        else:
+            raise Exception("Datafile not present - cannot merge w/o source of truth.")
 
-        # cut-in needs better filtering, based on headway + XPos
-        if "cut-in" in event.lower():
-            headwayROI = ceROI.filter(
-                ceROI.get_column('HeadwayDistance') <= headwayThreshold
+        ceInfo_df = merge_df.select(
+            pl.col("manuever pos"),
+            pl.col("CENum"),
+            pl.col("Event")
             )
-            if not headwayROI.is_empty():
-                # rewind and/or expand timeframe (for now, just rewind)
-                simTimeStart = headwayROI.get_column('SimTime').head(1).item()
-                simTimeEnd = headwayROI.get_column('SimTime').tail(1).item()
-                if analyzePriorCutIn:
-                    ceROI = ceROI.filter(
-                        ceROI.get_column('SimTime') >= simTimeStart - cutInDelta,
-                        ceROI.get_column('SimTime') <= simTimeEnd
-                    )
+        filter_df = df.clear()
+        for ceRow in ceInfo_df.rows():
+            # critical event position, number, and name
+            cePos = ceRow[0]
+            ceNum = ceRow[1]
+            event = ceRow[2]
+
+            # xPos based bounding, consider
+            ceROI = df.filter(
+                    df.get_column('XPos') >= cePos,
+                    df.get_column('XPos') < cePos + criticalEventDist
+                )
+            # update existing columns with Critical Event values
+            ceROI = ceROI.with_columns(
+                pl.lit(ceNum).alias("CriticalEventNum"),
+                pl.lit(event).alias("EventName")
+            )
+
+            # cut-in needs better filtering, based on headway + XPos
+            if "cut-in" in event.lower():
+                headwayROI = ceROI.filter(
+                    ceROI.get_column('HeadwayDistance') <= headwayThreshold
+                )
+                if not headwayROI.is_empty():
+                    # rewind and/or expand timeframe (for now, just rewind)
+                    logger.debug("Cut-in recovery detected in data.")
+                    simTimeStart = headwayROI.get_column('SimTime').head(1).item()
+                    simTimeEnd = headwayROI.get_column('SimTime').tail(1).item()
+                    if analyzePriorCutIn:
+                        ceROI = ceROI.filter(
+                            ceROI.get_column('SimTime') >= simTimeStart - cutInDelta,
+                            ceROI.get_column('SimTime') <= simTimeEnd
+                        )
+                    else:
+                        ceROI = ceROI.filter(
+                            ceROI.get_column('SimTime') >= simTimeStart,
+                            ceROI.get_column('SimTime') <= simTimeEnd + cutInDelta
+                        )
                 else:
-                    ceROI = ceROI.filter(
-                        ceROI.get_column('SimTime') >= simTimeStart,
-                        ceROI.get_column('SimTime') <= simTimeEnd + cutInDelta
-                    )
-            else:
-                logger.warning("Cut-In Event for {0} in scenario '{1}' does not display expected headway behavior.".format(ident, scenario))
+                    logger.warning("Cut-In Event for {0} in scenario '{1}' does not display expected headway behavior.".format(ident, scenario))
 
-        filter_df.extend(ceROI)
-        drivedata.data = filter_df
+            filter_df.extend(ceROI)
+            drivedata.data = filter_df
+        if ceInfo_df.shape[0] == 0:
+            logger.warning("ERROR! No imported merge info - no known CE positions.")
     else:
-        logger.warning("No imported merge file - no known CE positions.")
+        raise Exception("ERROR! Attempting to run 'Event' filtering on scenario with no Events.")
     return drivedata
 
 
