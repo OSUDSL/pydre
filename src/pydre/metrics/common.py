@@ -624,7 +624,8 @@ def eventSpeedRecoveryTime(drivedata: pydre.core.DriveData, op_speed=15.64, tole
     df = drivedata.data.select(
         [
             pl.col("Velocity"),
-            pl.col("SimTime")
+            pl.col("SimTime"),
+            pl.col("Brake")
         ]
     )
 
@@ -638,7 +639,7 @@ def eventSpeedRecoveryTime(drivedata: pydre.core.DriveData, op_speed=15.64, tole
         logger.warning(
             f"Velocity doesn't drop below {lower_bound} m/s for roi {drivedata.roi} in file {drivedata.sourcefilename}"
         )
-        return None
+        return "NoSlowDown"
 
     # initial time once velocity reading below lower threshold
     initial_time = df.get_column("SimTime").item(0)
@@ -651,7 +652,7 @@ def eventSpeedRecoveryTime(drivedata: pydre.core.DriveData, op_speed=15.64, tole
     else:
         max_velo = df.select(pl.max("Velocity").first()).item()
         logger.warning(f"No recovery detected during this event - returned to max speed of {max_velo} m/s")
-        return None
+        return "NoRecover"
 
 
 @registerMetric()
@@ -697,7 +698,7 @@ def eventRecenterRecoveryTime(drivedata: pydre.core.DriveData, tolerance=.65, ev
             logger.warning(
                 f"Subject does not breach {tolerance} m lane offset for roi {drivedata.roi} in file {drivedata.sourcefilename}"
             )
-            return None
+            return "NoSwerve"
 
         # initial time once velocity reading below lower threshold
         initial_time = df.get_column("SimTime").item(0)
@@ -709,7 +710,7 @@ def eventRecenterRecoveryTime(drivedata: pydre.core.DriveData, tolerance=.65, ev
         else:
             min_offset = df.select(pl.col("LaneOffset").abs().min().first()).item()
             logger.warning(f"No recovery detected during this event - returned to min offset of {min_offset} m")
-            return None
+            return "NoRecover"
     else:
         return None  # situation not Trashtip event, ignore
 
