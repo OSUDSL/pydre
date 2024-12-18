@@ -33,6 +33,47 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
+def CheckScenarioDataEnd(drivedata: pydre.core, dataFile=""):
+    """
+    Ensure that the end of the drive data fits into the expected
+    format - by distance & time.
+
+    Expect cols in source of truth:
+    [Week, Scenario, endXPos, endTime]
+        - where each "end" metric is the minimum to consider "done"
+
+    :arg: dataFile: source of truth for week/scenario ending markers
+    """
+    ident = drivedata.PartID
+    scenario = drivedata.scenarioName
+    # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
+    ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
+    if ident_groups is None:
+        logger.warning("Could not parse R2D ID " + ident)
+        return [None]
+    week = ident_groups.group(5)
+    df = drivedata.data
+
+    if dataFile != "":
+        merge_df = pl.read_csv(source=dataFile)
+        merge_df = merge_df.filter(
+                merge_df.get_column("ScenarioName") == scenario,
+                merge_df.get_column("Week") == week
+        )
+    else:
+        logger.warning(f"Failed to read csv at {dataFile} - check local path.")
+        return [None]
+
+    # from merge_df, for scenario/week - get threshold xPos & time for "complete drive"
+    # check time threshold against "SimTime" in df
+    # check position threshold against "xPos" in df
+    # return [None] if any condition isn't satisfied
+
+    drivedata.data = df
+    return drivedata
+
+
+@registerFilter()
 def CropStartPosition(drivedata: pydre.core):
     """
     Ensure that drive data starts from consistent point between sites.
@@ -68,7 +109,7 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
     :arg: dataFile: the file name of the csv that maps CE positions.
         -> required cols:
         'Week','ScenarioName','Event','maneuver pos','CENum'
-    :arg: analyzePriorCutIn: True: analyze Subject's reaction before cut-In CE
+    :arg: analyzePriorCutOff: True: analyze Subject's reaction before cut-In CE
                             False: analyze Subject's reaction after cut-In CE
     :arg: criticalEventDist: determines how many meters on the X-axis
         is determined to be "within the critical event duration"
@@ -78,6 +119,7 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
     :arg: cutOffStart: offset for cut-off event execution start
     :arg: cutInDelta: time, in seconds, to account for subject
         reaction inclusion to ROI for Cut-Off Critical Event.
+    :arg: headwayThreshold: determines whether Subject is following a vehicle
 
     with defaults:
     cut-in: range=300m; start_offset=200

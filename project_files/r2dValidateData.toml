@@ -1,0 +1,15 @@
+[filters.SimTimeFromDatTime]
+function = "SimTimeFromDatTime"
+
+[filters.FixReversedRoadLinearLand]
+function = "FixReversedRoadLinearLand"
+
+[filters.CropStartPosition]
+function = "CropStartPosition"
+
+[filters.CheckScenarioDataEnd]
+function = "CheckScenarioDataEnd"
+
+# this project file is in-progress
+# - needs source of truth for CheckScenarioEnd.dataFile
+# - needs determination on how to handle conditions
