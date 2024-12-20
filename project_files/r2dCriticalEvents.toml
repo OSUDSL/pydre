@@ -12,6 +12,9 @@ dataFile = 'C:\Users\Owner\Desktop\work\bama_work\internal_code\osu\merge_data\r
 type = "column"
 columnname = "CriticalEventNum"
 
+[metrics.R2DIDColumns]
+function = "R2DIDColumns"
+
 [metrics.CriticalEventStart]
 function = "colMin"
 var = "XPos"
