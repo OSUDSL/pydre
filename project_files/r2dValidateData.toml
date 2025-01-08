@@ -7,9 +7,30 @@ function = "FixReversedRoadLinearLand"
 [filters.CropStartPosition]
 function = "CropStartPosition"
 
-[filters.CheckScenarioDataEnd]
-function = "CheckScenarioDataEnd"
+[filters.ValidateDataStartEnd]
+function = "ValidateDataStartEnd"
+dataFile = "C:\\Users\\Owner\\Desktop\\work\\bama_work\\internal_code\\osu\\validation_data\\StartEndPositions.csv"
 
-# this project file is in-progress
-# - needs source of truth for CheckScenarioEnd.dataFile
-# - needs determination on how to handle conditions
+[metrics.startXPos]
+function = "colMin"
+var = "XPos"
+
+[metrics.preclipStartXPos]
+function = "colMin"
+var = "preClipStartPos"
+
+[metrics.rowsClippedFromStart]
+function = "colMin"
+var = "rowsClippedAtStart"
+
+[metrics.endXPos]
+function = "colMax"
+var = "XPos"
+
+[metrics.preclipEndXPos]
+function = "colMin"
+var = "preClipEndPos"
+
+[metrics.rowsClippedFromEnd]
+function = "colMin"
+var = "rowsClippedAtEnd"

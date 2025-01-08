@@ -31,9 +31,11 @@ var = "EventName"
 function = "maxAcceleration"
 
 [metrics.reactionTime]
-function = "reactionTimeEventTrue"
-var1 = "Brake"
+function = "reactionTimeEventTrueR2D"
+var1 = "Throttle"
 var2 = "LaneOffset"
+val1 = 1.4
+val2 = 0.2
 
 [metrics.maxLaneDeviation]
 function = "colMax"

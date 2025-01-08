@@ -1226,6 +1226,29 @@ def reactionBrakeFirstTrue(
 
 
 @registerMetric()
+def reactionCheckVarVal(
+    drivedata: pydre.core.DriveData, var: str, val: float
+) -> Optional[float]:
+    required_col = [var, "SimTime"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+
+    try:
+        df = drivedata.data.filter(pl.col(var) < val)
+    except pl.exceptions.ComputeError as e:
+        logger.warning("Brake value non-numeric in {}".format(drivedata.sourcefilename))
+        return None
+    if drivedata.data.height == 0 or df.height == 0:
+        return None
+    return (
+        df.select("SimTime").head(1).item()
+        - drivedata.data.select("SimTime").head(1).item()
+    )
+
+
+@registerMetric()
 def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1: str, var2: str):
     required_col = [var1, var2, "SimTime"]
     try:
@@ -1238,6 +1261,27 @@ def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1: str, var2: str)
         return break_reaction
     else:
         df = drivedata.data.filter(abs(pl.col(var2)) >= 0.2)
+        if drivedata.data.height == 0 or df.height == 0:
+            return None
+        return (
+            df.select("SimTime").head(1).item()
+            - drivedata.data.select("SimTime").head(1).item()
+        )
+
+
+@registerMetric()
+def reactionTimeEventTrueR2D(drivedata: pydre.core.DriveData, var1: str, var2: str, val1: float, val2: float):
+    required_col = [var1, var2, "SimTime"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    first_metric_reaction = reactionCheckVarVal(drivedata, var1, val1)
+
+    if first_metric_reaction:
+        return first_metric_reaction
+    else:
+        df = drivedata.data.filter(abs(pl.col(var2)) >= val2)
         if drivedata.data.height == 0 or df.height == 0:
             return None
         return (

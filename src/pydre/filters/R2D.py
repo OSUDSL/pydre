@@ -33,7 +33,7 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
-def CheckScenarioDataEnd(drivedata: pydre.core, dataFile=""):
+def ValidateDataStartEnd(drivedata: pydre.core, dataFile=""):
     """
     Ensure that the end of the drive data fits into the expected
     format - by distance & time.
@@ -57,17 +57,31 @@ def CheckScenarioDataEnd(drivedata: pydre.core, dataFile=""):
     if dataFile != "":
         merge_df = pl.read_csv(source=dataFile)
         merge_df = merge_df.filter(
-                merge_df.get_column("ScenarioName") == scenario,
+                merge_df.get_column("Scenario") == scenario,
                 merge_df.get_column("Week") == week
         )
     else:
         logger.warning(f"Failed to read csv at {dataFile} - check local path.")
         return [None]
 
-    # from merge_df, for scenario/week - get threshold xPos & time for "complete drive"
-    # check time threshold against "SimTime" in df
-    # check position threshold against "xPos" in df
-    # return [None] if any condition isn't satisfied
+    if len(merge_df) > 0:
+        expected_start = merge_df['Start Pos'][0]
+        expected_end = merge_df['End Pos'][0]
+        actual_start = df["XPos"][0]
+        actual_end = df["XPos"][-1]
+        start_shape = df.shape
+        df = df.filter(df.get_column("XPos") >= expected_start)
+        clipped_shape = df.shape
+        start_rows_clip = start_shape[0] - clipped_shape[0]
+        df = df.filter(df.get_column("XPos") <= expected_end)
+        end_rows_clip = clipped_shape[0] - df.shape[0]
+        df = df.with_columns(pl.lit(start_rows_clip).alias('rowsClippedAtStart'),
+                             pl.lit(end_rows_clip).alias('rowsClippedAtEnd'),
+                             pl.lit(actual_start).alias('preClipStartPos'),
+                             pl.lit(actual_end).alias('preClipEndPos'))
+    else:
+        logger.warning(f"No start/end values for {ident} in {dataFile}.")
+        return [None]
 
     drivedata.data = df
     return drivedata
@@ -79,16 +93,26 @@ def CropStartPosition(drivedata: pydre.core):
     Ensure that drive data starts from consistent point between sites.
     This code was decoupled from merge filter to zero UAB start points.
     """
-    df = drivedata.data
+    ident = drivedata.PartID
+    # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
+    ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
+    if ident_groups is None:
+        logger.warning("Could not parse R2D ID " + ident)
+        return [None]
+    site = ident_groups.group(2)
     # copy values from datTime into simTime
-    df = df.with_columns(pl.col("DatTime").alias("SimTime"))
-    df = df.with_columns(
-        pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
-    )
-    df_actual_start = df.filter(df.get_column("PosDiff") > 500)
-    if not df_actual_start.is_empty():
-        start_time = df_actual_start.get_column("SimTime").item(0)
-        df = df.filter(df.get_column("SimTime") > start_time)
+    df = drivedata.data
+
+    # address UAB start positions only
+    if site == 1:
+        df = df.with_columns(pl.col("DatTime").alias("SimTime"))
+        df = df.with_columns(
+            pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
+            )
+        df_actual_start = df.filter(df.get_column("PosDiff") > 500)
+        if not df_actual_start.is_empty():
+            start_time = df_actual_start.get_column("SimTime").item(0)
+            df = df.filter(df.get_column("SimTime") > start_time)
 
     drivedata.data = df
     return drivedata
