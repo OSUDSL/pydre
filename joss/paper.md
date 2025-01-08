@@ -33,18 +33,27 @@ This is a necessary component of the most common type of driving-data based anal
 
 In using Pydre to perform data reduction, researchers write a project file describing the data filters, regions of interest (ROIs), and metric functions that will be applied.  
 
-![Pydre data pipeline](pydre data pipeline.png)
+![Pydre data pipeline. Data files are filtered individually, broken up in to regions of interest, then metrics are procesed for each region. \label{fig:data_flow}](pydre data pipeline.png)
 
 
 ## Data filters
 
+Data filters augment a raw data file from the sim with additional or changed data. They perform tasks such as merging external data or convert binary marker columns into sequential numbers for ease of later processing. They can also be used to turn raw eye tracking data into fixation numbers. 
+
+These filters fulfill the role of data pre-processing in other workflows, but with the Pydre architecture, this is all done in memory with no intermediate files. 
+
 ## Regions of interest
+
+Regions of interest (ROIs) are partitions of the driving data. This is especially useful in repeated-measures experiments, but is also important to remove irrelevent parts of the driving scenario or to focus in on a critical event in the roadway. Two ROI types currently implemented are column ROIs, where the data is partitioned based on flags in the data, often set by scenario scripts or manual switches toggled during the scenario run. Bounding regions, or spatial ROIs, constrain metrics to be calculated in specific regions of the roadway. This can be useful when calcuating metrics for a crosswalk zone, a construction zone or other zone that is constrained in physical space.
+
 
 ## Metric functions
 
+Metric functions are those that output the traditional values used to evaluate driving performance in simulation and real-world driving. This includes mean speed, standard deviation of speed, standard deviation of position, steering reversal rate and time above speed limit. The API of metrics provides a standard interface for all items, making it easier for researchers to write new metric functions and reuse metrics in flexible ways.
+
 # Extensibility
 
-Although there are various real-time interactive driving simulation software systems in use in academic and industry settings, they use very similar tabular, CSV-like, time-series data formats
+Although there are various real-time interactive driving simulation software systems in use in academic and industry settings, they use very similar tabular, CSV-like, time-series data formats.
 
 # Acknowledgements
 
