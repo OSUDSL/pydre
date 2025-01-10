@@ -11,26 +11,9 @@ function = "CropStartPosition"
 function = "ValidateDataStartEnd"
 dataFile = "C:\\Users\\Owner\\Desktop\\work\\bama_work\\internal_code\\osu\\validation_data\\StartEndPositions.csv"
 
-[metrics.startXPos]
-function = "colMin"
-var = "XPos"
+[metrics.R2DIDColumns]
+function = "R2DIDColumns"
 
-[metrics.preclipStartXPos]
-function = "colMin"
-var = "preClipStartPos"
-
-[metrics.rowsClippedFromStart]
-function = "colMin"
-var = "rowsClippedAtStart"
-
-[metrics.endXPos]
-function = "colMax"
-var = "XPos"
-
-[metrics.preclipEndXPos]
-function = "colMin"
-var = "preClipEndPos"
-
-[metrics.rowsClippedFromEnd]
-function = "colMin"
-var = "rowsClippedAtEnd"
+[metrics.validity]
+function = "colFirst"
+var = "validityCheck"

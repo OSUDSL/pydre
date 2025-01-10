@@ -33,16 +33,17 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
-def ValidateDataStartEnd(drivedata: pydre.core, dataFile=""):
+def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=50, trim_data=False):
     """
     Ensure that the end of the drive data fits into the expected
     format - by distance & time.
 
-    Expect cols in source of truth:
-    [Week, Scenario, endXPos, endTime]
-        - where each "end" metric is the minimum to consider "done"
+    "early" - when xPos is less than expected
+    "late" - when xPos is greater than expected
+    "valid" - when all xPos fall within tolerance range
 
-    :arg: dataFile: source of truth for week/scenario ending markers
+    :arg: dataFile: source of truth for start/end - csv filepath
+    :arg: tol: tolerance of distance that permits "valid"
     """
     ident = drivedata.PartID
     scenario = drivedata.scenarioName
@@ -65,20 +66,47 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile=""):
         return [None]
 
     if len(merge_df) > 0:
+        status = []
         expected_start = merge_df['Start Pos'][0]
         expected_end = merge_df['End Pos'][0]
         actual_start = df["XPos"][0]
         actual_end = df["XPos"][-1]
-        start_shape = df.shape
-        df = df.filter(df.get_column("XPos") >= expected_start)
-        clipped_shape = df.shape
-        start_rows_clip = start_shape[0] - clipped_shape[0]
-        df = df.filter(df.get_column("XPos") <= expected_end)
-        end_rows_clip = clipped_shape[0] - df.shape[0]
-        df = df.with_columns(pl.lit(start_rows_clip).alias('rowsClippedAtStart'),
-                             pl.lit(end_rows_clip).alias('rowsClippedAtEnd'),
-                             pl.lit(actual_start).alias('preClipStartPos'),
-                             pl.lit(actual_end).alias('preClipEndPos'))
+
+        if actual_start is None:
+            logger.warning(f"Start point in data is null for {ident}. See data for issue.")
+
+        if actual_end is None:
+            logger.warning(f"End point in data is null for {ident}. See data for issue.")
+
+        if actual_start < expected_start - tol:
+            status.append("earlyStart")
+        elif actual_start > expected_start + tol:
+            status.append("lateStart")
+
+        if actual_end < expected_end - tol:
+            status.append("earlyEnd")
+        elif actual_end > expected_end + tol:
+            status.append("lateEnd")
+
+        if not status:
+            status.append("valid")
+
+        status_value = "&".join(status)
+        logger.debug(f"GOT STATUS VALUE: {status_value}")
+        df = df.with_columns(pl.lit(status_value).alias('validityCheck'))
+        if trim_data:
+            start_shape = df.shape
+            df = df.filter(df.get_column("XPos") >= expected_start)
+            clipped_shape = df.shape
+            start_rows_clip = start_shape[0] - clipped_shape[0]
+            df = df.filter(df.get_column("XPos") <= expected_end)
+            end_rows_clip = clipped_shape[0] - df.shape[0]
+            # make valid determination & assign deterministic flags that we assess & sort on
+            # stopsLate, stopsEarly, startEarly, startLate, valid
+            df = df.with_columns(pl.lit(start_rows_clip).alias('rowsClippedAtStart'),
+                                pl.lit(end_rows_clip).alias('rowsClippedAtEnd'),
+                                pl.lit(actual_start).alias('preClipStartPos'),
+                                pl.lit(actual_end).alias('preClipEndPos'))
     else:
         logger.warning(f"No start/end values for {ident} in {dataFile}.")
         return [None]
