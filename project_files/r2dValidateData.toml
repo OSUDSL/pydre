@@ -10,6 +10,7 @@ function = "CropStartPosition"
 [filters.ValidateDataStartEnd]
 function = "ValidateDataStartEnd"
 dataFile = "C:\\Users\\Owner\\Desktop\\work\\bama_work\\internal_code\\osu\\validation_data\\StartEndPositions.csv"
+tol = 1000
 
 [metrics.R2DIDColumns]
 function = "R2DIDColumns"

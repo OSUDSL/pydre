@@ -30,12 +30,21 @@ var = "EventName"
 [metrics.maxAcceleration]
 function = "maxAcceleration"
 
-[metrics.reactionTime]
-function = "reactionTimeEventTrueR2D"
-var1 = "Throttle"
-var2 = "LaneOffset"
-val1 = 1.4
-val2 = 0.2
+[metrics.rxnTimeBrake]
+function = "timeToOutsideThreshold"
+var = "Brake"
+threshold_high = 5.0
+
+[metrics.rxnTimeThrottle]
+function = "timeToOutsideThreshold"
+var = "Throttle"
+threshold_low = 1.4
+
+[metrics.rxnTimeLaneOffset]
+function = "timeToOutsideThreshold"
+var = "LaneOffset"
+threshold_high = 0.5
+threshold_low = -0.5
 
 [metrics.maxLaneDeviation]
 function = "colMax"

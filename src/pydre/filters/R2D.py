@@ -33,7 +33,7 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
-def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=50, trim_data=False):
+def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=False):
     """
     Ensure that the end of the drive data fits into the expected
     format - by distance & time.
@@ -116,6 +116,17 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=50, trim_data=F
 
 
 @registerFilter()
+def minusOne(drivedata: pydre.core, old_col: str, new_col="MinusOneCol"):
+    """
+    'reverses' a columns value, when that column is binary value'd.
+
+    >> used in conjuction with improved reaction time to detect 'accelstatus'
+    of follow car
+    """
+    return [None]
+
+
+@registerFilter()
 def CropStartPosition(drivedata: pydre.core):
     """
     Ensure that drive data starts from consistent point between sites.
@@ -127,7 +138,7 @@ def CropStartPosition(drivedata: pydre.core):
     if ident_groups is None:
         logger.warning("Could not parse R2D ID " + ident)
         return [None]
-    site = ident_groups.group(2)
+    site = int(ident_groups.group(2))
     # copy values from datTime into simTime
     df = drivedata.data
 
@@ -141,6 +152,7 @@ def CropStartPosition(drivedata: pydre.core):
         if not df_actual_start.is_empty():
             start_time = df_actual_start.get_column("SimTime").item(0)
             df = df.filter(df.get_column("SimTime") > start_time)
+            logger.warning(f"Trimming {ident}: time value of split: {start_time}")
 
     drivedata.data = df
     return drivedata

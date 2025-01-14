@@ -718,9 +718,11 @@ def eventRecenterRecoveryTime(drivedata: pydre.core.DriveData, tolerance=.65, ev
 
 @registerMetric()
 def maxAcceleration(drivedata: pydre.core.DriveData) -> Optional[float]:
-    required_col = ["LatAccel", "LonAccel", "SimTime"]
+    required_col = ["LatAccel", "LonAccel"]
 
     drivedata.checkColumnsNumeric(required_col)
+    # issue with R2D part: 5210006w1 Load, No Event. SimTime is col type "str".
+    drivedata.checkColumns(["SimTime"])
 
     df = drivedata.data.select(
         [pl.col("LatAccel"), pl.col("LonAccel"), pl.col("SimTime")]
@@ -1288,6 +1290,44 @@ def reactionTimeEventTrueR2D(drivedata: pydre.core.DriveData, var1: str, var2: s
             df.select("SimTime").head(1).item()
             - drivedata.data.select("SimTime").head(1).item()
         )
+
+
+@registerMetric()
+def timeToOutsideThreshold(drivedata: pydre.core.DriveData, var: str, threshold_low: float = -100000, threshold_high: float = 100000):
+    """
+    Checks a column "var" values to ensure they are within range
+    [threshold_low: threshold_high]
+
+    threshold_low &  threshold_high are set to extreme numbers by default to
+    ensure users don't have to define irrelevant bounds. Calculates a reaction
+    time for the first occurence of a threshold violation.
+
+    :arg var: column name to check for reaction
+    :arg threshold_low: the value that defines a reaction
+        for the given column, if lower
+    :arg threshold_high: the value that defines a reaction
+        for the given column, if higher
+    """
+    required_col = [var, "SimTime"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    try:
+        df = drivedata.data.filter(pl.col(var) < threshold_low)
+    except pl.exceptions.ComputeError as e:
+        logger.warning(f"{var} value non-numeric in {drivedata.sourcefilename} --> {e}")
+        return None
+    # no lower threshold violation, check upper threshold
+    if drivedata.data.height == 0 or df.height == 0:
+        df = drivedata.data.filter(pl.col(var) > threshold_high)
+        if df.height == 0:
+            # no threshold violations for given bounds
+            return None
+    return (
+        df.select("SimTime").head(1).item()
+        - drivedata.data.select("SimTime").head(1).item()
+    )
 
 
 """
