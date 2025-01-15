@@ -116,14 +116,15 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=
 
 
 @registerFilter()
-def minusOne(drivedata: pydre.core, old_col: str, new_col="MinusOneCol"):
+def BinaryColReverse(drivedata: pydre.core, old_col: str, new_col="MinusOneCol"):
     """
-    'reverses' a columns value, when that column is binary value'd.
+    'reverses' a binary column's values.
+    old value 1 --> new value 0 & vice versa
+    """
+    df = drivedata.data
+    drivedata.data = df.with_columns((1 - pl.col(old_col)).alias(new_col))
 
-    >> used in conjuction with improved reaction time to detect 'accelstatus'
-    of follow car
-    """
-    return [None]
+    return drivedata
 
 
 @registerFilter()
