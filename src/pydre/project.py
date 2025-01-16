@@ -26,6 +26,7 @@ class Project:
     def __init__(self, projectfilename: str):
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
+        self.config = {}
         self.results = None
         try:
             with open(self.project_filename, "rb") as project_file:
@@ -65,6 +66,8 @@ class Project:
                                 self.definition["filters"]
                             )
                         )
+                    if "config" in self.definition.keys():
+                        self.config = self.definition["config"]
                     self.definition = new_definition
                 else:
                     logger.error("Unsupported project file type")
@@ -81,6 +84,7 @@ class Project:
                 self.definition == other.definition
                 and self.data == other.data
                 and self.results == other.results
+                and self.config == other.config
             )
         else:
             return False
@@ -93,39 +97,7 @@ class Project:
             new_def.append(v)
         return new_def
 
-    def __load_single_datfile(self, filename: Path) -> pydre.core.DriveData:
-        """Load a single .dat file (space delimited csv) into a DriveData object"""
-        d = pl.read_csv(
-            filename,
-            separator=" ",
-            null_values=".",
-            truncate_ragged_lines=True,
-            infer_schema_length=5000,
-        )
-        datafile_re_format0 = re.compile(
-            "([^_]+)_Sub_(\\d+)_Drive_(\\d+)(?:.*).dat"
-        )  # old format
-        datafile_re_format1 = re.compile(
-            "([^_]+)_([^_]+)_([^_]+)_(\\d+)(?:.*).dat"
-        )  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
-        match_format0 = datafile_re_format0.search(str(filename))
 
-        if match_format0:
-            experiment_name, subject_id, drive_id = match_format0.groups()
-            drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
-            return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
-        elif match_format1 := datafile_re_format1.search(filename.name):
-            mode, subject_id, scen_name, unique_id = match_format1.groups()
-            return pydre.core.DriveData.initV4(
-                d, filename, subject_id, unique_id, scen_name, mode
-            )
-        else:
-            logger.warning(
-                "Drivedata filename {} does not an expected format.".format(filename)
-            )
-            return pydre.core.DriveData(d, filename)
-
-    # testing
 
     def processROI(
         self, roi: dict, datafile: pydre.core.DriveData
@@ -235,15 +207,7 @@ class Project:
         if "metrics" not in self.definition:
             logger.critical("No metrics in project file. No results will be generated")
             return None
-        self.raw_data = []
-        result_dataframe = pl.DataFrame()
         results_list = []
-        # for datafilename in tqdm(datafilenames, desc="Loading files"):
-
-        # with concurrent.futures.ThreadPoolExecutor(max_workers=numThreads) as executor:
-        #    for result in executor.map(self.processSingleFile, datafilenames):
-        #        for result_dict in result:
-        #            results_list.append(result_dict)
         with tqdm(total=len(datafilenames)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=numThreads
@@ -274,7 +238,6 @@ class Project:
 
         # Would just use try/except but polars throws overly alarming PanicException
         sorting_columns = ["Subject", "ScenarioName", "ROI"]
-        # sorting_columns = [col for col in sorting_columns if col in result_dataframe.dtypes ]
 
         try:
             result_dataframe = result_dataframe.sort(sorting_columns)
