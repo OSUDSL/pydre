@@ -92,6 +92,7 @@ class DriveData:
         obj.metadata["ParticipantID"] = subject_id
         obj.metadata["VisitID"] = visit_id
         obj.metadata["DriveID"] = drive_id
+        obj.sourcefiletype = "Scanner"
         return obj
 
 
@@ -117,9 +118,10 @@ class DriveData:
         """Load a single csv file containing data from the Scanners simulator"""
         self.data = polars.read_csv(
             self.sourcefilename,
-            delimiter="\t",
+            separator="\t",
             null_values="null",
             truncate_ragged_lines=True,
+            infer_schema_length=100000,
         )
 
     def copyMetaData(self, other: DriveData):
