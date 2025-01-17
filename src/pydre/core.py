@@ -15,25 +15,50 @@ class DriveData:
     roi: Optional[str]
     metadata: dict[str, Any]
 
-    def __init__(self, sourcefilename: Path):
-        self.data = polars.DataFrame()
-        self.sourcefilename = sourcefilename
-        self.roi = None
-        self.sourcefiletype = None
-        self.metadata = {}
+    def __init__(self, orig: DriveData = None, newdata: Optional[polars.DataFrame] = None):
+        if orig is not None:
+            if newdata is not None:
+                self.data = newdata
+            else:
+                self.data = copy.deepcopy(orig.data)
+            self.roi = orig.roi
+            self.sourcefilename = orig.sourcefilename
+            self.sourcefiletype = orig.sourcefiletype
+            self.metadata = copy.deepcopy(orig.metadata)
+        else:
+            self.data = polars.DataFrame()
+            self.roi = None
+            self.sourcefilename = Path()
+            self.sourcefiletype = None
+            self.metadata = {}
+
+
+    @classmethod
+    def init_test(
+            cls,
+            data: polars.DataFrame,
+            sourcefilename: Path
+    ):
+        """Initializes a DriveData object with a given sourcefilename and data. Used for testing."""
+        obj = cls()
+        obj.sourcefilename = sourcefilename
+        obj.data = data
+        return obj
+
 
     @classmethod
     def init_old_rti(
         cls,
         sourcefilename: Path
     ):
-        obj = cls(sourcefilename)
+        obj = cls()
+        obj.sourcefilename = sourcefilename
         datafile_re_format0 = re.compile(
-            "([^_]+)_Sub_(\\d+)_Drive_(\\d+)(?:.*).dat"
+            r"([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat"
         )
         match_format0 = datafile_re_format0.search(str(sourcefilename))
         scenario, PartID, DriveID = match_format0.groups()
-        obj.metadata["PartID"] = PartID
+        obj.metadata["ParticipantID"] = PartID
         obj.metadata["DriveID"] = DriveID
         obj.sourcefiletype = "old SimObserver"
         return obj
@@ -43,23 +68,25 @@ class DriveData:
         cls,
         sourcefilename: Path
     ):
-        obj = cls(sourcefilename)
+        obj = cls()
+        obj.sourcefilename = sourcefilename
         datafile_re_format1 = re.compile(
-            "([^_]+)_([^_]+)_([^_]+)_(\\d+)(?:.*).dat"
+            r"([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat"
         )  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
         match_format1 = datafile_re_format1.search(str(sourcefilename))
         mode, subject_id, scen_name, unique_id = match_format1.groups()
         obj.metadata["ParticipantID"] = subject_id
         obj.metadata["UniqueID"] = unique_id
-        obj.metadata["scenarioName"] = scenarioName
-        obj.metadata["mode"] = mode
+        obj.metadata["ScenarioName"] = scen_name
+        obj.metadata["DXmode"] = mode
         obj.sourcefiletype = "SimObserver r2"
         return obj
 
     @classmethod
     def init_scanner(cls, sourcefilename: Path):
-        obj = cls(sourcefilename)
-        datafile_re_format_lboro = re.compile("[pP](\d+)[vV](\d+)[dD](\d+).*")
+        obj = cls()
+        obj.sourcefilename = sourcefilename
+        datafile_re_format_lboro = re.compile(r"[pP](\d+)[vV](\d+)[dD](\d+).*")
         match_format_lboro = datafile_re_format_lboro.search(str(sourcefilename))
         subject_id, visit_id, drive_id = match_format_lboro.groups()
         obj.metadata["ParticipantID"] = subject_id

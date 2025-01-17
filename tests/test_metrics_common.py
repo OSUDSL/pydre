@@ -10,7 +10,7 @@ def test_colMean():
 
     data = {"A": [1, 2, 3, 4, 5], "B": [10, 20, 30, 40, 50]}
     df = pl.DataFrame(data)
-    dd = pydre.core.DriveData(df, "test.dat")
+    dd = pydre.core.DriveData.init_test(df, "test.dat")
 
     # Test cases
     assert pydre.metrics.common.colMean(dd, var="A") == 3.0
@@ -28,7 +28,7 @@ def test_colMedian():
     # Create a sample Polars DataFrame
     data = {"A": [-1, 2, 3, 4, 5], "B": [-10, 20, 30, 40, 50]}
     df = pl.DataFrame(data)
-    dd = pydre.core.DriveData(df, "test.dat")
+    dd = pydre.core.DriveData.init_test(df, "test.dat")
 
     # Test cases
     assert pydre.metrics.common.colMedian(dd, var="A") == 3.0
@@ -45,7 +45,7 @@ def test_colSD():
     # Create a sample Polars DataFrame
     data = {"A": [1, 2, 3, 4, 5], "B": [10, 20, 30, 40, 50]}
     df = pl.DataFrame(data)
-    dd = pydre.core.DriveData(df, "test.dat")
+    dd = pydre.core.DriveData.init_test(df, "test.dat")
 
     # Test cases
     assert pytest.approx(pydre.metrics.common.colSD(dd, var="A"), 0.01) == 1.58
@@ -59,7 +59,7 @@ def test_colMax():
     # Create a sample Polars DataFrame
     data = {"A": [1, 2, 3, 4, 5], "B": [10, 20, 30, 40, 50]}
     df = pl.DataFrame(data)
-    dd = pydre.core.DriveData(df, "test.dat")
+    dd = pydre.core.DriveData.init_test(df, "test.dat")
 
     # Test cases
     assert pydre.metrics.common.colMax(dd, var="A") == 5
@@ -73,7 +73,7 @@ def test_colMin():
     # Create a sample Polars DataFrame
     data = {"A": [1, 2, 3, 4, 5], "B": [10, 20, 30, 40, 50]}
     df = pl.DataFrame(data)
-    dd = pydre.core.DriveData(df, "test.dat")
+    dd = pydre.core.DriveData.init_test(df, "test.dat")
 
     # Test cases
     assert pydre.metrics.common.colMin(dd, var="A") == 1
@@ -87,11 +87,11 @@ def test_timeAboveSpeed():
     # Create sample Polars DataFrames for testing
     data1 = {"SimTime": [0, 1, 2, 3, 4], "Velocity": [10, 20, 30, 40, 50]}
     df1 = pl.DataFrame(data1)
-    dd1 = pydre.core.DriveData(df1, "test1.dat")
+    dd1 = pydre.core.DriveData.init_test(df1, "test1.dat")
 
     data2 = {"SimTime": [0, 1, 2, 3], "Velocity": [5, 15, 25, 35]}  # Shorter duration
     df2 = pl.DataFrame(data2)
-    dd2 = pydre.core.DriveData(df2, "test2.dat")
+    dd2 = pydre.core.DriveData.init_test(df2, "test2.dat")
 
     # Test cases with various cutoffs and percentage options
     assert pydre.metrics.common.timeAboveSpeed(dd1) == 4
@@ -113,13 +113,13 @@ def test_timeAboveSpeed():
     # Test with missing required columns
     data3 = {"SimTime": [0, 1, 2], "OtherColumn": [1, 2, 3]}
     df3 = pl.DataFrame(data3)
-    dd3 = pydre.core.DriveData(df3, "test3.dat")
+    dd3 = pydre.core.DriveData.init_test(df3, "test3.dat")
     assert pydre.metrics.common.timeAboveSpeed(dd3) is None
 
     # Test with non-numeric columns (assuming it raises ColumnsMatchError)
     data4 = {"SimTime": [0, 1, 2], "Velocity": ["slow", "medium", "fast"]}
     df4 = pl.DataFrame(data4)
-    dd4 = pydre.core.DriveData(df4, "test4.dat")
+    dd4 = pydre.core.DriveData.init_test(df4, "test4.dat")
     assert pydre.metrics.common.timeAboveSpeed(dd4) is None
 
 
@@ -131,11 +131,11 @@ def test_timeWithinSpeedLimit():
         "SpeedLimit": [35, 35, 35, 50, 50],  # in miles per hour
     }
     df1 = pl.DataFrame(data1)
-    dd1 = pydre.core.DriveData(df1, "test1.dat")
+    dd1 = pydre.core.DriveData.init_test(df1, "test1.dat")
 
     data2 = {"SimTime": [0, 1, 2], "Velocity": [5, 5, 25], "SpeedLimit": [30, 30, 60]}
     df2 = pl.DataFrame(data2)
-    dd2 = pydre.core.DriveData(df2, "test2.dat")
+    dd2 = pydre.core.DriveData.init_test(df2, "test2.dat")
 
     # Test cases with various lower limits and percentage options
     assert pydre.metrics.common.timeWithinSpeedLimit(dd1, lowerlimit=0) == 2
@@ -152,7 +152,7 @@ def test_timeWithinSpeedLimit():
     # Test with missing required columns
     data3 = {"SimTime": [0, 1, 2], "Velocity": [10, 20, 30]}
     df3 = pl.DataFrame(data3)
-    dd3 = pydre.core.DriveData(df3, "test3.dat")
+    dd3 = pydre.core.DriveData.init_test(df3, "test3.dat")
     assert pydre.metrics.common.timeWithinSpeedLimit(dd3) is None
 
     # Test with non-numeric columns
@@ -162,5 +162,5 @@ def test_timeWithinSpeedLimit():
         "SpeedLimit": [30, 30, 40],
     }
     df4 = pl.DataFrame(data4)
-    dd4 = pydre.core.DriveData(df4, "test4.dat")
+    dd4 = pydre.core.DriveData.init_test(df4, "test4.dat")
     assert pydre.metrics.common.timeWithinSpeedLimit(dd4) is None

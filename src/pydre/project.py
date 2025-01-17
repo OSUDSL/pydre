@@ -1,3 +1,4 @@
+import copy
 import json
 
 import polars as pl
@@ -8,6 +9,7 @@ from typing import Optional
 import pydre.core
 import pydre.rois
 import pydre.metrics
+from pydre.core import DriveData
 from pydre.metrics import *
 import pydre.filters
 from pydre.filters import *
@@ -230,26 +232,28 @@ class Project:
                     pbar.update(1)
         result_dataframe = pl.from_dicts(results_list)
 
-        result_dataframe = result_dataframe.with_columns(
-            pl.col("Subject").cast(pl.String),
-            pl.col("ScenarioName").cast(pl.String),
-            pl.col("ROI").cast(pl.String),
-        )
-
-        # Would just use try/except but polars throws overly alarming PanicException
-        sorting_columns = ["Subject", "ScenarioName", "ROI"]
-
-        try:
-            result_dataframe = result_dataframe.sort(sorting_columns)
-        except pl.exceptions.PanicException as e:
-            logger.warning("Can't sort results, must be missing a column.")
+        #sorting_columns = ["Subject", "ScenarioName", "ROI"]
+        #try:
+        #    result_dataframe = result_dataframe.sort(sorting_columns)
+        #except pl.exceptions.PanicException as e:
+        #    logger.warning("Can't sort results, must be missing a column.")
 
         self.results = result_dataframe
         return result_dataframe
 
     def processSingleFile(self, datafilename: Path):
-        logger.info("Loading file #{}: {}".format(len(self.raw_data), datafilename))
-        datafile = self.__load_single_datfile(datafilename)
+        logger.info("Loading file {}".format( datafilename))
+        if "datafile_type" in self.config:
+            if self.config["datafile_type"] == "rti":
+                datafile = DriveData.init_rti(datafilename)
+            elif self.config["datafile_type"] == "oldrti":
+                datafile = DriveData.init_old_rti(datafilename)
+            elif self.config["datafile_type"] == "scanner":
+                datafile = DriveData.init_scanner(datafilename)
+        else:
+            datafile = DriveData.init_rti(datafilename)
+
+        datafile.loadData()
         roi_datalist = []
         results_list = []
 
@@ -285,17 +289,7 @@ class Project:
         # logger.warning("No ROIs found in {}".format(datafilename))
         roi_processed_metrics = []
         for data in roi_datalist:
-            result_dict = {"Subject": data.PartID}
-            if (
-                data.format_identifier == 2
-            ):  # these drivedata object was created from an old format data file
-                result_dict["DriveID"] = datafile.DriveID
-            elif (
-                data.format_identifier == 4
-            ):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-                result_dict["Mode"] = self.__clean(str(data.mode))
-                result_dict["ScenarioName"] = self.__clean(str(data.scenarioName))
-                result_dict["UniqueID"] = self.__clean(str(data.UniqueID))
+            result_dict = copy.deepcopy(datafile.metadata)
             result_dict["ROI"] = data.roi
 
             for metric in self.definition["metrics"]:

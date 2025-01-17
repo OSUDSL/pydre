@@ -1229,7 +1229,7 @@ def criticalEventEndPos(drivedata: pydre.core.DriveData):
     "R2DIDColumns", ["ParticipantID", "MatchID", "Case", "Location", "Gender", "Week"]
 )
 def R2DIDColumns(drivedata: pydre.core.DriveData):
-    ident = drivedata.PartID
+    ident = drivedata.metadata["ParticipantID"]
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
         logger.warning("Could not parse R2D ID " + ident)
