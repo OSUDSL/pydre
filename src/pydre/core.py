@@ -97,6 +97,7 @@ class DriveData:
 
 
     def loadData(self):
+        """Load data from the internal filename into the DriveData object based on the fire"""
         if self.sourcefiletype == "old SimObserver":
             self.__load_datfile()
         elif self.sourcefiletype == "SimObserver r2":
@@ -125,6 +126,7 @@ class DriveData:
         )
 
     def copyMetaData(self, other: DriveData):
+        """Copy metadata from another DriveData object. This includes source filename, source filetype, roi, and metadata."""
         self.sourcefilename = other.sourcefilename
         self.sourcefiletype = other.sourcefiletype
         self.roi = other.roi
