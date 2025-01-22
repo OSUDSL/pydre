@@ -6,7 +6,7 @@ tags:
   - Data reduction
 authors:
   - name: Thomas Kerwin
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0003-4560-3203
     affiliation: 1
 affiliations:
  - name: The Ohio State University, United States
@@ -14,6 +14,7 @@ affiliations:
    ror: 00rs6vg23
 
 bibliography: paper.bib
+date: 21 January 2025
 ---
 
 # Summary
