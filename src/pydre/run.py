@@ -16,15 +16,13 @@ def main():
         "--datafiles",
         type=str,
         help="the data file path",
-        nargs="+",
-        required=True,
+        nargs="+"
     )
     parser.add_argument(
         "-o",
         "--outputfile",
         type=str,
-        default="out.csv",
-        help="the name of the output file",
+        help="the name of the output file"
     )
     parser.add_argument(
         "-l",
@@ -42,15 +40,10 @@ def main():
         logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
     if args.outputfile == "out.csv":
         logger.warning("No output file specified. Defaulting to 'out.csv'")
-    p = project.Project(args.projectfile)
-    # test the data files
-    filelist = []
-    for fn in args.datafiles:
-        # convert relative path to absolute path
-        datapath = pathlib.Path(fn).resolve()
-        datafiles = datapath.parent.glob(datapath.name)
-        filelist.extend(datafiles)
-    p.processDatafiles(filelist, 12)
+    p = project.Project(args.projectfile, args.datafiles, args.outputfile)
+
+    # add command line args to project
+    p.processDatafiles(numThreads=12)
     p.saveResults(pathlib.Path(args.outputfile))
 
 

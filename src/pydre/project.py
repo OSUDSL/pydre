@@ -25,7 +25,7 @@ class Project:
     definition: dict
     results: Optional[pl.DataFrame]
 
-    def __init__(self, projectfilename: str):
+    def __init__(self, projectfilename: str, additional_data_paths: Optional[list[str]] = None, outputfile: str = None):
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
         self.config = {}
@@ -77,6 +77,29 @@ class Project:
         except FileNotFoundError as e:
             logger.error(f"File '{projectfilename}' not found.")
             raise e
+
+        if additional_data_paths is not None:
+            self.config["datafiles"] = self.config.get("datafiles", []) + additional_data_paths
+
+        if "outputfile" in self.config:
+            if outputfile is not None:
+                self.config["outputfile"] = outputfile
+        else:
+            if outputfile is not None:
+                self.config["outputfile"] = outputfile
+            else:
+                self.config["outputfile"] = "out.csv"
+
+        if len(self.config["datafiles"]) == 0:
+            logger.error("No datafile found in project definition.")
+
+        # resolve the file paths
+        self.filelist = []
+        for fn in self.config["datafiles"]:
+            # convert relative path to absolute path
+            datapath = pathlib.Path(fn).resolve()
+            datafiles = datapath.parent.glob(datapath.name)
+            self.filelist.extend(datafiles)
 
         self.data = []
 
@@ -194,12 +217,11 @@ class Project:
         return string.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
 
     def processDatafiles(
-        self, datafilenames: list[Path], numThreads: int = 12
+        self, numThreads: int = 12
     ) -> Optional[pl.DataFrame]:
         """Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
 
         Args:
-                datafilenames: a list of filename strings (SimObserver .dat files)
                 numThreads: number of threads to run simultaneously in the thread pool
 
         Returns:
@@ -210,13 +232,13 @@ class Project:
             logger.critical("No metrics in project file. No results will be generated")
             return None
         results_list = []
-        with tqdm(total=len(datafilenames)) as pbar:
+        with tqdm(total=len(self.filelist)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=numThreads
             ) as executor:
                 futures = {
                     executor.submit(self.processSingleFile, singleFile): singleFile
-                    for singleFile in datafilenames
+                    for singleFile in self.filelist
                 }
                 results = {}
                 for future in concurrent.futures.as_completed(futures):
