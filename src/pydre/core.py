@@ -56,7 +56,7 @@ class DriveData:
         datafile_re_format0 = re.compile(
             r"([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat"
         )
-        match_format0 = datafile_re_format0.search(str(sourcefilename))
+        match_format0 = datafile_re_format0.search(str(sourcefilename.name))
         scenario, PartID, DriveID = match_format0.groups()
         obj.metadata["ParticipantID"] = PartID
         obj.metadata["DriveID"] = DriveID
@@ -73,7 +73,7 @@ class DriveData:
         datafile_re_format1 = re.compile(
             r"([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat"
         )  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
-        match_format1 = datafile_re_format1.search(str(sourcefilename))
+        match_format1 = datafile_re_format1.search(str(sourcefilename.name))
         mode, subject_id, scen_name, unique_id = match_format1.groups()
         obj.metadata["ParticipantID"] = subject_id
         obj.metadata["UniqueID"] = unique_id
@@ -87,7 +87,7 @@ class DriveData:
         obj = cls()
         obj.sourcefilename = sourcefilename
         datafile_re_format_lboro = re.compile(r"[pP](\d+)[vV](\d+)[dD](\d+).*")
-        match_format_lboro = datafile_re_format_lboro.search(str(sourcefilename))
+        match_format_lboro = datafile_re_format_lboro.search(str(sourcefilename.name))
         subject_id, visit_id, drive_id = match_format_lboro.groups()
         obj.metadata["ParticipantID"] = subject_id
         obj.metadata["VisitID"] = visit_id
