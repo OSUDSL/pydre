@@ -68,6 +68,16 @@ def numberBinaryBlocks(
     drivedata.data = new_dd
     return drivedata
 
+def jenksClassification(
+    drivedata: pydre.core.DriveData,
+    ogCol_column="HeadPitch",
+    newCol="BinaryHP",
+    only_on=0,
+) -> pydre.core.DriveData:
+    return 0
+
+
+
 
 @registerFilter()
 def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
