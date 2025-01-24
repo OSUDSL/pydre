@@ -164,7 +164,7 @@ class Project:
         Returns:
             The augmented DriveData object
         """
-        ldatafilter = datafilter.copy()
+        ldatafilter = copy.deepcopy(datafilter)
         try:
             func_name = ldatafilter.pop("function")
             filter_func = pydre.filters.filtersList[func_name]
@@ -186,7 +186,7 @@ class Project:
         :return:
         """
 
-        metric = metric.copy()
+        metric = copy.deepcopy(metric.copy)
         try:
             func_name = metric.pop("function")
             metric_func = pydre.metrics.metricsList[func_name]
