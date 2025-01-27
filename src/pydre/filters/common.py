@@ -6,6 +6,7 @@ import polars as pl
 import pydre.core
 from typing import Optional
 from . import registerFilter
+import jenkspy
 
 
 @registerFilter()
@@ -68,14 +69,42 @@ def numberBinaryBlocks(
     drivedata.data = new_dd
     return drivedata
 
-def jenksClassification(
-    drivedata: pydre.core.DriveData,
-    ogCol_column="HeadPitch",
-    newCol="BinaryHP",
-    only_on=0,
+@registerFilter()
+def Jenks(
+    drivedata: pydre.core.DriveData, oldCol: str, newCol: str
 ) -> pydre.core.DriveData:
-    return 0
+    """
+    Classifies the given column using Jenks natural breaks and outputs a binary column.
 
+    Parameters:
+        drivedata: The DriveData object containing the data.
+        oldCol: The name of the column to classify (should be 'headPitch').
+        newCol: The name of the new binary column to be created (e.g., 'hpBinary').
+
+    Returns:
+        Updated DriveData object with the new binary column.
+    """
+    # Ensure the required column exists
+    required_col = [oldCol]
+    drivedata.checkColumns(required_col)
+
+    # Extract the data from the specified column
+    head_pitch_values = drivedata.data[oldCol].to_list()
+
+    # Determine Jenks breaks
+    breaks = jenkspy.jenks_breaks(head_pitch_values, n_classes=2)
+
+
+    # Assign binary values based on the breaks
+    new_data = drivedata.data.with_columns(
+        pl.when(pl.col(oldCol) <= breaks[1])
+        .then(0)
+        .otherwise(1)
+        .alias(newCol)
+    )
+
+    drivedata.data = new_data
+    return drivedata
 
 
 

@@ -1,0 +1,12 @@
+[filters.fixHeadPitchData]
+function = "Jenks"
+oldCol = "HeadPitch"
+newCol = "hpBinary"
+
+[metrics."Max Head Pitch"]
+function = "colMax"
+var = "HeadPitch"
+
+[metrics."Min Head Pitch"]
+function = "colMin"
+var = "HeadPitch"
