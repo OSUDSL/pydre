@@ -186,7 +186,7 @@ class Project:
         :return:
         """
 
-        metric = copy.deepcopy(metric.copy)
+        metric = copy.deepcopy(metric)
         try:
             func_name = metric.pop("function")
             metric_func = pydre.metrics.metricsList[func_name]
