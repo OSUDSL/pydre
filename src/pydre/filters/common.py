@@ -94,7 +94,6 @@ def Jenks(
     # Determine Jenks breaks
     breaks = jenkspy.jenks_breaks(head_pitch_values, n_classes=2)
 
-
     # Assign binary values based on the breaks
     new_data = drivedata.data.with_columns(
         pl.when(pl.col(oldCol) <= breaks[1])
@@ -105,7 +104,6 @@ def Jenks(
 
     drivedata.data = new_data
     return drivedata
-
 
 
 @registerFilter()

@@ -44,7 +44,7 @@ def main():
 
     # add command line args to project
     p.processDatafiles(numThreads=12)
-    p.saveResults(pathlib.Path(args.outputfile))
+    p.saveResults()
 
 
 if __name__ == "__main__":

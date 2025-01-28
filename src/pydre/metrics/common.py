@@ -598,6 +598,49 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
     throttle_reaction_time = time_of_accel - initial_time
     return throttle_reaction_time
 
+# mean dip time
+# number of dips
+# median dip time
+@registerMetric(
+    columnnames=[
+        "meanDipTime",
+        "numDips",
+        "medianDipTime",
+    ]
+)
+def biopticDipMeasure(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "hpBinary", "HeadPitch", "DipRegions"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        logger.warning("columns dont match in bioptics metric")
+        return [None, None, None]
+
+    df = drivedata.data.select(
+        [
+            pl.col("SimTime"),
+            pl.col("hpBinary"),
+            pl.col("DipRegions"),
+            pl.col("HeadPitch")
+        ]
+    )
+
+    numDips = df.filter(df["hpBinary"] < 1).get_column("DipRegions").n_unique()
+
+    zeros_df = df.filter(pl.col("hpBinary") < 1)
+
+    duration_df = zeros_df.group_by("DipRegions").agg([
+        (pl.col("SimTime").max() - pl.col("SimTime").min()).alias("Duration")
+    ])
+
+    meanDipTime = duration_df.get_column("Duration").mean()
+
+    medianDipTime = duration_df.get_column("Duration").median()
+    return [
+        meanDipTime,
+        numDips,
+        medianDipTime,
+    ]
 
 @registerMetric()
 def eventSpeedRecoveryTime(drivedata: pydre.core.DriveData, op_speed=15.64, tolerance=4) -> Optional[float]:

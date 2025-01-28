@@ -200,12 +200,8 @@ class Project:
 
         metric_dict = dict()
         if len(col_names) > 1:
-            x = [metric_func(dataset, **metric)]
-            report = pl.DataFrame(x, schema=col_names, orient="row")
-            for i in range(len(col_names)):
-                name = col_names[i - 1]
-                data = x[0][i]
-                metric_dict[name] = data
+            x = metric_func(dataset, **metric)
+            metric_dict = dict(zip(col_names, x))
         else:
             # report = pl.DataFrame(
             #    [metric_func(dataset, **metric) ], schema=[report_name, ])
@@ -328,7 +324,7 @@ class Project:
             results_list.append(result_dict)
         return results_list
 
-    def saveResults(self, outfilename: pathlib.Path):
+    def saveResults(self):
         """
         Args:
             outfilename: filename to output csv data to.
@@ -336,6 +332,6 @@ class Project:
             The filename specified will be overwritten automatically.
         """
         try:
-            self.results.write_csv(outfilename)
+            self.results.write_csv(self.config["outputfile"])
         except AttributeError:
             logger.error("Results not computed yet")
