@@ -3,10 +3,19 @@ function = "Jenks"
 oldCol = "HeadPitch"
 newCol = "hpBinary"
 
+[filters.CSV]
+function = "writeToCSV"
+outputDirectory = "/Users/saanazia/Documents/DSL/pydre/tests"
+
 [metrics."Max Head Pitch"]
 function = "colMax"
 var = "HeadPitch"
 
+
 [metrics."Min Head Pitch"]
 function = "colMin"
 var = "HeadPitch"
+
+
+
+
