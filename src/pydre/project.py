@@ -90,12 +90,12 @@ class Project:
             else:
                 self.config["outputfile"] = "out.csv"
 
-        if len(self.config["datafiles"]) == 0:
+        if len(self.config.get("datafiles", [])) == 0:
             logger.error("No datafile found in project definition.")
 
         # resolve the file paths
         self.filelist = []
-        for fn in self.config["datafiles"]:
+        for fn in self.config.get("datafiles", []):
             # convert relative path to absolute path
             datapath = pathlib.Path(fn).resolve()
             datafiles = datapath.parent.glob(datapath.name)
