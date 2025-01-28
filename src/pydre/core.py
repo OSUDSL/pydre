@@ -1,70 +1,136 @@
 from __future__ import annotations
 
+import copy
+import re
+
 import polars
 from loguru import logger
-from typing import List, Optional
+from typing import List, Optional, Any
 from pathlib import Path
 
-
 class DriveData:
-    data: polars.dataframe
+    data: polars.DataFrame
     sourcefilename: Path
+    sourcefiletype: Optional[str]
     roi: Optional[str]
-    format_identifier: int
-    PartID: Optional[int]
-    DriveID: Optional[int]
-    UniqueID: Optional[int]
-    scenarioName: Optional[int]
-    mode: Optional[int]
+    metadata: dict[str, Any]
 
-    def __init__(self, data: polars.DataFrame, sourcefilename: Path):
-        self.data = data
-        self.sourcefilename = sourcefilename
-        self.roi = None
-        self.format_identifier = -1
+    def __init__(self, orig: DriveData = None, newdata: Optional[polars.DataFrame] = None):
+        if orig is not None:
+            if newdata is not None:
+                self.data = newdata
+            else:
+                self.data = copy.deepcopy(orig.data)
+            self.roi = orig.roi
+            self.sourcefilename = orig.sourcefilename
+            self.sourcefiletype = orig.sourcefiletype
+            self.metadata = copy.deepcopy(orig.metadata)
+        else:
+            self.data = polars.DataFrame()
+            self.roi = None
+            self.sourcefilename = Path()
+            self.sourcefiletype = None
+            self.metadata = {}
+
 
     @classmethod
-    def initV2(
-        cls,
-        data: polars.DataFrame,
-        sourcefilename: Path,
-        PartID: Optional[int],
-        DriveID: Optional[int],
+    def init_test(
+            cls,
+            data: polars.DataFrame,
+            sourcefilename: Path
     ):
-        obj = cls(data, sourcefilename)
-        obj.PartID = PartID
-        obj.DriveID = DriveID
-        obj.format_identifier = 2
+        """Initializes a DriveData object with a given sourcefilename and data. Used for testing."""
+        obj = cls()
+        obj.sourcefilename = sourcefilename
+        obj.data = data
+        return obj
+
+
+    @classmethod
+    def init_old_rti(
+        cls,
+        sourcefilename: Path
+    ):
+        obj = cls()
+        obj.sourcefilename = sourcefilename
+        datafile_re_format0 = re.compile(
+            r"([^_]+)_Sub_(\d+)_Drive_(\d+)(?:.*).dat"
+        )
+        match_format0 = datafile_re_format0.search(str(sourcefilename.name))
+        scenario, PartID, DriveID = match_format0.groups()
+        obj.metadata["ParticipantID"] = PartID
+        obj.metadata["DriveID"] = DriveID
+        obj.sourcefiletype = "old SimObserver"
         return obj
 
     @classmethod
-    def initV4(
+    def init_rti(
         cls,
-        data: polars.DataFrame,
-        sourcefilename: Path,
-        PartID: str,
-        UniqueID: Optional[int],
-        scenarioName: Optional[str],
-        mode: Optional[str],
+        sourcefilename: Path
     ):
-        obj = cls(data, sourcefilename)
-        obj.PartID = PartID
-        obj.UniqueID = UniqueID
-        obj.scenarioName = scenarioName
-        obj.mode = mode
-        obj.format_identifier = 4
+        obj = cls()
+        obj.sourcefilename = sourcefilename
+        datafile_re_format1 = re.compile(
+            r"([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat"
+        )  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
+        match_format1 = datafile_re_format1.search(str(sourcefilename.name))
+        mode, subject_id, scen_name, unique_id = match_format1.groups()
+        obj.metadata["ParticipantID"] = subject_id
+        obj.metadata["UniqueID"] = unique_id
+        obj.metadata["ScenarioName"] = scen_name
+        obj.metadata["DXmode"] = mode
+        obj.sourcefiletype = "SimObserver r2"
         return obj
+
+    @classmethod
+    def init_scanner(cls, sourcefilename: Path):
+        obj = cls()
+        obj.sourcefilename = sourcefilename
+        datafile_re_format_lboro = re.compile(r"[pP](\d+)[vV](\d+)[dD](\d+).*")
+        match_format_lboro = datafile_re_format_lboro.search(str(sourcefilename.name))
+        subject_id, visit_id, drive_id = match_format_lboro.groups()
+        obj.metadata["ParticipantID"] = subject_id
+        obj.metadata["VisitID"] = visit_id
+        obj.metadata["DriveID"] = drive_id
+        obj.sourcefiletype = "Scanner"
+        return obj
+
+
+    def loadData(self):
+        """Load data from the internal filename into the DriveData object based on the fire"""
+        if self.sourcefiletype == "old SimObserver":
+            self.__load_datfile()
+        elif self.sourcefiletype == "SimObserver r2":
+            self.__load_datfile()
+        elif self.sourcefiletype == "Scanner":
+            self.__load_scannerfile()
+
+    def __load_datfile(self) -> pydre.core.DriveData:
+        """Load a single .dat file (space delimited csv) """
+        self.data = polars.read_csv(
+            self.sourcefilename,
+            separator=" ",
+            null_values=".",
+            truncate_ragged_lines=True,
+            infer_schema_length=5000,
+        )
+
+    def __load_scannerfile(self):
+        """Load a single csv file containing data from the Scanners simulator"""
+        self.data = polars.read_csv(
+            self.sourcefilename,
+            separator="\t",
+            null_values="null",
+            truncate_ragged_lines=True,
+            infer_schema_length=100000,
+        )
 
     def copyMetaData(self, other: DriveData):
+        """Copy metadata from another DriveData object. This includes source filename, source filetype, roi, and metadata."""
         self.sourcefilename = other.sourcefilename
-        self.PartID = other.PartID
-        if other.format_identifier == 2:
-            self.DriveID = other.DriveID
-        elif other.format_identifier == 4:
-            self.UniqueID = other.UniqueID
-            self.scenarioName = other.scenarioName
-            self.mode = other.mode
-        self.format_identifier = other.format_identifier
+        self.sourcefiletype = other.sourcefiletype
+        self.roi = other.roi
+        self.metadata = copy.deepcopy(other.metadata)
 
     def checkColumns(self, required_columns: List[str]) -> None:
         difference = set(required_columns) - set(list(self.data.columns))

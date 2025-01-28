@@ -1,0 +1,8 @@
+[config]
+datafile_type = "scanner"
+datafiles = ["C:/somepath/*.dat", "E:/work/data/lboro/*.txt"]
+
+[metrics.speed1mean]
+function = "colMean"
+var = "[00].VehicleUpdate-speed.001"
+

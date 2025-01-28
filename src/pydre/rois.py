@@ -90,10 +90,7 @@ class TimeROI(ROIProcessor):
             for roi, duration in self.rois[sourcedrivedata.PartID]:
                 start, end = duration
                 new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
-                new_ddata = pydre.core.DriveData(
-                    new_data, sourcedrivedata.sourcefilename
-                )
-                new_ddata.copyMetaData(sourcedrivedata)
+                new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
                 new_ddata.roi = roi
                 output_list.append(new_ddata)
         return output_list
@@ -180,10 +177,7 @@ class SpaceROI(ROIProcessor):
                         sourcedrivedata.sourcefilename,
                     )
                 )
-            new_ddata = pydre.core.DriveData(
-                region_data, sourcedrivedata.sourcefilename
-            )
-            new_ddata.copyMetaData(sourcedrivedata)
+            new_ddata = pydre.core.DriveData(sourcedrivedata, gdata)
             new_ddata.roi = roi_name
             return_list.append(new_ddata)
 
@@ -204,8 +198,7 @@ class ColumnROI(ROIProcessor):
         for gname, gdata in sourcedrivedata.data.group_by(self.roi_column):
             gname = gname[0]
             if gname != pl.Null:
-                new_ddata = pydre.core.DriveData(gdata, sourcedrivedata.sourcefilename)
-                new_ddata.copyMetaData(sourcedrivedata)
+                new_ddata = pydre.core.DriveData(sourcedrivedata, gdata)
                 new_ddata.roi = str(gname)
                 return_list.append(new_ddata)
         return return_list

@@ -1,3 +1,4 @@
+import copy
 import json
 
 import polars as pl
@@ -8,6 +9,7 @@ from typing import Optional
 import pydre.core
 import pydre.rois
 import pydre.metrics
+from pydre.core import DriveData
 from pydre.metrics import *
 import pydre.filters
 from pydre.filters import *
@@ -23,9 +25,10 @@ class Project:
     definition: dict
     results: Optional[pl.DataFrame]
 
-    def __init__(self, projectfilename: str):
+    def __init__(self, projectfilename: str, additional_data_paths: Optional[list[str]] = None, outputfile: str = None):
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
+        self.config = {}
         self.results = None
         try:
             with open(self.project_filename, "rb") as project_file:
@@ -65,6 +68,8 @@ class Project:
                                 self.definition["filters"]
                             )
                         )
+                    if "config" in self.definition.keys():
+                        self.config = self.definition["config"]
                     self.definition = new_definition
                 else:
                     logger.error("Unsupported project file type")
@@ -72,6 +77,29 @@ class Project:
         except FileNotFoundError as e:
             logger.error(f"File '{projectfilename}' not found.")
             raise e
+
+        if additional_data_paths is not None:
+            self.config["datafiles"] = self.config.get("datafiles", []) + additional_data_paths
+
+        if "outputfile" in self.config:
+            if outputfile is not None:
+                self.config["outputfile"] = outputfile
+        else:
+            if outputfile is not None:
+                self.config["outputfile"] = outputfile
+            else:
+                self.config["outputfile"] = "out.csv"
+
+        if len(self.config["datafiles"]) == 0:
+            logger.error("No datafile found in project definition.")
+
+        # resolve the file paths
+        self.filelist = []
+        for fn in self.config["datafiles"]:
+            # convert relative path to absolute path
+            datapath = pathlib.Path(fn).resolve()
+            datafiles = datapath.parent.glob(datapath.name)
+            self.filelist.extend(datafiles)
 
         self.data = []
 
@@ -81,6 +109,7 @@ class Project:
                 self.definition == other.definition
                 and self.data == other.data
                 and self.results == other.results
+                and self.config == other.config
             )
         else:
             return False
@@ -93,39 +122,7 @@ class Project:
             new_def.append(v)
         return new_def
 
-    def __load_single_datfile(self, filename: Path) -> pydre.core.DriveData:
-        """Load a single .dat file (space delimited csv) into a DriveData object"""
-        d = pl.read_csv(
-            filename,
-            separator=" ",
-            null_values=".",
-            truncate_ragged_lines=True,
-            infer_schema_length=5000,
-        )
-        datafile_re_format0 = re.compile(
-            "([^_]+)_Sub_(\\d+)_Drive_(\\d+)(?:.*).dat"
-        )  # old format
-        datafile_re_format1 = re.compile(
-            "([^_]+)_([^_]+)_([^_]+)_(\\d+)(?:.*).dat"
-        )  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
-        match_format0 = datafile_re_format0.search(str(filename))
 
-        if match_format0:
-            experiment_name, subject_id, drive_id = match_format0.groups()
-            drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
-            return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
-        elif match_format1 := datafile_re_format1.search(filename.name):
-            mode, subject_id, scen_name, unique_id = match_format1.groups()
-            return pydre.core.DriveData.initV4(
-                d, filename, subject_id, unique_id, scen_name, mode
-            )
-        else:
-            logger.warning(
-                "Drivedata filename {} does not an expected format.".format(filename)
-            )
-            return pydre.core.DriveData(d, filename)
-
-    # testing
 
     def processROI(
         self, roi: dict, datafile: pydre.core.DriveData
@@ -167,7 +164,7 @@ class Project:
         Returns:
             The augmented DriveData object
         """
-        ldatafilter = datafilter.copy()
+        ldatafilter = copy.deepcopy(datafilter)
         try:
             func_name = ldatafilter.pop("function")
             filter_func = pydre.filters.filtersList[func_name]
@@ -189,7 +186,7 @@ class Project:
         :return:
         """
 
-        metric = metric.copy()
+        metric = copy.deepcopy(metric)
         try:
             func_name = metric.pop("function")
             metric_func = pydre.metrics.metricsList[func_name]
@@ -220,12 +217,11 @@ class Project:
         return string.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
 
     def processDatafiles(
-        self, datafilenames: list[Path], numThreads: int = 12
+        self, numThreads: int = 12
     ) -> Optional[pl.DataFrame]:
         """Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
 
         Args:
-                datafilenames: a list of filename strings (SimObserver .dat files)
                 numThreads: number of threads to run simultaneously in the thread pool
 
         Returns:
@@ -235,22 +231,14 @@ class Project:
         if "metrics" not in self.definition:
             logger.critical("No metrics in project file. No results will be generated")
             return None
-        self.raw_data = []
-        result_dataframe = pl.DataFrame()
         results_list = []
-        # for datafilename in tqdm(datafilenames, desc="Loading files"):
-
-        # with concurrent.futures.ThreadPoolExecutor(max_workers=numThreads) as executor:
-        #    for result in executor.map(self.processSingleFile, datafilenames):
-        #        for result_dict in result:
-        #            results_list.append(result_dict)
-        with tqdm(total=len(datafilenames)) as pbar:
+        with tqdm(total=len(self.filelist)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=numThreads
             ) as executor:
                 futures = {
                     executor.submit(self.processSingleFile, singleFile): singleFile
-                    for singleFile in datafilenames
+                    for singleFile in self.filelist
                 }
                 results = {}
                 for future in concurrent.futures.as_completed(futures):
@@ -266,27 +254,28 @@ class Project:
                     pbar.update(1)
         result_dataframe = pl.from_dicts(results_list)
 
-        result_dataframe = result_dataframe.with_columns(
-            pl.col("Subject").cast(pl.String),
-            pl.col("ScenarioName").cast(pl.String),
-            pl.col("ROI").cast(pl.String),
-        )
-
-        # Would just use try/except but polars throws overly alarming PanicException
-        sorting_columns = ["Subject", "ScenarioName", "ROI"]
-        # sorting_columns = [col for col in sorting_columns if col in result_dataframe.dtypes ]
-
-        try:
-            result_dataframe = result_dataframe.sort(sorting_columns)
-        except pl.exceptions.PanicException as e:
-            logger.warning("Can't sort results, must be missing a column.")
+        #sorting_columns = ["Subject", "ScenarioName", "ROI"]
+        #try:
+        #    result_dataframe = result_dataframe.sort(sorting_columns)
+        #except pl.exceptions.PanicException as e:
+        #    logger.warning("Can't sort results, must be missing a column.")
 
         self.results = result_dataframe
         return result_dataframe
 
     def processSingleFile(self, datafilename: Path):
-        logger.info("Loading file #{}: {}".format(len(self.raw_data), datafilename))
-        datafile = self.__load_single_datfile(datafilename)
+        logger.info("Loading file {}".format( datafilename))
+        if "datafile_type" in self.config:
+            if self.config["datafile_type"] == "rti":
+                datafile = DriveData.init_rti(datafilename)
+            elif self.config["datafile_type"] == "oldrti":
+                datafile = DriveData.init_old_rti(datafilename)
+            elif self.config["datafile_type"] == "scanner":
+                datafile = DriveData.init_scanner(datafilename)
+        else:
+            datafile = DriveData.init_rti(datafilename)
+
+        datafile.loadData()
         roi_datalist = []
         results_list = []
 
@@ -322,17 +311,7 @@ class Project:
         # logger.warning("No ROIs found in {}".format(datafilename))
         roi_processed_metrics = []
         for data in roi_datalist:
-            result_dict = {"Subject": data.PartID}
-            if (
-                data.format_identifier == 2
-            ):  # these drivedata object was created from an old format data file
-                result_dict["DriveID"] = datafile.DriveID
-            elif (
-                data.format_identifier == 4
-            ):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-                result_dict["Mode"] = self.__clean(str(data.mode))
-                result_dict["ScenarioName"] = self.__clean(str(data.scenarioName))
-                result_dict["UniqueID"] = self.__clean(str(data.UniqueID))
+            result_dict = copy.deepcopy(datafile.metadata)
             result_dict["ROI"] = data.roi
 
             for metric in self.definition["metrics"]:
