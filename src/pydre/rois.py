@@ -159,7 +159,7 @@ class SpaceROI(ROIProcessor):
                 #    self.roi_info.roi[i]))
                 logger.warning(
                     "No data for SubjectID: {}, Source: {},  ROI: {}".format(
-                        ddata.PartID, ddata.sourcefilename, roi_name
+                        sourcedrivedata.metadata["ParticipantID"], sourcedrivedata.sourcefilename, roi_name
                     )
                 )
             else:
@@ -173,11 +173,11 @@ class SpaceROI(ROIProcessor):
                     "{} Line(s) read into ROI {} for Subject {} From file {}".format(
                         region_data.height,
                         roi_name,
-                        sourcedrivedata.PartID,
-                        sourcedrivedata.sourcefilename,
+                        sourcedrivedata.metadata["ParticipantID"],
+                        sourcedrivedata.sourcefilename
                     )
                 )
-            new_ddata = pydre.core.DriveData(sourcedrivedata, gdata)
+            new_ddata = pydre.core.DriveData(sourcedrivedata, region_data)
             new_ddata.roi = roi_name
             return_list.append(new_ddata)
 
