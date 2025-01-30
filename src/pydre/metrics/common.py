@@ -1506,4 +1506,4 @@ def R2DIDColumns(drivedata: pydre.core.DriveData):
         gender = "Female"
     match_id = ident_groups.group(4)
     week = ident_groups.group(5)
-    return week, participant_id, match_id, case, location, gender
+    return participant_id, match_id, case, location, gender, week
