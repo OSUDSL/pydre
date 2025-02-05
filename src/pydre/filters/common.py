@@ -277,3 +277,22 @@ def filetimeToDatetime(ft: int) -> Optional[datetime.datetime]:
 
 def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack("Q", struct.pack("LL", lo, hi))[0]
+
+@registerFilter()
+def removeOddData(drivedata: pydre.core.DriveData, col: str, lower: int, upper: int) -> pydre.core.DriveData:
+    """
+    Params:
+    col: The name of the column to filter data
+    lower: lower bound to filter
+    upper: upper bound to filter
+    """
+    """
+    Removes data in a certain range for a certain variable. 
+    """
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    new_dd = drivedata.data.with_columns(
+        (pl.col(col).clip(lower_bound=lower)).alias(col))
+
+    return
