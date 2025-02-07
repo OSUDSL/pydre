@@ -68,11 +68,11 @@ class TimeROI(ROIProcessor):
             elif isinstance(r, tuple):
                 rois.append(r._asdict())
         for r in rois:
-            participant = r["Participant"]
-            self.rois[participant] = {}
-            for k, v in r:
-                if k != "Participant":
-                    self.rois[participant][k] = self.parseDuration(v)
+            subject = r["Subject"]
+            self.rois[subject] = {}
+            for k, v in r.items():
+                if k != "Subject":
+                    self.rois[subject][k] = self.parseDuration(v)
         self.name_prefix = nameprefix
 
     def split(
@@ -95,25 +95,60 @@ class TimeROI(ROIProcessor):
                 output_list.append(new_ddata)
         return output_list
 
+        if sourcedrivedata.PartID in self.rois.keys():
+            for roi, duration in self.rois[sourcedrivedata.PartID]:
+                start, end = duration
+                new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
+                new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+                new_ddata.roi = roi
+                output_list.append(new_ddata)
+        return output_list
+
     def parseDuration(self, duration: str) -> tuple[float, float]:
         # parse a string indicating duration into a tuple of (starttime, endtime) in seconds
         # the string will have the format as:
         # time1-time2 where time1 or time 2 are either hr:min:sec or min:sec
         # example:  1:15:10-1:20:30
         # example : 02:32-08:45
-        pair_regex = r"([\d:])-([\d:])"
-        time_regex = r"(?:(\d+):)?(\d+):(\d+)"
-        pair_result = re.match(pair_regex, duration)
-        first_time_str, second_time_str = pair_result.group(1, 2)
-        first_time_result = re.match(time_regex, first_time_str)
-        second_time_result = re.match(time_regex, second_time_str)
-        first_time = first_time_result.group(2) * 60 + first_time_result.group(3)
-        if first_time_result.group(1):
-            first_time += first_time_result.group(1) * 60 * 60
-        second_time = second_time_result.group(2) * 60 + second_time_result.group(3)
-        if second_time_result.group(1):
-            second_time += second_time_result.group(1) * 60 * 60
-        return (first_time, second_time)
+
+        # pair_regex = r"([\d:])-([\d:])"
+        # time_regex = r"(?:(\d+):)?(\d+):(\d+)"
+        # pair_result = re.match(pair_regex, duration)
+        # first_time_str, second_time_str = pair_result.group(1, 2)
+        # first_time_result = re.match(time_regex, first_time_str)
+        # second_time_result = re.match(time_regex, second_time_str)
+        # first_time = first_time_result.group(2) * 60 + first_time_result.group(3)
+        # if first_time_result.group(1):
+        #     first_time += first_time_result.group(1) * 60 * 60
+        # second_time = second_time_result.group(2) * 60 + second_time_result.group(3)
+        # if second_time_result.group(1):
+        #     second_time += second_time_result.group(1) * 60 * 60
+        # return (first_time, second_time)
+
+        regex = r'(?:(\d{1,2}):)?(\d{1,2}):(\d{2})-(?:(\d{1,2}):)?(\d{1,2}):(\d{2})'
+        pair_result = re.match(regex, duration)
+        times = None
+        if pair_result.group(5):
+            first_hr = pair_result.group(1)
+            first_min = pair_result.group(2)
+            first_sec = pair_result.group(3)
+            second_hr = pair_result.group(4)
+            second_min = pair_result.group(5)
+            second_sec = pair_result.group(6)
+            first_time = first_hr * 60 * 60 + first_min * 60 + first_sec
+            second_time = second_hr * 60 * 60 + second_min * 60 + second_sec
+            times = (first_time, second_time)
+        else:
+            first_hr = pair_result.group(1)
+            first_min = pair_result.group(2)
+            second_hr = pair_result.group(3)
+            second_min = pair_result.group(4)
+            first_time = first_hr * 60 * 60 + first_min * 60
+            second_time = second_hr * 60 * 60 + second_min * 60
+            times = (first_time, second_time)
+        return times
+
+
 
 
 class SpaceROI(ROIProcessor):
