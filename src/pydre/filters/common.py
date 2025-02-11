@@ -279,7 +279,7 @@ def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack("Q", struct.pack("LL", lo, hi))[0]
 
 @registerFilter()
-def removeOddData(drivedata: pydre.core.DriveData, col: str, lower: int, upper: int) -> pydre.core.DriveData:
+def removeDataOutside(drivedata: pydre.core.DriveData, col: str, lower: float, upper: float) -> pydre.core.DriveData:
     """
     Params:
     col: The name of the column to filter data
@@ -287,12 +287,33 @@ def removeOddData(drivedata: pydre.core.DriveData, col: str, lower: int, upper: 
     upper: upper bound to filter
     """
     """
-    Removes data in a certain range for a certain variable. 
+    Removes data outside a certain range for a certain variable. 
     """
     required_col = [col]
     drivedata.checkColumns(required_col)
 
-    new_dd = drivedata.data.with_columns(
-        (pl.col(col).clip(lower_bound=lower)).alias(col))
+    filtered_data = drivedata.data.filter(~((pl.col(col) >= lower) & (pl.col(col) <= upper)))
 
-    return
+    drivedata.data = filtered_data
+
+    return drivedata
+
+@registerFilter()
+def removeDataInside(drivedata: pydre.core.DriveData, col: str, lower: float, upper: float) -> pydre.core.DriveData:
+    """
+    Params:
+    col: The name of the column to filter data
+    lower: lower bound to filter
+    upper: upper bound to filter
+    """
+    """
+    Removes data inside a certain range for a certain variable. 
+    """
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    filtered_data = drivedata.data.filter(~((pl.col(col) >= upper) & (pl.col(col) <= lower)))
+
+    drivedata.data = filtered_data
+
+    return drivedata
