@@ -317,3 +317,33 @@ def removeDataInside(drivedata: pydre.core.DriveData, col: str, lower: float, up
     drivedata.data = filtered_data
 
     return drivedata
+
+
+@registerFilter()
+def separateData(drivedata: pydre.core.DriveData, col: str, threshold: float, high: int = 1,
+                      low: int = 0) -> pydre.core.DriveData:
+    """
+    Categorizes head pitch data into high and low based on a manually defined threshold.
+
+    Params:
+    col: The column containing head pitch values
+    threshold: The value that separates high and low pitch
+    high: Value assigned to "high" pitch (1)
+    low: Value assigned to "low" pitch (0)
+    """
+
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    # create new column based on threshold
+    new_data = drivedata.data.with_columns(
+        (pl.when(pl.col(col) >= threshold)
+         .then(high)
+         .otherwise(low)
+         .alias(f"{col}_categorized"))
+    )
+
+    drivedata.data = new_data
+
+    return drivedata
+
