@@ -57,7 +57,7 @@ def sliceByTime(
 
 
 class TimeROI(ROIProcessor):
-    def __init__(self, filename: str | pathlib.Path, timecol: str):
+    def __init__(self, filename: str | pathlib.Path, timecol: str = "DatTime"):
         # parse time filename values
         pl_rois = pl.read_csv(filename)
         rois = []
