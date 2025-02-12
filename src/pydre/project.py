@@ -90,6 +90,10 @@ class Project:
             else:
                 self.config["outputfile"] = "out.csv"
 
+        for i in range(len(self.definition["rois"])):
+            if "timecol" not in self.definition["rois"][i]:
+                self.definition["rois"][i]["timecol"] = "DatTime"
+
         if len(self.config.get("datafiles", [])) == 0:
             logger.error("No datafile found in project definition.")
 
@@ -140,7 +144,7 @@ class Project:
         roi_type = roi["type"]
         if roi_type == "time":
             logger.info("Processing time ROI " + roi["filename"])
-            roi_obj = pydre.rois.TimeROI(roi["filename"])
+            roi_obj = pydre.rois.TimeROI(roi["filename"], roi["timecol"])
         elif roi_type == "rect":
             logger.info("Processing space ROI " + roi["filename"])
             roi_obj = pydre.rois.SpaceROI(roi["filename"])

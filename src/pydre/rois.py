@@ -57,23 +57,24 @@ def sliceByTime(
 
 
 class TimeROI(ROIProcessor):
-    def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
+    def __init__(self, filename: str | pathlib.Path, timecol: str):
         # parse time filename values
         pl_rois = pl.read_csv(filename)
         rois = []
         self.rois = {}
+        self.timecol = timecol
         for r in pl_rois.rows(named=True):
             if isinstance(r, dict):
                 rois.append(r)
             elif isinstance(r, tuple):
                 rois.append(r._asdict())
         for r in rois:
-            subject = r["Subject"]
-            self.rois[subject] = {}
+            roi_name = r["ROI"]
+            self.rois[roi_name] = {}
             for k, v in r.items():
-                if k != "Subject":
-                    self.rois[subject][k] = self.parseDuration(v)
-        self.name_prefix = nameprefix
+                if k != "ROI":
+                    self.rois[roi_name][k] = self.parseDuration(v)
+
 
     def split(
         self, sourcedrivedata: pydre.core.DriveData
@@ -83,28 +84,40 @@ class TimeROI(ROIProcessor):
         the 'roi' field of the objects will be filled with the roi tag listed
         in the roi definition file column name
         """
-        timecol = "SimTime"
+        # output_list = []
+        #
+        # if sourcedrivedata.PartID in self.rois.keys():
+        #     for roi, duration in self.rois[sourcedrivedata.PartID]:
+        #         start, end = duration
+        #         new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
+        #         new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+        #         new_ddata.roi = roi
+        #         output_list.append(new_ddata)
+        # return output_list
+        #
+        # if sourcedrivedata.PartID in self.rois.keys():
+        #     for roi, duration in self.rois[sourcedrivedata.PartID]:
+        #         start, end = duration
+        #         new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
+        #         new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+        #         new_ddata.roi = roi
+        #         output_list.append(new_ddata)
+        # return output_list
         output_list = []
 
-        if sourcedrivedata.PartID in self.rois.keys():
-            for roi, duration in self.rois[sourcedrivedata.PartID]:
-                start, end = duration
-                new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
-                new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
-                new_ddata.roi = roi
-                output_list.append(new_ddata)
+        for k, v in self.rois.items():
+            start = v["time_start"]
+            end = v["time_end"]
+            timecol = self.timecol
+            new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
+            new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+            new_ddata.roi = k
+            output_list.append(new_ddata)
         return output_list
 
-        if sourcedrivedata.PartID in self.rois.keys():
-            for roi, duration in self.rois[sourcedrivedata.PartID]:
-                start, end = duration
-                new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
-                new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
-                new_ddata.roi = roi
-                output_list.append(new_ddata)
-        return output_list
 
-    def parseDuration(self, duration: str) -> tuple[float, float]:
+
+    def parseDuration(self, duration: str) -> float:
         # parse a string indicating duration into a tuple of (starttime, endtime) in seconds
         # the string will have the format as:
         # time1-time2 where time1 or time 2 are either hr:min:sec or min:sec
@@ -125,28 +138,18 @@ class TimeROI(ROIProcessor):
         #     second_time += second_time_result.group(1) * 60 * 60
         # return (first_time, second_time)
 
-        regex = r'(?:(\d{1,2}):)?(\d{1,2}):(\d{2})-(?:(\d{1,2}):)?(\d{1,2}):(\d{2})'
+        regex = r'(?:(\d{1,2}):)?(\d{1,2}):(\d{2})'
         pair_result = re.match(regex, duration)
-        times = None
-        if pair_result.group(5):
-            first_hr = pair_result.group(1)
-            first_min = pair_result.group(2)
-            first_sec = pair_result.group(3)
-            second_hr = pair_result.group(4)
-            second_min = pair_result.group(5)
-            second_sec = pair_result.group(6)
-            first_time = first_hr * 60 * 60 + first_min * 60 + first_sec
-            second_time = second_hr * 60 * 60 + second_min * 60 + second_sec
-            times = (first_time, second_time)
+        if pair_result.group(3):
+            hr = pair_result.group(1)
+            min = pair_result.group(2)
+            sec = pair_result.group(3)
+            time = int(hr) * 60 * 60 + int(min) * 60 + int(sec)
         else:
-            first_hr = pair_result.group(1)
-            first_min = pair_result.group(2)
-            second_hr = pair_result.group(3)
-            second_min = pair_result.group(4)
-            first_time = first_hr * 60 * 60 + first_min * 60
-            second_time = second_hr * 60 * 60 + second_min * 60
-            times = (first_time, second_time)
-        return times
+            min = pair_result.group(1)
+            sec = pair_result.group(2)
+            time = 60 * 60 + int(min) * 60 + int(sec)
+        return time
 
 
 
