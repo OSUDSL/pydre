@@ -1,3 +1,7 @@
+[config]
+outputfiles = "r2dBoxes.csv"
+datafiles = ["E:/work/data/R2Dclean/*.dat"]
+
 [filters.SimTimeFromDatTime]
 function = "SimTimeFromDatTime"
 
