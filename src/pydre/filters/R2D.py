@@ -285,14 +285,39 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
             filter_df.extend(ceROI)
             drivedata.data = filter_df
         if ceInfo_df.shape[0] == 0:
-            logger.warning("ERROR! No imported merge info - no known CE positions.")
+            logger.warning("No imported merge info - no known CE positions.")
     else:
-        raise Exception("ERROR! Attempting to run 'Event' filtering on scenario with no Events.")
+        raise Exception("Attempting to run 'Event' filtering on scenario with no Events.")
     return drivedata
 
 
-@registerFilter()
 def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
+@registerFilter()
+    return drivedata
+        drivedata.data = filter_df
+        logger.warning(f"Do not have non-event regions for {scenario}, w{week} combo. Skipping..")
+    else:
+        drivedata.data = filter_df
+        filter_df.extend(region3)
+        filter_df.extend(region2)
+
+        filter_df.extend(region1)
+        region3 = region3.with_columns(pl.lit(3).alias("NonEventRegion"))
+        )
+            df.get_column('XPos') >= startx3,
+        region3 = df.filter(
+            df.get_column('XPos') <= endx3
+
+        )
+            df.get_column('XPos') >= startx2,
+        region2 = region2.with_columns(pl.lit(2).alias("NonEventRegion"))
+            df.get_column('XPos') <= endx2
+        region2 = df.filter(
+
+        )
+            df.get_column('XPos') >= startx1,
+        region1 = region1.with_columns(pl.lit(1).alias("NonEventRegion"))
+            df.get_column('XPos') <= endx1
     """
     :arg: dataFile: the file name of the csv that maps Non Event regions.
         -> required cols:
@@ -305,182 +330,36 @@ def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
           - 0 indicates non-designated region
     """
     ident = drivedata.metadata["ParticipantID"]
-    scenario = drivedata.metadata["ScenarioName"]
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
+    scenario = drivedata.metadata["ScenarioName"]
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
-    if ident_groups is None:
         logger.warning("Could not parse R2D ID " + ident)
+    if ident_groups is None:
         return [None]
-    week = ident_groups.group(5)
     df = drivedata.data
+    week = ident_groups.group(5)
 
-    # adding cols with meaningless values for later region filtering, ensures shape
     df = df.with_columns(
+    # adding cols with meaningless values for later region filtering, ensures shape
         pl.lit(-1).alias("NonEventRegion"),
-    )
-    if dataFile != "":
-        merge_df = pl.read_csv(source=dataFile)
-        merge_df = merge_df.filter(
-                merge_df.get_column("Scenario") == scenario,
-                merge_df.get_column("Week") == week
-        )
-        filter_df = df.clear()
-    else:
-        raise Exception("Datafile not present - cannot merge w/o source of truth.")
+        region1 = df.filter(
 
+        endx3 = merge_df["endX3"][0]
+        startx3 = merge_df["startX3"][0]
+        startx2 = merge_df["startX2"][0]
+        startx1 = merge_df["startX1"][0]
+        endx2 = merge_df["endX2"][0]
+        endx1 = merge_df["endX1"][0]
     if merge_df.shape[0] > 0:
         # week/scenario match, have actual coordinates
-        startx1 = merge_df["startX1"][0]
-        endx1 = merge_df["endX1"][0]
-        startx2 = merge_df["startX2"][0]
-        endx2 = merge_df["endX2"][0]
-        startx3 = merge_df["startX3"][0]
-        endx3 = merge_df["endX3"][0]
 
-        region1 = df.filter(
-            df.get_column('XPos') >= startx1,
-            df.get_column('XPos') <= endx1
-        )
-        region1 = region1.with_columns(pl.lit(1).alias("NonEventRegion"))
-
-        region2 = df.filter(
-            df.get_column('XPos') >= startx2,
-            df.get_column('XPos') <= endx2
-        )
-        region2 = region2.with_columns(pl.lit(2).alias("NonEventRegion"))
-
-        region3 = df.filter(
-            df.get_column('XPos') >= startx3,
-            df.get_column('XPos') <= endx3
-        )
-        region3 = region3.with_columns(pl.lit(3).alias("NonEventRegion"))
-
-        filter_df.extend(region1)
-        filter_df.extend(region2)
-        filter_df.extend(region3)
-        drivedata.data = filter_df
+        raise Exception("Datafile not present - cannot merge w/o source of truth.")
     else:
-        logger.warning(f"Do not have non-event regions for {scenario}, w{week} combo. Skipping..")
-        drivedata.data = filter_df
-    return drivedata
-
-
-"""
-=================
-TODO DEPRECATE:
-=================
-@registerFilter()
-def modifyUABdata(drivedata: pydre.core, headwaycutoff=50):
-    ident = drivedata.PartID
-    ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
-    if ident_groups is None:
-        logger.warning("Could not parse R2D ID " + ident)
-        return [None]
-    location = ident_groups.group(2)
-    df = drivedata.data
-    if location == "1":
-        # copy values from datTime into simTime
-        df = df.with_columns(pl.col("DatTime").alias("SimTime"))
-        # for files like Experimenter_3110007w1_No Load, Event_1665239271T-10-07-52.dat where the drive starts at
-        # the end of a previous drive, trim the data leading up to the actual start
-        df = df.with_columns(
-            pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
+        filter_df = df.clear()
         )
-        df_actual_start = df.filter(df.get_column("PosDiff") > 500)
-        if not df_actual_start.is_empty():
-            start_time = df_actual_start.get_column("SimTime").item(0)
-            df = df.filter(df.get_column("SimTime") > start_time)
-        # modify xpos to match the starting value of dsl data
-        start_pos = df.get_column("XPos").item(0)
-        # add critical event status based on scenario type
-        scenario = drivedata.scenarioName
-        if scenario == "Load, Event":
-            cutoff_df = df.filter(df.get_column("XPos") > (4350 + start_pos))
-            try:
-                start_cutoff = (
-                    cutoff_df.filter(
-                        cutoff_df.get_column("HeadwayDistance") < headwaycutoff
-                    )
-                    .get_column("XPos")
-                    .item(0)
-                ) + 135
-                df = df.with_columns(
-                    pl.when(
-                        pl.col("XPos") > start_pos + 2155,
-                        pl.col("XPos") < start_pos + 2239.5,
-                    )
-                    .then(1)
-                    .when(
-                        pl.col("XPos") > start_cutoff, pl.col("XPos") < start_pos + 4720
-                    )
-                    .then(1)
-                    .when(
-                        pl.col("XPos") > start_pos + 6191.4,
-                        pl.col("XPos") < start_pos + 6242,
-                    )
-                    .then(1)
-                    .otherwise(0)
-                    .alias("CriticalEventStatus")
-                )
-            except IndexError:
-                df = df.with_columns(
-                    pl.when(
-                        pl.col("XPos") > start_pos + 2155,
-                        pl.col("XPos") < start_pos + 2239.5,
-                    )
-                    .then(1)
-                    .when(
-                        pl.col("XPos") > start_pos + 6191.4,
-                        pl.col("XPos") < start_pos + 6242,
-                    )
-                    .then(1)
-                    .otherwise(0)
-                    .alias("CriticalEventStatus")
-                )
-        else:
-            cutoff_df = df.filter(df.get_column("XPos") > (4550 + start_pos))
-            try:
-                start_cutoff = (
-                    cutoff_df.filter(
-                        cutoff_df.get_column("HeadwayDistance") < headwaycutoff
-                    )
-                    .get_column("XPos")
-                    .item(0)
-                ) + 135
-                df = df.with_columns(
-                    pl.when(
-                        pl.col("XPos") > (start_pos + 1726),
-                        pl.col("XPos") < (start_pos + 1790),
-                    )
-                    .then(1)
-                    .when(
-                        pl.col("XPos") > (start_pos + 3222),
-                        pl.col("XPos") < (start_pos + 3300),
-                    )
-                    .then(1)
-                    .when(
-                        pl.col("XPos") > start_cutoff,
-                        pl.col("XPos") < (start_pos + 5500),
-                    )
-                    .then(1)
-                    .otherwise(0)
-                    .alias("CriticalEventStatus")
-                )
-            except IndexError:
-                df.with_columns(
-                    pl.when(
-                        pl.col("XPos") > (start_pos + 1726),
-                        pl.col("XPos") < (start_pos + 1790),
-                    )
-                    .then(1)
-                    .when(
-                        pl.col("XPos") > (start_pos + 3222),
-                        pl.col("XPos") < (start_pos + 3300),
-                    )
-                    .then(1)
-                    .otherwise(0)
-                    .alias("CriticalEventStatus")
-                )
-    drivedata.data = df
-    return drivedata
-"""
+                merge_df.get_column("Scenario") == scenario,
+                merge_df.get_column("Week") == week
+        merge_df = merge_df.filter(
+        merge_df = pl.read_csv(source=dataFile)
+    if dataFile != "":
+    )

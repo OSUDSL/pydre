@@ -57,23 +57,24 @@ def sliceByTime(
 
 
 class TimeROI(ROIProcessor):
-    def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
+    def __init__(self, filename: str | pathlib.Path, timecol: str = "DatTime"):
         # parse time filename values
         pl_rois = pl.read_csv(filename)
         rois = []
         self.rois = {}
+        self.timecol = timecol
         for r in pl_rois.rows(named=True):
             if isinstance(r, dict):
                 rois.append(r)
             elif isinstance(r, tuple):
                 rois.append(r._asdict())
         for r in rois:
-            participant = r["Participant"]
-            self.rois[participant] = {}
-            for k, v in r:
-                if k != "Participant":
-                    self.rois[participant][k] = self.parseDuration(v)
-        self.name_prefix = nameprefix
+            roi_name = r["ROI"]
+            self.rois[roi_name] = {}
+            for k, v in r.items():
+                if k != "ROI":
+                    self.rois[roi_name][k] = self.parseDuration(v)
+
 
     def split(
         self, sourcedrivedata: pydre.core.DriveData
@@ -83,37 +84,74 @@ class TimeROI(ROIProcessor):
         the 'roi' field of the objects will be filled with the roi tag listed
         in the roi definition file column name
         """
-        timecol = "SimTime"
+        # output_list = []
+        #
+        # if sourcedrivedata.PartID in self.rois.keys():
+        #     for roi, duration in self.rois[sourcedrivedata.PartID]:
+        #         start, end = duration
+        #         new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
+        #         new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+        #         new_ddata.roi = roi
+        #         output_list.append(new_ddata)
+        # return output_list
+        #
+        # if sourcedrivedata.PartID in self.rois.keys():
+        #     for roi, duration in self.rois[sourcedrivedata.PartID]:
+        #         start, end = duration
+        #         new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
+        #         new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+        #         new_ddata.roi = roi
+        #         output_list.append(new_ddata)
+        # return output_list
         output_list = []
 
-        if sourcedrivedata.PartID in self.rois.keys():
-            for roi, duration in self.rois[sourcedrivedata.PartID]:
-                start, end = duration
-                new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
-                new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
-                new_ddata.roi = roi
-                output_list.append(new_ddata)
+        for k, v in self.rois.items():
+            start = v["time_start"]
+            end = v["time_end"]
+            timecol = self.timecol
+            new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
+            new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+            new_ddata.roi = k
+            output_list.append(new_ddata)
         return output_list
 
-    def parseDuration(self, duration: str) -> tuple[float, float]:
+
+
+    def parseDuration(self, duration: str) -> float:
         # parse a string indicating duration into a tuple of (starttime, endtime) in seconds
         # the string will have the format as:
         # time1-time2 where time1 or time 2 are either hr:min:sec or min:sec
         # example:  1:15:10-1:20:30
         # example : 02:32-08:45
-        pair_regex = r"([\d:])-([\d:])"
-        time_regex = r"(?:(\d+):)?(\d+):(\d+)"
-        pair_result = re.match(pair_regex, duration)
-        first_time_str, second_time_str = pair_result.group(1, 2)
-        first_time_result = re.match(time_regex, first_time_str)
-        second_time_result = re.match(time_regex, second_time_str)
-        first_time = first_time_result.group(2) * 60 + first_time_result.group(3)
-        if first_time_result.group(1):
-            first_time += first_time_result.group(1) * 60 * 60
-        second_time = second_time_result.group(2) * 60 + second_time_result.group(3)
-        if second_time_result.group(1):
-            second_time += second_time_result.group(1) * 60 * 60
-        return (first_time, second_time)
+
+        # pair_regex = r"([\d:])-([\d:])"
+        # time_regex = r"(?:(\d+):)?(\d+):(\d+)"
+        # pair_result = re.match(pair_regex, duration)
+        # first_time_str, second_time_str = pair_result.group(1, 2)
+        # first_time_result = re.match(time_regex, first_time_str)
+        # second_time_result = re.match(time_regex, second_time_str)
+        # first_time = first_time_result.group(2) * 60 + first_time_result.group(3)
+        # if first_time_result.group(1):
+        #     first_time += first_time_result.group(1) * 60 * 60
+        # second_time = second_time_result.group(2) * 60 + second_time_result.group(3)
+        # if second_time_result.group(1):
+        #     second_time += second_time_result.group(1) * 60 * 60
+        # return (first_time, second_time)
+
+        regex = r'(?:(\d{1,2}):)?(\d{1,2}):(\d{2})'
+        pair_result = re.match(regex, duration)
+        if pair_result.group(3):
+            hr = pair_result.group(1)
+            min = pair_result.group(2)
+            sec = pair_result.group(3)
+            time = int(hr) * 60 * 60 + int(min) * 60 + int(sec)
+        else:
+            min = pair_result.group(1)
+            sec = pair_result.group(2)
+            time = 60 * 60 + int(min) * 60 + int(sec)
+        return time
+
+
 
 
 class SpaceROI(ROIProcessor):
