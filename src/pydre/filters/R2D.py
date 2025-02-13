@@ -291,33 +291,9 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
     return drivedata
 
 
-def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
+
 @registerFilter()
-    return drivedata
-        drivedata.data = filter_df
-        logger.warning(f"Do not have non-event regions for {scenario}, w{week} combo. Skipping..")
-    else:
-        drivedata.data = filter_df
-        filter_df.extend(region3)
-        filter_df.extend(region2)
-
-        filter_df.extend(region1)
-        region3 = region3.with_columns(pl.lit(3).alias("NonEventRegion"))
-        )
-            df.get_column('XPos') >= startx3,
-        region3 = df.filter(
-            df.get_column('XPos') <= endx3
-
-        )
-            df.get_column('XPos') >= startx2,
-        region2 = region2.with_columns(pl.lit(2).alias("NonEventRegion"))
-            df.get_column('XPos') <= endx2
-        region2 = df.filter(
-
-        )
-            df.get_column('XPos') >= startx1,
-        region1 = region1.with_columns(pl.lit(1).alias("NonEventRegion"))
-            df.get_column('XPos') <= endx1
+def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
     """
     :arg: dataFile: the file name of the csv that maps Non Event regions.
         -> required cols:
@@ -330,36 +306,62 @@ def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
           - 0 indicates non-designated region
     """
     ident = drivedata.metadata["ParticipantID"]
-    # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     scenario = drivedata.metadata["ScenarioName"]
+    # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
-        logger.warning("Could not parse R2D ID " + ident)
     if ident_groups is None:
+        logger.warning("Could not parse R2D ID " + ident)
         return [None]
-    df = drivedata.data
     week = ident_groups.group(5)
+    df = drivedata.data
 
-    df = df.with_columns(
     # adding cols with meaningless values for later region filtering, ensures shape
+    df = df.with_columns(
         pl.lit(-1).alias("NonEventRegion"),
-        region1 = df.filter(
-
-        endx3 = merge_df["endX3"][0]
-        startx3 = merge_df["startX3"][0]
-        startx2 = merge_df["startX2"][0]
-        startx1 = merge_df["startX1"][0]
-        endx2 = merge_df["endX2"][0]
-        endx1 = merge_df["endX1"][0]
-    if merge_df.shape[0] > 0:
-        # week/scenario match, have actual coordinates
-
-        raise Exception("Datafile not present - cannot merge w/o source of truth.")
-    else:
-        filter_df = df.clear()
-        )
+    )
+    if dataFile != "":
+        merge_df = pl.read_csv(source=dataFile)
+        merge_df = merge_df.filter(
                 merge_df.get_column("Scenario") == scenario,
                 merge_df.get_column("Week") == week
-        merge_df = merge_df.filter(
-        merge_df = pl.read_csv(source=dataFile)
-    if dataFile != "":
-    )
+        )
+        filter_df = df.clear()
+    else:
+        raise Exception("Datafile not present - cannot merge w/o source of truth.")
+
+    if merge_df.shape[0] > 0:
+        # week/scenario match, have actual coordinates
+        startx1 = merge_df["startX1"][0]
+        endx1 = merge_df["endX1"][0]
+        startx2 = merge_df["startX2"][0]
+        endx2 = merge_df["endX2"][0]
+        startx3 = merge_df["startX3"][0]
+        endx3 = merge_df["endX3"][0]
+
+        region1 = df.filter(
+            df.get_column('XPos') >= startx1,
+            df.get_column('XPos') <= endx1
+        )
+        region1 = region1.with_columns(pl.lit(1).alias("NonEventRegion"))
+
+        region2 = df.filter(
+            df.get_column('XPos') >= startx2,
+            df.get_column('XPos') <= endx2
+        )
+        region2 = region2.with_columns(pl.lit(2).alias("NonEventRegion"))
+
+        region3 = df.filter(
+            df.get_column('XPos') >= startx3,
+            df.get_column('XPos') <= endx3
+        )
+        region3 = region3.with_columns(pl.lit(3).alias("NonEventRegion"))
+
+        filter_df.extend(region1)
+        filter_df.extend(region2)
+        filter_df.extend(region3)
+        drivedata.data = filter_df
+    else:
+        logger.warning(f"Do not have non-event regions for {scenario}, w{week} combo. Skipping..")
+        drivedata.data = filter_df
+    return drivedata
+
