@@ -461,6 +461,80 @@ def _calculateReversals(df):
 
 
 @registerMetric()
+def steeringReversals(drivedata: pydre.core.DriveData) -> float:
+    """Steering reversals, as a count
+
+    Note: Requires data columns
+        - SimTime: simulation time
+        - Steer: orientation of steering wheel in radians
+
+    Returns:
+        total reversals in this ROI
+
+    """
+    #
+    # TODO: remove. this is for testing
+    # required_col = ["SimTime", "Steer"]
+    required_col = ["Steer"]
+    # to verify if column is numeric
+    drivedata.checkColumnsNumeric(required_col)
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.select([pl.col("SimTime"), pl.col("Steer")])
+    # convert to numpy and resample data to have even time steps (of 32Hz)
+    df = df.slice(1, None)
+    numpy_df = df.to_numpy()
+    original_time = numpy_df[:, 0]
+    original_steer = numpy_df[:, 1]
+
+    # 32Hz = 0.03125seconds
+    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
+    new_steer = np.interp(new_time, original_time, original_steer)
+    numpy_df = np.column_stack((new_time, new_steer))
+
+    # apply second order butterworth filter at 6z frequency
+    sos = signal.butter(2, 6, output="sos", fs=32)
+    theta_i = signal.sosfilt(sos, numpy_df[:, 1], zi=None)
+
+    # calcuate thetaI
+    theta_prime_i = np.diff(theta_i)
+    theta_prime_i = np.append(0, theta_prime_i)
+
+    # make column for i and combine with theta_prime_i column
+    i = np.arange(1, len(theta_prime_i) + 1)
+    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
+
+    # find all values of i where theta_prime_i is 0
+    df = pl.from_numpy(
+        df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row"
+    )
+    df_except_one = df.filter(df.get_column("i") > 1)
+    zeros = df_except_one.filter(df_except_one.get_column("thetaPrimeI") == 0).drop(
+        "thetaPrimeI"
+    )
+
+    # find values of i where difference between consequential signs of theta_prime_i is 2
+    sign_diff = df.with_columns(
+        df.get_column("thetaPrimeI").sign().diff(-1).alias("SignDiff")
+    )
+    diff_two = sign_diff.filter(
+        (sign_diff.get_column("SignDiff") == 2)
+        | (sign_diff.get_column("SignDiff") == -2)
+    ).drop(["SignDiff", "thetaPrimeI"])
+
+    # merge list of i's to get one sorted list of i's
+    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
+
+    # calculate total reversals
+    n_upwards = _calculateReversals(set_of_i[:, 1])
+    set_of_i_down = np.multiply(set_of_i[:, 1], -1)
+    n_downwards = _calculateReversals(set_of_i_down)
+    reversals = n_upwards + n_downwards
+
+    return reversals
+
+
+@registerMetric()
 def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
     """Steering reversal rate
 
@@ -474,10 +548,8 @@ def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
         reversals per minute
 
     """
-    #
-    # TODO: remove. this is for testing
-    # required_col = ["SimTime", "Steer"]
-    required_col = ["Steer"]
+    required_col = ["SimTime", "Steer"]
+
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
     drivedata.checkColumns(required_col)

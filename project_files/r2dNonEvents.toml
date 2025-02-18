@@ -35,5 +35,5 @@ var = "Velocity"
 function = "laneViolations"
 
 # steering reversals
-[metrics.steerReversalRate]
-function = "steeringReversalRate"
+[metrics.steerReversals]
+function = "steeringReversals"
