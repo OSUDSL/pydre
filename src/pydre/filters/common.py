@@ -255,9 +255,11 @@ def speedLimitTransitionMarker(
 def writeToCSV(
     drivedata: pydre.core.DriveData, outputDirectory: str
 ) -> pydre.core.DriveData:
+    logger.warning("Starting to write to CSV file")
     sourcefilename = Path(drivedata.sourcefilename).stem
     outputfilename = Path(outputDirectory).with_stem(sourcefilename).with_suffix(".csv")
     drivedata.data.write_csv(outputfilename)
+    logger.info(f"Wrote {outputfilename}")
     return drivedata
 
 
@@ -335,6 +337,8 @@ def separateData(drivedata: pydre.core.DriveData, col: str, threshold: float, hi
     required_col = [col]
     drivedata.checkColumns(required_col)
 
+    logger.info("Running separateData")
+
     # create new column based on threshold
     new_data = drivedata.data.with_columns(
         (pl.when(pl.col(col) >= threshold)
@@ -344,6 +348,5 @@ def separateData(drivedata: pydre.core.DriveData, col: str, threshold: float, hi
     )
 
     drivedata.data = new_data
-
     return drivedata
 
