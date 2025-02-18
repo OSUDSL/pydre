@@ -475,7 +475,9 @@ def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
 
     """
     #
-    required_col = ["SimTime", "Steer"]
+    # TODO: remove. this is for testing
+    # required_col = ["SimTime", "Steer"]
+    required_col = ["Steer"]
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
     drivedata.checkColumns(required_col)
@@ -792,6 +794,7 @@ def laneExits(drivedata: pydre.core.DriveData, lane=2, lane_column="Lane"):
     )
 
 
+@registerMetric()
 def laneViolations(
     drivedata: pydre.core.DriveData,
     offset: str = "LaneOffset",
@@ -800,16 +803,22 @@ def laneViolations(
     lane_width: float = 3.65,
     car_width: float = 2.1,
 ):
-    drivedata.checkColumnsNumeric([lane_column])
+    df = drivedata.data
+    #df.checkColumnsNumeric([lane_column])
     # tolerance is the maximum allowable offset deviation from 0
     tolerance = lane_width / 2 - car_width / 2
-    lane_data = drivedata.data.filter(pl.col(lane_column) == 2)
-    lane_data = lane_data.with_columns(
-        pl.col(offset).abs().is_between(upper_bound=tolerance)
-    )
+    # Determine which rows are violations
+    df = df.with_columns(((pl.col(offset) > tolerance) | (pl.col(offset) < -tolerance)).alias('violation'))
 
-    is_violating = lane_data.get_column(offset).abs() > tolerance
-    return is_violating.diff().clip_min(0).sum()
+    df = df.with_columns((pl.col('violation') != pl.col('violation').shift(1)).alias('transition'))
+
+    # Filter to keep only the rows where a transition occurs
+    transitions = df.filter(pl.col('transition') == True)
+
+    # Count the number of transitions from non-violation to violation
+    violation_starts = transitions.filter(pl.col('violation') == True).shape[0]
+
+    return violation_starts
 
 
 def laneViolationDuration(

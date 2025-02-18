@@ -26,3 +26,14 @@ var = "XPos"
 [metrics.sdLP]
 function = "colSD"
 var = "RoadOffset"
+
+[metrics.meanVelocity]
+function = "colMean"
+var = "Velocity"
+
+[metrics.laneExceedences]
+function = "laneViolations"
+
+# steering reversals
+[metrics.steerReversalRate]
+function = "steeringReversalRate"
