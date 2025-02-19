@@ -62,6 +62,7 @@ class TimeROI(ROIProcessor):
         pl_rois = pl.read_csv(filename)
         rois = []
         self.rois = {}
+        self.rois_meta = set()
         self.timecol = timecol
         for r in pl_rois.rows(named=True):
             if isinstance(r, dict):
@@ -72,8 +73,12 @@ class TimeROI(ROIProcessor):
             roi_name = r["ROI"]
             self.rois[roi_name] = {}
             for k, v in r.items():
-                if k != "ROI":
+                if k == "time_start" or k == "time_end":
                     self.rois[roi_name][k] = self.parseDuration(v)
+                elif k != "ROI":
+                    self.rois[roi_name][k] = v
+                    self.rois_meta.add(k)
+
 
 
     def split(
@@ -104,8 +109,17 @@ class TimeROI(ROIProcessor):
         #         output_list.append(new_ddata)
         # return output_list
         output_list = []
+        matching_rois = {}
+        if len(self.rois_meta) > 0:
+            for meta in self.rois_meta:
+                for k, v in self.rois.items():
+                    if v[meta] == float(sourcedrivedata.metadata[meta]):
+                        matching_rois[k] = v
+        else:
+            matching_rois = self.rois
 
-        for k, v in self.rois.items():
+        for k, v in matching_rois.items():
+
             start = v["time_start"]
             end = v["time_end"]
             timecol = self.timecol
