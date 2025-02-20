@@ -1,5 +1,6 @@
 import copy
 import json
+import traceback
 
 import polars as pl
 import re
@@ -247,9 +248,9 @@ class Project:
                     try:
                         results[arg] = future.result()
                     except Exception as exc:
-                        executor.shutdown(cancel_futures=True)
+                        logger.error("problem with running {}".format(arg))
                         logger.critical("Unhandled Exception {}".format(exc))
-                        sys.exit(1)
+                        logger.error(traceback.format_exc())
 
                     results_list.extend(future.result())
                     pbar.update(1)
