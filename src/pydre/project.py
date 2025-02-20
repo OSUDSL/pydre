@@ -70,6 +70,11 @@ class Project:
                         )
                     if "config" in self.definition.keys():
                         self.config = self.definition["config"]
+                    extraKeys = set(self.definition.keys()) - set(["filters", "rois", "metrics", "config"])
+
+                    if len(extraKeys) > 0:
+                        logger.warning("Found unhandled keywords in project file:" + str(extraKeys))
+
                     self.definition = new_definition
                 else:
                     logger.error("Unsupported project file type")

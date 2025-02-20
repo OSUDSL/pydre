@@ -255,9 +255,11 @@ def speedLimitTransitionMarker(
 def writeToCSV(
     drivedata: pydre.core.DriveData, outputDirectory: str
 ) -> pydre.core.DriveData:
+    logger.warning("Starting to write to CSV file")
     sourcefilename = Path(drivedata.sourcefilename).stem
     outputfilename = Path(outputDirectory).with_stem(sourcefilename).with_suffix(".csv")
     drivedata.data.write_csv(outputfilename)
+    logger.info(f"Wrote {outputfilename}")
     return drivedata
 
 
@@ -277,3 +279,91 @@ def filetimeToDatetime(ft: int) -> Optional[datetime.datetime]:
 
 def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack("Q", struct.pack("LL", lo, hi))[0]
+
+@registerFilter()
+def removeDataOutside(drivedata: pydre.core.DriveData, col: str, lower: float, upper: float) -> pydre.core.DriveData:
+    """
+    Params:
+    col: The name of the column to filter data
+    lower: lower bound to filter
+    upper: upper bound to filter
+    """
+    """
+    Removes data outside a certain range for a certain variable. 
+    """
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    filtered_data = drivedata.data.filter(~((pl.col(col) >= lower) & (pl.col(col) <= upper)))
+
+    drivedata.data = filtered_data
+
+    return drivedata
+
+@registerFilter()
+def removeDataInside(drivedata: pydre.core.DriveData, col: str, lower: float, upper: float) -> pydre.core.DriveData:
+    """
+    Params:
+    col: The name of the column to filter data
+    lower: lower bound to filter
+    upper: upper bound to filter
+    """
+    """
+    Removes data inside a certain range for a certain variable. 
+    """
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    filtered_data = drivedata.data.filter(~((pl.col(col) >= upper) & (pl.col(col) <= lower)))
+
+    drivedata.data = filtered_data
+
+    return drivedata
+
+
+@registerFilter()
+def separateData(drivedata: pydre.core.DriveData, col: str, threshold: float, high: int = 1,
+                      low: int = 0) -> pydre.core.DriveData:
+    """
+    Categorizes head pitch data into high and low based on a manually defined threshold.
+
+    Params:
+    col: The column containing head pitch values
+    threshold: The value that separates high and low pitch
+    high: Value assigned to "high" pitch (1)
+    low: Value assigned to "low" pitch (0)
+    """
+
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    logger.info("Running separateData")
+
+    # create new column based on threshold
+    new_data = drivedata.data.with_columns(
+        (pl.when(pl.col(col) >= threshold)
+         .then(high)
+         .otherwise(low)
+         .alias(f"{col}_categorized"))
+    )
+
+    drivedata.data = new_data
+    return drivedata
+
+@registerFilter()
+def filterValuesBelow(drivedata: pydre.core.DriveData, col: str, threshold = 1) -> pydre.core.DriveData:
+    """
+    Filters out device adjustemnt at the start. (Should filter out velocities below 1 m/s)
+
+    Params:
+    col: The column to filter
+    threshold: The value to filter above (1 m/s default)
+    """
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    filtered_data = drivedata.data.filter(~((pl.col(col) >= threshold)))
+    drivedata.data = filtered_data
+
+    return drivedata
+
