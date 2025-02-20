@@ -472,13 +472,13 @@ def steeringReversals(drivedata: pydre.core.DriveData) -> float:
         total reversals in this ROI
 
     """
-    #
-    # TODO: remove. this is for testing
-    # required_col = ["SimTime", "Steer"]
-    required_col = ["Steer"]
+
+    required_col = ["SimTime", "Steer"]
     # to verify if column is numeric
-    drivedata.checkColumnsNumeric(required_col)
-    drivedata.checkColumns(required_col)
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
 
     df = drivedata.data.select([pl.col("SimTime"), pl.col("Steer")])
     # convert to numpy and resample data to have even time steps (of 32Hz)
