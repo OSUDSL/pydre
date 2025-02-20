@@ -350,3 +350,20 @@ def separateData(drivedata: pydre.core.DriveData, col: str, threshold: float, hi
     drivedata.data = new_data
     return drivedata
 
+@registerFilter()
+def filterValuesBelow(drivedata: pydre.core.DriveData, col: str, threshold = 1) -> pydre.core.DriveData:
+    """
+    Filters out device adjustemnt at the start. (Should filter out velocities below 1 m/s)
+
+    Params:
+    col: The column to filter
+    threshold: The value to filter above (1 m/s default)
+    """
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    filtered_data = drivedata.data.filter(~((pl.col(col) >= threshold)))
+    drivedata.data = filtered_data
+
+    return drivedata
+
