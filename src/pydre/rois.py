@@ -109,14 +109,17 @@ class TimeROI(ROIProcessor):
         #         output_list.append(new_ddata)
         # return output_list
         output_list = []
-        matching_rois = {}
+        matching_rois = self.rois.copy()
         if len(self.rois_meta) > 0:
-            for meta in self.rois_meta:
-                for k, v in self.rois.items():
-                    if v[meta] == float(sourcedrivedata.metadata[meta]):
-                        matching_rois[k] = v
-        else:
-            matching_rois = self.rois
+            for k, v in self.rois.items():
+                for meta in self.rois_meta:
+                    if type(v[meta]) != str:
+                        if v[meta] != float(sourcedrivedata.metadata[meta]):
+                            del matching_rois[k]
+                            break
+                    elif v[meta] != sourcedrivedata.metadata[meta]:
+                        del matching_rois[k]
+                        break
 
         for k, v in matching_rois.items():
 
