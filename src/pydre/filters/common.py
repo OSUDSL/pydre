@@ -359,10 +359,14 @@ def filterValuesBelow(drivedata: pydre.core.DriveData, col: str, threshold = 1) 
     col: The column to filter
     threshold: The value to filter above (1 m/s default)
     """
+
     required_col = [col]
     drivedata.checkColumns(required_col)
 
-    filtered_data = drivedata.data.filter(~((pl.col(col) >= threshold)))
+    logger.info("Running filterValuesBelow")
+
+    filtered_data = drivedata.data.filter(pl.col(col) >= threshold)
+
     drivedata.data = filtered_data
 
     return drivedata
