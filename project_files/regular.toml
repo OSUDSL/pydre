@@ -7,6 +7,11 @@ function = "Jenks"
 oldCol = "HeadPitch"
 newCol = "hpBinary"
 
+[filters.removeStart]
+function = "filterValuesBelow"
+col = "Velocity"
+
+
 [filters.numberBinaryBlocks]
 function = "numberBinaryBlocks"
 binary_column = "hpBinary"
