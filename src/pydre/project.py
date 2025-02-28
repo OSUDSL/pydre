@@ -146,7 +146,10 @@ class Project:
         roi_type = roi["type"]
         if roi_type == "time":
             logger.info("Processing time ROI " + roi["filename"])
-            roi_obj = pydre.rois.TimeROI(roi["filename"])
+            if "timecol" in roi:
+                roi_obj = pydre.rois.TimeROI(roi["filename"], roi["timecol"])
+            else:
+                roi_obj = pydre.rois.TimeROI(roi["filename"])
         elif roi_type == "rect":
             logger.info("Processing space ROI " + roi["filename"])
             roi_obj = pydre.rois.SpaceROI(roi["filename"])
@@ -254,6 +257,8 @@ class Project:
 
                     results_list.extend(future.result())
                     pbar.update(1)
+        if len(results_list) == 0:
+            logger.error("No results found; no metrics data generated")
         result_dataframe = pl.from_dicts(results_list)
 
         #sorting_columns = ["Subject", "ScenarioName", "ROI"]
@@ -306,11 +311,12 @@ class Project:
 
         else:
             # no ROIs to process, but that's OK
-            logger.warning("No ROIs, processing raw data.")
+            logger.warning("No ROIs defined, processing raw data.")
             roi_datalist.append(datafile)
 
-        # if len(roi_datalist) == 0:
-        # logger.warning("No ROIs found in {}".format(datafilename))
+        if len(roi_datalist) == 0:
+            logger.warning("Qualifying ROIs fail to generate results for {}, no output generated.".format(datafilename))
+            return []
         roi_processed_metrics = []
         for data in roi_datalist:
             result_dict = copy.deepcopy(datafile.metadata)

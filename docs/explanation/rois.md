@@ -6,9 +6,10 @@ Pydre uses csv files to define three types of ROIS: temporal, spatial, and recta
 
 # Time ROI
 Time ROIs are used to define groups of data according to given time ranges. Any of the three time data columns can be
-used: DatTime, SimTime, or MediaTime. If no column name is given, then DatTime is used by default. 
+used: DatTime, SimTime, or MediaTime. If no column name is given, then DatTime is used by default.
 
-The Time ROI file `.csv` is formatted as below:
+## General Time ROIS
+The time ROI file `.csv` is formatted as below:
 
 | ROI          | time_start     | time_end     | 
 |--------------|----------------|--------------|
@@ -17,9 +18,20 @@ The Time ROI file `.csv` is formatted as below:
 | ...          | ...            | ...          | 
 | _ROI name N_ | _start time N_ | _end time N_ |
 
+By default, every time ROIs is applied to every data file given.
 !!! note
     Start and end times are formatted as either `hh:mm:ss-hh:mm:ss` or `mm:ss-mm:ss`.
 
+## Specific Time ROIs
+Time ROIs can also be specified to match any metadata value and only apply ROIs to certain data files. Multiple metadata
+values can be used to filter the ROIs. The specific time ROI format is below:
+
+| ROI          | time_start     | time_end     | metadata_col 1       | metadata_col 2       |
+|--------------|----------------|--------------|----------------------|----------------------|
+| _ROI name 1_ | _start time 1_ | _end time 1_ | _metadata 1 value 1_ | _metadata 2 value 1_ |
+| _ROI name 2_ | _start time 2_ | _end time 2_ | _metadata 1 value 2_ | _metadata 2 value 2_ |
+| ...          | ...            | ...          | ...                  | ...                  |
+| _ROI name N_ | _start time N_ | _end time N_ | _metadata 1 value 2_ | _metadata 2 value 3_ |
 
 # Space ROI
 
