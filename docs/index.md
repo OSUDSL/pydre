@@ -47,7 +47,7 @@ As for metrics, the array should consist of elements containing every function t
 
 Multiple functions can be called within one project file.  The result of each function will be outputted in a separate column of the generated csv file.
 
-To see an example project file, look at bushman_pf.json in the docs directory of the pydre folder.    
+For more details about project files, see the [Project Files](../explanation/project_files.md) page.
 
 
   

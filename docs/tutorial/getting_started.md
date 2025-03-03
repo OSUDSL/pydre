@@ -25,8 +25,8 @@ python -m pydre.run -p [project file path] -d [data file path]
 
 Example execution: 
 ```
-python -m pydre.run -p C:\Users\pveith\Documents\pydre\docs\bioptics.json 
-    -d C:\Users\pveith\Documents\bioptics\pydreDataSet\*.dat 
+python -m pydre.run -p D:\data\bioptics\bioptics.toml 
+    -d D:\data\bioptics\pydreDataSet\*.dat 
     -o bioptics.csv -l debug
 ```
 

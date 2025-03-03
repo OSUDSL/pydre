@@ -1,3 +1,7 @@
+[config]
+outputfiles = "R2Drv_Metrics_CriticalEvent.csv"
+datafiles = ["E:/work/data/R2Dclean/*.dat"]
+
 [filters.SimTimeFromDatTime]
 function = "SimTimeFromDatTime"
 

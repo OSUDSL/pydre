@@ -1,6 +1,6 @@
 [config]
-outputfiles = "r2dBoxes.csv"
-datafiles = ["E:/work/data/R2Dclean/*.dat"]
+outputfile = "R2Drv_Metrics_Box.csv"
+datafiles = ["E:/work/data/R2Dclean/*_Load*.dat"]
 
 [filters.SimTimeFromDatTime]
 function = "SimTimeFromDatTime"

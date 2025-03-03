@@ -49,8 +49,18 @@ values can be used to filter the ROIs. The specific time ROI format is below:
   
 The ROI will consist of the area inside the max_y - min_y and the max_x - min_x.
   
-For an example file, look at spatial_rois.csv in the main pydre folder.  Once the ROI csv file has been generated, reference it in the project file (as seen in bushman_pf.json) to perform the function calculations only on the regions of interest specified by the x and y coordinates in this csv file.
+For an example file, look at spatial_rois.csv in the main pydre folder.  Once the ROI csv file has been generated, reference it in the project file to perform the function calculations only on the regions of interest specified by the x and y coordinates in this csv file.
 
 
 
 # Column ROI
+
+Column ROIS are used to define groups of data according to given column values. They are defined in the project file using the following format:
+
+```toml
+[rois.roi1]
+type = "column"
+columnname = "CriticalEventNum"
+```
+
+In the above example, the ROI is defined by the values in the column "CriticalEventNum". Each ROI will consist of all the rows in the data that have the same value in the "CriticalEventNum" column. These rows do not need to be contiguous in the data file. 
