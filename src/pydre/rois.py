@@ -127,9 +127,12 @@ class TimeROI(ROIProcessor):
             end = v["time_end"]
             timecol = self.timecol
             new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
-            new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
-            new_ddata.roi = k
-            output_list.append(new_ddata)
+            if new_data.height > 0:
+                new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+                new_ddata.roi = k
+                output_list.append(new_ddata)
+            else:
+                logger.warning("ROI fails to qualify for {}, ignoring data".format(sourcedrivedata.sourcefilename))
         return output_list
 
 
