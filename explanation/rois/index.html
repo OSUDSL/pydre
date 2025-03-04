@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.4">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.35f28582.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.8608ea7d.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
@@ -171,6 +171,7 @@
   
   <span class="md-ellipsis">
     Home
+    
   </span>
   
 
@@ -201,6 +202,7 @@
   
   <span class="md-ellipsis">
     Tutorial
+    
   </span>
   
 
@@ -226,6 +228,7 @@
   
   <span class="md-ellipsis">
     Getting Started
+    
   </span>
   
 
@@ -264,6 +267,7 @@
   
   <span class="md-ellipsis">
     Reference
+    
   </span>
   
 
@@ -289,6 +293,7 @@
   
   <span class="md-ellipsis">
     Filter definitions
+    
   </span>
   
 
@@ -310,6 +315,7 @@
   
   <span class="md-ellipsis">
     Metric definitions
+    
   </span>
   
 
@@ -331,6 +337,7 @@
   
   <span class="md-ellipsis">
     SAE Standards
+    
   </span>
   
 
@@ -371,6 +378,7 @@
   
   <span class="md-ellipsis">
     Explanation
+    
   </span>
   
 
@@ -396,6 +404,7 @@
   
   <span class="md-ellipsis">
     Project files
+    
   </span>
   
 
@@ -426,6 +435,7 @@
   
   <span class="md-ellipsis">
     Regions of Interest
+    
   </span>
   
 
@@ -448,6 +458,7 @@
   
   <span class="md-ellipsis">
     Developer Notes
+    
   </span>
   
 
@@ -497,59 +508,96 @@
                   
 
 
+
 <h1 id="regions-of-interest-rois">Regions of Interest (ROIs)</h1>
 <p>Each region of interest is an area of data that the user is interested in examining. This can include things such as where the car starts on the track, when the car hits a traffic jam, when the car hits construction, etc. </p>
+<p>Pydre uses csv files to define three types of ROIS: temporal, spatial, and rectangular.</p>
 <h1 id="time-roi">Time ROI</h1>
-<h1 id="space-roi">Space ROI</h1>
-<h1 id="column-roi">Column ROI</h1>
-<h2 id="roi-csv-file-formats">ROI CSV File Formats</h2>
-<p>For analysis, it is often useful to define ROIs in the data.  Pydre uses csv files to define spatial and temporal ROIs.
-The spatial regions are defined over the scenario course, while the temporal regions are defined per subject.
-This is due to their expected usages: Space ROIs are considered to be </p>
-<h4 id="time-roi-table-format">Time ROI table format</h4>
+<p>Time ROIs are used to define groups of data according to given time ranges. Any of the three time data columns can be
+used: DatTime, SimTime, or MediaTime. If no column name is given, then DatTime is used by default.</p>
+<h2 id="general-time-rois">General Time ROIS</h2>
+<p>The time ROI file <code>.csv</code> is formatted as below:</p>
 <table>
 <thead>
 <tr>
-<th>Subject</th>
-<th><em>ROI name 1</em></th>
-<th><em>ROI name 2</em></th>
-<th>...</th>
-<th><em>ROI name N</em></th>
+<th>ROI</th>
+<th>time_start</th>
+<th>time_end</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>1</td>
-<td><em>time range</em></td>
-<td><em>time range</em></td>
-<td>...</td>
-<td><em>time range</em></td>
+<td><em>ROI name 1</em></td>
+<td><em>start time 1</em></td>
+<td><em>end time 1</em></td>
 </tr>
 <tr>
-<td>2</td>
-<td><em>time range</em></td>
-<td><em>time range</em></td>
-<td>...</td>
-<td><em>time range</em></td>
+<td><em>ROI name 2</em></td>
+<td><em>start time 2</em></td>
+<td><em>end time 2</em></td>
 </tr>
 <tr>
 <td>...</td>
 <td>...</td>
 <td>...</td>
-<td>...</td>
-<td>...</td>
 </tr>
 <tr>
-<td>N</td>
-<td><em>time range</em></td>
-<td><em>time range</em></td>
-<td>...</td>
-<td><em>time range</em></td>
+<td><em>ROI name N</em></td>
+<td><em>start time N</em></td>
+<td><em>end time N</em></td>
 </tr>
 </tbody>
 </table>
-<p><em><em>NOTE</em>: Time Ranges are formatted as <code>hh:mm:ss-hh:mm:ss#driveID</code> If multiple drives are used in a particular ROI, simply add a space and write in another time range in the same cell.</em></p>
-<h4 id="space-roi-table-format">Space ROI table format</h4>
+<p>By default, every time ROIs is applied to every data file given.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Start and end times are formatted as either <code>hh:mm:ss-hh:mm:ss</code> or <code>mm:ss-mm:ss</code>.</p>
+</div>
+<h2 id="specific-time-rois">Specific Time ROIs</h2>
+<p>Time ROIs can also be specified to match any metadata value and only apply ROIs to certain data files. Multiple metadata
+values can be used to filter the ROIs. The specific time ROI format is below:</p>
+<table>
+<thead>
+<tr>
+<th>ROI</th>
+<th>time_start</th>
+<th>time_end</th>
+<th>metadata_col 1</th>
+<th>metadata_col 2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>ROI name 1</em></td>
+<td><em>start time 1</em></td>
+<td><em>end time 1</em></td>
+<td><em>metadata 1 value 1</em></td>
+<td><em>metadata 2 value 1</em></td>
+</tr>
+<tr>
+<td><em>ROI name 2</em></td>
+<td><em>start time 2</em></td>
+<td><em>end time 2</em></td>
+<td><em>metadata 1 value 2</em></td>
+<td><em>metadata 2 value 2</em></td>
+</tr>
+<tr>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr>
+<td><em>ROI name N</em></td>
+<td><em>start time N</em></td>
+<td><em>end time N</em></td>
+<td><em>metadata 1 value 2</em></td>
+<td><em>metadata 2 value 3</em></td>
+</tr>
+</tbody>
+</table>
+<h1 id="space-roi">Space ROI</h1>
 <table>
 <thead>
 <tr>
@@ -596,7 +644,14 @@ This is due to their expected usages: Space ROIs are considered to be </p>
 <p>-Z corresponds to positive X, and if Y is 0 in the WRL file, set Y1 = -100, Y2 = 100.</p>
 </div>
 <p>The ROI will consist of the area inside the max_y - min_y and the max_x - min_x.</p>
-<p>For an example file, look at spatial_rois.csv in the main pydre folder.  Once the ROI csv file has been generated, reference it in the project file (as seen in bushman_pf.json) to perform the function calculations only on the regions of interest specified by the x and y coordinates in this csv file.</p>
+<p>For an example file, look at spatial_rois.csv in the main pydre folder.  Once the ROI csv file has been generated, reference it in the project file to perform the function calculations only on the regions of interest specified by the x and y coordinates in this csv file.</p>
+<h1 id="column-roi">Column ROI</h1>
+<p>Column ROIS are used to define groups of data according to given column values. They are defined in the project file using the following format:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[rois.roi1]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;column&quot;</span>
+<span class="n">columnname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;CriticalEventNum&quot;</span>
+</code></pre></div>
+<p>In the above example, the ROI is defined by the values in the column "CriticalEventNum". Each ROI will consist of all the rows in the data that have the same value in the "CriticalEventNum" column. These rows do not need to be contiguous in the data file. </p>
 
 
 
@@ -643,10 +698,10 @@ This is due to their expected usages: Space ROIs are considered to be </p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      <script src="../../assets/javascripts/bundle.f1b6f286.min.js"></script>
       
     
   </body>
