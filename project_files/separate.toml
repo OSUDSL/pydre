@@ -2,6 +2,9 @@
 #Only file: Experimenter_9_Scenario 4_1727278726.dat
 datafiles = ['/Users/saanazia/Documents/DSL/bioptic/Data/Experimenter_9_Scenario 4_1727278726.dat']
 
+[filters.removeStart]
+function = "filterValuesBelow"
+col = "Velocity"
 
 [filters.numberBinaryBlocks]
 function = "numberBinaryBlocks"
