@@ -1,6 +1,11 @@
 [config]
 #Pick all data files
 datafiles = ["/Users/saanazia/Documents/DSL/bioptic/Data/*.dat"]
+ignore = [
+    "/Users/saanazia/Documents/DSL/bioptic/Data/Experimenter_9_Scenario 4_1727278726.dat",
+    "/Users/saanazia/Documents/DSL/bioptic/Data/Experimenter_6_Scenario 4_1723145764.dat"
+]
+
 
 [filters.fixHeadPitchData]
 function = "Jenks"

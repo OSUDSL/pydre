@@ -1,6 +1,10 @@
 [config]
 #Only file: Experimenter_9_Scenario 4_1727278726.dat
 datafiles = ['/Users/saanazia/Documents/DSL/bioptic/Data/Experimenter_9_Scenario 4_1727278726.dat']
+[filters.fixHeadPitchData]
+function = "Jenks"
+oldCol = "HeadPitch"
+newCol = "hpBinary"
 
 [filters.removeStart]
 function = "filterValuesBelow"
@@ -15,7 +19,7 @@ only_on=0
 [filters.separateHP]
 function = "separateData"
 col = "HeadPitch"
-threshold = 0.0
+threshold = 1.0
 
 [filters.rawData]
 function = "writeToCSV"

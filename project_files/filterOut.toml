@@ -2,6 +2,12 @@
 #only file: '/Users/saanazia/Documents/DSL/bioptic/Data/Experimenter_6_Scenario 4_1723145764.dat'
 datafiles = ["/Users/saanazia/Documents/DSL/bioptic/Data/Experimenter_6_Scenario 4_1723145764.dat"]
 
+
+[filters.fixHeadPitchData]
+function = "Jenks"
+oldCol = "HeadPitch"
+newCol = "hpBinary"
+
 [filters.removeStart]
 function = "filterValuesBelow"
 col = "Velocity"
@@ -12,15 +18,14 @@ binary_column = "hpBinary"
 new_column = "DipRegions"
 only_on=0
 
-#[filters.RemoveOutside]
-#function = "removeDataOutside"
-#col = "HeadPitch"
-#upper = 0.999
+[filters.separateHP]
+function = "separateData"
+col = "HeadPitch"
+threshold = 0.0
 
 [filters.rawData]
 function = "writeToCSV"
 outputDirectory = "/tmp/pydre"
-
 
 [metrics.HeadPitchStats]
 function = "biopticDipMeasure"
@@ -32,3 +37,8 @@ var = "HeadPitch"
 [metrics."Min Head Pitch"]
 function = "colMin"
 var = "HeadPitch"
+
+#[filters.RemoveOutside]
+#function = "removeDataOutside"
+#col = "HeadPitch"
+#upper = 0.999
