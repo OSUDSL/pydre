@@ -672,6 +672,7 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
     throttle_reaction_time = time_of_accel - initial_time
     return throttle_reaction_time
 
+
 # mean dip time
 # number of dips
 # median dip time
@@ -695,7 +696,7 @@ def biopticDipMeasure(drivedata: pydre.core.DriveData):
             pl.col("SimTime"),
             pl.col("hpBinary"),
             pl.col("DipRegions"),
-            pl.col("HeadPitch")
+            pl.col("HeadPitch"),
         ]
     )
 
@@ -703,9 +704,9 @@ def biopticDipMeasure(drivedata: pydre.core.DriveData):
 
     zeros_df = df.filter(pl.col("hpBinary") < 1)
 
-    duration_df = zeros_df.group_by("DipRegions").agg([
-        (pl.col("SimTime").max() - pl.col("SimTime").min()).alias("Duration")
-    ])
+    duration_df = zeros_df.group_by("DipRegions").agg(
+        [(pl.col("SimTime").max() - pl.col("SimTime").min()).alias("Duration")]
+    )
 
     meanDipTime = duration_df.get_column("Duration").mean()
 
@@ -716,8 +717,11 @@ def biopticDipMeasure(drivedata: pydre.core.DriveData):
         medianDipTime,
     ]
 
+
 @registerMetric()
-def eventSpeedRecoveryTime(drivedata: pydre.core.DriveData, op_speed=15.64, tolerance=4) -> Optional[float]:
+def eventSpeedRecoveryTime(
+    drivedata: pydre.core.DriveData, op_speed=15.64, tolerance=4
+) -> Optional[float]:
     """Calculates the time it takes to accelerate back up to 'operational speed' (op_speed)
     tolerance allows for proper classification of subject behavior variation
     (defaults parameterized for R2D study processing)
@@ -738,13 +742,7 @@ def eventSpeedRecoveryTime(drivedata: pydre.core.DriveData, op_speed=15.64, tole
     except pl.exceptions.PolarsError:
         return None
 
-    df = drivedata.data.select(
-        [
-            pl.col("Velocity"),
-            pl.col("SimTime"),
-            pl.col("Brake")
-        ]
-    )
+    df = drivedata.data.select([pl.col("Velocity"), pl.col("SimTime"), pl.col("Brake")])
 
     # filter df, so we take recovery time after initial slow-down
     try:
@@ -768,12 +766,16 @@ def eventSpeedRecoveryTime(drivedata: pydre.core.DriveData, op_speed=15.64, tole
         return recover_time - initial_time
     else:
         max_velo = df.select(pl.max("Velocity").first()).item()
-        logger.warning(f"No recovery detected during this event - returned to max speed of {max_velo} m/s")
+        logger.warning(
+            f"No recovery detected during this event - returned to max speed of {max_velo} m/s"
+        )
         return "NoRecover"
 
 
 @registerMetric()
-def eventRecenterRecoveryTime(drivedata: pydre.core.DriveData, tolerance=.65, event_detect="Trash") -> Optional[float]:
+def eventRecenterRecoveryTime(
+    drivedata: pydre.core.DriveData, tolerance=0.65, event_detect="Trash"
+) -> Optional[float]:
     """Calculates the time it takes to recenter in lane after specific event occurences
     tolerance allows for proper classification of subject behavior variation
 
@@ -795,11 +797,7 @@ def eventRecenterRecoveryTime(drivedata: pydre.core.DriveData, tolerance=.65, ev
         return None
 
     df = drivedata.data.select(
-        [
-            pl.col("EventName"),
-            pl.col("LaneOffset"),
-            pl.col("SimTime")
-        ]
+        [pl.col("EventName"), pl.col("LaneOffset"), pl.col("SimTime")]
     )
 
     contains_trash = df.filter(pl.col("EventName").str.contains(event_detect))
@@ -809,7 +807,9 @@ def eventRecenterRecoveryTime(drivedata: pydre.core.DriveData, tolerance=.65, ev
         try:
             df = df.filter(
                 pl.col("SimTime")
-                > df.filter(pl.col("LaneOffset").abs() > tolerance).get_column("SimTime").item(0)
+                > df.filter(pl.col("LaneOffset").abs() > tolerance)
+                .get_column("SimTime")
+                .item(0)
             )
         except IndexError:
             logger.warning(
@@ -826,11 +826,12 @@ def eventRecenterRecoveryTime(drivedata: pydre.core.DriveData, tolerance=.65, ev
             return recover_time - initial_time
         else:
             min_offset = df.select(pl.col("LaneOffset").abs().min().first()).item()
-            logger.warning(f"No recovery detected during this event - returned to min offset of {min_offset} m")
+            logger.warning(
+                f"No recovery detected during this event - returned to min offset of {min_offset} m"
+            )
             return "NoRecover"
     else:
         return None  # situation not Trashtip event, ignore
-
 
 
 @registerMetric()
@@ -876,19 +877,25 @@ def laneViolations(
     car_width: float = 2.1,
 ):
     df = drivedata.data
-    #df.checkColumnsNumeric([lane_column])
+    # df.checkColumnsNumeric([lane_column])
     # tolerance is the maximum allowable offset deviation from 0
     tolerance = lane_width / 2 - car_width / 2
     # Determine which rows are violations
-    df = df.with_columns(((pl.col(offset) > tolerance) | (pl.col(offset) < -tolerance)).alias('violation'))
+    df = df.with_columns(
+        ((pl.col(offset) > tolerance) | (pl.col(offset) < -tolerance)).alias(
+            "violation"
+        )
+    )
 
-    df = df.with_columns((pl.col('violation') != pl.col('violation').shift(1)).alias('transition'))
+    df = df.with_columns(
+        (pl.col("violation") != pl.col("violation").shift(1)).alias("transition")
+    )
 
     # Filter to keep only the rows where a transition occurs
-    transitions = df.filter(pl.col('transition') == True)
+    transitions = df.filter(pl.col("transition") == True)
 
     # Count the number of transitions from non-violation to violation
-    violation_starts = transitions.filter(pl.col('violation') == True).shape[0]
+    violation_starts = transitions.filter(pl.col("violation") == True).shape[0]
 
     return violation_starts
 
@@ -1396,7 +1403,9 @@ def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1: str, var2: str)
 
 
 @registerMetric()
-def reactionTimeEventTrueR2D(drivedata: pydre.core.DriveData, var1: str, var2: str, val1: float, val2: float):
+def reactionTimeEventTrueR2D(
+    drivedata: pydre.core.DriveData, var1: str, var2: str, val1: float, val2: float
+):
     required_col = [var1, var2, "SimTime"]
     try:
         drivedata.checkColumnsNumeric(required_col)
@@ -1417,7 +1426,12 @@ def reactionTimeEventTrueR2D(drivedata: pydre.core.DriveData, var1: str, var2: s
 
 
 @registerMetric()
-def timeToOutsideThreshold(drivedata: pydre.core.DriveData, var: str, threshold_low: float = -100000, threshold_high: float = 100000):
+def timeToOutsideThreshold(
+    drivedata: pydre.core.DriveData,
+    var: str,
+    threshold_low: float = -100000,
+    threshold_high: float = 100000,
+):
     """
     Checks a column "var" values to ensure they are within range
     [threshold_low: threshold_high]

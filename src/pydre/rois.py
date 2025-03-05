@@ -9,7 +9,6 @@ from collections.abc import Iterable
 
 
 class ROIProcessor(object, metaclass=ABCMeta):
-    roi_list = []
 
     @abstractmethod
     def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
@@ -57,6 +56,10 @@ def sliceByTime(
 
 
 class TimeROI(ROIProcessor):
+    rois: dict
+    rois_meta: set
+    timecol: str
+
     def __init__(self, filename: str | pathlib.Path, timecol: str = "DatTime"):
         # parse time filename values
         pl_rois = pl.read_csv(filename)
@@ -78,8 +81,6 @@ class TimeROI(ROIProcessor):
                 elif k != "ROI":
                     self.rois[roi_name][k] = v
                     self.rois_meta.add(k)
-
-
 
     def split(
         self, sourcedrivedata: pydre.core.DriveData
@@ -122,7 +123,6 @@ class TimeROI(ROIProcessor):
                         break
 
         for k, v in matching_rois.items():
-
             start = v["time_start"]
             end = v["time_end"]
             timecol = self.timecol
@@ -132,10 +132,12 @@ class TimeROI(ROIProcessor):
                 new_ddata.roi = k
                 output_list.append(new_ddata)
             else:
-                logger.warning("ROI fails to qualify for {}, ignoring data".format(sourcedrivedata.sourcefilename))
+                logger.warning(
+                    "ROI fails to qualify for {}, ignoring data".format(
+                        sourcedrivedata.sourcefilename
+                    )
+                )
         return output_list
-
-
 
     def parseDuration(self, duration: str) -> float:
         # parse a string indicating duration into a tuple of (starttime, endtime) in seconds
@@ -158,7 +160,7 @@ class TimeROI(ROIProcessor):
         #     second_time += second_time_result.group(1) * 60 * 60
         # return (first_time, second_time)
 
-        regex = r'(?:(\d{1,2}):)?(\d{1,2}):(\d{2})'
+        regex = r"(?:(\d{1,2}):)?(\d{1,2}):(\d{2})"
         pair_result = re.match(regex, duration)
         if pair_result.group(3):
             hr = pair_result.group(1)
@@ -170,8 +172,6 @@ class TimeROI(ROIProcessor):
             sec = pair_result.group(2)
             time = 60 * 60 + int(min) * 60 + int(sec)
         return time
-
-
 
 
 class SpaceROI(ROIProcessor):
@@ -196,7 +196,7 @@ class SpaceROI(ROIProcessor):
     def split(
         self, sourcedrivedata: pydre.core.DriveData
     ) -> list[pydre.core.DriveData]:
-        return_list = []
+        return_list: list[pydre.core.DriveData] = []
 
         for roi_name, roi_location in self.roi_info.items():
             xmin = min(roi_location.get("X1"), roi_location.get("X2"))
@@ -217,7 +217,9 @@ class SpaceROI(ROIProcessor):
                 #    self.roi_info.roi[i]))
                 logger.warning(
                     "No data for SubjectID: {}, Source: {},  ROI: {}".format(
-                        sourcedrivedata.metadata["ParticipantID"], sourcedrivedata.sourcefilename, roi_name
+                        sourcedrivedata.metadata["ParticipantID"],
+                        sourcedrivedata.sourcefilename,
+                        roi_name,
                     )
                 )
             else:
@@ -232,7 +234,7 @@ class SpaceROI(ROIProcessor):
                         region_data.height,
                         roi_name,
                         sourcedrivedata.metadata["ParticipantID"],
-                        sourcedrivedata.sourcefilename
+                        sourcedrivedata.sourcefilename,
                     )
                 )
             new_ddata = pydre.core.DriveData(sourcedrivedata, region_data)
@@ -251,7 +253,7 @@ class ColumnROI(ROIProcessor):
     def split(
         self, sourcedrivedata: pydre.core.DriveData
     ) -> Iterable[pydre.core.DriveData]:
-        return_list = []
+        return_list: list[pydre.core.DriveData] = []
 
         for gname, gdata in sourcedrivedata.data.group_by(self.roi_column):
             gname = gname[0]

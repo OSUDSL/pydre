@@ -1,6 +1,6 @@
 [project]
 name = "pydre"
-version = "24.0.3"
+version = "25.0"
 readme = "readme.md"
 dependencies = [
     "polars",
@@ -41,6 +41,7 @@ dev-dependencies = [
     "mkdocs-material",
     "mkdocstrings[python]",
     "black",
+    "mypy",
     "pytest>=8.3.2",
     "pytest-datafiles",
     "griffe==1.2.0"

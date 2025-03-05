@@ -12,17 +12,10 @@ def main():
         "-p", "--projectfile", type=str, help="the project file path", required=True
     )
     parser.add_argument(
-        "-d",
-        "--datafiles",
-        type=str,
-        help="the data file path",
-        nargs="+"
+        "-d", "--datafiles", type=str, help="the data file path", nargs="+"
     )
     parser.add_argument(
-        "-o",
-        "--outputfile",
-        type=str,
-        help="the name of the output file"
+        "-o", "--outputfile", type=str, help="the name of the output file"
     )
     parser.add_argument(
         "-l",

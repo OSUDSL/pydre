@@ -25,8 +25,15 @@ class Project:
     project_filename: Path  # used only for information
     definition: dict
     results: Optional[pl.DataFrame]
+    filelist: list[Path]
 
-    def __init__(self, projectfilename: str, additional_data_paths: Optional[list[str]] = None, outputfile: str = None):
+
+    def __init__(
+        self,
+        projectfilename: str,
+        additional_data_paths: Optional[list[str]] = None,
+        outputfile: Optional[str] = None,
+    ):
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
         self.config = {}
@@ -71,10 +78,14 @@ class Project:
                         )
                     if "config" in self.definition.keys():
                         self.config = self.definition["config"]
-                    extraKeys = set(self.definition.keys()) - set(["filters", "rois", "metrics", "config"])
+                    extraKeys = set(self.definition.keys()) - set(
+                        ["filters", "rois", "metrics", "config"]
+                    )
 
                     if len(extraKeys) > 0:
-                        logger.warning("Found unhandled keywords in project file:" + str(extraKeys))
+                        logger.warning(
+                            "Found unhandled keywords in project file:" + str(extraKeys)
+                        )
 
                     self.definition = new_definition
                 else:
@@ -85,7 +96,9 @@ class Project:
             raise e
 
         if additional_data_paths is not None:
-            self.config["datafiles"] = self.config.get("datafiles", []) + additional_data_paths
+            self.config["datafiles"] = (
+                self.config.get("datafiles", []) + additional_data_paths
+            )
 
         if "outputfile" in self.config:
             if outputfile is not None:
@@ -107,13 +120,10 @@ class Project:
             datafiles = datapath.parent.glob(datapath.name)
             self.filelist.extend(datafiles)
 
-        self.data = []
-
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return (
                 self.definition == other.definition
-                and self.data == other.data
                 and self.results == other.results
                 and self.config == other.config
             )
@@ -127,8 +137,6 @@ class Project:
             v["name"] = k
             new_def.append(v)
         return new_def
-
-
 
     def processROI(
         self, roi: dict, datafile: pydre.core.DriveData
@@ -221,9 +229,7 @@ class Project:
     def __clean(self, string):
         return string.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
 
-    def processDatafiles(
-        self, numThreads: int = 12
-    ) -> Optional[pl.DataFrame]:
+    def processDatafiles(self, numThreads: int = 12) -> Optional[pl.DataFrame]:
         """Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
 
         Args:
@@ -261,17 +267,17 @@ class Project:
             logger.error("No results found; no metrics data generated")
         result_dataframe = pl.from_dicts(results_list)
 
-        #sorting_columns = ["Subject", "ScenarioName", "ROI"]
-        #try:
+        # sorting_columns = ["Subject", "ScenarioName", "ROI"]
+        # try:
         #    result_dataframe = result_dataframe.sort(sorting_columns)
-        #except pl.exceptions.PanicException as e:
+        # except pl.exceptions.PanicException as e:
         #    logger.warning("Can't sort results, must be missing a column.")
 
         self.results = result_dataframe
         return result_dataframe
 
     def processSingleFile(self, datafilename: Path):
-        logger.info("Loading file {}".format( datafilename))
+        logger.info("Loading file {}".format(datafilename))
         if "datafile_type" in self.config:
             if self.config["datafile_type"] == "rti":
                 datafile = DriveData.init_rti(datafilename)
@@ -315,9 +321,13 @@ class Project:
             roi_datalist.append(datafile)
 
         if len(roi_datalist) == 0:
-            logger.warning("Qualifying ROIs fail to generate results for {}, no output generated.".format(datafilename))
+            logger.warning(
+                "Qualifying ROIs fail to generate results for {}, no output generated.".format(
+                    datafilename
+                )
+            )
             return []
-        roi_processed_metrics = []
+
         for data in roi_datalist:
             result_dict = copy.deepcopy(datafile.metadata)
             result_dict["ROI"] = data.roi
