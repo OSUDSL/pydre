@@ -72,5 +72,6 @@ packages = ["src/pydre"]
 
 [tool.pytest.ini_options]
 addopts = [
+    "--cov=src/pydre",
     "--import-mode=importlib",
 ]
