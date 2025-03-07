@@ -1,13 +1,14 @@
 from loguru import logger
-from . import project
+from pydre import project
 import sys
 import pathlib
 import argparse
+from typing import List, Optional, Dict, Any
 
 
-def main():
+def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser()
-    # command line arguments for project file (pf) and data file (df)
     parser.add_argument(
         "-p", "--projectfile", type=str, help="the project file path", required=True
     )
@@ -15,7 +16,8 @@ def main():
         "-d", "--datafiles", type=str, help="the data file path", nargs="+"
     )
     parser.add_argument(
-        "-o", "--outputfile", type=str, help="the name of the output file"
+        "-o", "--outputfile", type=str, help="the name of the output file",
+        default= "out.csv"
     )
     parser.add_argument(
         "-l",
@@ -24,21 +26,51 @@ def main():
         default="WARNING",
         help="Loggging error level. DEBUG, INFO, WARNING, ERROR, and CRITICAL are allowed.",
     )
-    args = parser.parse_args()
-    logger.remove(0)
-    try:
-        logger.add(sys.stderr, level=args.warninglevel.upper())
-    except Exception:
+    return parser.parse_args(args)
+
+
+def setup_logging(level: str) -> str:
+    """Set up logging with the specified level."""
+    logger.remove()
+    level = level.upper()
+    accepted_levels = ["DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
+    if level in accepted_levels:
+        logger.add(sys.stderr, level=level)
+        return level
+    else:
         logger.add(sys.stderr, level="WARNING")
         logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
-    if args.outputfile == "out.csv":
-        logger.warning("No output file specified. Defaulting to 'out.csv'")
-    p = project.Project(args.projectfile, args.datafiles, args.outputfile)
+        return "WARNING"
 
-    # add command line args to project
-    p.processDatafiles(numThreads=12)
+
+def run_project(
+    projectfile: str,
+    datafiles: Optional[List[str]],
+    outputfile: Optional[str],
+    num_threads: int = 12
+) -> project.Project:
+    """Create, process and save a project."""
+    p = project.Project(projectfile, datafiles, outputfile)
+    p.processDatafiles(numThreads=num_threads)
     p.saveResults()
+    return p
+
+
+def main(args: Optional[List[str]] = None) -> int:
+    """Main entry point for the application."""
+    try:
+        parsed_args = parse_arguments(args)
+        setup_logging(parsed_args.warninglevel)
+        run_project(
+            parsed_args.projectfile,
+            parsed_args.datafiles,
+            parsed_args.outputfile
+        )
+        return 0
+    except Exception as e:
+        logger.error(f"Application failed: {str(e)}")
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

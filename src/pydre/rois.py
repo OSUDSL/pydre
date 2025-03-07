@@ -162,6 +162,9 @@ class TimeROI(ROIProcessor):
 
         regex = r"(?:(\d{1,2}):)?(\d{1,2}):(\d{2})"
         pair_result = re.match(regex, duration)
+        if pair_result is None:
+            logger.error(f"Invalid time format {duration}")
+            raise ValueError
         if pair_result.group(3):
             hr = pair_result.group(1)
             min = pair_result.group(2)
@@ -199,10 +202,21 @@ class SpaceROI(ROIProcessor):
         return_list: list[pydre.core.DriveData] = []
 
         for roi_name, roi_location in self.roi_info.items():
-            xmin = min(roi_location.get("X1"), roi_location.get("X2"))
-            xmax = max(roi_location.get("X1"), roi_location.get("X2"))
-            ymin = min(roi_location.get("Y1"), roi_location.get("Y2"))
-            ymax = max(roi_location.get("Y1"), roi_location.get("Y2"))
+            try:
+                xmin = min(roi_location.get("X1"), roi_location.get("X2"))
+                xmax = max(roi_location.get("X1"), roi_location.get("X2"))
+                ymin = min(roi_location.get("Y1"), roi_location.get("Y2"))
+                ymax = max(roi_location.get("Y1"), roi_location.get("Y2"))
+            except KeyError:
+                logger.error(
+                    f"ROI {roi_name} does not contain expected columns {self.roi_info.columns}"
+                )
+                return return_list
+            except TypeError as e:
+                logger.error(
+                    f"ROI {roi_name} has bad datatype: {e.args}"
+                )
+                return return_list
 
             region_data = sourcedrivedata.data.filter(
                 pl.col(self.x_column_name).cast(pl.Float32).is_between(xmin, xmax)

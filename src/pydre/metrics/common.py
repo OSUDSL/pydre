@@ -231,13 +231,13 @@ def timeAboveSpeed(
 
     time = df.get_column("Duration").filter(df.get_column("Velocity") >= cutoff).sum()
     try:
-        total_time = df.get_column("SimTime").max() - df.get_column("SimTime").min()
+        total_time: float = float(df.get_column("SimTime").max()) - float(df.get_column("SimTime").min())
     except TypeError:
         return None
     if percentage:
-        out = time / total_time
+        out: float = time / total_time
     else:
-        out = time
+        out: float  = time
     return out
 
 
