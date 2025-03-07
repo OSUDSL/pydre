@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Any
 
 
 def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
-    """Parse command line arguments."""
+    """Set up argparse based parser."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-p", "--projectfile", type=str, help="the project file path", required=True

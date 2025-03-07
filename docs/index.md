@@ -47,7 +47,7 @@ As for metrics, the array should consist of elements containing every function t
 
 Multiple functions can be called within one project file.  The result of each function will be outputted in a separate column of the generated csv file.
 
-For more details about project files, see the [Project Files](../explanation/project_files.md) page.
+For more details about project files, see the [Project Files](explanation/project_files.md) page.
 
 
   

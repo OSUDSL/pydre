@@ -78,9 +78,7 @@ class Project:
                         )
                     if "config" in self.definition.keys():
                         self.config = self.definition["config"]
-                    extraKeys = set(self.definition.keys()) - set(
-                        ["filters", "rois", "metrics", "config"]
-                    )
+                    extraKeys = set(self.definition.keys()) - {"filters", "rois", "metrics", "config"}
 
                     if len(extraKeys) > 0:
                         logger.warning(
@@ -151,6 +149,7 @@ class Project:
         Returns:
                 A list of drivedata objects containing the data for each region of interest
         """
+        roi_obj: pydre.rois.ROIProcessor
         roi_type = roi["type"]
         if roi_type == "time":
             logger.info("Processing time ROI " + roi["filename"])

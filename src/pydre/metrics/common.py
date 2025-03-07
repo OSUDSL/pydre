@@ -286,7 +286,7 @@ def timeWithinSpeedLimit(
     )
 
     if percentage:
-        total_time = df.get_column("SimTime").max() - df.get_column("SimTime").min()
+        total_time = float(df.get_column("SimTime").max()) - float(df.get_column("SimTime").min())
         output = time / total_time
     else:
         output = time
@@ -327,8 +327,8 @@ def stoppingDist(
     )
 
     lineposition = (
-        df.get_column(roadtravelposition).min()
-        + df.get_column(roadtravelposition).max()
+        float(df.get_column(roadtravelposition).min())
+        + float(df.get_column(roadtravelposition).max())
     ) / 2
 
     if velocities.height == 0:

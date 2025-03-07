@@ -9,29 +9,6 @@ from pydre.filters import registerFilter
 
 THISDIR = pathlib.Path(__file__).resolve().parent
 
-
-@registerFilter()
-def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
-    ident = drivedata.PartID
-    ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
-    if ident_groups is None:
-        logger.warning("Could not parse R2D ID " + ident)
-        return [None]
-    week = ident_groups.group(5)
-    scenario = drivedata.scenarioName
-    if week == "1" and scenario == "Load, Event":
-        # between the x positions, change the critical event status to 1
-        drivedata.data = drivedata.data.with_columns(
-            pl.when(2165 < pl.col("XPos"), pl.col("XPos") < 2240)
-            .then(1)
-            .when(pl.col("CriticalEventStatus") == 1)
-            .then(1)
-            .otherwise(0)
-            .alias("CriticalEventStatus")
-        )
-    return drivedata
-
-
 @registerFilter()
 def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, trim_data=False):
     """
@@ -45,8 +22,8 @@ def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, 
     :arg: dataFile: source of truth for start/end - csv filepath
     :arg: tol: tolerance of distance that permits "valid"
     """
-    ident = drivedata.PartID
-    scenario = drivedata.scenarioName
+    ident = drivedata.metadata["ParticipantID"]
+    scenario = drivedata.metadata["Scenario"]
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
@@ -122,7 +99,7 @@ def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, 
 
 
 @registerFilter()
-def BinaryColReverse(drivedata: pydre.core, old_col: str, new_col="MinusOneCol"):
+def BinaryColReverse(drivedata: pydre.core.DriveData, old_col: str, new_col="MinusOneCol"):
     """
     'reverses' a binary column's values.
     old value 1 --> new value 0 & vice versa
@@ -134,12 +111,12 @@ def BinaryColReverse(drivedata: pydre.core, old_col: str, new_col="MinusOneCol")
 
 
 @registerFilter()
-def CropStartPosition(drivedata: pydre.core):
+def CropStartPosition(drivedata: pydre.core.DriveData):
     """
     Ensure that drive data starts from consistent point between sites.
     This code was decoupled from merge filter to zero UAB start points.
     """
-    ident = drivedata.PartID
+    ident = drivedata.metadata["ParticipantID"]
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
@@ -167,7 +144,7 @@ def CropStartPosition(drivedata: pydre.core):
 
 @registerFilter()
 def MergeCriticalEventPositions(
-    drivedata: pydre.core,
+    drivedata: pydre.core.DriveData,
     dataFile="",
     analyzePriorCutOff=False,
     criticalEventDist=250.0,
@@ -205,8 +182,8 @@ def MergeCriticalEventPositions(
         - CriticalEventNum
         - EventName
     """
-    ident = drivedata.PartID
-    scenario = drivedata.scenarioName
+    ident = drivedata.metadata["ParticipantID"]
+    scenario = drivedata.metadata["Scenario"]
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
@@ -301,17 +278,21 @@ def MergeCriticalEventPositions(
 
 
 @registerFilter()
-def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
+def DesignateNonEventRegions(drivedata: pydre.core.DriveData, dataFile=""):
     """
-    :arg: dataFile: the file name of the csv that maps Non Event regions.
-        -> required cols:
-        'Week','Scenario','Event', 'startX1', 'endX1', 'startX2', 'endX2', 'startX3', 'endX3'
-
     Imports specified csv dataFile for use in XPos-based filtering,
     using each start-end x range. dataFile also determines additional columns
-    in the filtered result:
-        - NonEventRegion (0-3)
-          - 0 indicates non-designated region
+
+    Parameters:
+    dataFile: the file name of the csv that maps Non Event regions.
+
+    Note: Requires data columns:
+        'Week','Scenario','Event', 'startX1', 'endX1', 'startX2', 'endX2', 'startX3', 'endX3'
+
+    Returns:
+        Original DriveData object with additional column *NonEventRegion* with values of 0-3
+        0 indicates non-designated region, 1-3 are the designated regions.
+
     """
     ident = drivedata.metadata["ParticipantID"]
     scenario = drivedata.metadata["ScenarioName"]
