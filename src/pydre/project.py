@@ -1,6 +1,7 @@
 import copy
 import json
 import traceback
+from os import PathLike
 
 import polars as pl
 import re
@@ -19,7 +20,7 @@ from pathlib import Path
 from loguru import logger
 from tqdm import tqdm
 import concurrent.futures
-
+import importlib.util
 
 class Project:
     project_filename: Path  # used only for information
@@ -110,6 +111,8 @@ class Project:
         if len(self.config.get("datafiles", [])) == 0:
             logger.error("No datafile found in project definition.")
 
+        self._load_custom_functions()
+
         # resolve the file paths
         self.filelist = []
         for fn in self.config.get("datafiles", []):
@@ -136,8 +139,87 @@ class Project:
             new_def.append(v)
         return new_def
 
+    def _load_custom_functions(self):
+        """
+        Process custom metrics and filters directories specified in the config and load metrics.
+        """
+        custom_metrics_dirs = self.config.get("custom_metrics_dirs", [])
+
+        if isinstance(custom_metrics_dirs, str):
+            custom_metrics_dirs = [custom_metrics_dirs]
+
+        for metrics_dir in custom_metrics_dirs:
+            metrics_path = self.resolve_file(metrics_dir)
+            if not metrics_path.exists():
+                logger.warning(f"Custom metrics directory not found: {metrics_path}")
+                continue
+
+            logger.info(f"Loading custom metrics from: {metrics_path}")
+
+            # Process all Python files in the directory
+            for metrics_file in metrics_path.glob("*.py"):
+                try:
+                    # Create a module name
+                    module_name = f"custom_metrics_{metrics_file.stem}"
+                    spec = importlib.util.spec_from_file_location(
+                        module_name, metrics_file
+                    )
+                    if spec is None or spec.loader is None:
+                        logger.error(f"Could not load spec for {metrics_file}")
+                        continue
+
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+
+                    # The @registerMetric decorator will automatically register the metrics
+                    logger.info(f"Successfully loaded metrics from {metrics_file}")
+                except Exception as e:
+                    logger.exception(
+                        f"Error loading custom metrics from {metrics_file}: {e}"
+                    )
+
+        custom_filters_dirs = self.config.get("custom_filters_dirs", [])
+
+        if isinstance(custom_filters_dirs, str):
+            custom_filters_dirs = [custom_filters_dirs]
+        for filters_dir in custom_filters_dirs:
+            filters_path = self.resolve_file(filters_dir)
+            if not filters_path.exists():
+                logger.warning(f"Custom filters directory not found: {filters_path}")
+                continue
+            logger.info(f"Loading custom filters from: {filters_path}")
+            for filters_file in filters_path.glob("*.py"):
+                try:
+                    module_name = f"custom_filters_{filters_file.stem}"
+                    spec = importlib.util.spec_from_file_location(
+                        module_name, filters_file
+                    )
+                    if spec is None or spec.loader is None:
+                        logger.error(f"Could not load spec for {filters_file}")
+                        continue
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+                    logger.info(f"Successfully loaded filters from {filters_file}")
+                except Exception as e:
+                    logger.exception(f"Error loading custom filters from {filters_file}: {e}")
+
+    def resolve_file(self, pathname: PathLike) -> pathlib.Path:
+        """Resolve the given file to an absolute path based on the project file location.
+        Args:
+            pathname: A string or Path object.
+        Returns:
+            A pathlib.Path object representing the resolved metrics directory.
+        """
+        computed_path = pathlib.Path(pathname)
+        if computed_path.is_absolute():
+            computed_path = computed_path.resolve()
+        else:
+            computed_path = pathlib.Path(self.project_filename.parent / computed_path).resolve()
+        return computed_path
+
+    @staticmethod
     def processROI(
-        self, roi: dict, datafile: pydre.core.DriveData
+            roi: dict, datafile: pydre.core.DriveData
     ) -> list[pydre.core.DriveData]:
         """
         Handles running region of interest definitions for a dataset
@@ -168,14 +250,16 @@ class Project:
             return [datafile]
         return roi_obj.split(datafile)
 
+    @staticmethod
     def processFilter(
-        self, datafilter: dict, datafile: pydre.core.DriveData
+            datafilter: dict, datafile: pydre.core.DriveData
     ) -> pydre.core.DriveData:
         """
         Handles running any filter definition
 
         Args:
             datafilter: A dict containing the function of a filter and the parameters to process it
+            datafile: drive data object to process with the filter
 
         Returns:
             The augmented DriveData object
@@ -196,10 +280,14 @@ class Project:
 
     def processMetric(self, metric: dict, dataset: pydre.core.DriveData) -> dict:
         """
+        Handles running any metric definition
 
-        :param metric:
-        :param dataset:
-        :return:
+        Args:
+            metric: A dict containing the function of a metric and the parameters to process it
+            dataset: drive data object to process with the metric
+
+        Returns:
+            A dictionary containing the results of the metric
         """
 
         metric = copy.deepcopy(metric)
@@ -224,15 +312,18 @@ class Project:
             metric_dict[report_name] = metric_func(dataset, **metric)
         return metric_dict
 
-    # remove any parenthesis, quote mark and un-necessary directory names from a str
-    def __clean(self, string):
-        return string.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
+    @staticmethod
+    def __clean(src_str: str) -> str:
+        """
+        Remove any parenthesis, quote mark and un-necessary directory names from a string
+        """
+        return src_str.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
 
     def processDatafiles(self, numThreads: int = 12) -> Optional[pl.DataFrame]:
         """Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
 
         Args:
-                numThreads: number of threads to run simultaneously in the thread pool
+            numThreads: number of threads to run simultaneously in the thread pool
 
         Returns:
             metrics data for all metrics, or None on error
@@ -284,6 +375,9 @@ class Project:
                 datafile = DriveData.init_old_rti(datafilename)
             elif self.config["datafile_type"] == "scanner":
                 datafile = DriveData.init_scanner(datafilename)
+            else:
+                logger.warning(f"Unknown datafile type {self.config['datafile_type']}, processing as RTI .dat file.")
+                datafile = DriveData.init_rti(datafilename)
         else:
             datafile = DriveData.init_rti(datafilename)
 

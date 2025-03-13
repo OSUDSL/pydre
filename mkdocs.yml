@@ -34,9 +34,9 @@ markdown_extensions:
 nav:
   - Home: 'index.md'
   - Tutorial:
-      - Installation: 'tutorial/installation.md'
-      - Getting Started: 'tutorial/getting_started.md'
-
+    - Installation: 'tutorial/installation.md'
+    - Getting Started: 'tutorial/getting_started.md'
+    - Custom metrics: 'explanation/custom_metrics.md'
   - Reference:
     - Filter definitions: 'reference/filters.md'
     - Metric definitions: 'reference/metrics.md'
@@ -46,3 +46,4 @@ nav:
     - Project files: 'explanation/project_files.md'
     - Regions of Interest: 'explanation/rois.md'
     - Developer Notes: 'explanation/developernotes.md'
+
