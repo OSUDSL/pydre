@@ -1,5 +1,6 @@
 import pathlib
 from abc import ABCMeta, abstractmethod
+from os import PathLike
 
 import pydre.core
 import polars as pl
@@ -11,7 +12,7 @@ from collections.abc import Iterable
 class ROIProcessor(object, metaclass=ABCMeta):
 
     @abstractmethod
-    def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
+    def __init__(self, filename: PathLike, nameprefix: str = ""):
         pass
 
     @abstractmethod
@@ -60,7 +61,7 @@ class TimeROI(ROIProcessor):
     rois_meta: set
     timecol: str
 
-    def __init__(self, filename: str | pathlib.Path, timecol: str = "DatTime"):
+    def __init__(self, filename: PathLike, timecol: str = "DatTime"):
         # parse time filename values
         pl_rois = pl.read_csv(filename)
         rois = []
@@ -181,7 +182,7 @@ class SpaceROI(ROIProcessor):
     x_column_name = "XPos"
     y_column_name = "YPos"
 
-    def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
+    def __init__(self, filename: PathLike, nameprefix: str = ""):
         # parse time filename values
         # roi_info is a data frame containing the cutoff points for the region in each row.
         # It's columns must be roi, X1, X2, Y1, Y2
@@ -259,7 +260,7 @@ class SpaceROI(ROIProcessor):
 
 
 class ColumnROI(ROIProcessor):
-    def __init__(self, columnname: str, nameprefix=""):
+    def __init__(self, columnname: PathLike, nameprefix=""):
         # parse time filename values
         self.roi_column = columnname
         self.name_prefix = nameprefix
