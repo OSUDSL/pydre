@@ -10,7 +10,29 @@ from pydre.filters import registerFilter
 THISDIR = pathlib.Path(__file__).resolve().parent
 
 @registerFilter()
-def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, trim_data=False):
+def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
+    ident = drivedata.metadata["ParticipantID"]
+    ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
+    if ident_groups is None:
+        logger.warning("Could not parse R2D ID " + ident)
+        return [None]
+    week = ident_groups.group(5)
+    scenario = drivedata.metadata["ScenarioName"]
+    if week == "1" and scenario == "Load, Event":
+        # between the x positions, change the critical event status to 1
+        drivedata.data = drivedata.data.with_columns(
+            pl.when(2165 < pl.col("XPos"), pl.col("XPos") < 2240)
+            .then(1)
+            .when(pl.col("CriticalEventStatus") == 1)
+            .then(1)
+            .otherwise(0)
+            .alias("CriticalEventStatus")
+        )
+    return drivedata
+
+
+@registerFilter()
+def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=False):
     """
     Ensure that the end of the drive data fits into the expected
     format - by distance & time.
@@ -23,7 +45,7 @@ def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, 
     :arg: tol: tolerance of distance that permits "valid"
     """
     ident = drivedata.metadata["ParticipantID"]
-    scenario = drivedata.metadata["Scenario"]
+    scenario = drivedata.metadata["ScenarioName"]
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
@@ -126,17 +148,16 @@ def CropStartPosition(drivedata: pydre.core.DriveData):
     # copy values from datTime into simTime
     df = drivedata.data
 
-    # address UAB start positions only
-    if site == 1:
-        df = df.with_columns(pl.col("DatTime").alias("SimTime"))
-        df = df.with_columns(
-            pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
+    # only used to apply this to UAB, but applies to all sites
+    df = df.with_columns(pl.col("DatTime").alias("SimTime"))
+    df = df.with_columns(
+        pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
         )
-        df_actual_start = df.filter(df.get_column("PosDiff") > 500)
-        if not df_actual_start.is_empty():
-            start_time = df_actual_start.get_column("SimTime").item(0)
-            df = df.filter(df.get_column("SimTime") > start_time)
-            logger.warning(f"Trimming {ident}: time value of split: {start_time}")
+    df_actual_start = df.filter(df.get_column("PosDiff") > 500)
+    if not df_actual_start.is_empty():
+        start_time = df_actual_start.get_column("SimTime").item(0)
+        df = df.filter(df.get_column("SimTime") > start_time)
+        logger.warning(f"Trimming {ident}: time value of split: {start_time}")
 
     drivedata.data = df
     return drivedata
@@ -183,7 +204,7 @@ def MergeCriticalEventPositions(
         - EventName
     """
     ident = drivedata.metadata["ParticipantID"]
-    scenario = drivedata.metadata["Scenario"]
+    scenario = drivedata.metadata["ScenarioName"]
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
