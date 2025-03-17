@@ -4,3 +4,4 @@ filename = "C:\\Users\\aatchley\\Documents\\test_time_2.csv"
 
 [metrics.mean]
 function = "colMean"
+var = "DatTime"
