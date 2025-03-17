@@ -36,7 +36,7 @@ nav:
   - Tutorial:
     - Installation: 'tutorial/installation.md'
     - Getting Started: 'tutorial/getting_started.md'
-    - Custom metrics: 'explanation/custom_metrics.md'
+    - Custom metrics: 'tutorial/custom_metrics.md'
   - Reference:
     - Filter definitions: 'reference/filters.md'
     - Metric definitions: 'reference/metrics.md'

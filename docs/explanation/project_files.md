@@ -9,6 +9,9 @@ Project files define the processing steps applied to the dataset. This is how us
 # Anatomy of a project file
 
 ```toml title="test1_pf.toml"
+[config]
+outputfile = "Anasazi_output.csv"
+datafiles = ["E:/work/data/Anasazi/*.dat"]
 
 [filters.XPos_zscore]
 function = "zscoreCol"
@@ -34,10 +37,5 @@ Below the start of each element, fields for the element are defined. Filters and
 
 [ROIs](../explanation/rois.md) can also be defined, and aid in computing repeated measures experiments or in any experiments where it is useful to partition each datafile into different parts before metrics are run. 
 
-The config section of the project file is used to define any global variables that are used in the project file. Currently, you can define the input data directory and the output file name in the config section: 
-
-```toml
-[config]
-outputfile = "Anasazi_output.csv"
-datafiles = ["E:/work/data/Anasazi/*.dat"]
-```
+The config section of the project file is used to define any global variables that are used in the project file. Currently, you can define the input data directory and the output file name in the config section. You can also define the
+[custom metrics and custom filter directories](../tutorial/custom_metrics.md) in the config section.
