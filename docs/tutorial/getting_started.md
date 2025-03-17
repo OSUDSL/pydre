@@ -9,6 +9,7 @@ The main entry point to run Pydre is `pydre.run`. This application that allows t
 The user must enter the path for the project file and data file in order to aggregate the data. The user has the option of specifying an output file name, to which the test results will be saved. If no output file name is given the output will save to _"out.csv"_ by default. A brief description of the aforementioned arguments is offered below.
 
 !!! info "Command Line Arguments for `pydre.run`"
+
     * Project File [-p]: The project file specifies a file for the regions of interest from which the data should be aggregated. It also specifies a list of metrics (the type of data) that will be aggregated from the regions of interest. 
 
     * Data File [-d]: The data file contains the raw metrics obtained from the simulation. This argument supports wildcards.
@@ -25,9 +26,9 @@ python -m pydre.run -p [project file path] -d [data file path]
 
 Example execution: 
 ```
-python -m pydre.run -p D:\data\bioptics\bioptics.toml 
-    -d D:\data\bioptics\pydreDataSet\*.dat 
-    -o bioptics.csv -l debug
+python -m pydre.run -p example\tutorial\tutorial.toml \
+    -d example\tutorial\Experimenter_S1_Tutorial_11002233.dat \
+    -o tutorial.csv 
 ```
 
 # Example data processing
@@ -52,23 +53,23 @@ The example file is only five rows of a data file, where real data files are ten
 Say you wanted to find the standard deviation of lane position (SDLP) for this data. Pydre comes with a [standard deviation metric function](../reference/metrics.md#pydre.metrics.common.colSD), so you can use that. To do that, you would write a project file like so:
 
 ```toml title="tutorial_project.toml"
-
 [metrics.SDLP]
 function = "colSD"
 var = "LanePosition"
-
 ```
-The `colSD` function requires a parameter `var` that is the column name in the dat files to calculate the SD over.
+
+The `[metrics.SDLP]` section title shows the type of object we're defining (a metric) and the name of the metric ("SDLP").  The [`colSD` function](../reference/metrics.md#pydre.metrics.common.colSD) requires a parameter `var` that is the column name in the data files to calculate the standard deviation over.
 
 After saving the project file, you can then run:
 
 ```bash
 
-python -m pydre.run -p tutorial_project.toml -d Experimenter_S1_Tutorial_11002233.dat -o tutorial_out.csv
-
+python -m pydre.run -p example\tutorial\tutorial.toml \
+    -d example\tutorial\Experimenter_S1_Tutorial_11002233.dat \
+    -o tutorial.csv
 ```
 
-This will run the project commands on the specified data file and out the result in `tutorial_out.csv`. If you wanted to run on multiple data files, you could do `-d *.dat` or `-d ../datafiles/tutorialdata/*.dat` or something similar. Since we have no ROIs, the output csv will contain one row per input data file:
+This will run the project commands on the specified data file and out the result in `tutorial.csv`. If you wanted to run on multiple data files, you could enter `-d ../datafiles/tutorialdata/*.dat` or something similar. Since we have no ROIs, the output csv will contain one row per input data file:
 
 | Subject | Mode         | ScenarioName | UniqueID | ROI | SDLP                |
 |---------|--------------|--------------|----------|-----|---------------------|
