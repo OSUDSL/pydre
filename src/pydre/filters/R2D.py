@@ -9,31 +9,8 @@ from pydre.filters import registerFilter
 
 THISDIR = pathlib.Path(__file__).resolve().parent
 
-
 @registerFilter()
-def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
-    ident = drivedata.PartID
-    ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
-    if ident_groups is None:
-        logger.warning("Could not parse R2D ID " + ident)
-        return [None]
-    week = ident_groups.group(5)
-    scenario = drivedata.scenarioName
-    if week == "1" and scenario == "Load, Event":
-        # between the x positions, change the critical event status to 1
-        drivedata.data = drivedata.data.with_columns(
-            pl.when(2165 < pl.col("XPos"), pl.col("XPos") < 2240)
-            .then(1)
-            .when(pl.col("CriticalEventStatus") == 1)
-            .then(1)
-            .otherwise(0)
-            .alias("CriticalEventStatus")
-        )
-    return drivedata
-
-
-@registerFilter()
-def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=False):
+def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, trim_data=False):
     """
     Ensure that the end of the drive data fits into the expected
     format - by distance & time.
@@ -45,8 +22,8 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=
     :arg: dataFile: source of truth for start/end - csv filepath
     :arg: tol: tolerance of distance that permits "valid"
     """
-    ident = drivedata.PartID
-    scenario = drivedata.scenarioName
+    ident = drivedata.metadata["ParticipantID"]
+    scenario = drivedata.metadata["Scenario"]
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
@@ -58,8 +35,8 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=
     if dataFile != "":
         merge_df = pl.read_csv(source=dataFile)
         merge_df = merge_df.filter(
-                merge_df.get_column("Scenario") == scenario,
-                merge_df.get_column("Week") == week
+            merge_df.get_column("Scenario") == scenario,
+            merge_df.get_column("Week") == week,
         )
     else:
         logger.warning(f"Failed to read csv at {dataFile} - check local path.")
@@ -67,16 +44,20 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=
 
     if len(merge_df) > 0:
         status = []
-        expected_start = merge_df['Start Pos'][0]
-        expected_end = merge_df['End Pos'][0]
+        expected_start = merge_df["Start Pos"][0]
+        expected_end = merge_df["End Pos"][0]
         actual_start = df["XPos"][0]
         actual_end = df["XPos"][-1]
 
         if actual_start is None:
-            logger.warning(f"Start point in data is null for {ident}. See data for issue.")
+            logger.warning(
+                f"Start point in data is null for {ident}. See data for issue."
+            )
 
         if actual_end is None:
-            logger.warning(f"End point in data is null for {ident}. See data for issue.")
+            logger.warning(
+                f"End point in data is null for {ident}. See data for issue."
+            )
 
         if actual_start < expected_start - tol:
             status.append("earlyStart")
@@ -93,7 +74,7 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=
 
         status_value = "&".join(status)
         logger.debug(f"GOT STATUS VALUE: {status_value}")
-        df = df.with_columns(pl.lit(status_value).alias('validityCheck'))
+        df = df.with_columns(pl.lit(status_value).alias("validityCheck"))
         if trim_data:
             start_shape = df.shape
             df = df.filter(df.get_column("XPos") >= expected_start)
@@ -103,10 +84,12 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=
             end_rows_clip = clipped_shape[0] - df.shape[0]
             # make valid determination & assign deterministic flags that we assess & sort on
             # stopsLate, stopsEarly, startEarly, startLate, valid
-            df = df.with_columns(pl.lit(start_rows_clip).alias('rowsClippedAtStart'),
-                                pl.lit(end_rows_clip).alias('rowsClippedAtEnd'),
-                                pl.lit(actual_start).alias('preClipStartPos'),
-                                pl.lit(actual_end).alias('preClipEndPos'))
+            df = df.with_columns(
+                pl.lit(start_rows_clip).alias("rowsClippedAtStart"),
+                pl.lit(end_rows_clip).alias("rowsClippedAtEnd"),
+                pl.lit(actual_start).alias("preClipStartPos"),
+                pl.lit(actual_end).alias("preClipEndPos"),
+            )
     else:
         logger.warning(f"No start/end values for {ident} in {dataFile}.")
         return [None]
@@ -116,7 +99,7 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=
 
 
 @registerFilter()
-def BinaryColReverse(drivedata: pydre.core, old_col: str, new_col="MinusOneCol"):
+def BinaryColReverse(drivedata: pydre.core.DriveData, old_col: str, new_col="MinusOneCol"):
     """
     'reverses' a binary column's values.
     old value 1 --> new value 0 & vice versa
@@ -128,12 +111,12 @@ def BinaryColReverse(drivedata: pydre.core, old_col: str, new_col="MinusOneCol")
 
 
 @registerFilter()
-def CropStartPosition(drivedata: pydre.core):
+def CropStartPosition(drivedata: pydre.core.DriveData):
     """
     Ensure that drive data starts from consistent point between sites.
     This code was decoupled from merge filter to zero UAB start points.
     """
-    ident = drivedata.PartID
+    ident = drivedata.metadata["ParticipantID"]
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
@@ -148,7 +131,7 @@ def CropStartPosition(drivedata: pydre.core):
         df = df.with_columns(pl.col("DatTime").alias("SimTime"))
         df = df.with_columns(
             pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
-            )
+        )
         df_actual_start = df.filter(df.get_column("PosDiff") > 500)
         if not df_actual_start.is_empty():
             start_time = df_actual_start.get_column("SimTime").item(0)
@@ -160,16 +143,18 @@ def CropStartPosition(drivedata: pydre.core):
 
 
 @registerFilter()
-def MergeCriticalEventPositions(drivedata: pydre.core,
-                                dataFile="",
-                                analyzePriorCutOff=False,
-                                criticalEventDist=250.0,
-                                cutOffDist=150.0,
-                                cutInDist=50.0,
-                                cutInStart=200.0,
-                                cutOffStart=200.0,
-                                cutInDelta=2.5,
-                                headwayThreshold=250.0):
+def MergeCriticalEventPositions(
+    drivedata: pydre.core.DriveData,
+    dataFile="",
+    analyzePriorCutOff=False,
+    criticalEventDist=250.0,
+    cutOffDist=150.0,
+    cutInDist=50.0,
+    cutInStart=200.0,
+    cutOffStart=200.0,
+    cutInDelta=2.5,
+    headwayThreshold=250.0,
+):
     """
     :arg: dataFile: the file name of the csv that maps CE positions.
         -> required cols:
@@ -197,8 +182,8 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
         - CriticalEventNum
         - EventName
     """
-    ident = drivedata.PartID
-    scenario = drivedata.scenarioName
+    ident = drivedata.metadata["ParticipantID"]
+    scenario = drivedata.metadata["Scenario"]
     # (control=5/case=3)(UAB=1/OSU=2)(Male=1/Female=2)(R2D_ID)w(Week Num)
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
@@ -210,23 +195,20 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
     if "No Event" not in scenario:
         # adding cols with meaningless values for later CE info, ensuring shape
         df = df.with_columns(
-            pl.lit(-1).alias("CriticalEventNum"),
-            pl.lit("").alias("EventName")
+            pl.lit(-1).alias("CriticalEventNum"), pl.lit("").alias("EventName")
         )
         if dataFile != "":
             merge_df = pl.read_csv(source=dataFile)
             merge_df = merge_df.filter(
-                    merge_df.get_column("ScenarioName") == scenario,
-                    merge_df.get_column("Week") == week
+                merge_df.get_column("ScenarioName") == scenario,
+                merge_df.get_column("Week") == week,
             )
         else:
             raise Exception("Datafile not present - cannot merge w/o source of truth.")
 
         ceInfo_df = merge_df.select(
-            pl.col("manuever pos"),
-            pl.col("CENum"),
-            pl.col("Event")
-            )
+            pl.col("manuever pos"), pl.col("CENum"), pl.col("Event")
+        )
         filter_df = df.clear()
 
         for ceRow in ceInfo_df.rows():
@@ -245,65 +227,72 @@ def MergeCriticalEventPositions(drivedata: pydre.core,
 
             # xPos based bounding, consider
             ceROI = df.filter(
-                    df.get_column('XPos') >= cePos,
-                    df.get_column('XPos') < cePos + criticalEventDist
-                )
+                df.get_column("XPos") >= cePos,
+                df.get_column("XPos") < cePos + criticalEventDist,
+            )
             # update existing columns with Critical Event values
             ceROI = ceROI.with_columns(
                 pl.lit(ceNum).alias("CriticalEventNum"),
-                pl.lit(event).alias("EventName")
+                pl.lit(event).alias("EventName"),
             )
 
             # cut-off/in need better filtering, based on headway check
             if "trash" not in event.lower():
                 headwayROI = ceROI.filter(
-                    ceROI.get_column('HeadwayDistance') <= headwayThreshold
+                    ceROI.get_column("HeadwayDistance") <= headwayThreshold
                 )
                 if not headwayROI.is_empty():
                     logger.debug(f"{event} recovery detected in data.")
                     # rewind and/or expand timeframe for cut-off timings
                     if "cut-off" in event.lower():
-                        simTimeStart = headwayROI.get_column('SimTime').head(1).item()
-                        simTimeEnd = headwayROI.get_column('SimTime').tail(1).item()
+                        simTimeStart = headwayROI.get_column("SimTime").head(1).item()
+                        simTimeEnd = headwayROI.get_column("SimTime").tail(1).item()
                         if analyzePriorCutOff:
                             ceROI = df.filter(
-                                df.get_column('SimTime') >= simTimeStart - cutInDelta,
-                                df.get_column('SimTime') <= simTimeEnd
+                                df.get_column("SimTime") >= simTimeStart - cutInDelta,
+                                df.get_column("SimTime") <= simTimeEnd,
                             )
                         else:
                             ceROI = df.filter(
-                                df.get_column('SimTime') >= simTimeStart,
-                                df.get_column('SimTime') <= simTimeEnd + cutInDelta
+                                df.get_column("SimTime") >= simTimeStart,
+                                df.get_column("SimTime") <= simTimeEnd + cutInDelta,
                             )
                         ceROI = ceROI.with_columns(
                             pl.lit(ceNum).alias("CriticalEventNum"),
-                            pl.lit(event).alias("EventName")
+                            pl.lit(event).alias("EventName"),
                         )
                 else:
-                    logger.warning(f"{event} Event for {ident} in scenario '{scenario}' does not display expected headway behavior.")
+                    logger.warning(
+                        f"{event} Event for {ident} in scenario '{scenario}' does not display expected headway behavior."
+                    )
 
             filter_df.extend(ceROI)
             drivedata.data = filter_df
         if ceInfo_df.shape[0] == 0:
             logger.warning("No imported merge info - no known CE positions.")
     else:
-        raise Exception("Attempting to run 'Event' filtering on scenario with no Events.")
+        raise Exception(
+            "Attempting to run 'Event' filtering on scenario with no Events."
+        )
     return drivedata
 
 
-
 @registerFilter()
-def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
+def DesignateNonEventRegions(drivedata: pydre.core.DriveData, dataFile=""):
     """
-    :arg: dataFile: the file name of the csv that maps Non Event regions.
-        -> required cols:
-        'Week','Scenario','Event', 'startX1', 'endX1', 'startX2', 'endX2', 'startX3', 'endX3'
-
     Imports specified csv dataFile for use in XPos-based filtering,
     using each start-end x range. dataFile also determines additional columns
-    in the filtered result:
-        - NonEventRegion (0-3)
-          - 0 indicates non-designated region
+
+    Parameters:
+    dataFile: the file name of the csv that maps Non Event regions.
+
+    Note: Requires data columns:
+        'Week','Scenario','Event', 'startX1', 'endX1', 'startX2', 'endX2', 'startX3', 'endX3'
+
+    Returns:
+        Original DriveData object with additional column *NonEventRegion* with values of 0-3
+        0 indicates non-designated region, 1-3 are the designated regions.
+
     """
     ident = drivedata.metadata["ParticipantID"]
     scenario = drivedata.metadata["ScenarioName"]
@@ -322,8 +311,8 @@ def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
     if dataFile != "":
         merge_df = pl.read_csv(source=dataFile)
         merge_df = merge_df.filter(
-                merge_df.get_column("Scenario") == scenario,
-                merge_df.get_column("Week") == week
+            merge_df.get_column("Scenario") == scenario,
+            merge_df.get_column("Week") == week,
         )
         filter_df = df.clear()
     else:
@@ -339,20 +328,17 @@ def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
         endx3 = merge_df["endX3"][0]
 
         region1 = df.filter(
-            df.get_column('XPos') >= startx1,
-            df.get_column('XPos') <= endx1
+            df.get_column("XPos") >= startx1, df.get_column("XPos") <= endx1
         )
         region1 = region1.with_columns(pl.lit(1).alias("NonEventRegion"))
 
         region2 = df.filter(
-            df.get_column('XPos') >= startx2,
-            df.get_column('XPos') <= endx2
+            df.get_column("XPos") >= startx2, df.get_column("XPos") <= endx2
         )
         region2 = region2.with_columns(pl.lit(2).alias("NonEventRegion"))
 
         region3 = df.filter(
-            df.get_column('XPos') >= startx3,
-            df.get_column('XPos') <= endx3
+            df.get_column("XPos") >= startx3, df.get_column("XPos") <= endx3
         )
         region3 = region3.with_columns(pl.lit(3).alias("NonEventRegion"))
 
@@ -361,7 +347,8 @@ def DesignateNonEventRegions(drivedata: pydre.core, dataFile=""):
         filter_df.extend(region3)
         drivedata.data = filter_df
     else:
-        logger.warning(f"Do not have non-event regions for {scenario}, w{week} combo. Skipping..")
+        logger.warning(
+            f"Do not have non-event regions for {scenario}, w{week} combo. Skipping.."
+        )
         drivedata.data = filter_df
     return drivedata
-

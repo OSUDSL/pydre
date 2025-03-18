@@ -40,13 +40,14 @@ def numberBinaryBlocks(
     new_dd = drivedata.data.with_columns(
         (pl.col(binary_column).shift() != pl.col(binary_column))
         .cum_sum()
-        .alias(new_column))
+        .alias(new_column)
+    )
 
     # drivedata.data.hstack(blocks, in_place=True)
     if only_on:
         try:
             new_dd = new_dd.filter(pl.col(binary_column) == 1)
-            new_dd = new_dd.with_columns((pl.col(new_column)+1.0)/2.0)
+            new_dd = new_dd.with_columns((pl.col(new_column) + 1.0) / 2.0)
         except pl.exceptions.ComputeError as e:
             logger.warning(
                 "Assumed binary column {} in {} has non-numeric value.".format(
@@ -68,6 +69,7 @@ def numberBinaryBlocks(
 
     drivedata.data = new_dd
     return drivedata
+
 
 @registerFilter()
 def Jenks(
@@ -96,10 +98,7 @@ def Jenks(
 
     # Assign binary values based on the breaks
     new_data = drivedata.data.with_columns(
-        pl.when(pl.col(oldCol) <= breaks[1])
-        .then(0)
-        .otherwise(1)
-        .alias(newCol)
+        pl.when(pl.col(oldCol) <= breaks[1]).then(0).otherwise(1).alias(newCol)
     )
 
     drivedata.data = new_data
@@ -280,8 +279,11 @@ def filetimeToDatetime(ft: int) -> Optional[datetime.datetime]:
 def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack("Q", struct.pack("LL", lo, hi))[0]
 
+
 @registerFilter()
-def removeDataOutside(drivedata: pydre.core.DriveData, col: str, lower: float, upper: float) -> pydre.core.DriveData:
+def removeDataOutside(
+    drivedata: pydre.core.DriveData, col: str, lower: float, upper: float
+) -> pydre.core.DriveData:
     """
     Params:
     col: The name of the column to filter data
@@ -294,14 +296,19 @@ def removeDataOutside(drivedata: pydre.core.DriveData, col: str, lower: float, u
     required_col = [col]
     drivedata.checkColumns(required_col)
 
-    filtered_data = drivedata.data.filter(~((pl.col(col) >= lower) & (pl.col(col) <= upper)))
+    filtered_data = drivedata.data.filter(
+        ~((pl.col(col) >= lower) & (pl.col(col) <= upper))
+    )
 
     drivedata.data = filtered_data
 
     return drivedata
 
+
 @registerFilter()
-def removeDataInside(drivedata: pydre.core.DriveData, col: str, lower: float, upper: float) -> pydre.core.DriveData:
+def removeDataInside(
+    drivedata: pydre.core.DriveData, col: str, lower: float, upper: float
+) -> pydre.core.DriveData:
     """
     Params:
     col: The name of the column to filter data
@@ -314,7 +321,9 @@ def removeDataInside(drivedata: pydre.core.DriveData, col: str, lower: float, up
     required_col = [col]
     drivedata.checkColumns(required_col)
 
-    filtered_data = drivedata.data.filter(~((pl.col(col) >= upper) & (pl.col(col) <= lower)))
+    filtered_data = drivedata.data.filter(
+        ~((pl.col(col) >= upper) & (pl.col(col) <= lower))
+    )
 
     drivedata.data = filtered_data
 
@@ -322,8 +331,13 @@ def removeDataInside(drivedata: pydre.core.DriveData, col: str, lower: float, up
 
 
 @registerFilter()
-def separateData(drivedata: pydre.core.DriveData, col: str, threshold: float, high: int = 1,
-                      low: int = 0) -> pydre.core.DriveData:
+def separateData(
+    drivedata: pydre.core.DriveData,
+    col: str,
+    threshold: float,
+    high: int = 1,
+    low: int = 0,
+) -> pydre.core.DriveData:
     """
     Categorizes head pitch data into high and low based on a manually defined threshold.
 
@@ -341,17 +355,22 @@ def separateData(drivedata: pydre.core.DriveData, col: str, threshold: float, hi
 
     # create new column based on threshold
     new_data = drivedata.data.with_columns(
-        (pl.when(pl.col(col) >= threshold)
-         .then(high)
-         .otherwise(low)
-         .alias(f"{col}_categorized"))
+        (
+            pl.when(pl.col(col) >= threshold)
+            .then(high)
+            .otherwise(low)
+            .alias(f"{col}_categorized")
+        )
     )
 
     drivedata.data = new_data
     return drivedata
 
+
 @registerFilter()
-def filterValuesBelow(drivedata: pydre.core.DriveData, col: str, threshold = 1) -> pydre.core.DriveData:
+def filterValuesBelow(
+    drivedata: pydre.core.DriveData, col: str, threshold=1
+) -> pydre.core.DriveData:
     """
     Filters out device adjustemnt at the start. (Should filter out velocities below 1 m/s)
 
@@ -370,4 +389,3 @@ def filterValuesBelow(drivedata: pydre.core.DriveData, col: str, threshold = 1) 
     drivedata.data = filtered_data
 
     return drivedata
-

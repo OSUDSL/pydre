@@ -33,6 +33,21 @@ pydre-run = "pydre:run"
 Documentation = "https://osudsl.github.io/pydre/"
 Repository = "https://github.com/OSUDSL/pydre"
 
+[dependency-groups]
+dev = [
+    "ptpython",
+    "mkdocs>=1.6.0",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "black",
+    "mypy",
+    "pytest>=8.3.2",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-datafiles",
+    "griffe==1.2.0"
+]
+
 [tool.rye]
 managed = true
 dev-dependencies = [
@@ -41,7 +56,10 @@ dev-dependencies = [
     "mkdocs-material",
     "mkdocstrings[python]",
     "black",
+    "mypy",
     "pytest>=8.3.2",
+    "pytest-cov",
+    "pytest-mock",
     "pytest-datafiles",
     "griffe==1.2.0"
 ]
@@ -56,5 +74,6 @@ packages = ["src/pydre"]
 
 [tool.pytest.ini_options]
 addopts = [
+    "--cov=src/pydre",
     "--import-mode=importlib",
 ]

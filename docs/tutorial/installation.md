@@ -1,0 +1,71 @@
+---
+title: "Installation Guide"
+---
+
+
+Pydre is a Python package, which means it can be installed using a Python package manager. If you are familiar with *pip*, you can use it to install Pydre. However, we recommend using *rye* for a more robust and isolated environment.
+
+# Using Rye to set up a project using the Pydre package
+
+# 1. Install Rye
+
+Follow the instructions at [rye's official website](https://rye-up.com/) to install it on your system. You will need to restart your terminal after installation.
+
+## 2. Set up a new rye project 
+
+Create a new project directory and navigate to it:
+
+```
+mkdir my_pydre_project
+cd my_pydre_project
+```
+
+Initialize a Rye project:
+
+```
+rye init
+```
+
+Add PyDRE as a dependency:
+
+```
+rye add pydre
+```
+
+## 3. Install Dependencies
+
+Rye can automatically install all dependencies for you. Sync the project by running:
+
+```
+rye sync
+``` 
+
+## 4. Verify Installation
+
+Check that Pydre was installed correctly:
+
+```
+python -m pydre.run --help
+```
+
+You should see the command-line help output showing available options. The first run of Python after installing and syncing may take several seconds.
+
+## 6. Start Using Pydre
+
+Now you can run Pydre with your project files:
+
+```
+python -m pydre.run -p your_project_file.toml -o results.csv
+```
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Check for any error messages in the terminal.
+2. Verify that your [project file](../explanation/project_files.md) is properly formatted.
+
+# Setting up a development environment
+
+If you want to contribute to Pydre or modify its source code, you can set up a development environment. You will need to clone the Pydre repository but then you can run `rye sync` in the to install all the dependencies and continue from there. If you are more comfortable with *uv*, you can use that instead of *rye*.
+
