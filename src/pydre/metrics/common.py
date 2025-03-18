@@ -165,14 +165,14 @@ def colFirst(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
     """Returns the first value of the specified column
 
     Parameters:
-        var: The column name to process. Must be numeric.
+        var: The column name to process.
 
     Returns:
         First value of selected column.
     """
 
     try:
-        drivedata.checkColumnsNumeric([var])
+        drivedata.checkColumns([var])
     except ColumnsMatchError:
         return None
     return drivedata.data.get_column(var).head(1).item()
@@ -183,13 +183,13 @@ def colLast(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
     """Returns the last value of the specified column
 
     Parameters:
-        var: The column name to process. Must be numeric.
+        var: The column name to process
 
     Returns:
         Last value of selected column.
     """
     try:
-        drivedata.checkColumnsNumeric([var])
+        drivedata.checkColumns([var])
     except ColumnsMatchError:
         return None
     return drivedata.data.get_column(var).tail(1).item()
@@ -231,13 +231,15 @@ def timeAboveSpeed(
 
     time = df.get_column("Duration").filter(df.get_column("Velocity") >= cutoff).sum()
     try:
-        total_time = df.get_column("SimTime").max() - df.get_column("SimTime").min()
+        total_time: float = float(df.get_column("SimTime").max()) - float(
+            df.get_column("SimTime").min()
+        )
     except TypeError:
         return None
     if percentage:
-        out = time / total_time
+        out: float = time / total_time
     else:
-        out = time
+        out: float = time
     return out
 
 
@@ -286,7 +288,9 @@ def timeWithinSpeedLimit(
     )
 
     if percentage:
-        total_time = df.get_column("SimTime").max() - df.get_column("SimTime").min()
+        total_time = float(df.get_column("SimTime").max()) - float(
+            df.get_column("SimTime").min()
+        )
         output = time / total_time
     else:
         output = time
@@ -327,8 +331,8 @@ def stoppingDist(
     )
 
     lineposition = (
-        df.get_column(roadtravelposition).min()
-        + df.get_column(roadtravelposition).max()
+        float(df.get_column(roadtravelposition).min())
+        + float(df.get_column(roadtravelposition).max())
     ) / 2
 
     if velocities.height == 0:
@@ -461,6 +465,80 @@ def _calculateReversals(df):
 
 
 @registerMetric()
+def steeringReversals(drivedata: pydre.core.DriveData) -> float:
+    """Steering reversals, as a count
+
+    Note: Requires data columns
+        - SimTime: simulation time
+        - Steer: orientation of steering wheel in radians
+
+    Returns:
+        total reversals in this ROI
+
+    """
+
+    required_col = ["SimTime", "Steer"]
+    # to verify if column is numeric
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+
+    df = drivedata.data.select([pl.col("SimTime"), pl.col("Steer")])
+    # convert to numpy and resample data to have even time steps (of 32Hz)
+    df = df.slice(1, None)
+    numpy_df = df.to_numpy()
+    original_time = numpy_df[:, 0]
+    original_steer = numpy_df[:, 1]
+
+    # 32Hz = 0.03125seconds
+    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
+    new_steer = np.interp(new_time, original_time, original_steer)
+    numpy_df = np.column_stack((new_time, new_steer))
+
+    # apply second order butterworth filter at 6z frequency
+    sos = signal.butter(2, 6, output="sos", fs=32)
+    theta_i = signal.sosfilt(sos, numpy_df[:, 1], zi=None)
+
+    # calcuate thetaI
+    theta_prime_i = np.diff(theta_i)
+    theta_prime_i = np.append(0, theta_prime_i)
+
+    # make column for i and combine with theta_prime_i column
+    i = np.arange(1, len(theta_prime_i) + 1)
+    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
+
+    # find all values of i where theta_prime_i is 0
+    df = pl.from_numpy(
+        df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row"
+    )
+    df_except_one = df.filter(df.get_column("i") > 1)
+    zeros = df_except_one.filter(df_except_one.get_column("thetaPrimeI") == 0).drop(
+        "thetaPrimeI"
+    )
+
+    # find values of i where difference between consequential signs of theta_prime_i is 2
+    sign_diff = df.with_columns(
+        df.get_column("thetaPrimeI").sign().diff(-1).alias("SignDiff")
+    )
+    diff_two = sign_diff.filter(
+        (sign_diff.get_column("SignDiff") == 2)
+        | (sign_diff.get_column("SignDiff") == -2)
+    ).drop(["SignDiff", "thetaPrimeI"])
+
+    # merge list of i's to get one sorted list of i's
+    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
+
+    # calculate total reversals
+    n_upwards = _calculateReversals(set_of_i[:, 1])
+    set_of_i_down = np.multiply(set_of_i[:, 1], -1)
+    n_downwards = _calculateReversals(set_of_i_down)
+    reversals = n_upwards + n_downwards
+
+    return reversals
+
+
+@registerMetric()
 def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
     """Steering reversal rate
 
@@ -474,8 +552,8 @@ def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
         reversals per minute
 
     """
-    #
     required_col = ["SimTime", "Steer"]
+
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
     drivedata.checkColumns(required_col)
@@ -541,7 +619,7 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
     """Calculates the time it takes to accelerate once follow car brakes (r2d)
 
     Note: Requires data columns
-        - SimTime: Simulation time in secondsSimTime: simulation time
+        - SimTime: Simulation time in seconds
         - FollowCarBraking Status: Whether the follow car is braking
         - LonAccel: Longitude acceleration
         - Brake: Whether the ownship is braking
@@ -599,11 +677,174 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
     return throttle_reaction_time
 
 
+# mean dip time
+# number of dips
+# median dip time
+@registerMetric(
+    columnnames=[
+        "meanDipTime",
+        "numDips",
+        "medianDipTime",
+    ]
+)
+def biopticDipMeasure(drivedata: pydre.core.DriveData):
+    required_col = ["SimTime", "hpBinary", "HeadPitch", "DipRegions"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        logger.warning("columns dont match in bioptics metric")
+        return [None, None, None]
+
+    df = drivedata.data.select(
+        [
+            pl.col("SimTime"),
+            pl.col("hpBinary"),
+            pl.col("DipRegions"),
+            pl.col("HeadPitch"),
+        ]
+    )
+
+    numDips = df.filter(df["hpBinary"] < 1).get_column("DipRegions").n_unique()
+
+    zeros_df = df.filter(pl.col("hpBinary") < 1)
+
+    duration_df = zeros_df.group_by("DipRegions").agg(
+        [(pl.col("SimTime").max() - pl.col("SimTime").min()).alias("Duration")]
+    )
+
+    meanDipTime = duration_df.get_column("Duration").mean()
+
+    medianDipTime = duration_df.get_column("Duration").median()
+    return [
+        meanDipTime,
+        numDips,
+        medianDipTime,
+    ]
+
+
+@registerMetric()
+def eventSpeedRecoveryTime(
+    drivedata: pydre.core.DriveData, op_speed=15.64, tolerance=4
+) -> Optional[float]:
+    """Calculates the time it takes to accelerate back up to 'operational speed' (op_speed)
+    tolerance allows for proper classification of subject behavior variation
+    (defaults parameterized for R2D study processing)
+
+    Note: Requires data columns
+        - SimTime: Simulation time in seconds
+        - Velocity: m/s directional speed of Subject
+
+    Returns:
+        Time in seconds from the start of the CE to when the Subject returned to (operational speed - tolerance)
+    """
+
+    required_col = ["SimTime", "Velocity"]
+    lower_bound = op_speed - tolerance
+
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except pl.exceptions.PolarsError:
+        return None
+
+    df = drivedata.data.select([pl.col("Velocity"), pl.col("SimTime"), pl.col("Brake")])
+
+    # filter df, so we take recovery time after initial slow-down
+    try:
+        df = df.filter(
+            pl.col("SimTime")
+            > df.filter(pl.col("Velocity") < lower_bound).get_column("SimTime").item(0)
+        )
+    except IndexError:
+        logger.warning(
+            f"Velocity doesn't drop below {lower_bound} m/s for roi {drivedata.roi} in file {drivedata.sourcefilename}"
+        )
+        return "NoSlowDown"
+
+    # initial time once velocity reading below lower threshold
+    initial_time = df.get_column("SimTime").item(0)
+
+    recover_cond = pl.col("Velocity") >= lower_bound
+    recover_time = df.filter(recover_cond).select(pl.col("SimTime").first()).item()
+
+    if recover_time is not None:
+        return recover_time - initial_time
+    else:
+        max_velo = df.select(pl.max("Velocity").first()).item()
+        logger.warning(
+            f"No recovery detected during this event - returned to max speed of {max_velo} m/s"
+        )
+        return "NoRecover"
+
+
+@registerMetric()
+def eventRecenterRecoveryTime(
+    drivedata: pydre.core.DriveData, tolerance=0.65, event_detect="Trash"
+) -> Optional[float]:
+    """Calculates the time it takes to recenter in lane after specific event occurences
+    tolerance allows for proper classification of subject behavior variation
+
+    Note: Requires data columns
+        - EventName: The name of the critical event for this region
+        - LaneOffset: meters of Subject from center of their lane
+        - SimTime: Simulation time in seconds
+
+    Returns:
+        Time in seconds from when the Subject left (lane_offset +- tolerance )
+        to when the Subject returned to (lane_offset +- tolerance)
+    """
+
+    required_col = ["EventName", "LaneOffset", "SimTime"]
+
+    try:
+        drivedata.checkColumns(required_col)
+    except pl.exceptions.PolarsError:
+        return None
+
+    df = drivedata.data.select(
+        [pl.col("EventName"), pl.col("LaneOffset"), pl.col("SimTime")]
+    )
+
+    contains_trash = df.filter(pl.col("EventName").str.contains(event_detect))
+
+    if contains_trash.height > 0:
+        # filter df, breach "tolerance"
+        try:
+            df = df.filter(
+                pl.col("SimTime")
+                > df.filter(pl.col("LaneOffset").abs() > tolerance)
+                .get_column("SimTime")
+                .item(0)
+            )
+        except IndexError:
+            logger.warning(
+                f"Subject does not breach {tolerance} m lane offset for roi {drivedata.roi} in file {drivedata.sourcefilename}"
+            )
+            return "NoSwerve"
+
+        # initial time once velocity reading below lower threshold
+        initial_time = df.get_column("SimTime").item(0)
+        recover_cond = pl.col("LaneOffset").abs() <= tolerance
+        recover_time = df.filter(recover_cond).select(pl.col("SimTime").first()).item()
+
+        if recover_time is not None:
+            return recover_time - initial_time
+        else:
+            min_offset = df.select(pl.col("LaneOffset").abs().min().first()).item()
+            logger.warning(
+                f"No recovery detected during this event - returned to min offset of {min_offset} m"
+            )
+            return "NoRecover"
+    else:
+        return None  # situation not Trashtip event, ignore
+
+
 @registerMetric()
 def maxAcceleration(drivedata: pydre.core.DriveData) -> Optional[float]:
-    required_col = ["LatAccel", "LonAccel", "SimTime"]
+    required_col = ["LatAccel", "LonAccel"]
 
     drivedata.checkColumnsNumeric(required_col)
+    # issue with R2D part: 5210006w1 Load, No Event. SimTime is col type "str".
+    drivedata.checkColumns(["SimTime"])
 
     df = drivedata.data.select(
         [pl.col("LatAccel"), pl.col("LonAccel"), pl.col("SimTime")]
@@ -630,6 +871,7 @@ def laneExits(drivedata: pydre.core.DriveData, lane=2, lane_column="Lane"):
     )
 
 
+@registerMetric()
 def laneViolations(
     drivedata: pydre.core.DriveData,
     offset: str = "LaneOffset",
@@ -638,16 +880,28 @@ def laneViolations(
     lane_width: float = 3.65,
     car_width: float = 2.1,
 ):
-    drivedata.checkColumnsNumeric([lane_column])
+    df = drivedata.data
+    # df.checkColumnsNumeric([lane_column])
     # tolerance is the maximum allowable offset deviation from 0
     tolerance = lane_width / 2 - car_width / 2
-    lane_data = drivedata.data.filter(pl.col(lane_column) == 2)
-    lane_data = lane_data.with_columns(
-        pl.col(offset).abs().is_between(upper_bound=tolerance)
+    # Determine which rows are violations
+    df = df.with_columns(
+        ((pl.col(offset) > tolerance) | (pl.col(offset) < -tolerance)).alias(
+            "violation"
+        )
     )
 
-    is_violating = lane_data.get_column(offset).abs() > tolerance
-    return is_violating.diff().clip_min(0).sum()
+    df = df.with_columns(
+        (pl.col("violation") != pl.col("violation").shift(1)).alias("transition")
+    )
+
+    # Filter to keep only the rows where a transition occurs
+    transitions = df.filter(pl.col("transition") == True)
+
+    # Count the number of transitions from non-violation to violation
+    violation_starts = transitions.filter(pl.col("violation") == True).shape[0]
+
+    return violation_starts
 
 
 def laneViolationDuration(
@@ -1109,6 +1363,29 @@ def reactionBrakeFirstTrue(
 
 
 @registerMetric()
+def reactionCheckVarVal(
+    drivedata: pydre.core.DriveData, var: str, val: float
+) -> Optional[float]:
+    required_col = [var, "SimTime"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+
+    try:
+        df = drivedata.data.filter(pl.col(var) < val)
+    except pl.exceptions.ComputeError as e:
+        logger.warning("Brake value non-numeric in {}".format(drivedata.sourcefilename))
+        return None
+    if drivedata.data.height == 0 or df.height == 0:
+        return None
+    return (
+        df.select("SimTime").head(1).item()
+        - drivedata.data.select("SimTime").head(1).item()
+    )
+
+
+@registerMetric()
 def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1: str, var2: str):
     required_col = [var1, var2, "SimTime"]
     try:
@@ -1127,6 +1404,72 @@ def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1: str, var2: str)
             df.select("SimTime").head(1).item()
             - drivedata.data.select("SimTime").head(1).item()
         )
+
+
+@registerMetric()
+def reactionTimeEventTrueR2D(
+    drivedata: pydre.core.DriveData, var1: str, var2: str, val1: float, val2: float
+):
+    required_col = [var1, var2, "SimTime"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    first_metric_reaction = reactionCheckVarVal(drivedata, var1, val1)
+
+    if first_metric_reaction:
+        return first_metric_reaction
+    else:
+        df = drivedata.data.filter(abs(pl.col(var2)) >= val2)
+        if drivedata.data.height == 0 or df.height == 0:
+            return None
+        return (
+            df.select("SimTime").head(1).item()
+            - drivedata.data.select("SimTime").head(1).item()
+        )
+
+
+@registerMetric()
+def timeToOutsideThreshold(
+    drivedata: pydre.core.DriveData,
+    var: str,
+    threshold_low: float = -100000,
+    threshold_high: float = 100000,
+):
+    """
+    Checks a column "var" values to ensure they are within range
+    [threshold_low: threshold_high]
+
+    threshold_low &  threshold_high are set to extreme numbers by default to
+    ensure users don't have to define irrelevant bounds. Calculates a reaction
+    time for the first occurence of a threshold violation.
+
+    :arg var: column name to check for reaction
+    :arg threshold_low: the value that defines a reaction
+        for the given column, if lower
+    :arg threshold_high: the value that defines a reaction
+        for the given column, if higher
+    """
+    required_col = [var, "SimTime"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    try:
+        df = drivedata.data.filter(pl.col(var) < threshold_low)
+    except pl.exceptions.ComputeError as e:
+        logger.warning(f"{var} value non-numeric in {drivedata.sourcefilename} --> {e}")
+        return None
+    # no lower threshold violation, check upper threshold
+    if drivedata.data.height == 0 or df.height == 0:
+        df = drivedata.data.filter(pl.col(var) > threshold_high)
+        if df.height == 0:
+            # no threshold violations for given bounds
+            return None
+    return (
+        df.select("SimTime").head(1).item()
+        - drivedata.data.select("SimTime").head(1).item()
+    )
 
 
 """
@@ -1203,33 +1546,34 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff=1, steer_cutoff=0
     return reactionTime
 
 
-@registerMetric()
+@registerMetric("criticalEventStartPos", ["ceName", "ceStartPos"])
 def criticalEventStartPos(drivedata: pydre.core.DriveData):
     required_col = ["XPos"]
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
+    required_col.append("EventName")
     drivedata.checkColumns(required_col)
+    df = drivedata.data
+    return df.get_column("XPos").item(0), df.get_column("EventName").item(0)
 
-    df = drivedata.data.select(pl.col("XPos"))
-    return df.get_column("XPos").item(0)
 
-
-@registerMetric()
+@registerMetric("criticalEventEndPos", ["ceName", "ceEndPos"])
 def criticalEventEndPos(drivedata: pydre.core.DriveData):
     required_col = ["XPos"]
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
+    required_col.append("EventName")
     drivedata.checkColumns(required_col)
 
-    df = drivedata.data.select(pl.col("XPos"))
-    return df.get_column("XPos").item(-1)
+    df = drivedata.data
+    return df.get_column("XPos").item(-1), df.get_column("EventName").item(-1)
 
 
 @registerMetric(
     "R2DIDColumns", ["ParticipantID", "MatchID", "Case", "Location", "Gender", "Week"]
 )
 def R2DIDColumns(drivedata: pydre.core.DriveData):
-    ident = drivedata.PartID
+    ident = drivedata.metadata["ParticipantID"]
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
         logger.warning("Could not parse R2D ID " + ident)
@@ -1261,4 +1605,4 @@ def R2DIDColumns(drivedata: pydre.core.DriveData):
         gender = "Female"
     match_id = ident_groups.group(4)
     week = ident_groups.group(5)
-    return week, participant_id, match_id, case, location, gender
+    return participant_id, match_id, case, location, gender, week

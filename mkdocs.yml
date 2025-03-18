@@ -34,12 +34,16 @@ markdown_extensions:
 nav:
   - Home: 'index.md'
   - Tutorial:
-      - Getting Started: 'tutorial/getting_started.md'
+    - Installation: 'tutorial/installation.md'
+    - Getting Started: 'tutorial/getting_started.md'
+    - Custom metrics: 'tutorial/custom_metrics.md'
   - Reference:
     - Filter definitions: 'reference/filters.md'
     - Metric definitions: 'reference/metrics.md'
     - SAE Standards: 'reference/metricStandards.md'
   - Explanation:
+    - Execution: 'explanation/execution.md'
     - Project files: 'explanation/project_files.md'
     - Regions of Interest: 'explanation/rois.md'
     - Developer Notes: 'explanation/developernotes.md'
+  - Contributing: 'contrib.md'

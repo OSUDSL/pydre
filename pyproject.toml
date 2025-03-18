@@ -1,6 +1,6 @@
 [project]
 name = "pydre"
-version = "24.0.3"
+version = "25.1"
 readme = "readme.md"
 dependencies = [
     "polars",
@@ -8,7 +8,8 @@ dependencies = [
     "scipy",
     "icecream",
     "tqdm",
-    "loguru"
+    "loguru",
+    "jenkspy"
 ]
 requires-python = ">= 3.12"
 authors = [ {name = "Thomas Kerwin", email = "kerwin.6@osu.edu"} ]
@@ -32,6 +33,21 @@ pydre-run = "pydre:run"
 Documentation = "https://osudsl.github.io/pydre/"
 Repository = "https://github.com/OSUDSL/pydre"
 
+[dependency-groups]
+dev = [
+    "ptpython",
+    "mkdocs>=1.6.0",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "black",
+    "mypy",
+    "pytest>=8.3.2",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-datafiles",
+    "griffe==1.2.0"
+]
+
 [tool.rye]
 managed = true
 dev-dependencies = [
@@ -40,14 +56,17 @@ dev-dependencies = [
     "mkdocs-material",
     "mkdocstrings[python]",
     "black",
+    "mypy",
     "pytest>=8.3.2",
+    "pytest-cov",
+    "pytest-mock",
     "pytest-datafiles",
     "griffe==1.2.0"
 ]
 
 # Build System
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.26.3"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
@@ -55,5 +74,6 @@ packages = ["src/pydre"]
 
 [tool.pytest.ini_options]
 addopts = [
+    "--cov=src/pydre",
     "--import-mode=importlib",
 ]

@@ -1,18 +1,19 @@
 from loguru import logger
-from typing import Optional, Callable
+from typing import Optional, Callable, Concatenate
 
 __all__ = ["common", "eyetracking", "R2D"]
 
 import pydre.core
 
-filtersList = {}
-filtersColNames = {}
+filtersList: dict[
+    str, Callable[Concatenate[pydre.core.DriveData, ...], pydre.core.DriveData]
+] = {}
 
 
 def registerFilter(filtername: Optional[str] = None) -> Callable:
     def registering_decorator(
-        func: Callable[[pydre.core.DriveData, ...], pydre.core.DriveData],
-    ) -> Callable[[pydre.core.DriveData, ...], pydre.core.DriveData]:
+        func: Callable[Concatenate[pydre.core.DriveData, ...], pydre.core.DriveData],
+    ) -> Callable[Concatenate[pydre.core.DriveData, ...], pydre.core.DriveData]:
         name = filtername
         if not name:
             name = func.__name__

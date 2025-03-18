@@ -27,7 +27,7 @@ This is the primary unit of data storage for the module. DriveData objects are i
 
 # Project objects
 
-This is where the processing actually takes place. A project is constructed by reading in a project file (either JSON or TOML). 
+This is where the processing actually takes place. A project is constructed by reading in a project file. 
 
 ## Tips for Writing New Metrics
 

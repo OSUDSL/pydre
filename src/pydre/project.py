@@ -1,4 +1,7 @@
+import copy
 import json
+import traceback
+from os import PathLike
 
 import polars as pl
 import re
@@ -8,6 +11,7 @@ from typing import Optional
 import pydre.core
 import pydre.rois
 import pydre.metrics
+from pydre.core import DriveData
 from pydre.metrics import *
 import pydre.filters
 from pydre.filters import *
@@ -16,16 +20,24 @@ from pathlib import Path
 from loguru import logger
 from tqdm import tqdm
 import concurrent.futures
+import importlib.util
 
 
 class Project:
     project_filename: Path  # used only for information
     definition: dict
     results: Optional[pl.DataFrame]
+    filelist: list[Path]
 
-    def __init__(self, projectfilename: str):
+    def __init__(
+        self,
+        projectfilename: str,
+        additional_data_paths: Optional[list[str]] = None,
+        outputfile: Optional[str] = None,
+    ):
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
+        self.config = {}
         self.results = None
         try:
             with open(self.project_filename, "rb") as project_file:
@@ -65,6 +77,20 @@ class Project:
                                 self.definition["filters"]
                             )
                         )
+                    if "config" in self.definition.keys():
+                        self.config = self.definition["config"]
+                    extraKeys = set(self.definition.keys()) - {
+                        "filters",
+                        "rois",
+                        "metrics",
+                        "config",
+                    }
+
+                    if len(extraKeys) > 0:
+                        logger.warning(
+                            "Found unhandled keywords in project file:" + str(extraKeys)
+                        )
+
                     self.definition = new_definition
                 else:
                     logger.error("Unsupported project file type")
@@ -73,14 +99,39 @@ class Project:
             logger.error(f"File '{projectfilename}' not found.")
             raise e
 
-        self.data = []
+        if additional_data_paths is not None:
+            self.config["datafiles"] = (
+                self.config.get("datafiles", []) + additional_data_paths
+            )
+
+        if "outputfile" in self.config:
+            if outputfile is not None:
+                self.config["outputfile"] = outputfile
+        else:
+            if outputfile is not None:
+                self.config["outputfile"] = outputfile
+            else:
+                self.config["outputfile"] = "out.csv"
+
+        if len(self.config.get("datafiles", [])) == 0:
+            logger.error("No datafile found in project definition.")
+
+        self._load_custom_functions()
+
+        # resolve the file paths
+        self.filelist = []
+        for fn in self.config.get("datafiles", []):
+            # convert relative path to absolute path
+            datapath = pathlib.Path(fn).resolve()
+            datafiles = datapath.parent.glob(datapath.name)
+            self.filelist.extend(datafiles)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return (
                 self.definition == other.definition
-                and self.data == other.data
                 and self.results == other.results
+                and self.config == other.config
             )
         else:
             return False
@@ -93,42 +144,91 @@ class Project:
             new_def.append(v)
         return new_def
 
-    def __load_single_datfile(self, filename: Path) -> pydre.core.DriveData:
-        """Load a single .dat file (space delimited csv) into a DriveData object"""
-        d = pl.read_csv(
-            filename,
-            separator=" ",
-            null_values=".",
-            truncate_ragged_lines=True,
-            infer_schema_length=5000,
-        )
-        datafile_re_format0 = re.compile(
-            "([^_]+)_Sub_(\\d+)_Drive_(\\d+)(?:.*).dat"
-        )  # old format
-        datafile_re_format1 = re.compile(
-            "([^_]+)_([^_]+)_([^_]+)_(\\d+)(?:.*).dat"
-        )  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
-        match_format0 = datafile_re_format0.search(str(filename))
+    def _load_custom_functions(self):
+        """
+        Process custom metrics and filters directories specified in the config and load metrics.
+        """
+        custom_metrics_dirs = self.config.get("custom_metrics_dirs", [])
 
-        if match_format0:
-            experiment_name, subject_id, drive_id = match_format0.groups()
-            drive_id = int(drive_id) if drive_id and drive_id.isdecimal() else None
-            return pydre.core.DriveData.initV2(d, filename, subject_id, drive_id)
-        elif match_format1 := datafile_re_format1.search(filename.name):
-            mode, subject_id, scen_name, unique_id = match_format1.groups()
-            return pydre.core.DriveData.initV4(
-                d, filename, subject_id, unique_id, scen_name, mode
-            )
+        if isinstance(custom_metrics_dirs, str):
+            custom_metrics_dirs = [custom_metrics_dirs]
+
+        for metrics_dir in custom_metrics_dirs:
+            metrics_path = self.resolve_file(metrics_dir)
+            if not metrics_path.exists():
+                logger.warning(f"Custom metrics directory not found: {metrics_path}")
+                continue
+
+            logger.info(f"Loading custom metrics from: {metrics_path}")
+
+            # Process all Python files in the directory
+            for metrics_file in metrics_path.glob("*.py"):
+                try:
+                    # Create a module name
+                    module_name = f"custom_metrics_{metrics_file.stem}"
+                    spec = importlib.util.spec_from_file_location(
+                        module_name, metrics_file
+                    )
+                    if spec is None or spec.loader is None:
+                        logger.error(f"Could not load spec for {metrics_file}")
+                        continue
+
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+
+                    # The @registerMetric decorator will automatically register the metrics
+                    logger.info(f"Successfully loaded metrics from {metrics_file}")
+                except Exception as e:
+                    logger.exception(
+                        f"Error loading custom metrics from {metrics_file}: {e}"
+                    )
+
+        custom_filters_dirs = self.config.get("custom_filters_dirs", [])
+
+        if isinstance(custom_filters_dirs, str):
+            custom_filters_dirs = [custom_filters_dirs]
+        for filters_dir in custom_filters_dirs:
+            filters_path = self.resolve_file(filters_dir)
+            if not filters_path.exists():
+                logger.warning(f"Custom filters directory not found: {filters_path}")
+                continue
+            logger.info(f"Loading custom filters from: {filters_path}")
+            for filters_file in filters_path.glob("*.py"):
+                try:
+                    module_name = f"custom_filters_{filters_file.stem}"
+                    spec = importlib.util.spec_from_file_location(
+                        module_name, filters_file
+                    )
+                    if spec is None or spec.loader is None:
+                        logger.error(f"Could not load spec for {filters_file}")
+                        continue
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+                    logger.info(f"Successfully loaded filters from {filters_file}")
+                except Exception as e:
+                    logger.exception(
+                        f"Error loading custom filters from {filters_file}: {e}"
+                    )
+
+    def resolve_file(self, pathname: PathLike) -> pathlib.Path:
+        """Resolve the given file to an absolute path based on the project file location.
+        Args:
+            pathname: A string or Path object.
+        Returns:
+            A pathlib.Path object representing the resolved metrics directory.
+        """
+        computed_path = pathlib.Path(pathname)
+        if computed_path.is_absolute():
+            computed_path = computed_path.resolve()
         else:
-            logger.warning(
-                "Drivedata filename {} does not an expected format.".format(filename)
-            )
-            return pydre.core.DriveData(d, filename)
+            computed_path = pathlib.Path(
+                self.project_filename.parent / computed_path
+            ).resolve()
+        return computed_path
 
-    # testing
-
+    @staticmethod
     def processROI(
-        self, roi: dict, datafile: pydre.core.DriveData
+        roi: dict, datafile: pydre.core.DriveData
     ) -> list[pydre.core.DriveData]:
         """
         Handles running region of interest definitions for a dataset
@@ -140,10 +240,14 @@ class Project:
         Returns:
                 A list of drivedata objects containing the data for each region of interest
         """
+        roi_obj: pydre.rois.ROIProcessor
         roi_type = roi["type"]
         if roi_type == "time":
             logger.info("Processing time ROI " + roi["filename"])
-            roi_obj = pydre.rois.TimeROI(roi["filename"])
+            if "timecol" in roi:
+                roi_obj = pydre.rois.TimeROI(roi["filename"], roi["timecol"])
+            else:
+                roi_obj = pydre.rois.TimeROI(roi["filename"])
         elif roi_type == "rect":
             logger.info("Processing space ROI " + roi["filename"])
             roi_obj = pydre.rois.SpaceROI(roi["filename"])
@@ -155,19 +259,21 @@ class Project:
             return [datafile]
         return roi_obj.split(datafile)
 
+    @staticmethod
     def processFilter(
-        self, datafilter: dict, datafile: pydre.core.DriveData
+        datafilter: dict, datafile: pydre.core.DriveData
     ) -> pydre.core.DriveData:
         """
         Handles running any filter definition
 
         Args:
             datafilter: A dict containing the function of a filter and the parameters to process it
+            datafile: drive data object to process with the filter
 
         Returns:
             The augmented DriveData object
         """
-        ldatafilter = datafilter.copy()
+        ldatafilter = copy.deepcopy(datafilter)
         try:
             func_name = ldatafilter.pop("function")
             filter_func = pydre.filters.filtersList[func_name]
@@ -183,13 +289,17 @@ class Project:
 
     def processMetric(self, metric: dict, dataset: pydre.core.DriveData) -> dict:
         """
+        Handles running any metric definition
 
-        :param metric:
-        :param dataset:
-        :return:
+        Args:
+            metric: A dict containing the function of a metric and the parameters to process it
+            dataset: drive data object to process with the metric
+
+        Returns:
+            A dictionary containing the results of the metric
         """
 
-        metric = metric.copy()
+        metric = copy.deepcopy(metric)
         try:
             func_name = metric.pop("function")
             metric_func = pydre.metrics.metricsList[func_name]
@@ -203,30 +313,28 @@ class Project:
 
         metric_dict = dict()
         if len(col_names) > 1:
-            x = [metric_func(dataset, **metric)]
-            report = pl.DataFrame(x, schema=col_names, orient="row")
-            for i in range(len(col_names)):
-                name = col_names[i - 1]
-                data = x[0][i]
-                metric_dict[name] = data
+            x = metric_func(dataset, **metric)
+            metric_dict = dict(zip(col_names, x))
         else:
             # report = pl.DataFrame(
             #    [metric_func(dataset, **metric) ], schema=[report_name, ])
             metric_dict[report_name] = metric_func(dataset, **metric)
         return metric_dict
 
-    # remove any parenthesis, quote mark and un-necessary directory names from a str
-    def __clean(self, string):
-        return string.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
+    @staticmethod
+    def __clean(src_str: str) -> str:
+        """
+        Remove any parenthesis, quote mark and un-necessary directory names from a string
+        """
+        return (
+            src_str.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
+        )
 
-    def processDatafiles(
-        self, datafilenames: list[Path], numThreads: int = 12
-    ) -> Optional[pl.DataFrame]:
+    def processDatafiles(self, numThreads: int = 12) -> Optional[pl.DataFrame]:
         """Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
 
         Args:
-                datafilenames: a list of filename strings (SimObserver .dat files)
-                numThreads: number of threads to run simultaneously in the thread pool
+            numThreads: number of threads to run simultaneously in the thread pool
 
         Returns:
             metrics data for all metrics, or None on error
@@ -235,22 +343,14 @@ class Project:
         if "metrics" not in self.definition:
             logger.critical("No metrics in project file. No results will be generated")
             return None
-        self.raw_data = []
-        result_dataframe = pl.DataFrame()
         results_list = []
-        # for datafilename in tqdm(datafilenames, desc="Loading files"):
-
-        # with concurrent.futures.ThreadPoolExecutor(max_workers=numThreads) as executor:
-        #    for result in executor.map(self.processSingleFile, datafilenames):
-        #        for result_dict in result:
-        #            results_list.append(result_dict)
-        with tqdm(total=len(datafilenames)) as pbar:
+        with tqdm(total=len(self.filelist)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=numThreads
             ) as executor:
                 futures = {
                     executor.submit(self.processSingleFile, singleFile): singleFile
-                    for singleFile in datafilenames
+                    for singleFile in self.filelist
                 }
                 results = {}
                 for future in concurrent.futures.as_completed(futures):
@@ -258,35 +358,43 @@ class Project:
                     try:
                         results[arg] = future.result()
                     except Exception as exc:
-                        executor.shutdown(cancel_futures=True)
+                        logger.error("problem with running {}".format(arg))
                         logger.critical("Unhandled Exception {}".format(exc))
-                        sys.exit(1)
+                        logger.error(traceback.format_exc())
 
                     results_list.extend(future.result())
                     pbar.update(1)
+        if len(results_list) == 0:
+            logger.error("No results found; no metrics data generated")
         result_dataframe = pl.from_dicts(results_list)
 
-        result_dataframe = result_dataframe.with_columns(
-            pl.col("Subject").cast(pl.String),
-            pl.col("ScenarioName").cast(pl.String),
-            pl.col("ROI").cast(pl.String),
-        )
-
-        # Would just use try/except but polars throws overly alarming PanicException
-        sorting_columns = ["Subject", "ScenarioName", "ROI"]
-        # sorting_columns = [col for col in sorting_columns if col in result_dataframe.dtypes ]
-
-        try:
-            result_dataframe = result_dataframe.sort(sorting_columns)
-        except pl.exceptions.PanicException as e:
-            logger.warning("Can't sort results, must be missing a column.")
+        # sorting_columns = ["Subject", "ScenarioName", "ROI"]
+        # try:
+        #    result_dataframe = result_dataframe.sort(sorting_columns)
+        # except pl.exceptions.PanicException as e:
+        #    logger.warning("Can't sort results, must be missing a column.")
 
         self.results = result_dataframe
         return result_dataframe
 
     def processSingleFile(self, datafilename: Path):
-        logger.info("Loading file #{}: {}".format(len(self.raw_data), datafilename))
-        datafile = self.__load_single_datfile(datafilename)
+        logger.info("Loading file {}".format(datafilename))
+        if "datafile_type" in self.config:
+            if self.config["datafile_type"] == "rti":
+                datafile = DriveData.init_rti(datafilename)
+            elif self.config["datafile_type"] == "oldrti":
+                datafile = DriveData.init_old_rti(datafilename)
+            elif self.config["datafile_type"] == "scanner":
+                datafile = DriveData.init_scanner(datafilename)
+            else:
+                logger.warning(
+                    f"Unknown datafile type {self.config['datafile_type']}, processing as RTI .dat file."
+                )
+                datafile = DriveData.init_rti(datafilename)
+        else:
+            datafile = DriveData.init_rti(datafilename)
+
+        datafile.loadData()
         roi_datalist = []
         results_list = []
 
@@ -315,24 +423,19 @@ class Project:
 
         else:
             # no ROIs to process, but that's OK
-            logger.warning("No ROIs, processing raw data.")
+            logger.warning("No ROIs defined, processing raw data.")
             roi_datalist.append(datafile)
 
-        # if len(roi_datalist) == 0:
-        # logger.warning("No ROIs found in {}".format(datafilename))
-        roi_processed_metrics = []
+        if len(roi_datalist) == 0:
+            logger.warning(
+                "Qualifying ROIs fail to generate results for {}, no output generated.".format(
+                    datafilename
+                )
+            )
+            return []
+
         for data in roi_datalist:
-            result_dict = {"Subject": data.PartID}
-            if (
-                data.format_identifier == 2
-            ):  # these drivedata object was created from an old format data file
-                result_dict["DriveID"] = datafile.DriveID
-            elif (
-                data.format_identifier == 4
-            ):  # these drivedata object was created from a new format data file ([mode]_[participant id]_[scenario name]_[uniquenumber].dat)
-                result_dict["Mode"] = self.__clean(str(data.mode))
-                result_dict["ScenarioName"] = self.__clean(str(data.scenarioName))
-                result_dict["UniqueID"] = self.__clean(str(data.UniqueID))
+            result_dict = copy.deepcopy(datafile.metadata)
             result_dict["ROI"] = data.roi
 
             for metric in self.definition["metrics"]:
@@ -349,7 +452,7 @@ class Project:
             results_list.append(result_dict)
         return results_list
 
-    def saveResults(self, outfilename: pathlib.Path):
+    def saveResults(self):
         """
         Args:
             outfilename: filename to output csv data to.
@@ -357,6 +460,6 @@ class Project:
             The filename specified will be overwritten automatically.
         """
         try:
-            self.results.write_csv(outfilename)
+            self.results.write_csv(self.config["outputfile"])
         except AttributeError:
             logger.error("Results not computed yet")

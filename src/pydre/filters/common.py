@@ -6,6 +6,7 @@ import polars as pl
 import pydre.core
 from typing import Optional
 from . import registerFilter
+import jenkspy
 
 
 @registerFilter()
@@ -39,13 +40,14 @@ def numberBinaryBlocks(
     new_dd = drivedata.data.with_columns(
         (pl.col(binary_column).shift() != pl.col(binary_column))
         .cum_sum()
-        .alias(new_column))
+        .alias(new_column)
+    )
 
     # drivedata.data.hstack(blocks, in_place=True)
     if only_on:
         try:
             new_dd = new_dd.filter(pl.col(binary_column) == 1)
-            new_dd = new_dd.with_columns((pl.col(new_column)+1.0)/2.0)
+            new_dd = new_dd.with_columns((pl.col(new_column) + 1.0) / 2.0)
         except pl.exceptions.ComputeError as e:
             logger.warning(
                 "Assumed binary column {} in {} has non-numeric value.".format(
@@ -66,6 +68,40 @@ def numberBinaryBlocks(
         new_dd = new_dd.filter(pl.col(new_column).is_not_null())
 
     drivedata.data = new_dd
+    return drivedata
+
+
+@registerFilter()
+def Jenks(
+    drivedata: pydre.core.DriveData, oldCol: str, newCol: str
+) -> pydre.core.DriveData:
+    """
+    Classifies the given column using Jenks natural breaks and outputs a binary column.
+
+    Parameters:
+        drivedata: The DriveData object containing the data.
+        oldCol: The name of the column to classify (should be 'headPitch').
+        newCol: The name of the new binary column to be created (e.g., 'hpBinary').
+
+    Returns:
+        Updated DriveData object with the new binary column.
+    """
+    # Ensure the required column exists
+    required_col = [oldCol]
+    drivedata.checkColumns(required_col)
+
+    # Extract the data from the specified column
+    head_pitch_values = drivedata.data[oldCol].to_list()
+
+    # Determine Jenks breaks
+    breaks = jenkspy.jenks_breaks(head_pitch_values, n_classes=2)
+
+    # Assign binary values based on the breaks
+    new_data = drivedata.data.with_columns(
+        pl.when(pl.col(oldCol) <= breaks[1]).then(0).otherwise(1).alias(newCol)
+    )
+
+    drivedata.data = new_data
     return drivedata
 
 
@@ -218,9 +254,11 @@ def speedLimitTransitionMarker(
 def writeToCSV(
     drivedata: pydre.core.DriveData, outputDirectory: str
 ) -> pydre.core.DriveData:
+    logger.warning("Starting to write to CSV file")
     sourcefilename = Path(drivedata.sourcefilename).stem
     outputfilename = Path(outputDirectory).with_stem(sourcefilename).with_suffix(".csv")
     drivedata.data.write_csv(outputfilename)
+    logger.info(f"Wrote {outputfilename}")
     return drivedata
 
 
@@ -240,3 +278,114 @@ def filetimeToDatetime(ft: int) -> Optional[datetime.datetime]:
 
 def mergeSplitFiletime(hi: int, lo: int):
     return struct.unpack("Q", struct.pack("LL", lo, hi))[0]
+
+
+@registerFilter()
+def removeDataOutside(
+    drivedata: pydre.core.DriveData, col: str, lower: float, upper: float
+) -> pydre.core.DriveData:
+    """
+    Params:
+    col: The name of the column to filter data
+    lower: lower bound to filter
+    upper: upper bound to filter
+    """
+    """
+    Removes data outside a certain range for a certain variable. 
+    """
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    filtered_data = drivedata.data.filter(
+        ~((pl.col(col) >= lower) & (pl.col(col) <= upper))
+    )
+
+    drivedata.data = filtered_data
+
+    return drivedata
+
+
+@registerFilter()
+def removeDataInside(
+    drivedata: pydre.core.DriveData, col: str, lower: float, upper: float
+) -> pydre.core.DriveData:
+    """
+    Params:
+    col: The name of the column to filter data
+    lower: lower bound to filter
+    upper: upper bound to filter
+    """
+    """
+    Removes data inside a certain range for a certain variable. 
+    """
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    filtered_data = drivedata.data.filter(
+        ~((pl.col(col) >= upper) & (pl.col(col) <= lower))
+    )
+
+    drivedata.data = filtered_data
+
+    return drivedata
+
+
+@registerFilter()
+def separateData(
+    drivedata: pydre.core.DriveData,
+    col: str,
+    threshold: float,
+    high: int = 1,
+    low: int = 0,
+) -> pydre.core.DriveData:
+    """
+    Categorizes head pitch data into high and low based on a manually defined threshold.
+
+    Params:
+    col: The column containing head pitch values
+    threshold: The value that separates high and low pitch
+    high: Value assigned to "high" pitch (1)
+    low: Value assigned to "low" pitch (0)
+    """
+
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    logger.info("Running separateData")
+
+    # create new column based on threshold
+    new_data = drivedata.data.with_columns(
+        (
+            pl.when(pl.col(col) >= threshold)
+            .then(high)
+            .otherwise(low)
+            .alias(f"{col}_categorized")
+        )
+    )
+
+    drivedata.data = new_data
+    return drivedata
+
+
+@registerFilter()
+def filterValuesBelow(
+    drivedata: pydre.core.DriveData, col: str, threshold=1
+) -> pydre.core.DriveData:
+    """
+    Filters out device adjustemnt at the start. (Should filter out velocities below 1 m/s)
+
+    Params:
+    col: The column to filter
+    threshold: The value to filter above (1 m/s default)
+    """
+
+    required_col = [col]
+    drivedata.checkColumns(required_col)
+
+    logger.info("Running filterValuesBelow")
+
+    filtered_data = drivedata.data.filter(pl.col(col) >= threshold)
+
+    drivedata.data = filtered_data
+
+    return drivedata
