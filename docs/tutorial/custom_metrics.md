@@ -75,7 +75,7 @@ def internal_function_name(drivedata: pydre.core.DriveData) -> float:
 
 ### 1. Create a Custom Metrics Directory
 
-Create a directory for your custom metrics outside the Pydre repository:
+Create a directory for your custom metrics (outside the Pydre repository):
 
 ```
 my_project/
@@ -86,7 +86,17 @@ my_project/
 └── project_config.toml
 ```
 
-### 2. Write Your Custom Metrics
+### 2. Set up your directory to use pydre
+
+```bash
+cd my_project
+rye add pydre
+rye sync
+```
+
+This will initialize the directory like a python package using *rye* and the pydre package. This will use the latest [published version of *pydre*](https://pypi.org/project/pydre/) from PyPI. If you want to use the latest development version of *pydre*, you can clone the repository and add it as a dependency instead.
+
+### 3. Write Your Custom Metrics
 
 Create a Python file (e.g., `my_metrics.py`) in your custom metrics directory. Your metrics should use the `@registerMetric()` decorator:
 
@@ -114,9 +124,9 @@ def averageSpeed(drivedata: pydre.core.DriveData) -> Optional[float]:
     return drivedata.data.select(pl.col("Velocity").mean()).item()
 ```
 
-### 3. Configure Your Project File
+### 4. Configure Your Project File
 
-Update your project configuration file to include the custom metrics directory. This direc
+Update your project configuration file to include the custom metrics directory. 
 
 ```toml
 [config]
@@ -124,14 +134,9 @@ datafiles = ["data/drive_data.dat"]
 outputfile = "results.csv"
 custom_metrics_dirs = ["custom_metrics"]
 
-[[metrics]]
-name = "avg_speed"
+[metric.avgSpeed]
 function = "averageSpeed"
 
-[[rois]]
-name = "full_drive"
-type = "time"
-filename = "data/drive_times.csv"
 ```
 
 ### 4. Run Pydre with Your Custom Metrics
@@ -139,7 +144,7 @@ filename = "data/drive_times.csv"
 Run Pydre with your project file:
 
 ```bash
-pydre -p project_config.toml
+python -m pydre.run -p project_config.toml
 ```
 
 ## How It Works
@@ -147,7 +152,7 @@ pydre -p project_config.toml
 1. Pydre loads all metrics defined in its core library
 2. It then searches the directory paths specified in `custom_metrics_dirs`
 3. For each Python file in those directories, it dynamically imports the metrics
-4. The `@registerMetric()` decorator automatically registers your custom metrics with Pydre
+4. The `@registerMetric()` decorator automatically registers your custom metrics with *pydre*
 5. Your metrics become available for use in the project configuration
 
 ## Tips
@@ -158,3 +163,18 @@ pydre -p project_config.toml
 - Use type hints to document your function parameters and return values
 
 With this approach, you can maintain your custom metrics separately from the Pydre codebase while still using them in your projects.
+
+
+# Custom filters
+
+Custom filters can be created in a similar way to custom metrics. the search path for custom filters is similar to the custom metrics search path: "custom_filters_dirs". Additionally, `@registerFilter()` instead of `@registerMetric()` is used as the decorator.
+
+## Example
+
+```toml 
+[config]
+datafiles = ["data/drive_data.dat"]
+outputfile = "results.csv"
+custom_metrics_dirs = ["custom_metrics"]
+custom_filters_dirs = ["custom_filters"]
+```
