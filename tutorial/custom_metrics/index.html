@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.8608ea7d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
@@ -387,18 +387,27 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-write-your-custom-metrics" class="md-nav__link">
+  <a href="#2-set-up-your-directory-to-use-pydre" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Write Your Custom Metrics
+      2. Set up your directory to use pydre
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-configure-your-project-file" class="md-nav__link">
+  <a href="#3-write-your-custom-metrics" class="md-nav__link">
     <span class="md-ellipsis">
-      3. Configure Your Project File
+      3. Write Your Custom Metrics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-configure-your-project-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Configure Your Project File
     </span>
   </a>
   
@@ -810,18 +819,27 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-write-your-custom-metrics" class="md-nav__link">
+  <a href="#2-set-up-your-directory-to-use-pydre" class="md-nav__link">
     <span class="md-ellipsis">
-      2. Write Your Custom Metrics
+      2. Set up your directory to use pydre
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-configure-your-project-file" class="md-nav__link">
+  <a href="#3-write-your-custom-metrics" class="md-nav__link">
     <span class="md-ellipsis">
-      3. Configure Your Project File
+      3. Write Your Custom Metrics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-configure-your-project-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Configure Your Project File
     </span>
   </a>
   
@@ -935,7 +953,7 @@
 </ol>
 <h2 id="step-by-step-guide">Step-by-Step Guide</h2>
 <h3 id="1-create-a-custom-metrics-directory">1. Create a Custom Metrics Directory</h3>
-<p>Create a directory for your custom metrics outside the Pydre repository:</p>
+<p>Create a directory for your custom metrics (outside the Pydre repository):</p>
 <div class="highlight"><pre><span></span><code>my_project/
 ├── custom_metrics/
 │   └── my_metrics.py
@@ -943,7 +961,13 @@
 │   └── drive_data.dat
 └── project_config.toml
 </code></pre></div>
-<h3 id="2-write-your-custom-metrics">2. Write Your Custom Metrics</h3>
+<h3 id="2-set-up-your-directory-to-use-pydre">2. Set up your directory to use pydre</h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>my_project
+rye<span class="w"> </span>add<span class="w"> </span>pydre
+rye<span class="w"> </span>sync
+</code></pre></div>
+<p>This will initialize the directory like a python package using <em>rye</em> and the pydre package. This will use the latest <a href="https://pypi.org/project/pydre/">published version of <em>pydre</em></a> from PyPI. If you want to use the latest development version of <em>pydre</em>, you can clone the repository and add it as a dependency instead.</p>
+<h3 id="3-write-your-custom-metrics">3. Write Your Custom Metrics</h3>
 <p>Create a Python file (e.g., <code>my_metrics.py</code>) in your custom metrics directory. Your metrics should use the <code>@registerMetric()</code> decorator:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pydre.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">registerMetric</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
@@ -967,32 +991,26 @@
 
     <span class="k">return</span> <span class="n">drivedata</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;Velocity&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 </code></pre></div>
-<h3 id="3-configure-your-project-file">3. Configure Your Project File</h3>
-<p>Update your project configuration file to include the custom metrics directory. This direc</p>
+<h3 id="4-configure-your-project-file">4. Configure Your Project File</h3>
+<p>Update your project configuration file to include the custom metrics directory. </p>
 <div class="highlight"><pre><span></span><code><span class="k">[config]</span>
 <span class="n">datafiles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;data/drive_data.dat&quot;</span><span class="p">]</span>
 <span class="n">outputfile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;results.csv&quot;</span>
 <span class="n">custom_metrics_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;custom_metrics&quot;</span><span class="p">]</span>
 
-<span class="k">[[metrics]]</span>
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;avg_speed&quot;</span>
+<span class="k">[metric.avgSpeed]</span>
 <span class="n">function</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;averageSpeed&quot;</span>
-
-<span class="k">[[rois]]</span>
-<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;full_drive&quot;</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;time&quot;</span>
-<span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;data/drive_times.csv&quot;</span>
 </code></pre></div>
 <h3 id="4-run-pydre-with-your-custom-metrics">4. Run Pydre with Your Custom Metrics</h3>
 <p>Run Pydre with your project file:</p>
-<div class="highlight"><pre><span></span><code>pydre<span class="w"> </span>-p<span class="w"> </span>project_config.toml
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pydre.run<span class="w"> </span>-p<span class="w"> </span>project_config.toml
 </code></pre></div>
 <h2 id="how-it-works">How It Works</h2>
 <ol>
 <li>Pydre loads all metrics defined in its core library</li>
 <li>It then searches the directory paths specified in <code>custom_metrics_dirs</code></li>
 <li>For each Python file in those directories, it dynamically imports the metrics</li>
-<li>The <code>@registerMetric()</code> decorator automatically registers your custom metrics with Pydre</li>
+<li>The <code>@registerMetric()</code> decorator automatically registers your custom metrics with <em>pydre</em></li>
 <li>Your metrics become available for use in the project configuration</li>
 </ol>
 <h2 id="tips">Tips</h2>
@@ -1003,6 +1021,15 @@
 <li>Use type hints to document your function parameters and return values</li>
 </ul>
 <p>With this approach, you can maintain your custom metrics separately from the Pydre codebase while still using them in your projects.</p>
+<h1 id="custom-filters">Custom filters</h1>
+<p>Custom filters can be created in a similar way to custom metrics. the search path for custom filters is similar to the custom metrics search path: "custom_filters_dirs". Additionally, <code>@registerFilter()</code> instead of <code>@registerMetric()</code> is used as the decorator.</p>
+<h2 id="example">Example</h2>
+<div class="highlight"><pre><span></span><code><span class="k">[config]</span>
+<span class="n">datafiles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;data/drive_data.dat&quot;</span><span class="p">]</span>
+<span class="n">outputfile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;results.csv&quot;</span>
+<span class="n">custom_metrics_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;custom_metrics&quot;</span><span class="p">]</span>
+<span class="n">custom_filters_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;custom_filters&quot;</span><span class="p">]</span>
+</code></pre></div>
 
 
 
