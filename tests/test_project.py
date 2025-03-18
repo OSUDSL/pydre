@@ -2,6 +2,8 @@ from pathlib import Path
 import pytest
 import pydre.project
 import polars as pl
+import polars.testing
+
 from loguru import logger
 
 FIXTURE_DIR = Path(__file__).parent.resolve() / "test_data"
@@ -47,7 +49,7 @@ def test_project_custom_metric(datafiles):
 
     expected_result = pl.DataFrame([{'ParticipantID': "8", 'UniqueID': "3", 'ScenarioName': 'Drive', 'DXmode': 'Sub', 'ROI': None, 'custom_test': 1387.6228702430055}])
 
-    assert proj.results.equals(expected_result)
+    polars.testing.assert_frame_equal(proj.results, expected_result)
 
 
 
