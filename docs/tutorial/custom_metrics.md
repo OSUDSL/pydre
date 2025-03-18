@@ -79,11 +79,11 @@ Create a directory for your custom metrics (outside the Pydre repository):
 
 ```
 my_project/
-├── custom_metrics/
-│   └── my_metrics.py
+├── custom_metric/
+│   └── custom.py
 ├── data/
 │   └── drive_data.dat
-└── project_config.toml
+└── custom_test.toml
 ```
 
 ### 2. Set up your directory to use pydre
@@ -98,44 +98,48 @@ This will initialize the directory like a python package using *rye* and the pyd
 
 ### 3. Write Your Custom Metrics
 
-Create a Python file (e.g., `my_metrics.py`) in your custom metrics directory. Your metrics should use the `@registerMetric()` decorator:
+Create a Python file (e.g., `custom.py`) in your custom metrics directory. Your metrics should use the `@registerMetric()` decorator:
 
-```python
-from pydre.metrics import registerMetric
-import polars as pl
+```python title="custom_metric/custom.py"
 from typing import Optional
+
+import polars as pl
 import pydre.core
+from pydre.core import ColumnsMatchError
+from pydre.metrics import registerMetric
+from loguru import logger
 
 @registerMetric()
-def averageSpeed(drivedata: pydre.core.DriveData) -> Optional[float]:
-    """Calculate the average speed during the drive
-    
-    Note: Requires data columns
-        - Velocity: Speed in meters per second
-    
-    Returns:
-        Average velocity in meters per second
-    """
+def testMean(
+    drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
+) -> Optional[float]:
+
     try:
-        drivedata.checkColumnsNumeric(["Velocity"])
-    except Exception:
+        drivedata.checkColumnsNumeric([var])
+    except ColumnsMatchError:
         return None
-        
-    return drivedata.data.select(pl.col("Velocity").mean()).item()
+    if cutoff is not None:
+        return (
+            drivedata.data.get_column(var)
+            .filter(drivedata.data.get_column(var) >= cutoff)
+            .mean()
+        )
+    else:
+        return drivedata.data.get_column(var).mean()
+
 ```
 
 ### 4. Configure Your Project File
 
-Update your project configuration file to include the custom metrics directory. 
+Include your custom metrics directory in the config section of your project file. 
 
-```toml
+```toml title="custom_test.toml"
 [config]
-datafiles = ["data/drive_data.dat"]
-outputfile = "results.csv"
-custom_metrics_dirs = ["custom_metrics"]
+custom_metrics_dirs = ["custom_metric"]
 
-[metric.avgSpeed]
-function = "averageSpeed"
+[metrics.custom_test]
+function = "testMean"
+var = "XPos"
 
 ```
 
@@ -144,7 +148,7 @@ function = "averageSpeed"
 Run Pydre with your project file:
 
 ```bash
-python -m pydre.run -p project_config.toml
+python -m pydre.run -p examples/custom_project/custom_test.toml -d examples/custom_project/data/Experimenter_S1_Tutorial_11002233.dat -o custom.csv
 ```
 
 ## How It Works
