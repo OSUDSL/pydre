@@ -3,15 +3,15 @@ title: "Installation Guide"
 ---
 
 
-Pydre is a Python package, which means it can be installed using a Python package manager. If you are familiar with *pip*, you can use it to install Pydre. However, we recommend using *rye* for a more robust and isolated environment.
+Pydre is a Python package, which means it can be installed using a Python package manager. If you are familiar with *pip*, you can use it to install Pydre as well. However, we recommend using *rye* for a more robust and isolated environment.
 
-# Using Rye to set up a project using the Pydre package
+# Set up a new Pydre project directory with *rye*
 
 # 1. Install Rye
 
-Follow the instructions at [rye's official website](https://rye-up.com/) to install it on your system. You will need to restart your terminal after installation.
+Follow the instructions at [rye's official website](https://rye-up.com/) to install it on your system. You will probably need to restart your terminal after installation.
 
-## 2. Set up a new rye project 
+## 2. Set up your project directory
 
 Create a new project directory and navigate to it:
 
@@ -26,7 +26,7 @@ Initialize a Rye project:
 rye init
 ```
 
-Add PyDRE as a dependency:
+Add Pydre as a dependency:
 
 ```
 rye add pydre
@@ -34,7 +34,7 @@ rye add pydre
 
 ## 3. Install Dependencies
 
-Rye can automatically install all dependencies for you. Sync the project by running:
+Rye will install pydre and all dependencies in a virtual environment specific to your project. To sync the dependencies, run:
 
 ```
 rye sync
@@ -48,7 +48,7 @@ Check that Pydre was installed correctly:
 python -m pydre.run --help
 ```
 
-You should see the command-line help output showing available options. The first run of Python after installing and syncing may take several seconds.
+The first run of python after installing and syncing may take several seconds while the python system prepares the dependencies. You should see the command-line help output showing available options. 
 
 ## 6. Start Using Pydre
 
@@ -62,7 +62,7 @@ python -m pydre.run -p your_project_file.toml -o results.csv
 
 If you encounter any issues:
 
-1. Check for any error messages in the terminal.
+1. Check any error messages in the terminal.
 2. Verify that your [project file](../explanation/project_files.md) is properly formatted.
 
 # Setting up a development environment

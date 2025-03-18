@@ -231,13 +231,15 @@ def timeAboveSpeed(
 
     time = df.get_column("Duration").filter(df.get_column("Velocity") >= cutoff).sum()
     try:
-        total_time: float = float(df.get_column("SimTime").max()) - float(df.get_column("SimTime").min())
+        total_time: float = float(df.get_column("SimTime").max()) - float(
+            df.get_column("SimTime").min()
+        )
     except TypeError:
         return None
     if percentage:
         out: float = time / total_time
     else:
-        out: float  = time
+        out: float = time
     return out
 
 
@@ -286,7 +288,9 @@ def timeWithinSpeedLimit(
     )
 
     if percentage:
-        total_time = float(df.get_column("SimTime").max()) - float(df.get_column("SimTime").min())
+        total_time = float(df.get_column("SimTime").max()) - float(
+            df.get_column("SimTime").min()
+        )
         output = time / total_time
     else:
         output = time

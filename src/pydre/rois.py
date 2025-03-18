@@ -10,7 +10,6 @@ from collections.abc import Iterable
 
 
 class ROIProcessor(object, metaclass=ABCMeta):
-
     @abstractmethod
     def __init__(self, filename: PathLike, nameprefix: str = ""):
         pass
@@ -181,9 +180,7 @@ class SpaceROI(ROIProcessor):
                 )
                 return return_list
             except TypeError as e:
-                logger.error(
-                    f"ROI {roi_name} has bad datatype: {e.args}"
-                )
+                logger.error(f"ROI {roi_name} has bad datatype: {e.args}")
                 return return_list
 
             region_data = sourcedrivedata.data.filter(

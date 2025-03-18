@@ -5,7 +5,10 @@ __all__ = ["common", "eyetracking", "R2D"]
 
 import pydre.core
 
-filtersList: dict[str, Callable[Concatenate[pydre.core.DriveData, ...], pydre.core.DriveData]] = {}
+filtersList: dict[
+    str, Callable[Concatenate[pydre.core.DriveData, ...], pydre.core.DriveData]
+] = {}
+
 
 def registerFilter(filtername: Optional[str] = None) -> Callable:
     def registering_decorator(

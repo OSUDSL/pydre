@@ -134,9 +134,9 @@ type = "time"
 filename = "data/drive_times.csv"
 ```
 
-### 4. Run PyDRE with Your Custom Metrics
+### 4. Run Pydre with Your Custom Metrics
 
-Run PyDRE with your project file:
+Run Pydre with your project file:
 
 ```bash
 pydre -p project_config.toml
@@ -147,7 +147,7 @@ pydre -p project_config.toml
 1. Pydre loads all metrics defined in its core library
 2. It then searches the directory paths specified in `custom_metrics_dirs`
 3. For each Python file in those directories, it dynamically imports the metrics
-4. The `@registerMetric()` decorator automatically registers your custom metrics with PyDRE
+4. The `@registerMetric()` decorator automatically registers your custom metrics with Pydre
 5. Your metrics become available for use in the project configuration
 
 ## Tips

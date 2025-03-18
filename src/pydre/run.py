@@ -16,8 +16,11 @@ def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
         "-d", "--datafiles", type=str, help="the data file path", nargs="+"
     )
     parser.add_argument(
-        "-o", "--outputfile", type=str, help="the name of the output file",
-        default= "out.csv"
+        "-o",
+        "--outputfile",
+        type=str,
+        help="the name of the output file",
+        default="out.csv",
     )
     parser.add_argument(
         "-l",
@@ -47,7 +50,7 @@ def run_project(
     projectfile: str,
     datafiles: Optional[List[str]],
     outputfile: Optional[str],
-    num_threads: int = 12
+    num_threads: int = 12,
 ) -> project.Project:
     """Create, process and save a project."""
     p = project.Project(projectfile, datafiles, outputfile)
@@ -62,9 +65,7 @@ def main(args: Optional[List[str]] = None) -> int:
         parsed_args = parse_arguments(args)
         setup_logging(parsed_args.warninglevel)
         run_project(
-            parsed_args.projectfile,
-            parsed_args.datafiles,
-            parsed_args.outputfile
+            parsed_args.projectfile, parsed_args.datafiles, parsed_args.outputfile
         )
         return 0
     except Exception as e:

@@ -9,8 +9,11 @@ from pydre.filters import registerFilter
 
 THISDIR = pathlib.Path(__file__).resolve().parent
 
+
 @registerFilter()
-def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, trim_data=False):
+def ValidateDataStartEnd(
+    drivedata: pydre.core.DriveData, dataFile="", tol=100, trim_data=False
+):
     """
     Ensure that the end of the drive data fits into the expected
     format - by distance & time.
@@ -99,7 +102,9 @@ def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, 
 
 
 @registerFilter()
-def BinaryColReverse(drivedata: pydre.core.DriveData, old_col: str, new_col="MinusOneCol"):
+def BinaryColReverse(
+    drivedata: pydre.core.DriveData, old_col: str, new_col="MinusOneCol"
+):
     """
     'reverses' a binary column's values.
     old value 1 --> new value 0 & vice versa

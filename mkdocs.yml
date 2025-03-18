@@ -46,4 +46,4 @@ nav:
     - Project files: 'explanation/project_files.md'
     - Regions of Interest: 'explanation/rois.md'
     - Developer Notes: 'explanation/developernotes.md'
-
+  - Contributing: 'contrib.md'
