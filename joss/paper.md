@@ -25,7 +25,7 @@ The Python package *Pydre* (pronounced pie-dray), described in this document, pr
 
 # Statement of need
 
-The driving simulators commonly used for the investigation of driving behavior generate a moderate amount of time series data (recorded at 30Hz or more) for each scenario run on the sim. Investigators often want to convert that time series data to discrete objective metrics that describe a specific aspect of how the driver interacted with the vehicle during the drive. These metrics need to be calculated for all participants in a study, and often for multiple scenarios per participant. 
+The driving simulators commonly used for the investigation of driving behavior generate a moderate amount of time series data (recorded at 30Hz or more) for each scenario run on the sim. Investigators often want to convert that time series data to discrete objective metrics that describe a specific aspect of how the driver interacted with the vehicle during the drive. These metrics need to be calculated for all participants in a study, and often for multiple scenarios per participant. In this context, we describe the process of converting raw data to a meaningful set of discrete metrics as "data reduction."
 
 Reducing the raw data from driving simulation experiments has been a task required for the statistical analysis of those experiments for some time [@michellelreyesSimulatorData2011]. Many different individual metrics have been developed over the years as variables of investigatory interest [@mcmanusPrincipalComponents2024]. 
 
