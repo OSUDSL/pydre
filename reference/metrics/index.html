@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.4">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
     
     
       
@@ -223,11 +223,55 @@
   
   
     <li class="md-nav__item">
+      <a href="../../tutorial/installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../tutorial/getting_started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/custom_metrics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Custom metrics
     
   </span>
   
@@ -647,6 +691,28 @@
   
   
     <li class="md-nav__item">
+      <a href="../../explanation/execution/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Execution
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../explanation/project_files/" class="md-nav__link">
         
   
@@ -709,6 +775,27 @@
           </ul>
         </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contrib/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1000,10 +1087,10 @@
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">closeFollowing</span><span class="p">(</span>
     <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span>
-    <span class="n">threshold</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="n">percentage</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">minvelocity</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">percentage</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">minvelocity</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1028,7 +1115,7 @@
                 <code>threshold</code>
             </td>
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1044,7 +1131,7 @@
                 <code>percentage</code>
             </td>
             <td>
-                  <code>bool</code>
+                  <code><span title="bool">bool</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1061,7 +1148,7 @@ following closely, rather than the number of seconds</p>
                 <code>minvelocity</code>
             </td>
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1097,7 +1184,7 @@ If None, consider all times</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1120,7 +1207,7 @@ If None, consider all times</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colFirst</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colFirst</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1144,7 +1231,7 @@ If None, consider all times</p>
                 <code>var</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1170,7 +1257,7 @@ If None, consider all times</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1193,7 +1280,7 @@ If None, consider all times</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colLast</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colLast</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1217,7 +1304,7 @@ If None, consider all times</p>
                 <code>var</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1243,7 +1330,7 @@ If None, consider all times</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1266,7 +1353,7 @@ If None, consider all times</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colMax</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colMax</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1290,7 +1377,7 @@ If None, consider all times</p>
                 <code>var</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1316,7 +1403,7 @@ If None, consider all times</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1339,7 +1426,7 @@ If None, consider all times</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colMean</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colMean</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1365,7 +1452,7 @@ If column is not numeric, <code>None</code> is returned.</p>
                 <code>var</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1381,7 +1468,7 @@ If column is not numeric, <code>None</code> is returned.</p>
                 <code>cutoff</code>
             </td>
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1407,7 +1494,7 @@ If column is not numeric, <code>None</code> is returned.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1432,7 +1519,7 @@ If column is not numeric, <code>None</code> is returned.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colMedian</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colMedian</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1458,7 +1545,7 @@ If column is not numeric, <code>None</code> is returned.</p>
                 <code>var</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1474,7 +1561,7 @@ If column is not numeric, <code>None</code> is returned.</p>
                 <code>cutoff</code>
             </td>
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1500,7 +1587,7 @@ If column is not numeric, <code>None</code> is returned.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1525,7 +1612,7 @@ If column is not numeric, <code>None</code> is returned.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colMin</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colMin</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1549,7 +1636,7 @@ If column is not numeric, <code>None</code> is returned.</p>
                 <code>var</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1575,7 +1662,7 @@ If column is not numeric, <code>None</code> is returned.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1598,7 +1685,7 @@ If column is not numeric, <code>None</code> is returned.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colSD</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">colSD</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1623,7 +1710,7 @@ If column is not numeric, <code>None</code> is returned.</p>
                 <code>var</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1639,7 +1726,7 @@ If column is not numeric, <code>None</code> is returned.</p>
                 <code>cutoff</code>
             </td>
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1665,7 +1752,7 @@ If column is not numeric, <code>None</code> is returned.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1692,7 +1779,7 @@ If column is not numeric, <code>None</code> is returned.</p>
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">eventRecenterRecoveryTime</span><span class="p">(</span>
     <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.65</span><span class="p">,</span> <span class="n">event_detect</span><span class="o">=</span><span class="s2">&quot;Trash&quot;</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1721,7 +1808,7 @@ tolerance allows for proper classification of subject behavior variation</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1731,7 +1818,7 @@ tolerance allows for proper classification of subject behavior variation</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1754,7 +1841,7 @@ tolerance allows for proper classification of subject behavior variation</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">eventSpeedRecoveryTime</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">op_speed</span><span class="o">=</span><span class="mf">15.64</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">eventSpeedRecoveryTime</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">op_speed</span><span class="o">=</span><span class="mf">15.64</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1783,7 +1870,7 @@ tolerance allows for proper classification of subject behavior variation
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1806,7 +1893,7 @@ tolerance allows for proper classification of subject behavior variation
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">leadVehicleCollision</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="mf">2.85</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">leadVehicleCollision</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="mf">2.85</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1830,7 +1917,7 @@ tolerance allows for proper classification of subject behavior variation
                 <code>cutoff</code>
             </td>
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1866,7 +1953,7 @@ as the default value based on the size of sedans in the simulation.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1889,7 +1976,7 @@ as the default value based on the size of sedans in the simulation.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">maxacceleration</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutofflimit</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">maxacceleration</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutofflimit</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1913,7 +2000,7 @@ as the default value based on the size of sedans in the simulation.</p>
                 <code>cutofflimit</code>
             </td>
             <td>
-                  <code>int</code>
+                  <code><span title="int">int</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1947,7 +2034,7 @@ as the default value based on the size of sedans in the simulation.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1970,7 +2057,7 @@ as the default value based on the size of sedans in the simulation.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">maxdeceleration</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutofflimit</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">maxdeceleration</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutofflimit</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1994,7 +2081,7 @@ as the default value based on the size of sedans in the simulation.</p>
                 <code>cutofflimit</code>
             </td>
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2028,7 +2115,7 @@ as the default value based on the size of sedans in the simulation.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2051,7 +2138,7 @@ as the default value based on the size of sedans in the simulation.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">numbrakes</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutofflimit</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">numbrakes</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutofflimit</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2075,7 +2162,7 @@ as the default value based on the size of sedans in the simulation.</p>
                 <code>cutofflimit</code>
             </td>
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2109,7 +2196,7 @@ as the default value based on the size of sedans in the simulation.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2132,7 +2219,7 @@ as the default value based on the size of sedans in the simulation.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">steeringReversalRate</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">float</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">steeringReversalRate</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="float">float</span></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2160,7 +2247,7 @@ as the default value based on the size of sedans in the simulation.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2183,7 +2270,7 @@ as the default value based on the size of sedans in the simulation.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">steeringReversals</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">float</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">steeringReversals</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="float">float</span></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2210,7 +2297,7 @@ as the default value based on the size of sedans in the simulation.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2233,7 +2320,7 @@ as the default value based on the size of sedans in the simulation.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">stoppingDist</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">roadtravelposition</span><span class="o">=</span><span class="s1">&#39;XPos&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">stoppingDist</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">roadtravelposition</span><span class="o">=</span><span class="s1">&#39;XPos&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2292,7 +2379,7 @@ stop sign or stop light as the middle value in the direction of travel.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2315,7 +2402,7 @@ stop sign or stop light as the middle value in the direction of travel.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">throttleReactionTime</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">throttleReactionTime</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2344,7 +2431,7 @@ stop sign or stop light as the middle value in the direction of travel.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2368,8 +2455,8 @@ stop sign or stop light as the middle value in the direction of travel.</p>
 
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">timeAboveSpeed</span><span class="p">(</span>
-    <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">percentage</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+    <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">percentage</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2393,7 +2480,7 @@ stop sign or stop light as the middle value in the direction of travel.</p>
                 <code>cutoff</code>
             </td>
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2409,7 +2496,7 @@ stop sign or stop light as the middle value in the direction of travel.</p>
                 <code>percentage</code>
             </td>
             <td>
-                  <code>bool</code>
+                  <code><span title="bool">bool</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2444,7 +2531,7 @@ above the cutoff.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2467,7 +2554,7 @@ above the cutoff.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">timeFirstTrue</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">timecol</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="s1">&#39;SimTime&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">timeFirstTrue</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">timecol</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">&#39;SimTime&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2491,7 +2578,7 @@ above the cutoff.</p>
                 <code>var</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2507,7 +2594,7 @@ above the cutoff.</p>
                 <code>timecol</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2533,7 +2620,7 @@ above the cutoff.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2558,7 +2645,7 @@ the var column is never true or if there is a error in processing.</p>
 
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">timeToOutsideThreshold</span><span class="p">(</span>
-    <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="o">-</span><span class="mi">100000</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="mi">100000</span>
+    <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="o">-</span><span class="mi">100000</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="mi">100000</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -2588,8 +2675,8 @@ time for the first occurence of a threshold violation.</p>
 
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">timeWithinSpeedLimit</span><span class="p">(</span>
-    <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">lowerlimit</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">percentage</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n">float</span><span class="p">]</span>
+    <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">lowerlimit</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">percentage</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2613,7 +2700,7 @@ time for the first occurence of a threshold violation.</p>
                 <code>lowerlimit</code>
             </td>
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2629,7 +2716,7 @@ time for the first occurence of a threshold violation.</p>
                 <code>percentage</code>
             </td>
             <td>
-                  <code>bool</code>
+                  <code><span title="bool">bool</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2664,7 +2751,7 @@ time for the first occurence of a threshold violation.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[float]</code>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2735,7 +2822,7 @@ time for the first occurence of a threshold violation.</p>
     <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.f1b6f286.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
       
     
   </body>

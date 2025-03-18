@@ -9,14 +9,14 @@
       
       
       
-        <link rel="prev" href="../../tutorial/getting_started/">
+        <link rel="prev" href="../../tutorial/custom_metrics/">
       
       
         <link rel="next" href="../metrics/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.4">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
     
     
       
@@ -223,11 +223,55 @@
   
   
     <li class="md-nav__item">
+      <a href="../../tutorial/installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../tutorial/getting_started/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/custom_metrics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Custom metrics
     
   </span>
   
@@ -539,6 +583,28 @@
   
   
     <li class="md-nav__item">
+      <a href="../../explanation/execution/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Execution
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../explanation/project_files/" class="md-nav__link">
         
   
@@ -601,6 +667,27 @@
           </ul>
         </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contrib/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -833,7 +920,7 @@
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">Jenks</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">oldCol</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">newCol</span><span class="p">:</span> <span class="n">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">Jenks</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">oldCol</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">newCol</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -873,7 +960,7 @@
                 <code>oldCol</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -889,7 +976,7 @@
                 <code>newCol</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -988,7 +1075,7 @@
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">filterValuesBelow</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">filterValuesBelow</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1151,7 +1238,7 @@ If extend_blocks is set to 1, it extends the blocks.</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">removeDataInside</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="n">float</span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="n">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">removeDataInside</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1173,7 +1260,7 @@ upper: upper bound to filter</p>
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">removeDataOutside</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="n">float</span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="n">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">removeDataOutside</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1196,7 +1283,7 @@ upper: upper bound to filter</p>
 
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">separateData</span><span class="p">(</span>
-    <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="n">float</span><span class="p">,</span> <span class="n">high</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">low</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">,</span> <span class="n">high</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">low</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">0</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
 </code></pre></div>
 
@@ -1223,11 +1310,11 @@ low: Value assigned to "low" pitch (0)</p>
 </h2>
 <div class="doc-signature highlight"><pre><span></span><code><span class="nf">setinrange</span><span class="p">(</span>
     <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span>
-    <span class="n">coltoset</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span>
-    <span class="n">valtoset</span><span class="p">:</span> <span class="n">float</span><span class="p">,</span>
-    <span class="n">colforrange</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span>
-    <span class="n">rangemin</span><span class="p">:</span> <span class="n">float</span><span class="p">,</span>
-    <span class="n">rangemax</span><span class="p">:</span> <span class="n">float</span><span class="p">,</span>
+    <span class="n">coltoset</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span>
+    <span class="n">valtoset</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">,</span>
+    <span class="n">colforrange</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span>
+    <span class="n">rangemin</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">,</span>
+    <span class="n">rangemax</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
 </code></pre></div>
 
@@ -1254,7 +1341,7 @@ the value of <em>coltoset</em> will be unchanged. Otherwise, the value of <em>co
                 <code>coltoset</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1270,7 +1357,7 @@ the value of <em>coltoset</em> will be unchanged. Otherwise, the value of <em>co
                 <code>valtoset</code>
             </td>
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1286,7 +1373,7 @@ the value of <em>coltoset</em> will be unchanged. Otherwise, the value of <em>co
                 <code>colforrange</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1302,7 +1389,7 @@ the value of <em>coltoset</em> will be unchanged. Otherwise, the value of <em>co
                 <code>rangemin</code>
             </td>
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1318,7 +1405,7 @@ the value of <em>coltoset</em> will be unchanged. Otherwise, the value of <em>co
                 <code>rangemax</code>
             </td>
             <td>
-                  <code>float</code>
+                  <code><span title="float">float</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1367,7 +1454,7 @@ the value of <em>coltoset</em> will be unchanged. Otherwise, the value of <em>co
 
 
 </h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">zscoreCol</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n">str</span><span class="p">,</span> <span class="n">newcol</span><span class="p">:</span> <span class="n">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">zscoreCol</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">newcol</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span>
 </code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1391,7 +1478,7 @@ the value of <em>coltoset</em> will be unchanged. Otherwise, the value of <em>co
                 <code>col</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1407,7 +1494,7 @@ the value of <em>coltoset</em> will be unchanged. Otherwise, the value of <em>co
                 <code>newcol</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1504,7 +1591,7 @@ the value of <em>coltoset</em> will be unchanged. Otherwise, the value of <em>co
     <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.f1b6f286.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
       
     
   </body>
