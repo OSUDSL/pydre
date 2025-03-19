@@ -619,19 +619,27 @@ cd my_pydre_project
 <p>Check that Pydre was installed correctly:</p>
 <div class="highlight"><pre><span></span><code>python -m pydre.run --help
 </code></pre></div>
-<p>The first run of python after installing and syncing may take several seconds while the python system prepares the dependencies. You should see the command-line help output showing available options. </p>
+<p>The first run of python after installing and syncing may take several seconds while the python system prepares the dependencies. You should see the help output showing available command line options. </p>
 <h2 id="6-start-using-pydre">6. Start Using Pydre</h2>
-<p>Now you can run Pydre with your project files:</p>
+<p>Now you can run Pydre with your <a href="../../explanation/project_files/">project files</a> :</p>
 <div class="highlight"><pre><span></span><code>python -m pydre.run -p your_project_file.toml -o results.csv
 </code></pre></div>
+<p>If you want to try an example project file, follow along with the <a href="../getting_started/">getting started tutorial</a>.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <p>If you encounter any issues:</p>
 <ol>
 <li>Check any error messages in the terminal.</li>
 <li>Verify that your <a href="../../explanation/project_files/">project file</a> is properly formatted.</li>
+<li>If you are still having problems, please <a href="https://github.com/OSUDSL/pydre/issues">open an issue on GitHub</a>.</li>
 </ol>
 <h1 id="setting-up-a-development-environment">Setting up a development environment</h1>
-<p>If you want to contribute to Pydre or modify its source code, you can set up a development environment. You will need to clone the Pydre repository but then you can run <code>rye sync</code> in the to install all the dependencies and continue from there. If you are more comfortable with <em>uv</em>, you can use that instead of <em>rye</em>.</p>
+<p>If you want to contribute to Pydre or modify its source code, you can set up a development environment. You will need to clone the Pydre repository:</p>
+<p><div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/OSUDSL/pydre.git
+<span class="nb">cd</span><span class="w"> </span>pydre
+rye<span class="w"> </span>sync
+rye<span class="w"> </span><span class="nb">test</span>
+</code></pre></div>
+If you are more comfortable with <em>uv</em>, you can use that instead of <em>rye</em>.</p>
 
 
 

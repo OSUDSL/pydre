@@ -623,13 +623,12 @@
     -o [output file name] -l [warning level]
 </code></pre></div></p>
 <p>Example execution: 
-<div class="highlight"><pre><span></span><code>python -m pydre.run -p example\tutorial\tutorial.toml \
-    -d example\tutorial\Experimenter_S1_Tutorial_11002233.dat \
-    -o tutorial.csv 
+<div class="highlight"><pre><span></span><code>python -m pydre.run -p examples\tutorial\tutorial.toml -d examples\tutorial\Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv 
 </code></pre></div></p>
+<p>You can download the example files <a href="../examples.zip">here</a>.</p>
 <h1 id="example-data-processing">Example data processing</h1>
-<h2 id="source-files">Source files</h2>
-<p>We'll walk through the creation of a project file and running that project file on an <a href="../Experimenter_S1_Tutorial_11002233.dat">example data file</a>.</p>
+<h2 id="data-files">Data files</h2>
+<p>We'll walk through the creation of a project file and running that project file on an <a href="../Experimenter_S1_Tutorial_11002233.dat">example data file</a>.  </p>
 <table>
 <thead>
 <tr>
@@ -763,7 +762,7 @@
 </tbody>
 </table>
 <p>The example file is only five rows of a data file, where real data files are tens of thousands of lines. Also, this is synthetic data, for example purposes only, not real data from a driving simulator run.</p>
-<h2 id="goals">Goals</h2>
+<h2 id="project-file">Project file</h2>
 <p>Say you wanted to find the standard deviation of lane position (SDLP) for this data. Pydre comes with a <a href="../../reference/metrics/#pydre.metrics.common.colSD">standard deviation metric function</a>, so you can use that. To do that, you would write a project file like so:</p>
 <div class="highlight"><span class="filename">tutorial_project.toml</span><pre><span></span><code><span class="k">[metrics.SDLP]</span>
 <span class="n">function</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;colSD&quot;</span>
@@ -771,9 +770,7 @@
 </code></pre></div>
 <p>The <code>[metrics.SDLP]</code> section title shows the type of object we're defining (a metric) and the name of the metric ("SDLP").  The <a href="../../reference/metrics/#pydre.metrics.common.colSD"><code>colSD</code> function</a> requires a parameter <code>var</code> that is the column name in the data files to calculate the standard deviation over.</p>
 <p>After saving the project file, you can then run:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pydre.run<span class="w"> </span>-p<span class="w"> </span>example<span class="se">\t</span>utorial<span class="se">\t</span>utorial.toml<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-d<span class="w"> </span>example<span class="se">\t</span>utorial<span class="se">\E</span>xperimenter_S1_Tutorial_11002233.dat<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>-o<span class="w"> </span>tutorial.csv
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pydre.run<span class="w"> </span>-p<span class="w"> </span>examples/tutorial/tutorial.toml<span class="w"> </span>-d<span class="w"> </span>examples/tutorial/Experimenter_S1_Tutorial_11002233.dat<span class="w"> </span>-o<span class="w"> </span>tutorial.csv
 </code></pre></div>
 <p>This will run the project commands on the specified data file and out the result in <code>tutorial.csv</code>. If you wanted to run on multiple data files, you could enter <code>-d ../datafiles/tutorialdata/*.dat</code> or something similar. Since we have no ROIs, the output csv will contain one row per input data file:</p>
 <table>
