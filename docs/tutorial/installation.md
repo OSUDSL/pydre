@@ -48,15 +48,17 @@ Check that Pydre was installed correctly:
 python -m pydre.run --help
 ```
 
-The first run of python after installing and syncing may take several seconds while the python system prepares the dependencies. You should see the command-line help output showing available options. 
+The first run of python after installing and syncing may take several seconds while the python system prepares the dependencies. You should see the help output showing available command line options. 
 
 ## 6. Start Using Pydre
 
-Now you can run Pydre with your project files:
+Now you can run Pydre with your [project files](../explanation/project_files.md) :
 
 ```
 python -m pydre.run -p your_project_file.toml -o results.csv
 ```
+
+If you want to try an example project file, follow along with the [getting started tutorial](getting_started.md).
 
 ## Troubleshooting
 
@@ -64,8 +66,17 @@ If you encounter any issues:
 
 1. Check any error messages in the terminal.
 2. Verify that your [project file](../explanation/project_files.md) is properly formatted.
+3. If you are still having problems, please [open an issue on GitHub](https://github.com/OSUDSL/pydre/issues).
 
 # Setting up a development environment
 
-If you want to contribute to Pydre or modify its source code, you can set up a development environment. You will need to clone the Pydre repository but then you can run `rye sync` in the to install all the dependencies and continue from there. If you are more comfortable with *uv*, you can use that instead of *rye*.
+If you want to contribute to Pydre or modify its source code, you can set up a development environment. You will need to clone the Pydre repository:
+
+```bash
+git clone https://github.com/OSUDSL/pydre.git
+cd pydre
+rye sync
+rye test
+```
+If you are more comfortable with *uv*, you can use that instead of *rye*.
 

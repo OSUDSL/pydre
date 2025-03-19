@@ -26,16 +26,16 @@ python -m pydre.run -p [project file path] -d [data file path]
 
 Example execution: 
 ```
-python -m pydre.run -p example\tutorial\tutorial.toml \
-    -d example\tutorial\Experimenter_S1_Tutorial_11002233.dat \
-    -o tutorial.csv 
+python -m pydre.run -p examples\tutorial\tutorial.toml -d examples\tutorial\Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv 
 ```
+
+You can download the example files [here](examples.zip).
 
 # Example data processing
 
-## Source files
+## Data files
 
-We'll walk through the creation of a project file and running that project file on an [example data file](Experimenter_S1_Tutorial_11002233.dat).
+We'll walk through the creation of a project file and running that project file on an [example data file](Experimenter_S1_Tutorial_11002233.dat).  
 
 | DatTime | SimTime | MediaTime | LonAccel | LatAccel | Throttle | Brake | Gear | Heading  | HeadwayDistance | HeadwayTime | Lane | LaneOffset | RoadOffset | Steer    | Velocity | XPos      | YPos  | GazeObj           |
 |---------|---------|-----------|----------|----------|----------|-------|------|----------|-----------------|-------------|------|------------|------------|----------|----------|-----------|-------|-------------------|
@@ -48,7 +48,7 @@ We'll walk through the creation of a project file and running that project file 
 
 The example file is only five rows of a data file, where real data files are tens of thousands of lines. Also, this is synthetic data, for example purposes only, not real data from a driving simulator run.
 
-## Goals
+## Project file
 
 Say you wanted to find the standard deviation of lane position (SDLP) for this data. Pydre comes with a [standard deviation metric function](../reference/metrics.md#pydre.metrics.common.colSD), so you can use that. To do that, you would write a project file like so:
 
@@ -64,9 +64,7 @@ After saving the project file, you can then run:
 
 ```bash
 
-python -m pydre.run -p example\tutorial\tutorial.toml \
-    -d example\tutorial\Experimenter_S1_Tutorial_11002233.dat \
-    -o tutorial.csv
+python -m pydre.run -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
 ```
 
 This will run the project commands on the specified data file and out the result in `tutorial.csv`. If you wanted to run on multiple data files, you could enter `-d ../datafiles/tutorialdata/*.dat` or something similar. Since we have no ROIs, the output csv will contain one row per input data file:
