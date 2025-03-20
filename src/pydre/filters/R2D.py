@@ -33,7 +33,7 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
-def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=False):
+def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, trim_data=False):
     """
     Ensure that the end of the drive data fits into the expected
     format - by distance & time.
@@ -295,9 +295,8 @@ def MergeCriticalEventPositions(
         if ceInfo_df.shape[0] == 0:
             logger.warning("No imported merge info - no known CE positions.")
     else:
-        raise Exception(
-            "Attempting to run 'Event' filtering on scenario with no Events."
-        )
+        logger.warning("Attempting to run 'Event' filtering on scenario with no Events.")
+        return drivedata
     return drivedata
 
 

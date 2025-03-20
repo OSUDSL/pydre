@@ -1,6 +1,6 @@
 [project]
 name = "pydre"
-version = "25.1"
+version = "25.1.dev1"
 readme = "readme.md"
 dependencies = [
     "polars",
