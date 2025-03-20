@@ -1,5 +1,6 @@
 import pathlib
 from abc import ABCMeta, abstractmethod
+from os import PathLike
 
 import pydre.core
 import polars as pl
@@ -9,15 +10,14 @@ from collections.abc import Iterable
 
 
 class ROIProcessor(object, metaclass=ABCMeta):
-
     @abstractmethod
-    def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
+    def __init__(self, filename: PathLike, nameprefix: str = ""):
         pass
 
     @abstractmethod
     def split(
         self, sourcedrivedata: pydre.core.DriveData
-    ) -> list[pydre.core.DriveData]:
+    ) -> Iterable[pydre.core.DriveData]:
         """Splits the drivedata object according to the ROI specifications.
 
         Parameters:
@@ -60,7 +60,7 @@ class TimeROI(ROIProcessor):
     rois_meta: set
     timecol: str
 
-    def __init__(self, filename: str | pathlib.Path, timecol: str = "DatTime"):
+    def __init__(self, filename: PathLike, timecol: str = "DatTime"):
         # parse time filename values
         pl_rois = pl.read_csv(filename)
         rois = []
@@ -90,25 +90,6 @@ class TimeROI(ROIProcessor):
         the 'roi' field of the objects will be filled with the roi tag listed
         in the roi definition file column name
         """
-        # output_list = []
-        #
-        # if sourcedrivedata.PartID in self.rois.keys():
-        #     for roi, duration in self.rois[sourcedrivedata.PartID]:
-        #         start, end = duration
-        #         new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
-        #         new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
-        #         new_ddata.roi = roi
-        #         output_list.append(new_ddata)
-        # return output_list
-        #
-        # if sourcedrivedata.PartID in self.rois.keys():
-        #     for roi, duration in self.rois[sourcedrivedata.PartID]:
-        #         start, end = duration
-        #         new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
-        #         new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
-        #         new_ddata.roi = roi
-        #         output_list.append(new_ddata)
-        # return output_list
         output_list = []
         matching_rois = self.rois.copy()
         if len(self.rois_meta) > 0:
@@ -146,20 +127,6 @@ class TimeROI(ROIProcessor):
         # example:  1:15:10-1:20:30
         # example : 02:32-08:45
 
-        # pair_regex = r"([\d:])-([\d:])"
-        # time_regex = r"(?:(\d+):)?(\d+):(\d+)"
-        # pair_result = re.match(pair_regex, duration)
-        # first_time_str, second_time_str = pair_result.group(1, 2)
-        # first_time_result = re.match(time_regex, first_time_str)
-        # second_time_result = re.match(time_regex, second_time_str)
-        # first_time = first_time_result.group(2) * 60 + first_time_result.group(3)
-        # if first_time_result.group(1):
-        #     first_time += first_time_result.group(1) * 60 * 60
-        # second_time = second_time_result.group(2) * 60 + second_time_result.group(3)
-        # if second_time_result.group(1):
-        #     second_time += second_time_result.group(1) * 60 * 60
-        # return (first_time, second_time)
-
         regex = r"(?:(\d{1,2}):)?(\d{1,2}):(\d{2})"
         pair_result = re.match(regex, duration)
         if pair_result is None:
@@ -181,7 +148,7 @@ class SpaceROI(ROIProcessor):
     x_column_name = "XPos"
     y_column_name = "YPos"
 
-    def __init__(self, filename: str | pathlib.Path, nameprefix: str = ""):
+    def __init__(self, filename: PathLike, nameprefix: str = ""):
         # parse time filename values
         # roi_info is a data frame containing the cutoff points for the region in each row.
         # It's columns must be roi, X1, X2, Y1, Y2
@@ -198,7 +165,7 @@ class SpaceROI(ROIProcessor):
 
     def split(
         self, sourcedrivedata: pydre.core.DriveData
-    ) -> list[pydre.core.DriveData]:
+    ) -> Iterable[pydre.core.DriveData]:
         return_list: list[pydre.core.DriveData] = []
 
         for roi_name, roi_location in self.roi_info.items():
@@ -213,9 +180,7 @@ class SpaceROI(ROIProcessor):
                 )
                 return return_list
             except TypeError as e:
-                logger.error(
-                    f"ROI {roi_name} has bad datatype: {e.args}"
-                )
+                logger.error(f"ROI {roi_name} has bad datatype: {e.args}")
                 return return_list
 
             region_data = sourcedrivedata.data.filter(
@@ -224,11 +189,6 @@ class SpaceROI(ROIProcessor):
             )
 
             if region_data.height == 0:
-                # try out PartID to get this to run cgw 5/20/2022
-                # logger.warning("No data for SubjectID: {}, Source: {},  ROI: {}".format(
-                #    ddata.SubjectID,
-                #    ddata.sourcefilename,
-                #    self.roi_info.roi[i]))
                 logger.warning(
                     "No data for SubjectID: {}, Source: {},  ROI: {}".format(
                         sourcedrivedata.metadata["ParticipantID"],
@@ -237,12 +197,6 @@ class SpaceROI(ROIProcessor):
                     )
                 )
             else:
-                # try out PartID to get this to run cgw 5/20/2022
-                # logger.info("{} Line(s) read into ROI {} for Subject {} From file {}".format(
-                #     len(region_data),
-                #     self.roi_info.roi[i],
-                #     ddata.SubjectID,
-                #     ddata.sourcefilename))
                 logger.info(
                     "{} Line(s) read into ROI {} for Subject {} From file {}".format(
                         region_data.height,
@@ -259,10 +213,10 @@ class SpaceROI(ROIProcessor):
 
 
 class ColumnROI(ROIProcessor):
-    def __init__(self, columnname: str, nameprefix=""):
+    def __init__(self, columnname: PathLike, nameprefix=""):
         # parse time filename values
-        self.roi_column = columnname
-        self.name_prefix = nameprefix
+        self.roi_column: str = str(columnname)
+        self.name_prefix: str = nameprefix
 
     def split(
         self, sourcedrivedata: pydre.core.DriveData

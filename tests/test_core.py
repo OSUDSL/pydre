@@ -6,7 +6,9 @@ from pydre.core import DriveData, ColumnsMatchError
 FIXTURE_DIR = Path(__file__).parent.resolve() / "test_data"
 
 
-@pytest.mark.datafiles(FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat")
+@pytest.mark.datafiles(
+    FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat"
+)
 def test_init_old_rti(datafiles):
     """Test initialization of DriveData using old RTI format."""
     file_path = datafiles / "ExampleProject_Sub_1_Drive_1.dat"
@@ -19,7 +21,9 @@ def test_init_old_rti(datafiles):
     assert drive_data.metadata["DriveID"] == "1"
 
 
-@pytest.mark.datafiles(FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat")
+@pytest.mark.datafiles(
+    FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat"
+)
 def test_init_test(datafiles):
     """Test initialization with test data."""
     df = pl.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
@@ -52,7 +56,9 @@ def test_init_from_existing():
     assert copy_with_data.data.equals(new_df)
 
 
-@pytest.mark.datafiles(FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat")
+@pytest.mark.datafiles(
+    FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat"
+)
 def test_load_datfile(datafiles):
     """Test loading data from datfile."""
     file_path = datafiles / "ExampleProject_Sub_1_Drive_1.dat"
@@ -65,7 +71,9 @@ def test_load_datfile(datafiles):
     assert "SimTime" in drive_data.data.columns
 
 
-@pytest.mark.datafiles(FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat")
+@pytest.mark.datafiles(
+    FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat"
+)
 def test_copy_metadata(datafiles):
     """Test copying metadata between DriveData objects."""
     file_path = datafiles / "ExampleProject_Sub_1_Drive_1.dat"
@@ -83,7 +91,9 @@ def test_copy_metadata(datafiles):
     assert target.metadata == source.metadata
 
 
-@pytest.mark.datafiles(FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat")
+@pytest.mark.datafiles(
+    FIXTURE_DIR / "test_datfiles" / "ExampleProject_Sub_1_Drive_1.dat"
+)
 def test_check_columns(datafiles):
     """Test column validation."""
     file_path = datafiles / "ExampleProject_Sub_1_Drive_1.dat"

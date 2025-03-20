@@ -17,7 +17,9 @@ class DriveData:
     metadata: dict[str, Any]
 
     def __init__(
-        self, orig: Optional[DriveData] = None, newdata: Optional[polars.DataFrame] = None
+        self,
+        orig: Optional[DriveData] = None,
+        newdata: Optional[polars.DataFrame] = None,
     ):
         if orig is not None:
             if newdata is not None:
@@ -161,6 +163,7 @@ class DriveData:
                 non_numeric.append(column)
         if len(non_numeric) > 0:
             raise ColumnsMatchError(f"Columns {non_numeric} not numeric.", non_numeric)
+
 
 class ColumnsMatchError(Exception):
     """Exception when a filter or metric expects a certain column in DriveData but it is not present or an unexpected type"""

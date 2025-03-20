@@ -2,6 +2,8 @@ from pathlib import Path
 import pytest
 import pydre.project
 import polars as pl
+import polars.testing
+
 from loguru import logger
 
 FIXTURE_DIR = Path(__file__).parent.resolve() / "test_data"
@@ -33,21 +35,34 @@ def test_project_projequiv(datafiles):
     proj_toml = pydre.project.Project(datafiles / "test1_pf.toml")
     assert proj_json == proj_toml
 
+
 @pytest.mark.datafiles(
     FIXTURE_DIR / "good_projectfiles",
     FIXTURE_DIR / "test_custom_metric",
     FIXTURE_DIR / "test_datfiles",
-    keep_top_dir=True
+    keep_top_dir=True,
 )
 def test_project_custom_metric(datafiles):
-    resolved_data_file = str(datafiles / "test_datfiles" / "clvspectest_Sub_8_Drive_3.dat")
-    proj = pydre.project.Project(datafiles / "good_projectfiles" / "custom_test.toml",
-                                 additional_data_paths=[resolved_data_file])
+    resolved_data_file = str(
+        datafiles / "test_datfiles" / "clvspectest_Sub_8_Drive_3.dat"
+    )
+    proj = pydre.project.Project(
+        datafiles / "good_projectfiles" / "custom_test.toml",
+        additional_data_paths=[resolved_data_file],
+    )
     proj.processDatafiles(numThreads=2)
 
-    expected_result = pl.DataFrame([{'ParticipantID': "8", 'UniqueID': "3", 'ScenarioName': 'Drive', 'DXmode': 'Sub', 'ROI': None, 'custom_test': 1387.6228702430055}])
+    expected_result = pl.DataFrame(
+        [
+            {
+                "ParticipantID": "8",
+                "UniqueID": "3",
+                "ScenarioName": "Drive",
+                "DXmode": "Sub",
+                "ROI": None,
+                "custom_test": 1387.6228702430055,
+            }
+        ]
+    )
 
-    assert proj.results.equals(expected_result)
-
-
-
+    polars.testing.assert_frame_equal(proj.results, expected_result)

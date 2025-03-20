@@ -25,7 +25,7 @@ def mock_logger(mocker):
         "remove": mocker.patch("loguru.logger.remove"),
         "add": mocker.patch("loguru.logger.add"),
         "warning": mocker.patch("loguru.logger.warning"),
-        "error": mocker.patch("loguru.logger.error")
+        "error": mocker.patch("loguru.logger.error"),
     }
 
 
@@ -40,12 +40,19 @@ def test_parse_arguments_minimal():
 
 def test_parse_arguments_full():
     """Test argument parsing with all arguments provided."""
-    args = parse_arguments([
-        "-p", "project.toml",
-        "-d", "file1.dat", "file2.dat",
-        "-o", "output.csv",
-        "-l", "DEBUG"
-    ])
+    args = parse_arguments(
+        [
+            "-p",
+            "project.toml",
+            "-d",
+            "file1.dat",
+            "file2.dat",
+            "-o",
+            "output.csv",
+            "-l",
+            "DEBUG",
+        ]
+    )
     assert args.projectfile == "project.toml"
     assert args.datafiles == ["file1.dat", "file2.dat"]
     assert args.outputfile == "output.csv"
@@ -75,7 +82,9 @@ def test_setup_logging_invalid(mock_logger):
     mock_logger["remove"].assert_called_once()
     mock_logger["add"].assert_called_once()
     assert mock_logger["add"].call_args[1]["level"] == "WARNING"
-    mock_logger["warning"].assert_called_once_with("Command line log level (-l) invalid. Defaulting to WARNING")
+    mock_logger["warning"].assert_called_once_with(
+        "Command line log level (-l) invalid. Defaulting to WARNING"
+    )
     assert result == "WARNING"
 
 
@@ -85,7 +94,9 @@ def test_run_project_basic(mock_project):
 
     result = run_project("project.toml", ["data.dat"], "output.csv")
 
-    mock_project_class.assert_called_once_with("project.toml", ["data.dat"], "output.csv")
+    mock_project_class.assert_called_once_with(
+        "project.toml", ["data.dat"], "output.csv"
+    )
     mock_instance.processDatafiles.assert_called_once_with(numThreads=12)
     mock_instance.saveResults.assert_called_once()
     assert result == mock_instance
@@ -102,7 +113,9 @@ def test_run_project_custom_threads(mock_project):
 
 def test_run_project_missing_file(mocker):
     """Test project run with missing file."""
-    mocker.patch("pydre.project.Project", side_effect=FileNotFoundError("File not found"))
+    mocker.patch(
+        "pydre.project.Project", side_effect=FileNotFoundError("File not found")
+    )
 
     with pytest.raises(FileNotFoundError):
         run_project("nonexistent.toml", ["data.dat"], "output.csv")
@@ -118,7 +131,7 @@ def test_main_success(mocker):
         projectfile="project.toml",
         datafiles=["data.dat"],
         outputfile="output.csv",
-        warninglevel="INFO"
+        warninglevel="INFO",
     )
 
     result = main(["dummy"])
@@ -133,13 +146,15 @@ def test_main_project_error(mocker, mock_logger):
     """Test main function with project processing error."""
     mock_parse_args = mocker.patch("pydre.run.parse_arguments")
     mock_setup_logging = mocker.patch("pydre.run.setup_logging")
-    mocker.patch("pydre.run.run_project", side_effect=FileNotFoundError("File not found"))
+    mocker.patch(
+        "pydre.run.run_project", side_effect=FileNotFoundError("File not found")
+    )
 
     mock_parse_args.return_value = argparse.Namespace(
         projectfile="project.toml",
         datafiles=["data.dat"],
         outputfile="output.csv",
-        warninglevel="INFO"
+        warninglevel="INFO",
     )
 
     result = main([])
@@ -147,4 +162,3 @@ def test_main_project_error(mocker, mock_logger):
     assert result == 1
     mock_logger["error"].assert_called_once()
     assert "File not found" in mock_logger["error"].call_args[0][0]
-

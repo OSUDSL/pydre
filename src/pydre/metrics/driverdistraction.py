@@ -31,6 +31,7 @@ def numOfErrorPresses(drivedata: pydre.core.DriveData):
     presses = df.select((pl.col("TaskFail").shift() != pl.col("TaskFail")) > 0).sum()
     return presses
 
+
 @registerMetric(
     columnnames=[
         "numOfGlancesOR",
@@ -182,4 +183,3 @@ def speedLimitMatchTime(
     else:
         # print( starting_speed_limit, speed_limit, time, sign_time)
         return time - sign_time
-

@@ -22,12 +22,12 @@ from tqdm import tqdm
 import concurrent.futures
 import importlib.util
 
+
 class Project:
     project_filename: Path  # used only for information
     definition: dict
     results: Optional[pl.DataFrame]
     filelist: list[Path]
-
 
     def __init__(
         self,
@@ -79,7 +79,12 @@ class Project:
                         )
                     if "config" in self.definition.keys():
                         self.config = self.definition["config"]
-                    extraKeys = set(self.definition.keys()) - {"filters", "rois", "metrics", "config"}
+                    extraKeys = set(self.definition.keys()) - {
+                        "filters",
+                        "rois",
+                        "metrics",
+                        "config",
+                    }
 
                     if len(extraKeys) > 0:
                         logger.warning(
@@ -201,7 +206,9 @@ class Project:
                     spec.loader.exec_module(module)
                     logger.info(f"Successfully loaded filters from {filters_file}")
                 except Exception as e:
-                    logger.exception(f"Error loading custom filters from {filters_file}: {e}")
+                    logger.exception(
+                        f"Error loading custom filters from {filters_file}: {e}"
+                    )
 
     def resolve_file(self, pathname: PathLike) -> pathlib.Path:
         """Resolve the given file to an absolute path based on the project file location.
@@ -214,12 +221,14 @@ class Project:
         if computed_path.is_absolute():
             computed_path = computed_path.resolve()
         else:
-            computed_path = pathlib.Path(self.project_filename.parent / computed_path).resolve()
+            computed_path = pathlib.Path(
+                self.project_filename.parent / computed_path
+            ).resolve()
         return computed_path
 
     @staticmethod
     def processROI(
-            roi: dict, datafile: pydre.core.DriveData
+        roi: dict, datafile: pydre.core.DriveData
     ) -> list[pydre.core.DriveData]:
         """
         Handles running region of interest definitions for a dataset
@@ -252,7 +261,7 @@ class Project:
 
     @staticmethod
     def processFilter(
-            datafilter: dict, datafile: pydre.core.DriveData
+        datafilter: dict, datafile: pydre.core.DriveData
     ) -> pydre.core.DriveData:
         """
         Handles running any filter definition
@@ -317,7 +326,9 @@ class Project:
         """
         Remove any parenthesis, quote mark and un-necessary directory names from a string
         """
-        return src_str.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
+        return (
+            src_str.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
+        )
 
     def processDatafiles(self, numThreads: int = 12) -> Optional[pl.DataFrame]:
         """Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
@@ -376,7 +387,9 @@ class Project:
             elif self.config["datafile_type"] == "scanner":
                 datafile = DriveData.init_scanner(datafilename)
             else:
-                logger.warning(f"Unknown datafile type {self.config['datafile_type']}, processing as RTI .dat file.")
+                logger.warning(
+                    f"Unknown datafile type {self.config['datafile_type']}, processing as RTI .dat file."
+                )
                 datafile = DriveData.init_rti(datafilename)
         else:
             datafile = DriveData.init_rti(datafilename)

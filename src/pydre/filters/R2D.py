@@ -9,6 +9,7 @@ from pydre.filters import registerFilter
 
 THISDIR = pathlib.Path(__file__).resolve().parent
 
+
 @registerFilter()
 def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
     ident = drivedata.metadata["ParticipantID"]
@@ -121,7 +122,9 @@ def ValidateDataStartEnd(drivedata: pydre.core, dataFile="", tol=100, trim_data=
 
 
 @registerFilter()
-def BinaryColReverse(drivedata: pydre.core.DriveData, old_col: str, new_col="MinusOneCol"):
+def BinaryColReverse(
+    drivedata: pydre.core.DriveData, old_col: str, new_col="MinusOneCol"
+):
     """
     'reverses' a binary column's values.
     old value 1 --> new value 0 & vice versa
