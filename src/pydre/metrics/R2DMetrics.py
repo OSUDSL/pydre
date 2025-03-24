@@ -136,34 +136,39 @@ def eventSpeedRecoveryTime(
     except pl.exceptions.PolarsError:
         return None
 
-    df = drivedata.data.select([pl.col("Velocity"), pl.col("SimTime"), pl.col("Brake")])
+    df = drivedata.data.select([pl.col("Velocity"), pl.col("SimTime"), pl.col("Brake"), pl.col("EventName")])
 
-    # filter df, so we take recovery time after initial slow-down
-    try:
-        df = df.filter(
-            pl.col("SimTime")
-            > df.filter(pl.col("Velocity") < lower_bound).get_column("SimTime").item(0)
-        )
-    except IndexError:
-        logger.warning(
-            f"Velocity doesn't drop below {lower_bound} m/s for roi {drivedata.roi} in file {drivedata.sourcefilename}"
-        )
-        return "NoSlowDown"
+    non_event_detect = df.filter(pl.col("EventName") == "")
 
-    # initial time once velocity reading below lower threshold
-    initial_time = df.get_column("SimTime").item(0)
+    if non_event_detect.is_empty():
+        # filter df, so we take recovery time after initial slow-down
+        try:
+            df = df.filter(
+                pl.col("SimTime")
+                > df.filter(pl.col("Velocity") < lower_bound).get_column("SimTime").item(0)
+            )
+        except IndexError:
+            logger.warning(
+                f"Velocity doesn't drop below {lower_bound} m/s for roi {drivedata.roi} in file {drivedata.sourcefilename}"
+            )
+            return "NoSlowDown"
 
-    recover_cond = pl.col("Velocity") >= lower_bound
-    recover_time = df.filter(recover_cond).select(pl.col("SimTime").first()).item()
+        # initial time once velocity reading below lower threshold
+        initial_time = df.get_column("SimTime").item(0)
 
-    if recover_time is not None:
-        return recover_time - initial_time
+        recover_cond = pl.col("Velocity") >= lower_bound
+        recover_time = df.filter(recover_cond).select(pl.col("SimTime").first()).item()
+
+        if recover_time is not None:
+            return recover_time - initial_time
+        else:
+            max_velo = df.select(pl.max("Velocity").first()).item()
+            logger.warning(
+                f"No recovery detected during this event - returned to max speed of {max_velo} m/s"
+            )
+            return "NoRecover"
     else:
-        max_velo = df.select(pl.max("Velocity").first()).item()
-        logger.warning(
-            f"No recovery detected during this event - returned to max speed of {max_velo} m/s"
-        )
-        return "NoRecover"
+        return "NoEvent"
 
 
 @registerMetric()
@@ -183,7 +188,7 @@ def eventRecenterRecoveryTime(
         to when the Subject returned to (lane_offset +- tolerance)
     """
     drivedata.data = drivedata.data.with_columns(drivedata.data["SimTime"].cast(pl.Float64))
-    required_col = ["EventName", "LaneOffset", "SimTime"]
+    required_col = ["LaneOffset", "SimTime"]
 
     try:
         drivedata.checkColumns(required_col)
@@ -225,7 +230,11 @@ def eventRecenterRecoveryTime(
             )
             return "NoRecover"
     else:
-        return None  # situation not Trashtip event, ignore
+        non_event_detect = df.filter(pl.col("EventName") == "")
+        if non_event_detect.is_empty():
+            return "NoTrashTip"  # situation not Trashtip event, ignore
+        else:
+            return "NoEvent"  # situation is non event
 
 
 @registerMetric()
