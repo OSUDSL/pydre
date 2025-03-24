@@ -62,8 +62,7 @@ def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, 
             merge_df.get_column("Week") == week,
         )
     else:
-        logger.warning(f"Failed to read csv at {dataFile} - check local path.")
-        return [None]
+        raise Exception("Datafile start/end definition not present - cannot merge w/o source of truth.")
 
     if len(merge_df) > 0:
         status = []
@@ -96,7 +95,6 @@ def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, 
             status.append("valid")
 
         status_value = "&".join(status)
-        logger.debug(f"GOT STATUS VALUE: {status_value}")
         df = df.with_columns(pl.lit(status_value).alias("validityCheck"))
         if trim_data:
             start_shape = df.shape
@@ -215,12 +213,11 @@ def MergeCriticalEventPositions(
         return [None]
     week = ident_groups.group(5)
     df = drivedata.data
-
-    if "No Event" not in scenario:
-        # adding cols with meaningless values for later CE info, ensuring shape
-        df = df.with_columns(
+    df = df.with_columns(
             pl.lit(-1).alias("CriticalEventNum"), pl.lit("").alias("EventName")
         )
+    if "No Event" not in scenario:
+        # adding cols with meaningless values for later CE info, ensuring shape
         if dataFile != "":
             merge_df = pl.read_csv(source=dataFile)
             merge_df = merge_df.filter(
@@ -295,8 +292,8 @@ def MergeCriticalEventPositions(
         if ceInfo_df.shape[0] == 0:
             logger.warning("No imported merge info - no known CE positions.")
     else:
-        logger.warning("Attempting to run 'Event' filtering on scenario with no Events.")
-        return drivedata
+        logger.warning("Attempting to run 'Event' filtering on scenario with no Events - don't filter.")
+        drivedata.data = df
     return drivedata
 
 
@@ -373,5 +370,5 @@ def DesignateNonEventRegions(drivedata: pydre.core.DriveData, dataFile=""):
         logger.warning(
             f"Do not have non-event regions for {scenario}, w{week} combo. Skipping.."
         )
-        drivedata.data = filter_df
+        drivedata.data = df
     return drivedata
