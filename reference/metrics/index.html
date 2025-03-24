@@ -485,24 +485,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pydre.metrics.common.eventRecenterRecoveryTime" class="md-nav__link">
-    <span class="md-ellipsis">
-      eventRecenterRecoveryTime
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pydre.metrics.common.eventSpeedRecoveryTime" class="md-nav__link">
-    <span class="md-ellipsis">
-      eventSpeedRecoveryTime
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pydre.metrics.common.leadVehicleCollision" class="md-nav__link">
     <span class="md-ellipsis">
       leadVehicleCollision
@@ -560,15 +542,6 @@
   <a href="#pydre.metrics.common.stoppingDist" class="md-nav__link">
     <span class="md-ellipsis">
       stoppingDist
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pydre.metrics.common.throttleReactionTime" class="md-nav__link">
-    <span class="md-ellipsis">
-      throttleReactionTime
     </span>
   </a>
   
@@ -908,24 +881,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pydre.metrics.common.eventRecenterRecoveryTime" class="md-nav__link">
-    <span class="md-ellipsis">
-      eventRecenterRecoveryTime
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pydre.metrics.common.eventSpeedRecoveryTime" class="md-nav__link">
-    <span class="md-ellipsis">
-      eventSpeedRecoveryTime
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pydre.metrics.common.leadVehicleCollision" class="md-nav__link">
     <span class="md-ellipsis">
       leadVehicleCollision
@@ -983,15 +938,6 @@
   <a href="#pydre.metrics.common.stoppingDist" class="md-nav__link">
     <span class="md-ellipsis">
       stoppingDist
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pydre.metrics.common.throttleReactionTime" class="md-nav__link">
-    <span class="md-ellipsis">
-      throttleReactionTime
     </span>
   </a>
   
@@ -1781,124 +1727,6 @@ If column is not numeric, <code>None</code> is returned.</p>
 <div class="doc doc-object doc-function">
 
 
-<h2 id="pydre.metrics.common.eventRecenterRecoveryTime" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">eventRecenterRecoveryTime</span>
-
-
-</h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">eventRecenterRecoveryTime</span><span class="p">(</span>
-    <span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.65</span><span class="p">,</span> <span class="n">event_detect</span><span class="o">=</span><span class="s2">&quot;Trash&quot;</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Calculates the time it takes to recenter in lane after specific event occurences
-tolerance allows for proper classification of subject behavior variation</p>
-
-
-<details class="note" open>
-  <summary>Requires data columns</summary>
-  <ul>
-<li>EventName: The name of the critical event for this region</li>
-<li>LaneOffset: meters of Subject from center of their lane</li>
-<li>SimTime: Simulation time in seconds</li>
-</ul>
-</details>
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Time in seconds from when the Subject left (lane_offset +- tolerance )</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>to when the Subject returned to (lane_offset +- tolerance)</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h2 id="pydre.metrics.common.eventSpeedRecoveryTime" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">eventSpeedRecoveryTime</span>
-
-
-</h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">eventSpeedRecoveryTime</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">,</span> <span class="n">op_speed</span><span class="o">=</span><span class="mf">15.64</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Calculates the time it takes to accelerate back up to 'operational speed' (op_speed)
-tolerance allows for proper classification of subject behavior variation
-(defaults parameterized for R2D study processing)</p>
-
-
-<details class="note" open>
-  <summary>Requires data columns</summary>
-  <ul>
-<li>SimTime: Simulation time in seconds</li>
-<li>Velocity: m/s directional speed of Subject</li>
-</ul>
-</details>
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Time in seconds from the start of the CE to when the Subject returned to (operational speed - tolerance)</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
 <h2 id="pydre.metrics.common.leadVehicleCollision" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">leadVehicleCollision</span>
 
@@ -2415,59 +2243,6 @@ stop sign or stop light as the middle value in the direction of travel.</p>
 <div class="doc doc-object doc-function">
 
 
-<h2 id="pydre.metrics.common.throttleReactionTime" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">throttleReactionTime</span>
-
-
-</h2>
-<div class="doc-signature highlight"><pre><span></span><code><span class="nf">throttleReactionTime</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n"><span title="pydre.core.DriveData">DriveData</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="float">float</span></span><span class="p">]</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Calculates the time it takes to accelerate once follow car brakes (r2d)</p>
-
-
-<details class="note" open>
-  <summary>Requires data columns</summary>
-  <ul>
-<li>SimTime: Simulation time in seconds</li>
-<li>FollowCarBraking Status: Whether the follow car is braking</li>
-<li>LonAccel: Longitude acceleration</li>
-<li>Brake: Whether the ownship is braking</li>
-</ul>
-</details>
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Time in seconds from when the follow car braked to when the ownship started accelerating forward.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
 <h2 id="pydre.metrics.common.timeAboveSpeed" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">timeAboveSpeed</span>
 
@@ -2676,7 +2451,7 @@ the var column is never true or if there is a error in processing.</p>
 [threshold_low: threshold_high]</p>
 <p>threshold_low &amp;  threshold_high are set to extreme numbers by default to
 ensure users don't have to define irrelevant bounds. Calculates a reaction
-time for the first occurence of a threshold violation.</p>
+time for the first occurrence of a threshold violation.</p>
 <p>:arg var: column name to check for reaction
 :arg threshold_low: the value that defines a reaction
     for the given column, if lower
