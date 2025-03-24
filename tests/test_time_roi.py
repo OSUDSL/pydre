@@ -31,38 +31,14 @@ def test_parse_timestamp():
     assert pydre.rois.TimeROI.parseTimeStamp("00:01") == (sec + min * 60)
 
 
-@pytest.mark.datafiles(FIXTURE_DIR / "good_projectfiles" / "test_time_roi_2.toml")
-def test_time_roi_1(datafiles):
-    data_path = str(FIXTURE_DIR / "test_datfiles" / "Experimenter_S1_Tutorial_11002233.dat")
-    proj = pydre.project.Project(projectfilename=datafiles / "test_time_roi_2.toml", additional_data_paths=[data_path])
-    proj.processDatafiles(12)
+@pytest.mark.datafiles(FIXTURE_DIR / "test_roi_files")
+def test_make_time_roi_1(datafiles):
+    new_roi = pydre.rois.TimeROI(datafiles / "test_time_1.csv")
+    assert new_roi.rois == {'roi_1': {'time_end': 540, 'time_start': 480}, 'roi_2': {'time_end': 240, 'time_start': 180}}
+    assert isinstance(new_roi, pydre.rois.TimeROI)
 
-@pytest.mark.datafiles(FIXTURE_DIR / "good_projectfiles" / "test_time_roi_1.toml")
-def test_time_roi_2(datafiles):
-    data_path = str(FIXTURE_DIR / "test_datfiles" / "Experimenter_S1_Tutorial_11002233.dat")
-    proj = pydre.project.Project(projectfilename=datafiles / "test_time_roi_1.toml", additional_data_paths=[data_path])
-    print(proj)
-    proj.processDatafiles(12)
-
-@pytest.mark.datafiles(FIXTURE_DIR / "good_projectfiles" / "test_time_roi_2.toml")
-def test_time_roi(datafiles):
-    data_path = str(FIXTURE_DIR / "test_datfiles" / "Experimenter_S1_Tutorial_11002233.dat")
-    proj = pydre.project.Project(projectfilename=datafiles / "test_time_roi_2.toml", additional_data_paths=[data_path])
-    proj.processDatafiles(12)
-
-@pytest.mark.datafiles(FIXTURE_DIR / "good_projectfiles" / "test_time_roi_1.toml")
-def test_time_roi_fail_2(datafiles):
-    data_path = str(FIXTURE_DIR / "test_datfiles" / "Experimenter_S1_Tutorial_11002233.dat")
-    with pytest.raises(pl.exceptions.NoDataError):
-        proj = pydre.project.Project(projectfilename=datafiles / "test_time_roi_1.toml", additional_data_paths=[data_path])
-        print(proj)
-        proj.processDatafiles(12)
-
-@pytest.mark.datafiles(FIXTURE_DIR / "good_projectfiles" / "test_time_roi_2.toml")
-def test_time_roi_fail_2(datafiles):
-    with pytest.raises(pl.exceptions.NoDataError):
-        data_path = str(FIXTURE_DIR / "test_datfiles" / "Experimenter_S1_Tutorial_11002233.dat")
-        proj = pydre.project.Project(projectfilename=datafiles / "test_time_roi_2.toml", additional_data_paths=[data_path])
-        print(proj)
-        proj.processDatafiles(12)
-
+@pytest.mark.datafiles(FIXTURE_DIR / "test_roi_files")
+def test_make_time_roi_1(datafiles):
+    new_roi = pydre.rois.TimeROI(datafiles / "test_time_2.csv")
+    assert new_roi.rois == {'roi_1': {'ScenarioName': 'Practice', 'time_end': 180, 'time_start': 0}, 'roi_2': {'ScenarioName': 'Practice', 'time_end': 300, 'time_start': 180}}
+    assert isinstance(new_roi, pydre.rois.TimeROI)
