@@ -1,6 +1,7 @@
 from loguru import logger
 import polars as pl
 import pydre.core
+from pydre.core import ColumnsMatchError
 from pydre.metrics import registerMetric
 import numpy as np
 import math
@@ -96,6 +97,125 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
         mean_time_offroad_glances,
         total_time_offroad_glances,
     ]
+
+@registerMetric(
+    columnnames=[
+        "numOfGlancesOffR",
+        "numOfGlancesOffR2s",
+        "meanGlanceOffRDuration",
+        "sumGlanceOffRDuration",
+    ]
+)
+def gazeNHTSATask(drivedata: pydre.core.DriveData,
+              gazetype_col = "onroad",
+              gazenum_col = "gazenum",
+              time_col = "DatTime"
+              ):
+
+
+    try:
+        drivedata.checkColumns([gazenum_col, gazetype_col, time_col])
+    except ColumnsMatchError:
+        return [None, None, None, None]
+
+    # construct table with columns [glanceduration, glancelocation, error]
+    gr = drivedata.data.group_by("gazenum")
+
+    glancelist = gr.agg(
+        duration=(pl.col(time_col).max() - pl.col(time_col).min()),
+        location=pl.col(gazetype_col).first()
+    )
+
+
+
+    # table constructed, now find metrics
+
+    num_over_2s_offroad_glances = glancelist.filter(
+        (pl.col("duration") > 2) & (pl.col("location") == 0)).height
+
+    num_offroad_glances = glancelist.filter(pl.col("location") == 0).height
+
+    total_time_offroad_glances = glancelist.filter(pl.col("location") == 0).get_column("duration").sum()
+
+    mean_time_offroad_glances = glancelist.filter(pl.col("location") == 0).get_column("duration").mean()
+
+    # print(">2s glances: {}, num glances: {}, total time glances: {}, mean time glances {}".format(
+    # num_over_2s_offroad_glances, num_offroad_glances, total_time_offroad_glances, mean_time_offroad_glances))
+
+    return [
+        num_offroad_glances,
+        num_over_2s_offroad_glances,
+        mean_time_offroad_glances,
+        total_time_offroad_glances,
+    ]
+
+
+
+@registerMetric(
+    columnnames=[
+        "numOfGlancesOR",
+        "numOfGlancesOR2s",
+        "meanGlanceORDuration",
+        "sumGlanceORDuration",
+    ]
+)
+def gazeNHTSA(drivedata: pydre.core.DriveData):
+    required_col = ["VidTime", "gaze", "gazenum", "TaskFail", "taskblocks", "PartID"]
+    drivedata.checkColumns(required_col)
+
+    numofglances = 0
+
+    df = drivedata.data.select(required_col).unique(maintain_order=True).drop_nulls()
+
+    # construct table with columns [glanceduration, glancelocation, error]
+    gr = df.group_by("gazenum")
+
+    glancelist = gr.agg(
+        durations=(pl.col("VidTime").max() - pl.col("VidTime").min()),
+        locations=pl.col("gaze")
+        .first()
+        .fill_null("offroad")
+        .replace(
+            ["car.WindScreen", "car.dashPlane", "None"],
+            ["onroad", "offroad", "offroad"],
+        ),
+        error_list=pl.col("TaskFail").any(),
+        TaskID=pl.col("TaskID").min(),
+        taskblock=pl.col("taskblocks").min(),
+        Subject=pl.col("PartID").min(),
+    )
+
+    # appendDFToCSV_void(glancelist_aug, "glance_list.csv")
+
+    # table constructed, now find metrics
+    # glancelist['over2s'] = glancelist['duration'] > 2
+
+    num_over_2s_offroad_glances = glancelist[
+        (glancelist["duration"] > 2) & (glancelist["locations"] == "offroad")
+    ]["duration"].count()
+
+    num_offroad_glances = glancelist[(glancelist["locations"] == "offroad")][
+        "duration"
+    ].count()
+
+    total_time_offroad_glances = glancelist[(glancelist["locations"] == "offroad")][
+        "duration"
+    ].sum()
+
+    mean_time_offroad_glances = glancelist[(glancelist["locations"] == "offroad")][
+        "duration"
+    ].mean()
+
+    # print(">2s glances: {}, num glances: {}, total time glances: {}, mean time glances {}".format(
+    # num_over_2s_offroad_glances, num_offroad_glances, total_time_offroad_glances, mean_time_offroad_glances))
+
+    return [
+        num_offroad_glances,
+        num_over_2s_offroad_glances,
+        mean_time_offroad_glances,
+        total_time_offroad_glances,
+    ]
+
 
 
 # not working
