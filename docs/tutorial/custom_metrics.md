@@ -148,7 +148,7 @@ var = "XPos"
 Run Pydre with your project file:
 
 ```bash
-python -m pydre.run -p examples/custom_project/custom_test.toml -d examples/custom_project/data/Experimenter_S1_Tutorial_11002233.dat -o custom.csv
+rye run pydre -p examples/custom_project/custom_test.toml -d examples/custom_project/data/Experimenter_S1_Tutorial_11002233.dat -o custom.csv
 ```
 
 ## How It Works
