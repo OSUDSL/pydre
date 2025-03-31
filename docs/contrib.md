@@ -38,6 +38,7 @@ rye run pytest  # make sure all tests pass
 
 ## Making a pull request
 A good pull request requires the following, along with a new feature (where applicable)
+
 1. All functions should have docstrings using the [Google style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
 2. Ideally, new functions should have corresponding unit tests.
 3. All tests must pass on your machine by running `rye run pytest` in the top level directory.

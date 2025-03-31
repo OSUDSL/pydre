@@ -72,6 +72,8 @@ def main(args: Optional[List[str]] = None) -> int:
         logger.error(f"Application failed: {str(e)}")
         return 1
 
+def pydre():
+    sys.exit(main())
 
 if __name__ == "__main__":
-    sys.exit(main())
+    pydre()

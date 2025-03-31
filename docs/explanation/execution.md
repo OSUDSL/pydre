@@ -2,12 +2,20 @@
 title: Execution of the pydre package from the command line
 ---
 
-The `pydre.run` module provides a command-line interface for processing driving data through project files and generating analysis results.
+The `pydre` entrypoint provides a command-line interface for processing driving data through project files and generating analysis results.
 
 ## Command Line Usage
 
+If installed via `rye` (similarly for `uv`):
+
 ```
-python -m pydre.run -p PROJECT_FILE [-d DATAFILES [DATAFILES ...]] [-o OUTPUT_FILE] [-l LOG_LEVEL]
+rye run pydre -p PROJECT_FILE [-d DATAFILES [DATAFILES ...]] [-o OUTPUT_FILE] [-l LOG_LEVEL]
+```
+
+If installed via `pip` or another situation where `pydre` is in your `PATH`:
+
+```
+pydre -p PROJECT_FILE [-d DATAFILES [DATAFILES ...]] [-o OUTPUT_FILE] [-l LOG_LEVEL]
 ```
 
 ### Required Arguments
@@ -36,7 +44,7 @@ python -m pydre.run -p PROJECT_FILE [-d DATAFILES [DATAFILES ...]] [-o OUTPUT_FI
 Process a project file with the data files defined in it:
 
 ```
-python -m pydre.run -p projects/analysis.toml
+pydre -p projects/analysis.toml
 ```
 
 ### Specifying Data Files
@@ -44,7 +52,7 @@ python -m pydre.run -p projects/analysis.toml
 Process specific data files with a project file:
 
 ```
-python -m pydre.run -p projects/analysis.toml -d data/drive1.dat data/drive2.dat
+pydre -p projects/analysis.toml -d data/drive1.dat data/drive2.dat
 ```
 
 ### Changing Output File
@@ -52,7 +60,7 @@ python -m pydre.run -p projects/analysis.toml -d data/drive1.dat data/drive2.dat
 Save results to a custom output file:
 
 ```
-python -m pydre.run -p projects/analysis.toml -o results/custom_output.csv
+pydre -p projects/analysis.toml -o results/custom_output.csv
 ```
 
 ### Verbose Logging
@@ -60,7 +68,7 @@ python -m pydre.run -p projects/analysis.toml -o results/custom_output.csv
 Use INFO level logging for more detailed information:
 
 ```
-python -m pydre.run -p projects/analysis.toml -l INFO
+pydre -p projects/analysis.toml -l INFO
 ```
 
 ## Process Flow

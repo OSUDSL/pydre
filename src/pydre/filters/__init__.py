@@ -1,7 +1,7 @@
 from loguru import logger
 from typing import Optional, Callable, Concatenate
 
-__all__ = ["common", "eyetracking", "R2D"]
+__all__ = ["common", "eyetracking"]
 
 import pydre.core
 
