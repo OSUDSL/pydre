@@ -79,7 +79,7 @@ After saving the project file, you can then run:
 
 ```bash
 
-python -m pydre.run -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
+rye run pydre -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
 ```
 
 This will run the project commands on the specified data file and out the result in `tutorial.csv`. If you wanted to run on multiple data files, you could enter `-d ../datafiles/tutorialdata/*.dat` or something similar. Since we have no ROIs, the output csv will contain one row per input data file:

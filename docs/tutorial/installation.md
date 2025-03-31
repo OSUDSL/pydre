@@ -114,8 +114,16 @@ pip install pydre
 
 Check that Pydre was installed correctly:
 
+#### Using rye (or uv)
+
 ```bash
-python -m pydre.run --help
+rye run pydre --help
+```
+
+#### Using pip
+
+```bash
+pydre --help
 ```
 
 You should see the help output showing available command line options.
