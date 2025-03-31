@@ -599,10 +599,10 @@
 <h1 id="getting-started">Getting Started</h1>
 <p>Pydre is a Python application, run from the command line. </p>
 <h1 id="pydrerun">pydre.run</h1>
-<p>The main entry point to run Pydre is <code>pydre.run</code>. This application that allows the user to analyze data using command line arguments.</p>
+<p>The main entry point to run Pydre is <code>pydre</code>. This application that allows the user to analyze data using command line arguments.</p>
 <p>The user must enter the path for the project file and data file in order to aggregate the data. The user has the option of specifying an output file name, to which the test results will be saved. If no output file name is given the output will save to <em>"out.csv"</em> by default. A brief description of the aforementioned arguments is offered below.</p>
 <div class="admonition info">
-<p class="admonition-title">Command Line Arguments for <code>pydre.run</code></p>
+<p class="admonition-title">Command Line Arguments for <code>pydre</code></p>
 <ul>
 <li>
 <p>Project File [-p]: The project file specifies a file for the regions of interest from which the data should be aggregated. It also specifies a list of metrics (the type of data) that will be aggregated from the regions of interest. </p>
@@ -618,12 +618,17 @@
 </li>
 </ul>
 </div>
-<p>Command Line Syntax: 
-<div class="highlight"><pre><span></span><code>python -m pydre.run -p [project file path] -d [data file path] 
+<p>Command Line Syntax:</p>
+<p>If pydre is installed via <code>rye</code> (similar for <code>uv</code>):</p>
+<div class="highlight"><pre><span></span><code>rye run pydre -p [project file path] -d [data file path] 
     -o [output file name] -l [warning level]
-</code></pre></div></p>
+</code></pre></div>
+<p>If pydre is installed via <code>pip</code>:</p>
+<div class="highlight"><pre><span></span><code>pydre -p [project file path] -d [data file path] 
+    -o [output file name] -l [warning level]
+</code></pre></div>
 <p>Example execution: 
-<div class="highlight"><pre><span></span><code>python -m pydre.run -p examples\tutorial\tutorial.toml -d examples\tutorial\Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv 
+<div class="highlight"><pre><span></span><code>pydre -p examples\tutorial\tutorial.toml -d examples\tutorial\Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv 
 </code></pre></div></p>
 <p>You can download the example files <a href="../examples.zip">here</a>.</p>
 <h1 id="example-data-processing">Example data processing</h1>
@@ -764,13 +769,13 @@
 <p>The example file is only five rows of a data file, where real data files are tens of thousands of lines. Also, this is synthetic data, for example purposes only, not real data from a driving simulator run.</p>
 <h2 id="project-file">Project file</h2>
 <p>Say you wanted to find the standard deviation of lane position (SDLP) for this data. Pydre comes with a <a href="../../reference/metrics/#pydre.metrics.common.colSD">standard deviation metric function</a>, so you can use that. To do that, you would write a project file like so:</p>
-<div class="highlight"><span class="filename">tutorial_project.toml</span><pre><span></span><code><span class="k">[metrics.SDLP]</span>
+<div class="highlight"><span class="filename">tutorial.toml</span><pre><span></span><code><span class="k">[metrics.SDLP]</span>
 <span class="n">function</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;colSD&quot;</span>
-<span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;LanePosition&quot;</span>
+<span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;LaneOffset&quot;</span>
 </code></pre></div>
 <p>The <code>[metrics.SDLP]</code> section title shows the type of object we're defining (a metric) and the name of the metric ("SDLP").  The <a href="../../reference/metrics/#pydre.metrics.common.colSD"><code>colSD</code> function</a> requires a parameter <code>var</code> that is the column name in the data files to calculate the standard deviation over.</p>
 <p>After saving the project file, you can then run:</p>
-<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pydre.run<span class="w"> </span>-p<span class="w"> </span>examples/tutorial/tutorial.toml<span class="w"> </span>-d<span class="w"> </span>examples/tutorial/Experimenter_S1_Tutorial_11002233.dat<span class="w"> </span>-o<span class="w"> </span>tutorial.csv
+<div class="highlight"><pre><span></span><code>rye<span class="w"> </span>run<span class="w"> </span>pydre<span class="w"> </span>-p<span class="w"> </span>examples/tutorial/tutorial.toml<span class="w"> </span>-d<span class="w"> </span>examples/tutorial/Experimenter_S1_Tutorial_11002233.dat<span class="w"> </span>-o<span class="w"> </span>tutorial.csv
 </code></pre></div>
 <p>This will run the project commands on the specified data file and out the result in <code>tutorial.csv</code>. If you wanted to run on multiple data files, you could enter <code>-d ../datafiles/tutorialdata/*.dat</code> or something similar. Since we have no ROIs, the output csv will contain one row per input data file:</p>
 <table>

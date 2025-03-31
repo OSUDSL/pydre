@@ -632,6 +632,40 @@ cd my_pydre_project
 <li>Verify that your <a href="../../explanation/project_files/">project file</a> is properly formatted.</li>
 <li>If you are still having problems, please <a href="https://github.com/OSUDSL/pydre/issues">open an issue on GitHub</a>.</li>
 </ol>
+<h1 id="setting-up-pydre-with-pip">Setting up pydre with <em>pip</em></h1>
+<h2 id="1-install-python">1. Install Python</h2>
+<p>Ensure you have Python installed on your system. You can download it from <a href="https://www.python.org/">python.org</a>.</p>
+<h2 id="2-set-up-your-project-directory_1">2. Set up your project directory</h2>
+<p>Create a new project directory and navigate to it:</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>my_pydre_project
+<span class="nb">cd</span><span class="w"> </span>my_pydre_project
+</code></pre></div>
+<h2 id="3-create-a-virtual-environment">3. Create a virtual environment</h2>
+<p>Set up a virtual environment to isolate your project dependencies:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+</code></pre></div>
+<p>Activate the virtual environment:</p>
+<ul>
+<li>On Windows:
+  <div class="highlight"><pre><span></span><code>venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate
+</code></pre></div></li>
+<li>On macOS/Linux:
+  <div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</code></pre></div></li>
+</ul>
+<h2 id="4-install-pydre">4. Install Pydre</h2>
+<p>Use pip to install Pydre:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>pydre
+</code></pre></div>
+<h3 id="5-verify-installation">5. Verify Installation</h3>
+<p>Check that Pydre was installed correctly:</p>
+<h4 id="using-rye-or-uv">Using rye (or uv)</h4>
+<div class="highlight"><pre><span></span><code>rye<span class="w"> </span>run<span class="w"> </span>pydre<span class="w"> </span>--help
+</code></pre></div>
+<h4 id="using-pip">Using pip</h4>
+<div class="highlight"><pre><span></span><code>pydre<span class="w"> </span>--help
+</code></pre></div>
+<p>You should see the help output showing available command line options.</p>
 <h1 id="setting-up-a-development-environment">Setting up a development environment</h1>
 <p>If you want to contribute to Pydre or modify its source code, you can set up a development environment. You will need to clone the Pydre repository:</p>
 <p><div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/OSUDSL/pydre.git

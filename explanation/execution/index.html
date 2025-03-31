@@ -835,9 +835,13 @@
 
   <h1>Execution</h1>
 
-<p>The <code>pydre.run</code> module provides a command-line interface for processing driving data through project files and generating analysis results.</p>
+<p>The <code>pydre</code> entrypoint provides a command-line interface for processing driving data through project files and generating analysis results.</p>
 <h2 id="command-line-usage">Command Line Usage</h2>
-<div class="highlight"><pre><span></span><code>python -m pydre.run -p PROJECT_FILE [-d DATAFILES [DATAFILES ...]] [-o OUTPUT_FILE] [-l LOG_LEVEL]
+<p>If installed via <code>rye</code> (similarly for <code>uv</code>):</p>
+<div class="highlight"><pre><span></span><code>rye run pydre -p PROJECT_FILE [-d DATAFILES [DATAFILES ...]] [-o OUTPUT_FILE] [-l LOG_LEVEL]
+</code></pre></div>
+<p>If installed via <code>pip</code> or another situation where <code>pydre</code> is in your <code>PATH</code>:</p>
+<div class="highlight"><pre><span></span><code>pydre -p PROJECT_FILE [-d DATAFILES [DATAFILES ...]] [-o OUTPUT_FILE] [-l LOG_LEVEL]
 </code></pre></div>
 <h3 id="required-arguments">Required Arguments</h3>
 <ul>
@@ -867,19 +871,19 @@
 <h2 id="examples">Examples</h2>
 <h3 id="basic-usage">Basic Usage</h3>
 <p>Process a project file with the data files defined in it:</p>
-<div class="highlight"><pre><span></span><code>python -m pydre.run -p projects/analysis.toml
+<div class="highlight"><pre><span></span><code>pydre -p projects/analysis.toml
 </code></pre></div>
 <h3 id="specifying-data-files">Specifying Data Files</h3>
 <p>Process specific data files with a project file:</p>
-<div class="highlight"><pre><span></span><code>python -m pydre.run -p projects/analysis.toml -d data/drive1.dat data/drive2.dat
+<div class="highlight"><pre><span></span><code>pydre -p projects/analysis.toml -d data/drive1.dat data/drive2.dat
 </code></pre></div>
 <h3 id="changing-output-file">Changing Output File</h3>
 <p>Save results to a custom output file:</p>
-<div class="highlight"><pre><span></span><code>python -m pydre.run -p projects/analysis.toml -o results/custom_output.csv
+<div class="highlight"><pre><span></span><code>pydre -p projects/analysis.toml -o results/custom_output.csv
 </code></pre></div>
 <h3 id="verbose-logging">Verbose Logging</h3>
 <p>Use INFO level logging for more detailed information:</p>
-<div class="highlight"><pre><span></span><code>python -m pydre.run -p projects/analysis.toml -l INFO
+<div class="highlight"><pre><span></span><code>pydre -p projects/analysis.toml -l INFO
 </code></pre></div>
 <h2 id="process-flow">Process Flow</h2>
 <ol>
