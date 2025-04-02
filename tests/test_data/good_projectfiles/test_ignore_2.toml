@@ -1,6 +1,6 @@
 [config]
-datafiles = ["test_data\\test_datfiles\\CrossCorrTest_Sub_1_Drive_*.dat"]
-ignore = ["test_data\\test_datfiles\\CrossCorrTest_Sub_1_Drive_2.dat", "test_data\\test_datfiles\\CrossCorrTest_Sub_1_Drive_3.dat"]
+datafiles = ["../test_datfiles/CrossCorrTest_Sub_1_Drive_*.dat"]
+ignore = ["../test_datfiles/CrossCorrTest_Sub_1_Drive_2.dat", "../test_datfiles/CrossCorrTest_Sub_1_Drive_3.dat"]
 
 [rois.roi2]
 type = "time"

@@ -1,9 +1,9 @@
 [config]
-datafiles = ["test_data\\test_datfiles\\CrossCorrTest_Sub_1_Drive_*.dat"]
+datafiles = ['../test_datfiles/CrossCorrTest_Sub_1_Drive_*.dat']
 
 [rois.roi2]
 type = "time"
-filename = "tests/test_data/csv/test_ignore.csv"
+filename = "../csv/test_ignore.csv"
 
 [metrics.mean]
 function = "colMean"
