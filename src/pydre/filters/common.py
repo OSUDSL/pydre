@@ -38,7 +38,7 @@ def numberBinaryBlocks(
     drivedata.checkColumns(required_col)
 
     new_dd = drivedata.data.with_columns(
-        (pl.col(binary_column).shift() != pl.col(binary_column))
+        (pl.col(binary_column).shift(fill_value=0) != pl.col(binary_column))
         .cum_sum()
         .alias(new_column)
     )
@@ -47,7 +47,7 @@ def numberBinaryBlocks(
     if only_on:
         try:
             new_dd = new_dd.filter(pl.col(binary_column) == 1)
-            new_dd = new_dd.with_columns((pl.col(new_column) + 1.0) / 2.0)
+            new_dd = new_dd.with_columns((pl.col(new_column) + 1) / 2.0)
         except pl.exceptions.ComputeError as e:
             logger.warning(
                 "Assumed binary column {} in {} has non-numeric value.".format(
