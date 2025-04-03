@@ -35,14 +35,10 @@ pydre -p [project file path] -d [data file path]
     -o [output file name] -l [warning level]
 ```
 
-
-
 Example execution: 
 ```
-pydre -p examples\tutorial\tutorial.toml -d examples\tutorial\Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv 
+rye run pydre -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
 ```
-
-
 
 You can download the example files [here](examples.zip).
 
