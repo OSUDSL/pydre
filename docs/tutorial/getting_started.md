@@ -4,11 +4,11 @@ Pydre is a Python application, run from the command line.
 
 # pydre.run
 
-The main entry point to run Pydre is `pydre.run`. This application that allows the user to analyze data using command line arguments.
+The main entry point to run Pydre is `pydre`. This application that allows the user to analyze data using command line arguments.
 
 The user must enter the path for the project file and data file in order to aggregate the data. The user has the option of specifying an output file name, to which the test results will be saved. If no output file name is given the output will save to _"out.csv"_ by default. A brief description of the aforementioned arguments is offered below.
 
-!!! info "Command Line Arguments for `pydre.run`"
+!!! info "Command Line Arguments for `pydre`"
 
     * Project File [-p]: The project file specifies a file for the regions of interest from which the data should be aggregated. It also specifies a list of metrics (the type of data) that will be aggregated from the regions of interest. 
 
@@ -18,15 +18,26 @@ The user must enter the path for the project file and data file in order to aggr
     
     * Logger level [-l]: This defines the level the logger will print out. The default is 'warning'. Options include debug, info, warning, error, and critical.
   
-Command Line Syntax: 
+Command Line Syntax:
+
+If pydre is installed via `rye` (similar for `uv`):
+
 ```
-python -m pydre.run -p [project file path] -d [data file path] 
+rye run pydre -p [project file path] -d [data file path] 
+    -o [output file name] -l [warning level]
+```
+
+
+If pydre is installed via `pip`:
+
+```
+pydre -p [project file path] -d [data file path] 
     -o [output file name] -l [warning level]
 ```
 
 Example execution: 
 ```
-python -m pydre.run -p examples\tutorial\tutorial.toml -d examples\tutorial\Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv 
+rye run pydre -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
 ```
 
 You can download the example files [here](examples.zip).
@@ -52,10 +63,10 @@ The example file is only five rows of a data file, where real data files are ten
 
 Say you wanted to find the standard deviation of lane position (SDLP) for this data. Pydre comes with a [standard deviation metric function](../reference/metrics.md#pydre.metrics.common.colSD), so you can use that. To do that, you would write a project file like so:
 
-```toml title="tutorial_project.toml"
+```toml title="tutorial.toml"
 [metrics.SDLP]
 function = "colSD"
-var = "LanePosition"
+var = "LaneOffset"
 ```
 
 The `[metrics.SDLP]` section title shows the type of object we're defining (a metric) and the name of the metric ("SDLP").  The [`colSD` function](../reference/metrics.md#pydre.metrics.common.colSD) requires a parameter `var` that is the column name in the data files to calculate the standard deviation over.
@@ -64,7 +75,7 @@ After saving the project file, you can then run:
 
 ```bash
 
-python -m pydre.run -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
+rye run pydre -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
 ```
 
 This will run the project commands on the specified data file and out the result in `tutorial.csv`. If you wanted to run on multiple data files, you could enter `-d ../datafiles/tutorialdata/*.dat` or something similar. Since we have no ROIs, the output csv will contain one row per input data file:

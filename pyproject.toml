@@ -1,6 +1,6 @@
 [project]
 name = "pydre"
-version = "25.1.dev1"
+version = "25.2"
 readme = "readme.md"
 dependencies = [
     "polars",
@@ -27,11 +27,27 @@ classifiers = [
 ]
 
 [project.scripts]
-pydre-run = "pydre:run"
+pydre = "pydre.run:pydre"
+
 
 [project.urls]
 Documentation = "https://osudsl.github.io/pydre/"
 Repository = "https://github.com/OSUDSL/pydre"
+
+[project.optional-dependencies]
+dev = [
+    "ptpython",
+    "mkdocs>=1.6.0",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "black",
+    "mypy",
+    "pytest>=8.3.2",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-datafiles",
+    "griffe==1.2.0"
+]
 
 [dependency-groups]
 dev = [
@@ -77,3 +93,5 @@ addopts = [
     "--cov=src/pydre",
     "--import-mode=importlib",
 ]
+
+
