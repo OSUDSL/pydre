@@ -66,7 +66,7 @@ Metrics are the final output of the data reduction process. They are calculated 
 
 # Extensibility
 
-Although there are various real-time interactive driving simulation software systems in use in academic and industry settings, they use very similar tabular, CSV-like, time-series data formats. Pydre was built to ingest data formatted like the output SimObserver [@SimObserver] (a data recorder from Realtime Technologies), but this is a simple TSV interchange data format. Expansion to other driving simulator data formats is ongoing.  
+Although there are various real-time interactive driving simulation software systems in use in academic and industry settings, they use very similar tabular, CSV-like, time-series data formats. Pydre was built to ingest data formatted like the output of SimObserver [@SimObserver] (a data recorder from Realtime Technologies), but this is a simple TSV interchange data format. Expansion to other driving simulator data formats is ongoing.  
 
 # Acknowledgements
 
