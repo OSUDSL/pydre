@@ -126,6 +126,19 @@ class Project:
             datafiles = datapath.parent.glob(datapath.name)
             self.filelist.extend(datafiles)
 
+        ignore_files = []
+        for fn in self.config.get("ignore", []):
+            # convert relative path to absolute path
+            datapath = pathlib.Path(fn).resolve()
+            datafiles = datapath.parent.glob(datapath.name)
+            ignore_files.extend(datafiles)
+
+        check_lists = []
+        for data_file in self.filelist:
+            if data_file not in ignore_files:
+                check_lists.append(data_file)
+        self.filelist = check_lists
+
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return (

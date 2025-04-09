@@ -18,3 +18,5 @@ out.csv
 .DS_Store
 **/.DS_Store
 /.coverage
+
+uv.lock
