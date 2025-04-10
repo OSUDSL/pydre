@@ -389,3 +389,34 @@ def filterValuesBelow(
     drivedata.data = filtered_data
 
     return drivedata
+
+
+@registerFilter()
+def trimPreAndPostDrive(
+        drivedata: pydre.core.DriveData,
+        velocity_col: str = "Velocity",
+        velocity_threshold: float = 0.1
+) -> pydre.core.DriveData:
+    """
+    Trims the data to remove pre-drive and post-drive segments based on velocity.
+    All data points under the velocity threshold are removed from the start and end of the dataset.
+
+    Params:
+    velocity_col (str): The column containing velocity data. Default is "Velocity"
+    velocity_threshold (float): The threshold below which data is considered non-driving
+    """
+    required_col = [velocity_col]
+    drivedata.checkColumns(required_col)
+
+    above_speed = drivedata.data.select((pl.col(velocity_col) >= velocity_threshold).arg_true())
+
+    first_above_speed = above_speed.min().item()
+    last_above_speed = above_speed.max().item()
+
+    if first_above_speed is None or last_above_speed is None:
+        logger.info("No data above the velocity threshold found.")
+        drivedata.data = drivedata.data.slice(0, 0)
+    else:
+        drivedata.data = drivedata.data.slice(first_above_speed, last_above_speed-first_above_speed+1)
+
+    return drivedata
