@@ -120,24 +120,34 @@ class Project:
 
         # resolve the file paths
         self.filelist = []
+        logger.warning(self.project_filename)
         for fn in self.config.get("datafiles", []):
             # convert relative path to absolute path
-            datapath = pathlib.Path(fn).resolve()
-            datafiles = datapath.parent.glob(datapath.name)
+            fn = Path(fn)
+            if not fn.is_absolute():
+                datapath = pathlib.Path(self.project_filename.parent / fn).resolve()
+            else:
+                datapath = fn
+            logger.warning(datapath)
+            datafiles = sorted(datapath.parent.glob(datapath.name))
+            logger.warning(datafiles)
             self.filelist.extend(datafiles)
+        logger.warning(self.filelist)
 
-        ignore_files = []
+        ignore_files: list[PathLike] = []
         for fn in self.config.get("ignore", []):
             # convert relative path to absolute path
-            datapath = pathlib.Path(fn).resolve()
+            fn = Path(fn)
+            if not fn.is_absolute():
+                datapath = pathlib.Path(self.project_filename.parent / fn).resolve()
+            else:
+                datapath = fn
             datafiles = datapath.parent.glob(datapath.name)
             ignore_files.extend(datafiles)
 
-        check_lists = []
-        for data_file in self.filelist:
-            if data_file not in ignore_files:
-                check_lists.append(data_file)
-        self.filelist = check_lists
+        logger.warning(ignore_files)
+
+        self.filelist = list(set(self.filelist) - set(ignore_files))
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
