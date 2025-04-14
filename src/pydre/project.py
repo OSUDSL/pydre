@@ -27,7 +27,7 @@ class Project:
     project_filename: Path  # used only for information
     definition: dict
     results: Optional[pl.DataFrame]
-    filelist: list[Path]
+    filelist: list[PathLike]
 
     def __init__(
         self,
@@ -39,6 +39,7 @@ class Project:
         self.definition = {}
         self.config = {}
         self.results = None
+        self.filelist = []
         try:
             with open(self.project_filename, "rb") as project_file:
                 if self.project_filename.suffix == ".json":
@@ -119,7 +120,7 @@ class Project:
         self._load_custom_functions()
 
         # resolve the file paths
-        self.filelist = []
+        filelist: list[PathLike] = []
         logger.warning(self.project_filename)
         for fn in self.config.get("datafiles", []):
             # convert relative path to absolute path
@@ -128,26 +129,24 @@ class Project:
                 datapath = pathlib.Path(self.project_filename.parent / fn).resolve()
             else:
                 datapath = fn
-            logger.warning(datapath)
             datafiles = sorted(datapath.parent.glob(datapath.name))
-            logger.warning(datafiles)
-            self.filelist.extend(datafiles)
-        logger.warning(self.filelist)
+            filelist.extend(datafiles)
 
         ignore_files: list[PathLike] = []
         for fn in self.config.get("ignore", []):
-            # convert relative path to absolute path
             fn = Path(fn)
-            if not fn.is_absolute():
-                datapath = pathlib.Path(self.project_filename.parent / fn).resolve()
-            else:
-                datapath = fn
-            datafiles = datapath.parent.glob(datapath.name)
-            ignore_files.extend(datafiles)
+            ignore_files.append(fn)
 
-        logger.warning(ignore_files)
-
-        self.filelist = list(set(self.filelist) - set(ignore_files))
+        for potential_file in filelist:
+            include_file = True
+            for ignore_file in ignore_files:
+                if str(ignore_file) in str(potential_file):
+                    logger.info(
+                        f"Ignoring file {potential_file} based on ignore list."
+                    )
+                    include_file = False
+            if include_file:
+                self.filelist.append(potential_file)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
