@@ -77,7 +77,7 @@ class TimeROI(ROIProcessor):
             self.rois[roi_name] = {}
             for k, v in r.items():
                 if k == "time_start" or k == "time_end":
-                    self.rois[roi_name][k] = self.parseDuration(v)
+                    self.rois[roi_name][k] = self.parseTimeStamp(v)
                 elif k != "ROI":
                     self.rois[roi_name][k] = v
                     self.rois_meta.add(k)
@@ -120,27 +120,29 @@ class TimeROI(ROIProcessor):
                 )
         return output_list
 
-    def parseDuration(self, duration: str) -> float:
+
+    @staticmethod
+    def parseTimeStamp(duration: str) -> float:
         # parse a string indicating duration into a tuple of (starttime, endtime) in seconds
         # the string will have the format as:
-        # time1-time2 where time1 or time 2 are either hr:min:sec or min:sec
-        # example:  1:15:10-1:20:30
-        # example : 02:32-08:45
+        # time is either hr:min:sec or min:sec
+        # example:  1:15:10
+        # example : 02:32
 
         regex = r"(?:(\d{1,2}):)?(\d{1,2}):(\d{2})"
         pair_result = re.match(regex, duration)
         if pair_result is None:
             logger.error(f"Invalid time format {duration}")
             raise ValueError
-        if pair_result.group(3):
+        if pair_result.group(1) is not None:
             hr = pair_result.group(1)
             min = pair_result.group(2)
             sec = pair_result.group(3)
             time = int(hr) * 60 * 60 + int(min) * 60 + int(sec)
         else:
-            min = pair_result.group(1)
-            sec = pair_result.group(2)
-            time = 60 * 60 + int(min) * 60 + int(sec)
+            min = pair_result.group(2)
+            sec = pair_result.group(3)
+            time = 60 * int(min) + int(sec)
         return time
 
 
