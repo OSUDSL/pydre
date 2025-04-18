@@ -285,14 +285,15 @@ def removeDataOutside(
     drivedata: pydre.core.DriveData, col: str, lower: float, upper: float
 ) -> pydre.core.DriveData:
     """
-    Params:
-    col: The name of the column to filter data
-    lower: lower bound to filter
-    upper: upper bound to filter
+    Removes data outside a certain range for a certain variable.
+    Rows that have values outside the range [lower, upper] for the specified column are removed.
+
+    Paramaters:
+        col: The name of the column to filter data
+        lower: lower bound to filter
+        upper: upper bound to filter
     """
-    """
-    Removes data outside a certain range for a certain variable. 
-    """
+
     required_col = [col]
     drivedata.checkColumns(required_col)
 
@@ -310,14 +311,15 @@ def removeDataInside(
     drivedata: pydre.core.DriveData, col: str, lower: float, upper: float
 ) -> pydre.core.DriveData:
     """
-    Params:
-    col: The name of the column to filter data
-    lower: lower bound to filter
-    upper: upper bound to filter
+    Removes data inside a certain range for a certain variable.
+    Rows that have values inside the range [lower, upper] for the specified column are removed.
+
+    Paramaters:
+        col: The name of the column to filter data
+        lower: lower bound to filter
+        upper: upper bound to filter
     """
-    """
-    Removes data inside a certain range for a certain variable. 
-    """
+
     required_col = [col]
     drivedata.checkColumns(required_col)
 
@@ -339,19 +341,18 @@ def separateData(
     low: int = 0,
 ) -> pydre.core.DriveData:
     """
-    Categorizes head pitch data into high and low based on a manually defined threshold.
+    Creates a new column called `*col*_categorized` that is a binary categorization of the original column `col`.
+    If the value in `col` is greater than or equal to `threshold`, it is categorized as "high" (1), otherwise as "low" (0).
 
-    Params:
-    col: The column containing head pitch values
-    threshold: The value that separates high and low pitch
-    high: Value assigned to "high" pitch (1)
-    low: Value assigned to "low" pitch (0)
+    Parameters:
+        col: The column containing head pitch values
+        threshold: The value that separates high and low pitch
+        high: Value assigned to "high" pitch (1)
+        low: Value assigned to "low" pitch (0)
     """
 
     required_col = [col]
     drivedata.checkColumns(required_col)
-
-    logger.info("Running separateData")
 
     # create new column based on threshold
     new_data = drivedata.data.with_columns(
@@ -372,20 +373,17 @@ def filterValuesBelow(
     drivedata: pydre.core.DriveData, col: str, threshold=1
 ) -> pydre.core.DriveData:
     """
-    Filters out device adjustemnt at the start. (Should filter out velocities below 1 m/s)
+    Removes rows from the dataset where the specified column's value is below a given threshold.
 
     Params:
-    col: The column to filter
-    threshold: The value to filter above (1 m/s default)
+        col: The column to filter
+        threshold: The value to filter above (1 m/s default)
     """
 
     required_col = [col]
     drivedata.checkColumns(required_col)
 
-    logger.info("Running filterValuesBelow")
-
     filtered_data = drivedata.data.filter(pl.col(col) >= threshold)
-
     drivedata.data = filtered_data
 
     return drivedata

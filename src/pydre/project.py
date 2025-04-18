@@ -41,6 +41,7 @@ class Project:
         self.results = None
         self.filelist = []
         try:
+            logger.info("Loading project from: " + str(self.project_filename))
             with open(self.project_filename, "rb") as project_file:
                 if self.project_filename.suffix == ".json":
                     try:
@@ -117,11 +118,11 @@ class Project:
         if len(self.config.get("datafiles", [])) == 0:
             logger.error("No datafile found in project definition.")
 
+
         self._load_custom_functions()
 
         # resolve the file paths
         filelist: list[PathLike] = []
-        logger.warning(self.project_filename)
         for fn in self.config.get("datafiles", []):
             # convert relative path to absolute path
             fn = Path(fn)
@@ -147,6 +148,9 @@ class Project:
                     include_file = False
             if include_file:
                 self.filelist.append(potential_file)
+
+        if len(self.filelist) == 0 and len(filelist) > 0:
+            logger.error("No data files left after removing ignored files.")
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
