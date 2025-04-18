@@ -426,12 +426,19 @@ def nullifyOutlier(
 ):
     """
     Fixes outliers in 'col' by replacing values greater than the threshold with 'null'.
-    Standard pydre operations such as mean & std will ignore these null values.
+    Metrics functions such as `colMean` & `colSD` will ignore these null values.
 
-    Params:
-    threshold (int): The threshold above which values are considered outliers.
-    col (str): The name of column to check for outliers. Default is "HeadwayDistance".
+    Parameters:
+        threshold (int): The threshold above which values are considered outliers.
+        col (str): The name of column to check for outliers. Default is "HeadwayDistance".
     """
+
+    try:
+        drivedata.checkColumns([col])
+    except pydre.core.ColumnsMatchError as e:
+        logger.warning(f"Column '{col}' not found in the data: {e}")
+        return drivedata
+
     df = drivedata.data
 
     df = df.with_columns([
