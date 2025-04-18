@@ -418,3 +418,28 @@ def trimPreAndPostDrive(
         drivedata.data = drivedata.data.slice(first_above_speed, last_above_speed-first_above_speed+1)
 
     return drivedata
+
+
+@registerFilter()
+def nullifyOutlier(
+    drivedata: pydre.core.DriveData, threshold=1000, col="HeadwayDistance"
+):
+    """
+    Fixes outliers in 'col' by replacing values greater than the threshold with 'null'.
+    Standard pydre operations such as mean & std will ignore these null values.
+
+    Params:
+    threshold (int): The threshold above which values are considered outliers.
+    col (str): The name of column to check for outliers. Default is "HeadwayDistance".
+    """
+    df = drivedata.data
+
+    df = df.with_columns([
+        pl.when(pl.col(col) > threshold)
+        .then(None)
+        .otherwise(pl.col(col))
+        .alias(col)
+    ])
+
+    drivedata.data = df
+    return drivedata
