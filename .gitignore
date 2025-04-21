@@ -20,3 +20,5 @@ out.csv
 /.coverage
 
 uv.lock
+
+tests/.coverage
