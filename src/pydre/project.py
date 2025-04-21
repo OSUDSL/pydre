@@ -27,7 +27,7 @@ class Project:
     project_filename: Path  # used only for information
     definition: dict
     results: Optional[pl.DataFrame]
-    filelist: list[Path]
+    filelist: list[PathLike]
 
     def __init__(
         self,
@@ -39,7 +39,9 @@ class Project:
         self.definition = {}
         self.config = {}
         self.results = None
+        self.filelist = []
         try:
+            logger.info("Loading project from: " + str(self.project_filename))
             with open(self.project_filename, "rb") as project_file:
                 if self.project_filename.suffix == ".json":
                     try:
@@ -116,28 +118,39 @@ class Project:
         if len(self.config.get("datafiles", [])) == 0:
             logger.error("No datafile found in project definition.")
 
+
         self._load_custom_functions()
 
         # resolve the file paths
-        self.filelist = []
+        filelist: list[PathLike] = []
         for fn in self.config.get("datafiles", []):
             # convert relative path to absolute path
-            datapath = pathlib.Path(fn).resolve()
-            datafiles = datapath.parent.glob(datapath.name)
-            self.filelist.extend(datafiles)
+            fn = Path(fn)
+            if not fn.is_absolute():
+                datapath = pathlib.Path(self.project_filename.parent / fn).resolve()
+            else:
+                datapath = fn
+            datafiles = sorted(datapath.parent.glob(datapath.name))
+            filelist.extend(datafiles)
 
-        ignore_files = []
+        ignore_files: list[PathLike] = []
         for fn in self.config.get("ignore", []):
-            # convert relative path to absolute path
-            datapath = pathlib.Path(fn).resolve()
-            datafiles = datapath.parent.glob(datapath.name)
-            ignore_files.extend(datafiles)
+            fn = Path(fn)
+            ignore_files.append(fn)
 
-        check_lists = []
-        for data_file in self.filelist:
-            if data_file not in ignore_files:
-                check_lists.append(data_file)
-        self.filelist = check_lists
+        for potential_file in filelist:
+            include_file = True
+            for ignore_file in ignore_files:
+                if str(ignore_file) in str(potential_file):
+                    logger.info(
+                        f"Ignoring file {potential_file} based on ignore list."
+                    )
+                    include_file = False
+            if include_file:
+                self.filelist.append(potential_file)
+
+        if len(self.filelist) == 0 and len(filelist) > 0:
+            logger.error("No data files left after removing ignored files.")
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
