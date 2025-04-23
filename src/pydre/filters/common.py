@@ -121,6 +121,31 @@ def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
 
 
 @registerFilter()
+def FixLinearLandRoadOffset(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
+    """Replaces RoadOffset values with Corrected YPos
+
+    RoadOffset becomes - YPos - 9.1
+
+    Note: Requires data columns
+        - YPos: Y position of ownship
+        - XPos: Y position of ownship
+        - RoadOffset: lateral distance on roadway
+
+    Returns:
+        Original DriveData object with altered RoadOffset column data
+    """
+    # yPos - 9.1 = RoadOffset
+
+    drivedata.data = drivedata.data.with_columns(
+        pl.when(pl.col("XPos").cast(pl.Float32).is_between(-2332, -2268))
+        .then(pl.col("YPos") - 9.1)
+        .otherwise(pl.col("RoadOffset").cast(pl.Float32))
+        .alias("RoadOffset")
+    )
+    return drivedata
+
+
+@registerFilter()
 def FixReversedRoadLinearLand(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
     """Fixes a section of reversed road in the LinearLand map
 
