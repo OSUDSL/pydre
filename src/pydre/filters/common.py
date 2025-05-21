@@ -114,9 +114,10 @@ def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
         = DatTime: time from simobserver recording start
 
     Returns:
-        Original DriveData object with identical DatTime and SimTime
+        Original DriveData object with identical DatTime and SimTime. Original SimTime is renamed to OrigSimTime.
     """
-    drivedata.data = drivedata.data.with_columns(pl.col("DatTime").alias("SimTime"))
+    drivedata.data = drivedata.data.with_columns(pl.col("SimTime").alias("OrigSimTime"),
+                                                 pl.col("DatTime").alias("SimTime"))
     return drivedata
 
 

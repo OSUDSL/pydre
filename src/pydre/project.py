@@ -4,6 +4,7 @@ import traceback
 from os import PathLike
 
 import polars as pl
+import polars.exceptions
 import re
 import sys
 import tomllib
@@ -252,9 +253,7 @@ class Project:
             ).resolve()
         return computed_path
 
-    @staticmethod
-    def processROI(
-        roi: dict, datafile: pydre.core.DriveData
+    def processROI(self, roi: dict, datafile: pydre.core.DriveData
     ) -> list[pydre.core.DriveData]:
         """
         Handles running region of interest definitions for a dataset
@@ -270,13 +269,15 @@ class Project:
         roi_type = roi["type"]
         if roi_type == "time":
             logger.info("Processing time ROI " + roi["filename"])
+            roi_filename = self.resolve_file(roi["filename"])
             if "timecol" in roi:
-                roi_obj = pydre.rois.TimeROI(roi["filename"], roi["timecol"])
+                roi_obj = pydre.rois.TimeROI(roi_filename, roi["timecol"])
             else:
-                roi_obj = pydre.rois.TimeROI(roi["filename"])
+                roi_obj = pydre.rois.TimeROI(roi_filename)
         elif roi_type == "rect":
             logger.info("Processing space ROI " + roi["filename"])
-            roi_obj = pydre.rois.SpaceROI(roi["filename"])
+            roi_filename = resolve_file(roi["filename"])
+            roi_obj = pydre.rois.SpaceROI(roi_filename)
         elif roi_type == "column":
             logger.info("Processing column ROI " + roi["columnname"])
             roi_obj = pydre.rois.ColumnROI(roi["columnname"])
@@ -381,14 +382,19 @@ class Project:
                 results = {}
                 for future in concurrent.futures.as_completed(futures):
                     arg = futures[future]
+                    results_valid = False
                     try:
                         results[arg] = future.result()
+                        results_valid = True
+                    except polars.exceptions.NoDataError as e:
+                        logger.error(f"Empty CSV: {arg}")
                     except Exception as exc:
                         logger.error("problem with running {}".format(arg))
-                        logger.critical("Unhandled Exception {}".format(exc))
+                        logger.critical("Unhandled Exception: {}".format(exc))
                         logger.error(traceback.format_exc())
 
-                    results_list.extend(future.result())
+                    if results_valid:
+                        results_list.extend(future.result())
                     pbar.update(1)
         if len(results_list) == 0:
             logger.error("No results found; no metrics data generated")
