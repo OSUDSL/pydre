@@ -276,7 +276,8 @@ class Project:
                 roi_obj = pydre.rois.TimeROI(roi["filename"])
         elif roi_type == "rect":
             logger.info("Processing space ROI " + roi["filename"])
-            roi_obj = pydre.rois.SpaceROI(roi["filename"])
+            roi_filename = self.resolve_file(roi["filename"])
+            roi_obj = pydre.rois.SpaceROI(roi_filename)
         elif roi_type == "column":
             logger.info("Processing column ROI " + roi["columnname"])
             roi_obj = pydre.rois.ColumnROI(roi["columnname"])
