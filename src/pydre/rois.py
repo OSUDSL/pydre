@@ -214,21 +214,26 @@ class SpaceROI(ROIProcessor):
         return return_list
 
 
-class ColumnROI(ROIProcessor):
-    def __init__(self, columnname: PathLike, nameprefix=""):
-        # parse time filename values
-        self.roi_column: str = str(columnname)
-        self.name_prefix: str = nameprefix
+class ColumnROI:
+    def __init__(self, roi_column):
+        if not isinstance(roi_column, str):
+            raise TypeError(f"Expected roi_column to be str, got {type(roi_column)}")
+        self.roi_column = roi_column
 
-    def split(
-        self, sourcedrivedata: pydre.core.DriveData
-    ) -> Iterable[pydre.core.DriveData]:
-        return_list: list[pydre.core.DriveData] = []
+    def split(self, sourcedrivedata):
+        df = sourcedrivedata.data
 
-        for gname, gdata in sourcedrivedata.data.group_by(self.roi_column):
-            gname = gname[0]
-            if gname != pl.Null:
-                new_ddata = pydre.core.DriveData(sourcedrivedata, gdata)
-                new_ddata.roi = str(gname)
-                return_list.append(new_ddata)
-        return return_list
+        if self.roi_column not in df.columns:
+            raise KeyError(f"ROI column '{self.roi_column}' not found in data")
+
+        df_valid = df.drop_nulls(subset=[self.roi_column])
+        if df_valid.is_empty():
+            return []
+
+        result = []
+        for gname, gdata in df_valid.group_by(self.roi_column):
+            new_dd = sourcedrivedata.copy()
+            new_dd.data = gdata
+            new_dd.roi = gname
+            result.append(new_dd)
+        return result
