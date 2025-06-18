@@ -3,6 +3,8 @@ import pydre.rois
 import polars as pl
 import pytest
 from pathlib import Path
+from pydre.core import DriveData
+from pydre.rois import ColumnROI
 
 # Define the directory that contains test CSV data
 FIXTURE_DIR = Path(__file__).parent.resolve() / "test_data" / "test_roi_files"
@@ -37,3 +39,25 @@ def test_column_roi_split(datafiles):
     # Each result should be a valid DriveData object
     for d in results:
         assert isinstance(d, pydre.core.DriveData)
+
+def test_column_roi_with_null_group():
+    df = pl.DataFrame({
+        "ROI": ["A", None, "B"],
+        "Value": [1, 2, 3]
+    })
+    dd = DriveData.init_test(df, "test.dat")
+    processor = ColumnROI("ROI")
+    result = processor.split(dd)
+
+    cleaned_rois = set(d.roi for d in result if d.roi not in (None, "None"))
+    assert cleaned_rois == {"A", "B"}
+
+def test_column_roi_missing_column_logs_error(caplog):
+    df = pl.DataFrame({"UnrelatedCol": [1, 2, 3]})
+    dd = DriveData.init_test(df, "file.dat")
+
+    roi = ColumnROI("MissingCol")
+    with caplog.at_level("ERROR"):
+        with pytest.raises(KeyError):
+            list(roi.split(dd))
+    assert "missingcol" in caplog.text.lower()

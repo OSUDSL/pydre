@@ -7,6 +7,7 @@ import polars as pl
 import re
 from loguru import logger
 from collections.abc import Iterable
+from polars.exceptions import ColumnNotFoundError
 
 
 class ROIProcessor(object, metaclass=ABCMeta):
@@ -49,7 +50,7 @@ def sliceByTime(
         dataframeslice = drive_data.filter(
             pl.col(column).is_between(begin, end, closed="left")
         )
-    except KeyError:
+    except (KeyError, ColumnNotFoundError):
         logger.error("Problem in applying Time ROI to using time column " + column)
         dataframeslice = drive_data
     return dataframeslice
@@ -224,6 +225,7 @@ class ColumnROI:
         df = sourcedrivedata.data
 
         if self.roi_column not in df.columns:
+            logger.error(f"Column '{self.roi_column}' not found in data for {sourcedrivedata.sourcefilename}")
             raise KeyError(f"ROI column '{self.roi_column}' not found in data")
 
         df_valid = df.drop_nulls(subset=[self.roi_column])
@@ -234,6 +236,6 @@ class ColumnROI:
         for gname, gdata in df_valid.group_by(self.roi_column):
             new_dd = sourcedrivedata.copy()
             new_dd.data = gdata
-            new_dd.roi = gname
+            new_dd.roi = str(gname[0])
             result.append(new_dd)
         return result

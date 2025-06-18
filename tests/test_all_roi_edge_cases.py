@@ -21,7 +21,7 @@ def test_column_roi_with_null_group_skipped():
     result = processor.split(dd)
 
     rois = set(d.roi for d in result)
-    rois_filtered = {r for r in rois if r != "None"}  # "None" 문자열 제거
+    rois_filtered = {r for r in rois if r != "None"}
 
     assert rois_filtered == {"A", "B"}
 
