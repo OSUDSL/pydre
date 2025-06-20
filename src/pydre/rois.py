@@ -146,6 +146,20 @@ class TimeROI(ROIProcessor):
             time = 60 * int(min) + int(sec)
         return time
 
+    @staticmethod
+    def from_ranges(ranges, column):
+        obj = TimeROI.__new__(TimeROI)
+        obj.ranges = ranges
+        obj.roi_column = column
+        obj.name_prefix = ""
+        obj.rois_meta = []
+        obj.rois = pl.DataFrame({
+            column: [r[0] for r in ranges],
+            f"{column}_end": [r[1] for r in ranges],
+            "roi": [f"roi{i}" for i in range(len(ranges))]
+        })
+        return obj
+
 
 class SpaceROI(ROIProcessor):
     x_column_name = "XPos"
@@ -233,9 +247,29 @@ class ColumnROI:
             return []
 
         result = []
-        for gname, gdata in df_valid.group_by(self.roi_column):
-            new_dd = sourcedrivedata.copy()
-            new_dd.data = gdata
-            new_dd.roi = str(gname[0])
-            result.append(new_dd)
+
+        if hasattr(self, "roi_column_df"):
+            for row in self.roi_column_df.iter_rows(named=True):
+                column_value = row[self.roi_column]
+                roi_name = row.get("roi", str(column_value))
+
+                matched_rows = df_valid.filter(pl.col(self.roi_column) == column_value)
+                if matched_rows.is_empty():
+                    logger.warning(f"ROI value {column_value} not found in data")
+                    continue
+
+                new_dd = sourcedrivedata.copy()
+                new_dd.data = matched_rows
+                new_dd.roi = roi_name
+                new_dd.metadata["ROIName"] = roi_name
+                result.append(new_dd)
+        else:
+            for gname, gdata in df_valid.group_by(self.roi_column):
+                roi_name = str(gname[0])
+                new_dd = sourcedrivedata.copy()
+                new_dd.data = gdata
+                new_dd.roi = roi_name
+                new_dd.metadata["ROIName"] = roi_name
+                result.append(new_dd)
+
         return result

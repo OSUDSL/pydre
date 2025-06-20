@@ -3,7 +3,8 @@ import pytest
 import tempfile
 import os
 from pydre.core import DriveData
-from pydre.rois import ColumnROI, SpaceROI
+from pydre.rois import ColumnROI, SpaceROI, sliceByTime
+from polars.exceptions import ColumnNotFoundError
 
 def test_column_roi_invalid_type():
     df = pl.DataFrame({"ROI": ["A", "B"], "Value": [1, 2]})
@@ -35,3 +36,10 @@ def test_space_roi_missing_columns():
             SpaceROI(filepath)
     finally:
         os.unlink(filepath)
+
+def test_slice_by_time_column_not_found():
+    df = pl.DataFrame({"NotTimeStamp": [1, 2, 3]})
+    result = sliceByTime(1, 2, "TimeStamp", df)
+    assert result.shape == df.shape
+    assert result.columns == df.columns
+    assert result.rows() == df.rows()

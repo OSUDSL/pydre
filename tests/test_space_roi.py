@@ -4,6 +4,7 @@ import polars as pl
 import pytest
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 from pydre.core import DriveData
 from pydre.rois import SpaceROI
 from pydre.rois import TimeROI
@@ -111,7 +112,7 @@ def test_space_roi_rectangle_out_of_bounds_logs_warning(tmp_path, caplog):
 def test_space_roi_invalid_type_logs_error(tmp_path, caplog):
     roi_df = pl.DataFrame({
         "roi": ["invalid"],
-        "X1": ["not-a-number"],  # TypeError 유도
+        "X1": ["not-a-number"],
         "X2": [200],
         "Y1": [0], "Y2": [100]
     })
@@ -126,3 +127,57 @@ def test_space_roi_invalid_type_logs_error(tmp_path, caplog):
         result = roi.split(dd)
         assert result == []
         assert "bad datatype" in caplog.text.lower()
+
+@patch("pydre.rois.pl.read_csv")
+def test_space_roi_split_valid_range(mock_read_csv):
+    mock_read_csv.return_value = pl.DataFrame({
+        "roi": ["test"],
+        "X1": [1],
+        "X2": [3],
+        "Y1": [1],
+        "Y2": [3]
+    })
+
+    df = pl.DataFrame({
+        "XPos": [1, 2, 3, 4],
+        "YPos": [1, 2, 3, 4]
+    })
+    dd = DriveData.init_test(df, "sim.dat")
+    dd.metadata["ParticipantID"] = "TestSubject"
+
+    roi = SpaceROI(filename="space.roi")
+    roi.name_prefix = "ROI_"
+
+    results = roi.split(dd)
+
+    assert len(results) == 1
+    assert results[0].roi == "test"
+    assert results[0].data.shape[0] > 0
+
+
+@patch("pydre.rois.pl.read_csv")
+def test_space_roi_split_empty_range(mock_read_csv, caplog):
+    mock_read_csv.return_value = pl.DataFrame({
+        "roi": ["no_match"],
+        "X1": [10],
+        "X2": [20],
+        "Y1": [10],
+        "Y2": [20]
+    })
+
+    df = pl.DataFrame({
+        "XPos": [1, 2, 3, 4],
+        "YPos": [1, 2, 3, 4]
+    })
+    dd = DriveData.init_test(df, "sim.dat")
+    dd.metadata["ParticipantID"] = "TestSubject"
+
+    roi = SpaceROI(filename="space.roi")
+    roi.name_prefix = "ROI_"
+
+    with caplog.at_level("WARNING"):
+        results = roi.split(dd)
+
+        assert len(results) == 1
+        assert results[0].data.shape[0] == 0
+        assert "No data for SubjectID" in caplog.text

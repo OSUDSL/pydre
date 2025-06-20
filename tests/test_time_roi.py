@@ -92,3 +92,47 @@ def test_slice_by_time_column_missing_returns_original_df_and_logs(caplog):
         result = pydre.rois.sliceByTime(0.0, 1.0, "SimTime", df)
         assert result.to_dicts() == df.to_dicts()
         assert "problem in applying time roi" in caplog.text.lower()
+
+def test_time_roi_split_warns_on_invalid_range(caplog):
+    df = pl.DataFrame({
+        "SimTime": [0.0, 0.1, 0.2, 0.3],
+        "Event": ["a", "b", "c", "d"]
+    })
+    dd = DriveData.init_test(df, "sim.dat")
+
+    roi = TimeROI.from_ranges(ranges=[(1.0, 2.0)], column="SimTime")
+    roi.rois_meta = []
+    roi.timecol = "SimTime"
+
+    roi.rois = pl.DataFrame({
+        "roi": ["invalid_range"],
+        "time_start": [1.0],
+        "time_end": [2.0]
+    })
+
+    class MockDictLikeDataFrame:
+        def __init__(self, df):
+            self.df = df
+
+        def copy(self):
+            return MockDictLikeDataFrame(self.df.clone())
+
+        def items(self):
+            return [
+                (i, row)
+                for i, row in enumerate(self.df.iter_rows(named=True))
+            ]
+
+        def __getitem__(self, key):
+            return self.df[key]
+
+        def __delitem__(self, key):
+            mask = pl.Series([i for i in range(len(self.df)) if i != key])
+            self.df = self.df[mask]
+
+    roi.rois = MockDictLikeDataFrame(roi.rois)
+
+    with caplog.at_level("WARNING"):
+        list(roi.split(dd))
+
+    assert any("ROI fails to qualify" in msg for msg in caplog.text.splitlines())
