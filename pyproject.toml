@@ -89,6 +89,10 @@ build-backend = "hatchling.build"
 packages = ["src/pydre"]
 
 [tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning"
+]
+
 addopts = [
     "--cov=src/pydre",
     "--import-mode=importlib",
