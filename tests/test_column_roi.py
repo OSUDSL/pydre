@@ -40,6 +40,7 @@ def test_column_roi_split(datafiles):
     for d in results:
         assert isinstance(d, pydre.core.DriveData)
 
+
 def test_column_roi_with_null_group():
     df = pl.DataFrame({
         "ROI": ["A", None, "B"],
@@ -52,6 +53,7 @@ def test_column_roi_with_null_group():
     cleaned_rois = set(d.roi for d in result if d.roi not in (None, "None"))
     assert cleaned_rois == {"A", "B"}
 
+
 def test_column_roi_missing_column_logs_error(caplog):
     df = pl.DataFrame({"UnrelatedCol": [1, 2, 3]})
     dd = DriveData.init_test(df, "file.dat")
@@ -62,6 +64,7 @@ def test_column_roi_missing_column_logs_error(caplog):
             list(roi.split(dd))
     assert "missingcol" in caplog.text.lower()
 
+
 def test_column_roi_columnname_none():
     df = pl.DataFrame({"Task": ["A", "B"]})
     dd = DriveData.init_test(df, "sim.dat")
@@ -69,9 +72,11 @@ def test_column_roi_columnname_none():
         roi = ColumnROI(columnname=None)
         roi.split(dd)
 
+
 def test_column_roi_columnname_numeric():
     with pytest.raises(TypeError):
         _ = ColumnROI(123)
+
 
 def test_column_roi_grouping_returns_empty():
     df = pl.DataFrame({"Task": [None, None, None]})
@@ -116,6 +121,7 @@ def test_column_roi_sets_metadata_and_roi_field():
     assert "Zone1" in roi_names
     assert "Zone2" in roi_names
 
+
 def test_column_roi_split_with_no_matching_values(caplog):
 
     roi_df = pl.DataFrame({
@@ -139,3 +145,4 @@ def test_column_roi_split_with_no_matching_values(caplog):
 
     for result in split_results:
         assert "ROIName" not in result.metadata
+

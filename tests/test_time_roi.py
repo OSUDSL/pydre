@@ -40,11 +40,13 @@ def test_make_time_roi_1(datafiles):
     assert new_roi.rois == {'roi_1': {'time_end': 540, 'time_start': 480}, 'roi_2': {'time_end': 240, 'time_start': 180}}
     assert isinstance(new_roi, pydre.rois.TimeROI)
 
+
 @pytest.mark.datafiles(FIXTURE_DIR / "test_roi_files")
 def test_make_time_roi_1(datafiles):
     new_roi = pydre.rois.TimeROI(datafiles / "test_time_2.csv")
     assert new_roi.rois == {'roi_1': {'ScenarioName': 'Practice', 'time_end': 180, 'time_start': 0}, 'roi_2': {'ScenarioName': 'Practice', 'time_end': 300, 'time_start': 180}}
     assert isinstance(new_roi, pydre.rois.TimeROI)
+
 
 def test_slice_by_time_with_invalid_column():
     df = pl.DataFrame({
@@ -54,9 +56,11 @@ def test_slice_by_time_with_invalid_column():
     result = pydre.rois.sliceByTime(0.0, 1.0, "NotAColumn", df)
     assert result.equals(df)
 
+
 def test_parse_timestamp_invalid_format():
     with pytest.raises(ValueError):
         TimeROI.parseTimeStamp("invalid_format")
+
 
 def test_slice_by_time_column_missing_logs_error(caplog):
     df = pl.DataFrame({"NotSimTime": [0.1, 0.2]})
@@ -64,6 +68,7 @@ def test_slice_by_time_column_missing_logs_error(caplog):
         result = pydre.rois.sliceByTime(0.0, 1.0, "SimTime", df)
         assert result.equals(df)
         assert "Problem in applying Time ROI" in caplog.text
+
 
 def test_time_roi_with_metadata_mismatch_skips_roi(tmp_path):
     roi_data = pl.DataFrame({
@@ -82,6 +87,7 @@ def test_time_roi_with_metadata_mismatch_skips_roi(tmp_path):
     results = roi.split(dd)
     assert results == []  # ROI should be skipped
 
+
 def test_slice_by_time_column_missing_returns_original_df_and_logs(caplog):
     df = pl.DataFrame({
         "OtherTime": [0.1, 0.2, 0.3],
@@ -92,6 +98,7 @@ def test_slice_by_time_column_missing_returns_original_df_and_logs(caplog):
         result = pydre.rois.sliceByTime(0.0, 1.0, "SimTime", df)
         assert result.to_dicts() == df.to_dicts()
         assert "problem in applying time roi" in caplog.text.lower()
+
 
 def test_time_roi_split_warns_on_invalid_range(caplog):
     df = pl.DataFrame({
@@ -136,3 +143,4 @@ def test_time_roi_split_warns_on_invalid_range(caplog):
         list(roi.split(dd))
 
     assert any("ROI fails to qualify" in msg for msg in caplog.text.splitlines())
+

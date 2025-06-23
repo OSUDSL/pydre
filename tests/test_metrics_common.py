@@ -164,3 +164,4 @@ def test_timeWithinSpeedLimit():
     df4 = pl.DataFrame(data4)
     dd4 = pydre.core.DriveData.init_test(df4, "test4.dat")
     assert pydre.metrics.common.timeWithinSpeedLimit(dd4) is None
+
