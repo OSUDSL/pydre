@@ -741,7 +741,7 @@ def laneViolationDuration(
     lane_data = lane_data.select(
         [
             pl.col(offset).abs().alias("LaneViolations") > tolerance,
-            pl.col("SimTime").diff().clip_min(0).alias("Duration"),
+            pl.col("SimTime").diff().clip(lower_bound=0).alias("Duration"),
         ]
     )
 
@@ -772,7 +772,7 @@ def roadExits(drivedata: pydre.core.DriveData):
     )
 
     outtimes = df.filter(
-        pl.col("RoadOffset").is_between(0, 7.2).is_not() & (pl.col("Velocity") > 1)
+        (~pl.col("RoadOffset").is_between(0, 7.2)) & (pl.col("Velocity") > 1)
     )
 
     return outtimes.get_column("Duration").sum()
@@ -803,7 +803,7 @@ def roadExitsY(drivedata: pydre.core.DriveData):
     )
 
     outtimes = df.filter(
-        pl.col("RoadOffset").is_between(0 + 0.9, 7.2 - 0.9).is_not()
+        pl.col("RoadOffset").is_between(0.9, 6.3)
         & (pl.col("Velocity") > 1)
         # TODO: double check offsets
     )
