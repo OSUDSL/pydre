@@ -3,7 +3,7 @@ import pytest
 import pydre.project
 import polars as pl
 import polars.testing
-import json, toml
+import json
 import tomllib
 import shutil
 import pydre.metrics
