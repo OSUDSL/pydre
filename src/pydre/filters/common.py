@@ -324,7 +324,7 @@ def removeDataInside(
     drivedata.checkColumns(required_col)
 
     filtered_data = drivedata.data.filter(
-        ~((pl.col(col) >= upper) & (pl.col(col) <= lower))
+        ~((pl.col(col) >= lower) & (pl.col(col) <= upper))
     )
 
     drivedata.data = filtered_data
