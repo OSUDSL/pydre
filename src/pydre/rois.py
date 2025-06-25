@@ -5,6 +5,7 @@ from os import PathLike
 import pydre.core
 import polars as pl
 import re
+import typing
 from loguru import logger
 from collections.abc import Iterable
 from polars.exceptions import ColumnNotFoundError
@@ -64,24 +65,27 @@ class TimeROI(ROIProcessor):
     def __init__(self, filename: PathLike, timecol: str = "DatTime"):
         # parse time filename values
         pl_rois = pl.read_csv(filename)
-        rois = []
+        roi_list = []
         self.rois = {}
         self.rois_meta = set()
         self.timecol = timecol
         for r in pl_rois.rows(named=True):
             if isinstance(r, dict):
-                rois.append(r)
+                roi_list.append(r)
             elif isinstance(r, tuple):
-                rois.append(r._asdict())
-        for r in rois:
-            roi_name = r["ROI"]
-            self.rois[roi_name] = {}
+                roi_list.append(r._asdict())
+        for r in roi_list:
+            roi_definition = {}
+            meta_values = [r["ROI"]]
             for k, v in r.items():
                 if k == "time_start" or k == "time_end":
-                    self.rois[roi_name][k] = self.parseTimeStamp(v)
+                    roi_definition[k] = self.parseTimeStamp(v)
                 elif k != "ROI":
-                    self.rois[roi_name][k] = v
+                    roi_definition[k] = str(v)
+                    meta_values.append(str(v))
                     self.rois_meta.add(k)
+            roi_name = ':'.join(meta_values)
+            self.rois[roi_name] = roi_definition
 
     def split(
         self, sourcedrivedata: pydre.core.DriveData
@@ -123,27 +127,35 @@ class TimeROI(ROIProcessor):
 
 
     @staticmethod
-    def parseTimeStamp(duration: str) -> float:
-        # parse a string indicating duration into a tuple of (starttime, endtime) in seconds
+    def parseTimeStamp(duration: str | typing.SupportsFloat) -> float:
         # the string will have the format as:
-        # time is either hr:min:sec or min:sec
-        # example:  1:15:10
-        # example : 02:32
+        # hr:min:sec (example 1:15:10)
+        # min:sec (example 02:32.34)
+        # seconds (example 10.5)
 
-        regex = r"(?:(\d{1,2}):)?(\d{1,2}):(\d{2})"
-        pair_result = re.match(regex, duration)
-        if pair_result is None:
-            logger.error(f"Invalid time format {duration}")
-            raise ValueError
-        if pair_result.group(1) is not None:
-            hr = pair_result.group(1)
-            min = pair_result.group(2)
-            sec = pair_result.group(3)
-            time = int(hr) * 60 * 60 + int(min) * 60 + int(sec)
+        try:
+            float_duration = float(duration)
+            return float_duration
+        except ValueError:
+            duration = str(duration).strip()
+
+        splits = duration.split(":")
+
+        if len(splits) > 3:
+            logger.error(
+                f"Invalid time format: {duration}. Expected format is hr:min:sec, min:sec, or sec."
+            )
+            raise ValueError(f"Invalid time format: {duration}")
+
+        if len(splits) == 3:
+            hr, min, sec = splits
+            time = int(hr) * 60 * 60 + int(min) * 60 + float(sec)
+        elif len(splits) == 2:
+            min, sec = splits
+            time = 60 * int(min) + float(sec)
         else:
-            min = pair_result.group(2)
-            sec = pair_result.group(3)
-            time = 60 * int(min) + int(sec)
+            sec = splits[0]
+            time = float(sec)
         return time
 
     @staticmethod

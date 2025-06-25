@@ -252,8 +252,7 @@ class Project:
             ).resolve()
         return computed_path
 
-    @staticmethod
-    def processROI(
+    def processROI(self,
         roi: dict, datafile: pydre.core.DriveData
     ) -> list[pydre.core.DriveData]:
         """
@@ -269,11 +268,12 @@ class Project:
         roi_obj: pydre.rois.ROIProcessor
         roi_type = roi["type"]
         if roi_type == "time":
-            logger.info("Processing time ROI " + roi["filename"])
+            resolved_filename = self.resolve_file(roi["filename"])
+            logger.info("Processing time ROI " + str(resolved_filename))
             if "timecol" in roi:
-                roi_obj = pydre.rois.TimeROI(roi["filename"], roi["timecol"])
+                roi_obj = pydre.rois.TimeROI(resolved_filename, roi["timecol"])
             else:
-                roi_obj = pydre.rois.TimeROI(roi["filename"])
+                roi_obj = pydre.rois.TimeROI(resolved_filename)
         elif roi_type == "rect":
             logger.info("Processing space ROI " + roi["filename"])
             roi_filename = self.resolve_file(roi["filename"])
