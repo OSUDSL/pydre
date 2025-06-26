@@ -36,15 +36,11 @@ def test_parse_timestamp():
 
 @pytest.mark.datafiles(FIXTURE_DIR / "test_roi_files")
 def test_make_time_roi_1(datafiles):
-    new_roi = pydre.rois.TimeROI(datafiles / "test_time_1.csv")
-    assert new_roi.rois == {'roi_1': {'time_end': 540, 'time_start': 480}, 'roi_2': {'time_end': 240, 'time_start': 180}}
-    assert isinstance(new_roi, pydre.rois.TimeROI)
-
-
-@pytest.mark.datafiles(FIXTURE_DIR / "test_roi_files")
-def test_make_time_roi_1(datafiles):
     new_roi = pydre.rois.TimeROI(datafiles / "test_time_2.csv")
-    assert new_roi.rois == {'roi_1': {'ScenarioName': 'Practice', 'time_end': 180, 'time_start': 0}, 'roi_2': {'ScenarioName': 'Practice', 'time_end': 300, 'time_start': 180}}
+    assert new_roi.rois == {
+        'roi_1:Practice': {'ScenarioName': 'Practice', 'time_end': 180.0, 'time_start': 0.0},
+        'roi_2:Practice': {'ScenarioName': 'Practice', 'time_end': 300.0, 'time_start': 180.0}
+    }
     assert isinstance(new_roi, pydre.rois.TimeROI)
 
 

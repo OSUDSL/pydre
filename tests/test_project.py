@@ -114,7 +114,10 @@ def test_process_filter_missing_function():
 def test_process_roi_unknown_type():
     dummy_data = DriveData()
     unknown_roi = {"type": "nonexistent", "filename": "roi.csv"}
-    result = pydre.project.Project.processROI(unknown_roi, dummy_data)
+
+    project = pydre.project.Project.__new__(pydre.project.Project)
+
+    result = project.processROI(unknown_roi, dummy_data)
     assert result == [dummy_data]
 
 
