@@ -8,6 +8,7 @@ import re
 import typing
 from loguru import logger
 from collections.abc import Iterable
+from polars.exceptions import ColumnNotFoundError
 
 
 class ROIProcessor(object, metaclass=ABCMeta):
@@ -50,7 +51,7 @@ def sliceByTime(
         dataframeslice = drive_data.filter(
             pl.col(column).is_between(begin, end, closed="left")
         )
-    except KeyError:
+    except (KeyError, ColumnNotFoundError):
         logger.error("Problem in applying Time ROI to using time column " + column)
         dataframeslice = drive_data
     return dataframeslice
@@ -157,6 +158,20 @@ class TimeROI(ROIProcessor):
             time = float(sec)
         return time
 
+    @staticmethod
+    def from_ranges(ranges, column):
+        obj = TimeROI.__new__(TimeROI)
+        obj.ranges = ranges
+        obj.roi_column = column
+        obj.name_prefix = ""
+        obj.rois_meta = []
+        obj.rois = pl.DataFrame({
+            column: [r[0] for r in ranges],
+            f"{column}_end": [r[1] for r in ranges],
+            "roi": [f"roi{i}" for i in range(len(ranges))]
+        })
+        return obj
+
 
 class SpaceROI(ROIProcessor):
     x_column_name = "XPos"
@@ -226,21 +241,47 @@ class SpaceROI(ROIProcessor):
         return return_list
 
 
-class ColumnROI(ROIProcessor):
-    def __init__(self, columnname: PathLike, nameprefix=""):
-        # parse time filename values
-        self.roi_column: str = str(columnname)
-        self.name_prefix: str = nameprefix
+class ColumnROI:
+    def __init__(self, roi_column):
+        if not isinstance(roi_column, str):
+            raise TypeError(f"Expected roi_column to be str, got {type(roi_column)}")
+        self.roi_column = roi_column
 
-    def split(
-        self, sourcedrivedata: pydre.core.DriveData
-    ) -> Iterable[pydre.core.DriveData]:
-        return_list: list[pydre.core.DriveData] = []
+    def split(self, sourcedrivedata):
+        df = sourcedrivedata.data
 
-        for gname, gdata in sourcedrivedata.data.group_by(self.roi_column):
-            gname = gname[0]
-            if gname != pl.Null:
-                new_ddata = pydre.core.DriveData(sourcedrivedata, gdata)
-                new_ddata.roi = str(gname)
-                return_list.append(new_ddata)
-        return return_list
+        if self.roi_column not in df.columns:
+            logger.error(f"Column '{self.roi_column}' not found in data for {sourcedrivedata.sourcefilename}")
+            raise KeyError(f"ROI column '{self.roi_column}' not found in data")
+
+        df_valid = df.drop_nulls(subset=[self.roi_column])
+        if df_valid.is_empty():
+            return []
+
+        result = []
+
+        if hasattr(self, "roi_column_df"):
+            for row in self.roi_column_df.iter_rows(named=True):
+                column_value = row[self.roi_column]
+                roi_name = row.get("roi", str(column_value))
+
+                matched_rows = df_valid.filter(pl.col(self.roi_column) == column_value)
+                if matched_rows.is_empty():
+                    logger.warning(f"ROI value {column_value} not found in data")
+                    continue
+
+                new_dd = sourcedrivedata.copy()
+                new_dd.data = matched_rows
+                new_dd.roi = roi_name
+                new_dd.metadata["ROIName"] = roi_name
+                result.append(new_dd)
+        else:
+            for gname, gdata in df_valid.group_by(self.roi_column):
+                roi_name = str(gname[0])
+                new_dd = sourcedrivedata.copy()
+                new_dd.data = gdata
+                new_dd.roi = roi_name
+                new_dd.metadata["ROIName"] = roi_name
+                result.append(new_dd)
+
+        return result

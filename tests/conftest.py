@@ -1,3 +1,4 @@
+import warnings
 import pytest
 from loguru import logger
 import logging
@@ -35,3 +36,7 @@ def propagate_logs():
     logger.remove()
     logger.add(PropagateHandler(), format="{message}")
     yield
+
+
+def pytest_configure(config):
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
