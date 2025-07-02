@@ -110,8 +110,6 @@ def test_process_filter_missing_function():
     with pytest.raises(KeyError):
         pydre.project.Project.processFilter(bad_filter, dummy_data)
 
-# FIXME: Replace the project directory with an existing sample project file instead of a new empty file
-# This test now uses a real sample TOML project file for proper initialization.
 @pytest.mark.datafiles(FIXTURE_DIR / "good_projectfiles" / "test1_pf.toml")
 def test_process_roi_unknown_type(datafiles):
     dummy_data = DriveData()
