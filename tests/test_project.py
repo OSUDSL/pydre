@@ -110,12 +110,18 @@ def test_process_filter_missing_function():
     with pytest.raises(KeyError):
         pydre.project.Project.processFilter(bad_filter, dummy_data)
 
-
-def test_process_roi_unknown_type():
+# FIXME: Replace the project directory with an existing sample project file instead of a new empty file
+# This test now uses a real sample TOML project file for proper initialization.
+@pytest.mark.datafiles(FIXTURE_DIR / "good_projectfiles" / "test1_pf.toml")
+def test_process_roi_unknown_type(datafiles):
     dummy_data = DriveData()
     unknown_roi = {"type": "nonexistent", "filename": "roi.csv"}
 
-    project = pydre.project.Project.__new__(pydre.project.Project)
+    # Explicitly specify and combine the TOML file path
+    toml_path = datafiles / "test1_pf.toml"
+
+    # Initialize the project using a TOML file
+    project = pydre.project.Project(toml_path)
 
     result = project.processROI(unknown_roi, dummy_data)
     assert result == [dummy_data]
@@ -409,4 +415,46 @@ def test_clean_method_via_project(tmp_path):
     p = Project(config)
     cleaned = p._Project__clean("Hello World!! @#")
     assert cleaned == "Hello World!! @#"
+
+
+def test_project_init_no_datafiles_logs_error(tmp_path, caplog):
+    """
+    When a project is initialized with no datafiles in [config],
+    it should emit an ERROR log 'No datafile found in project definition.'
+    """
+    # 1. Create a minimal TOML with empty datafiles list
+    toml = tmp_path / "nodata.toml"
+    toml.write_text("""
+    [config]
+    datafiles = []
+    """)
+    # 2. Capture ERROR logs
+    caplog.set_level("ERROR")
+    # 3. Initialize project
+    project = Project(str(toml))
+    # 4. Assert that the specific error message was logged
+    assert "No datafile found in project definition." in caplog.text
+
+def test_save_results_without_running_logs_error(tmp_path, caplog):
+    """
+    Calling saveResults() before results are computed
+    should log ERROR 'Results not computed yet' and not create a file.
+    """
+    # 1. Prepare dummy TOML and project
+    toml = tmp_path / "dummy.toml"
+    toml.write_text("""
+    [config]
+    datafiles = []
+    """)
+    project = Project(str(toml))
+    project.results = None
+    project.config["outputfile"] = str(tmp_path / "out.csv")
+    # 2. Capture ERROR logs
+    caplog.set_level("ERROR")
+    # 3. Invoke saveResults() — should not raise, but log
+    project.saveResults()
+    # 4. Verify no output file was written
+    assert not (tmp_path / "out.csv").exists()
+    # 5. Verify the error message was logged
+    assert "Results not computed yet" in caplog.text
 
