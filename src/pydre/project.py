@@ -358,7 +358,8 @@ class Project:
         )
 
     def processDatafiles(self, numThreads: int = 12) -> Optional[pl.DataFrame]:
-        """Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
+        """
+        Load all metrics, then iterate over each file and process the filters, ROIs, and metrics for each file concurrently using a thread pool.
 
         Args:
             numThreads: number of threads to run simultaneously in the thread pool
@@ -370,7 +371,9 @@ class Project:
         if "metrics" not in self.definition:
             logger.critical("No metrics in project file. No results will be generated")
             return None
-        results_list = []
+
+        results_list: list[dict] = [] # results_list = []
+
         with tqdm(total=len(self.filelist)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=numThreads
@@ -379,20 +382,44 @@ class Project:
                     executor.submit(self.processSingleFile, singleFile): singleFile
                     for singleFile in self.filelist
                 }
-                results = {}
-                for future in concurrent.futures.as_completed(futures):
-                    arg = futures[future]
-                    try:
-                        results[arg] = future.result()
-                    except Exception as exc:
-                        logger.error("problem with running {}".format(arg))
-                        logger.critical("Unhandled Exception {}".format(exc))
-                        logger.error(traceback.format_exc())
 
-                    results_list.extend(future.result())
-                    pbar.update(1)
+                # results = {}
+
+                try:
+                    # Iterate in completion order (fastest-first)
+                    for future in concurrent.futures.as_completed(futures):
+                        arg = futures[future]
+                        try:
+                            # Collect result only ONCE; this will re-raise any worker exception.
+                            per_file_rows = future.result()  # list[dict] from processSingleFile
+                            # Extend the global accumulator with this file's rows.
+                            results_list.extend(per_file_rows)
+
+                            # results[arg] = future.result()
+                        except KeyboardInterrupt:
+                            # User hit Ctrl+C: log, cancel outstanding work, and re-raise to abort.
+                            logger.critical("Execution interrupted by user (Ctrl+C). Cancelling pending work...")
+                            # Cancel any futures that have not started/run yet.
+                            # Note: shutdown with cancel_futures=True will attempt to cancel waiting tasks.
+                            executor.shutdown(wait=False, cancel_futures=True)
+                            raise
+                        except Exception as exc:
+                            # Non-fatal per-file failure: log and continue processing remaining files.
+                            logger.error("problem with running {}".format(arg))
+                            logger.critical("Unhandled Exception {}".format(exc))
+                            logger.error(traceback.format_exc())
+                        finally:
+                            pbar.update(1) # update progress bar for each completed future
+                except KeyboardInterrupt:
+                    # Outer handler for Ctrl+C during as_completed iteration or shutdown.
+                    logger.critical("Aborted by user (Ctrl+C).")
+                    raise
+
+        # Postconditions: convert to a Polars DataFrame
         if len(results_list) == 0:
             logger.error("No results found; no metrics data generated")
+            return pl.DataFrame() # return empty DataFrame to keep return type consistent
+
         result_dataframe = pl.from_dicts(results_list)
 
         # sorting_columns = ["Subject", "ScenarioName", "ROI"]
