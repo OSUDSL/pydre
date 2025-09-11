@@ -1,4 +1,5 @@
 import pathlib
+import threading
 from abc import ABCMeta, abstractmethod
 from os import PathLike
 
@@ -6,6 +7,7 @@ import pydre.core
 import polars as pl
 import re
 import typing
+from typing import Optional
 from loguru import logger
 from collections.abc import Iterable
 from polars.exceptions import ColumnNotFoundError
@@ -14,6 +16,7 @@ from polars.exceptions import ColumnNotFoundError
 class ROIProcessor(object, metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, filename: PathLike, nameprefix: str = ""):
+        self._stop_event: Optional[threading.Event] = None
         pass
 
     @abstractmethod
@@ -118,6 +121,8 @@ class TimeROI(ROIProcessor):
                 new_ddata.roi = k
                 output_list.append(new_ddata)
             else:
+                if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+                    return []  # silent early-exit; avoids post-abort warning spam
                 logger.warning(
                     "ROI fails to qualify for {}, ignoring data".format(
                         sourcedrivedata.sourcefilename
@@ -157,6 +162,7 @@ class TimeROI(ROIProcessor):
             sec = splits[0]
             time = float(sec)
         return time
+
 
     @staticmethod
     def from_ranges(ranges, column):
@@ -218,6 +224,8 @@ class SpaceROI(ROIProcessor):
             )
 
             if region_data.height == 0:
+                if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+                    return []  # silent early-exit; avoids post-abort warning spam
                 logger.warning(
                     "No data for SubjectID: {}, Source: {},  ROI: {}".format(
                         sourcedrivedata.metadata["ParticipantID"],
@@ -242,10 +250,11 @@ class SpaceROI(ROIProcessor):
 
 
 class ColumnROI:
-    def __init__(self, roi_column):
+    def __init__(self, roi_column: str):
         if not isinstance(roi_column, str):
             raise TypeError(f"Expected roi_column to be str, got {type(roi_column)}")
         self.roi_column = roi_column
+        self._stop_event: Optional[threading.Event] = None
 
     def split(self, sourcedrivedata):
         df = sourcedrivedata.data
@@ -267,6 +276,8 @@ class ColumnROI:
 
                 matched_rows = df_valid.filter(pl.col(self.roi_column) == column_value)
                 if matched_rows.is_empty():
+                    if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+                        return []  # silent early-exit; avoids post-abort warning spam
                     logger.warning(f"ROI value {column_value} not found in data")
                     continue
 

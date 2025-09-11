@@ -21,6 +21,7 @@ from loguru import logger
 from tqdm import tqdm
 import concurrent.futures
 import importlib.util
+import threading
 
 
 class Project:
@@ -284,6 +285,15 @@ class Project:
         else:
             logger.warning("Unknown ROI type {}".format(roi_type))
             return [datafile]
+
+        # Inject the stop flag so ROI code can silence logs after Ctrl+C
+        # This keeps the public API unchanged and avoids threading-kill problems.
+        try:
+            # If the project set _stop_event, give it to the ROI object.
+            setattr(roi_obj, "_stop_event", getattr(self, "_stop_event", None))
+        except Exception:
+            pass
+
         return roi_obj.split(datafile)
 
     @staticmethod
@@ -374,6 +384,9 @@ class Project:
 
         results_list: list[dict] = [] # results_list = []
 
+        # STOP FLAG
+        self._stop_event = threading.Event()
+
         with tqdm(total=len(self.filelist)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=numThreads
@@ -382,9 +395,6 @@ class Project:
                     executor.submit(self.processSingleFile, singleFile): singleFile
                     for singleFile in self.filelist
                 }
-
-                # results = {}
-
                 try:
                     # Iterate in completion order (fastest-first)
                     for future in concurrent.futures.as_completed(futures):
@@ -394,15 +404,14 @@ class Project:
                             per_file_rows = future.result()  # list[dict] from processSingleFile
                             # Extend the global accumulator with this file's rows.
                             results_list.extend(per_file_rows)
-
-                            # results[arg] = future.result()
                         except KeyboardInterrupt:
+                            self._stop_event.set() # STOP FLAG
                             # User hit Ctrl+C: log, cancel outstanding work, and re-raise to abort.
                             logger.critical("Execution interrupted by user (Ctrl+C). Cancelling pending work...")
                             # Cancel any futures that have not started/run yet.
                             # Note: shutdown with cancel_futures=True will attempt to cancel waiting tasks.
                             executor.shutdown(wait=False, cancel_futures=True)
-                            raise
+                            logger.remove()
                         except Exception as exc:
                             # Non-fatal per-file failure: log and continue processing remaining files.
                             logger.error("problem with running {}".format(arg))
@@ -411,9 +420,10 @@ class Project:
                         finally:
                             pbar.update(1) # update progress bar for each completed future
                 except KeyboardInterrupt:
+                    self._stop_event.set() # STOP FLAG
                     # Outer handler for Ctrl+C during as_completed iteration or shutdown.
                     logger.critical("Aborted by user (Ctrl+C).")
-                    raise
+                    logger.remove()
 
         # Postconditions: convert to a Polars DataFrame
         if len(results_list) == 0:
@@ -477,10 +487,14 @@ class Project:
 
         else:
             # no ROIs to process, but that's OK
+            if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+                return []  # silent early-exit; avoids post-abort warning spam
             logger.warning("No ROIs defined, processing raw data.")
             roi_datalist.append(datafile)
 
         if len(roi_datalist) == 0:
+            if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+                return []  # silent early-exit; avoids post-abort warning spam
             logger.warning(
                 "Qualifying ROIs fail to generate results for {}, no output generated.".format(
                     datafilename
