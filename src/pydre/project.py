@@ -274,11 +274,23 @@ class Project:
         logfile = self.config.get("logfile", None)
         log_level = self.config.get("log_level", "INFO")
 
+        # Ensure the stop flag exists before we build filters that close over it
+        if not hasattr(self, "_stop_event") or self._stop_event is None:
+            self._stop_event = threading.Event()
+
+        # Filter factory bound to this Project instance's stop flag
+        def _silence_after_interrupt(record: dict) -> bool:
+            # record["level"].no: DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50
+            if self._stop_event.is_set():
+                # Mute everything below CRITICAL once Ctrl+C triggered
+                return record["level"].no >= 50
+            return True
+
         # Reset existing handlers to prevent duplicate outputs
         logger.remove()
 
         # Re-add stderr sink (keep existing behavior)
-        logger.add(sys.stderr, level=log_level)
+        logger.add(sys.stderr, level=log_level, filter=_silence_after_interrupt)
 
         # If a logfile path is provided, add a file sink (append-only)
         if logfile:
@@ -470,7 +482,6 @@ class Project:
                             # Cancel any futures that have not started/run yet.
                             # Note: shutdown with cancel_futures=True will attempt to cancel waiting tasks.
                             executor.shutdown(wait=False, cancel_futures=True)
-                            logger.remove()
                         except Exception as exc:
                             # Non-fatal per-file failure: log and continue processing remaining files.
                             logger.error("problem with running {}".format(arg))
@@ -482,7 +493,6 @@ class Project:
                     self._stop_event.set() # STOP FLAG
                     # Outer handler for Ctrl+C during as_completed iteration or shutdown.
                     logger.critical("Aborted by user (Ctrl+C).")
-                    logger.remove()
 
         # Postconditions: convert to a Polars DataFrame
         if len(results_list) == 0:
@@ -501,6 +511,8 @@ class Project:
         return result_dataframe
 
     def processSingleFile(self, datafilename: Path):
+        if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+            return []
         logger.info("Loading file {}".format(datafilename))
         if "datafile_type" in self.config:
             if self.config["datafile_type"] == "rti":
