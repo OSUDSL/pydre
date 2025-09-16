@@ -1,6 +1,7 @@
 import copy
 import json
 import traceback
+import os
 from os import PathLike
 
 import polars as pl
@@ -406,12 +407,12 @@ class Project:
             src_str.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
         )
 
-    def processDatafiles(self, numThreads: int = 12) -> Optional[pl.DataFrame]:
+    def processDatafiles(self, numThreads: int = None) -> Optional[pl.DataFrame]:
         """
         Load all metrics, then iterate over each file and process the filters, ROIs, and metrics for each file concurrently using a thread pool.
 
         Args:
-            numThreads: number of threads to run simultaneously in the thread pool
+            numThreads: number of threads to run simultaneously in the thread pool is configurable from project.toml [config]
 
         Returns:
             metrics data for all metrics, or None on error
@@ -420,6 +421,25 @@ class Project:
         if "metrics" not in self.definition:
             logger.critical("No metrics in project file. No results will be generated")
             return None
+
+        # Determine number of threads
+        # Priority: function argument > config file > default (12)
+        config_threads = self.config.get("num_threads", None)
+        if numThreads is None:
+            if config_threads is not None:
+                numThreads = int(config_threads)
+            else:
+                numThreads = os.cpu_count() - 1 or 1  # use available cores - 1
+
+        # Sanity check amd warnings
+        if numThreads > 32:
+            logger.warning(f"High thread count requested: {numThreads}. "
+                           "This may degrade performance instead of improving it.")
+        if numThreads <= 0:
+            logger.warning(f"Invalid num_threads={numThreads}, falling back to 1.")
+            numThreads = 1
+
+        logger.info(f"Using {numThreads} threads for processing")
 
         results_list: list[dict] = [] # results_list = []
 
