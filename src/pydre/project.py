@@ -119,6 +119,8 @@ class Project:
         if len(self.config.get("datafiles", [])) == 0:
             logger.error("No datafile found in project definition.")
 
+        # Configure logging from TOML [config]
+        self._configure_logging()
 
         self._load_custom_functions()
 
@@ -252,6 +254,43 @@ class Project:
                 self.project_filename.parent / computed_path
             ).resolve()
         return computed_path
+
+    def _configure_logging(self):
+        """
+        Configure Loguru sinks based on [config] in the project file.
+
+        Behavior:
+        - Always log to stderr (keeps current behavior).
+        - If 'logfile' is provided in TOML [config], also log to that file (append-only).
+        - Optional 'log_level' in TOML controls both sinks; defaults to 'INFO'.
+
+        Notes:
+        - Remove existing handlers to avoid duplicated sinks if multiple Project instances are created.
+        - Use enqueue=True for the file sink because processing uses a ThreadPoolExecutor,
+          which benefits from thread-safe, non-blocking logging.
+        """
+        # Read settings from self.config
+        logfile = self.config.get("logfile", None)
+        log_level = self.config.get("log_level", "INFO")
+
+        # Reset existing handlers to prevent duplicate outputs
+        logger.remove()
+
+        # Re-add stderr sink (keep existing behavior)
+        logger.add(sys.stderr, level=log_level)
+
+        # If a logfile path is provided, add a file sink (append-only)
+        if logfile:
+            # Resolve relative path against the project file location for convenience
+            logfile_path = self.resolve_file(logfile)
+            # Add file sink with enqueue for thread safety during concurrent processing
+            logger.add(
+                str(logfile_path),
+                level=log_level,
+                enqueue=True,  # thread-safe with ThreadPoolExecutor
+                backtrace=False,  # set True if you want very detailed tracebacks
+                diagnose=False  # set True to include variable values in tracebacks
+            )
 
     def processROI(self,
         roi: dict, datafile: pydre.core.DriveData

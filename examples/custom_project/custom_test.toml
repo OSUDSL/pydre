@@ -1,5 +1,7 @@
 [config]
 custom_metrics_dirs = ["custom_metric"]
+logfile = "pydre.log" # optional; when omitted -> stderr only
+log_level = "INFO" # optional; default is "INFO"
 
 [metrics.custom_test]
 function = "testMean"
