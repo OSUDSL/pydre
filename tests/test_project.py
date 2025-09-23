@@ -433,10 +433,15 @@ def test_project_init_no_datafiles_logs_error(tmp_path, caplog):
     # 4. Assert that the specific error message was logged
     assert "No datafile found in project definition." in caplog.text
 
-def test_save_results_without_running_logs_error(tmp_path, caplog):
+def test_save_results_without_running_logs_error(tmp_path, caplog, capsys):
     """
-    Calling saveResults() before results are computed
-    should log ERROR 'Results not computed yet' and not create a file.
+    Calling saveResults() before results are computed should:
+      - log ERROR 'Results not computed yet'
+      - not create an output file.
+
+    We accept the log message from either pytest's caplog OR stderr,
+    because the code under test (or other fixtures) may reconfigure
+    loguru handlers during the test.
     """
     # 1. Prepare dummy TOML and project
     toml = tmp_path / "dummy.toml"
@@ -453,6 +458,8 @@ def test_save_results_without_running_logs_error(tmp_path, caplog):
     project.saveResults()
     # 4. Verify no output file was written
     assert not (tmp_path / "out.csv").exists()
-    # 5. Verify the error message was logged
-    assert "Results not computed yet" in caplog.text
+    # 5. Verify the error message was logged either in caplog or stderr
+    out, err = capsys.readouterr()
+    msg = "Results not computed yet"
+    assert (msg in caplog.text) or (msg in err)
 
