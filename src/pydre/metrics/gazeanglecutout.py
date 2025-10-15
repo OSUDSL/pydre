@@ -31,7 +31,10 @@ def _check_and_prepare(drivedata: pydre.core.DriveData) -> pl.DataFrame:
 
     # combined mask for cutout + off-target
     df = df.with_columns(
-        (pl.col("gaze_cutout") & pl.col("off_target")).alias("mask")
+        (
+                pl.col("gaze_cutout").fill_null(False).cast(pl.Boolean)
+                & pl.col("off_target").fill_null(False).cast(pl.Boolean)
+        ).alias("mask")
     )
 
     return df
@@ -47,9 +50,8 @@ def gazeCutoutAngleDuration(drivedata: pydre.core.DriveData) -> float:
     if df.is_empty():
         return 0.0
 
-    duration = df.select(
-        pl.sum(pl.when(pl.col("mask")).then(pl.col("dt")).otherwise(0.0))
-    ).item()
+    mask_expr = pl.when(pl.col("mask")).then(pl.col("dt")).otherwise(0.0)
+    duration = df.select(mask_expr.sum().alias("duration")).item()
     return float(duration or 0.0)
 
 
@@ -67,9 +69,8 @@ def gazeCutoutAngleRatio(drivedata: pydre.core.DriveData) -> float:
     if total_time <= 0.0:
         return 0.0
 
-    off_time = df.select(
-        pl.sum(pl.when(pl.col("mask")).then(pl.col("dt")).otherwise(0.0))
-    ).item() or 0.0
+    mask_expr = pl.when(pl.col("mask")).then(pl.col("dt")).otherwise(0.0)
+    off_time = df.select(mask_expr.sum().alias("off_time")).item() or 0.0
 
     return float(off_time / total_time)
 
@@ -90,12 +91,11 @@ def gazeCutoutAngleViolations(drivedata: pydre.core.DriveData) -> int:
         pl.col("mask").shift(1).fill_null(False).alias("prev_mask")
     )
 
-    violations = df.select(
-        pl.sum(
-            pl.when((pl.col("mask") == True) & (pl.col("prev_mask") == False))
-            .then(1)
-            .otherwise(0)
-        )
-    ).item() or 0
+    violation_expr = (
+        pl.when((pl.col("mask") == True) & (pl.col("prev_mask") == False))
+        .then(1)
+        .otherwise(0)
+    )
+    violations = df.select(violation_expr.sum().alias("violations")).item() or 0
 
     return int(violations)
