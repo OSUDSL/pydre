@@ -47,7 +47,7 @@ def gazeangle(
 
     # Using sqrt(yaw^2 + pitch^2), directly in radians
     df = df.with_columns(
-        (pl.sqrt(pl.col("GAZE_HEADING") ** 2 + pl.col("GAZE_PITCH") ** 2))
+        ((pl.col("GAZE_HEADING") ** 2 + pl.col("GAZE_PITCH") ** 2).sqrt())
         .alias("gaze_angle")
     )
 
