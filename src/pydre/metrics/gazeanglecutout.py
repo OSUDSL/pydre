@@ -1,84 +1,101 @@
-"""
-Minimal skeleton for gaze cutout/angle metrics.
-Goal: measure time/ratio/violations when gaze is outside a cutout angle,
-optionally only when off a given object (FILTERED_GAZE_OBJ_NAME != target).
-"""
-
 import polars as pl
+import pydre.core
 from pydre.core import ColumnsMatchError
 from pydre.metrics import registerMetric
 
 
-_REQUIRED_COLS = [
-    "SimTime",                  # time base (s)
-    "GAZE_HEADING",             # yaw (deg)
-    "GAZE_PITCH",               # pitch (deg)
-    "FILTERED_GAZE_OBJ_NAME",   # world object label or null
-]
-
-# TODO(questions):
-# - confirm angle model: cone_dist = sqrt(yaw^2 + pitch^2) in degrees?
-# - default cutout half-angle (deg) OK at 5.0?
-# - time base = SimTime (not RealTime/MediaTime)?
-# - off-target rule: count only when OBJ_NAME != target (or null)?
-
-def _prepare(df: pl.DataFrame, *, angle_deg: float, target: str | None,
-             time_col: str, heading_col: str, pitch_col: str, obj_col: str) -> pl.DataFrame:
+def _check_and_prepare(drivedata: pydre.core.DriveData) -> pl.DataFrame:
     """
-    TODO(impl):
-    - cone_dist = sqrt(heading^2 + pitch^2)
-    - outside = cone_dist > angle_deg
-    - off_target = True if no target; else (obj is null) or (obj != target)
-    - mask = outside & off_target
-    - dt = next(SimTime) - SimTime (last row -> 0)
-    - return df with columns: mask (bool), dt (float)
+    Validate required columns and compute dt (Δt) between DatTime samples.
     """
-    return df  # placeholder
+
+    required_cols = [
+        "DatTime",
+        "gaze_cutout",
+        "off_target"
+    ]
+    try:
+        drivedata.checkColumns(required_cols)
+    except ColumnsMatchError:
+        return pl.DataFrame({col: [] for col in required_cols})
+
+    df = drivedata.data.select(required_cols).drop_nulls()
+
+    # Compute Δt (time difference between consecutive DatTime entries)
+    df = df.with_columns(
+        (pl.col("DatTime").shift(-1) - pl.col("DatTime"))
+        .fill_null(0.0)
+        .clip(lower_bound=0.0)
+        .alias("dt")
+    )
+
+    # combined mask for cutout + off-target
+    df = df.with_columns(
+        (pl.col("gaze_cutout") & pl.col("off_target")).alias("mask")
+    )
+
+    return df
+
 
 @registerMetric("gazeCutoutAngleDuration")
-@ColumnsMatchError(_REQUIRED_COLS)
-def gaze_cutout_angle_duration(
-    df: pl.DataFrame,
-    *, angle_deg: float = 5.0, target: str | None = None,
-    time_col: str = "SimTime", heading_col: str = "GAZE_HEADING",
-    pitch_col: str = "GAZE_PITCH", obj_col: str = "FILTERED_GAZE_OBJ_NAME",
-) -> float:
+def gazeCutoutAngleDuration(drivedata: pydre.core.DriveData) -> float:
     """
-    TODO(impl): sum(dt) over mask==True.
+    Returns the total duration (seconds) that the gaze was both
+    outside the cutout angle AND off-target.
     """
-    _ = _prepare(df, angle_deg=angle_deg, target=target,
-                 time_col=time_col, heading_col=heading_col,
-                 pitch_col=pitch_col, obj_col=obj_col)
-    return 0.0  # placeholder
+    df = _check_and_prepare(drivedata)
+    if df.is_empty():
+        return 0.0
+
+    duration = df.select(
+        pl.sum(pl.when(pl.col("mask")).then(pl.col("dt")).otherwise(0.0))
+    ).item()
+    return float(duration or 0.0)
+
 
 @registerMetric("gazeCutoutAngleRatio")
-@ColumnsMatchError(_REQUIRED_COLS)
-def gaze_cutout_angle_ratio(
-    df: pl.DataFrame,
-    *, angle_deg: float = 5.0, target: str | None = None,
-    time_col: str = "SimTime", heading_col: str = "GAZE_HEADING",
-    pitch_col: str = "GAZE_PITCH", obj_col: str = "FILTERED_GAZE_OBJ_NAME",
-) -> float:
+def gazeCutoutAngleRatio(drivedata: pydre.core.DriveData) -> float:
     """
-    TODO(impl): sum(dt where mask)/sum(dt total), guard total==0.
+    Fraction of total time spent outside the cutout angle (and off-target).
+    Returns 0 if DatTime is missing or total duration = 0.
     """
-    _ = _prepare(df, angle_deg=angle_deg, target=target,
-                 time_col=time_col, heading_col=heading_col,
-                 pitch_col=pitch_col, obj_col=obj_col)
-    return 0.0  # placeholder
+    df = _check_and_prepare(drivedata)
+    if df.is_empty():
+        return 0.0
+
+    total_time = df.select(pl.sum("dt")).item() or 0.0
+    if total_time <= 0.0:
+        return 0.0
+
+    off_time = df.select(
+        pl.sum(pl.when(pl.col("mask")).then(pl.col("dt")).otherwise(0.0))
+    ).item() or 0.0
+
+    return float(off_time / total_time)
+
 
 @registerMetric("gazeCutoutAngleViolations")
-@ColumnsMatchError(_REQUIRED_COLS)
-def gaze_cutout_angle_violations(
-    df: pl.DataFrame,
-    *, angle_deg: float = 5.0, target: str | None = None,
-    time_col: str = "SimTime", heading_col: str = "GAZE_HEADING",
-    pitch_col: str = "GAZE_PITCH", obj_col: str = "FILTERED_GAZE_OBJ_NAME",
-) -> int:
+def gazeCutoutAngleViolations(drivedata: pydre.core.DriveData) -> int:
     """
-    TODO(impl): count segments: mask True with previous False (run starts).
+    Counts the number of contiguous segments where the gaze was
+    outside the cutout angle and off-target.
+
+    A new violation is counted when mask transitions from False → True.
     """
-    _ = _prepare(df, angle_deg=angle_deg, target=target,
-                 time_col=time_col, heading_col=heading_col,
-                 pitch_col=pitch_col, obj_col=obj_col)
-    return 0  # placeholder
+    df = _check_and_prepare(drivedata)
+    if df.is_empty():
+        return 0
+
+    df = df.with_columns(
+        pl.col("mask").shift(1).fill_null(False).alias("prev_mask")
+    )
+
+    violations = df.select(
+        pl.sum(
+            pl.when((pl.col("mask") == True) & (pl.col("prev_mask") == False))
+            .then(1)
+            .otherwise(0)
+        )
+    ).item() or 0
+
+    return int(violations)
