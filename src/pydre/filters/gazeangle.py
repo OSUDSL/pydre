@@ -41,7 +41,7 @@ def gazeangle(
     ]
 
     if not all(col in drivedata.data.columns for col in required_cols):
-        raise ColumnsMatchError(f"Missing one or more required columns: {required_cols}")
+        raise ColumnsMatchError(f"Missing one or more required columns: {required_cols}") #FIXME:can't read file correctly
 
     df = drivedata.data
 
@@ -55,7 +55,7 @@ def gazeangle(
     half_angle_rad = math.radians(half_angle_deg)
 
     df = df.with_columns(
-        (pl.col("gaze_angle") > half_angle_rad).alias("gaze_cutout")
+        (pl.col("gaze_angle").abs() > half_angle_rad).cast(pl.Boolean).alias("gaze_cutout")
     )
 
     if target_name:
