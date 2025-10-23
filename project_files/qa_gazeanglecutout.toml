@@ -1,0 +1,11 @@
+[filters.gazeangle]
+function = "gazeangle"
+
+[metrics.gazeCutoutAngleDuration]
+function = "gazeCutoutAngleDuration"
+
+[metrics.gazeCutoutAngleRatio]
+function = "gazeCutoutAngleRatio"
+
+[metrics.gazeCutoutAngleViolations]
+function = "gazeCutoutAngleViolations"
