@@ -398,7 +398,7 @@ class Project:
                     pbar.update(1)
         if len(results_list) == 0:
             logger.error("No results found; no metrics data generated")
-        result_dataframe = pl.from_dicts(results_list)
+        result_dataframe = pl.from_dicts(results_list, infer_schema_length=5000)
 
         # sorting_columns = ["Subject", "ScenarioName", "ROI"]
         # try:
