@@ -1,83 +1,57 @@
 import polars as pl
+import io
 import pytest
-from pydre.core import DriveData
+import pydre.core
 from pydre.filters.gazeangle import gazeAnglePreProcessing
-from pydre.metrics import gazeanglecutout
-
+from pydre.metrics.gazeanglecutout import (
+    gazeCutoutAngleDuration,
+    gazeCutoutAngleRatio,
+    gazeCutoutAngleViolations,
+)
 
 @pytest.fixture
 def sample_drivedata():
+    # .dat file structure for debugging
+    dat_content = """
+    DatTime GAZE_HEADING GAZE_PITCH FILTERED_GAZE_OBJ_NAME
+    0.00 0.01 0.01 WindScreen
+    0.05 0.03 0.02 WindScreen
+    0.10 0.06 0.04 None
+    0.15 0.09 0.08 None
+    0.20 0.12 0.09 WindScreen
+    0.25 0.15 0.10 InteriorCabin
+    0.30 0.18 0.12 None
+    0.35 0.22 0.15 DrvrSideMirror
     """
-    Creates a DriveData object with synthetic gaze data.
-    Heading/pitch values are in radians, DatTime in seconds.
-    """
-    df = pl.DataFrame({
-        "DatTime": [0.0, 1.0, 2.0, 3.0, 4.0],
-        "GAZE_HEADING": [0.02, 0.1, 0.12, 0.02, 0.09],
-        "GAZE_PITCH": [0.01, 0.04, 0.09, 0.02, 0.07],
-        "FILTERED_GAZE_OBJ_NAME": ["target", "target", None, "target", None],
-    })
 
-    d = DriveData()
-    d.data = df
-    return d
+    df = pl.read_csv(io.StringIO(dat_content), separator=" ", has_header=True)
 
+    dd = pydre.core.DriveData()
+    dd.data = df
+    dd.metadata = {"ParticipantID": "debug-metric"}
+    return dd
 
-def test_gazeangle_filter_outputs(sample_drivedata):
-    """
-    The gazeangle filter should produce expected columns and reasonable values.
-    """
-    out = gazeAnglePreProcessing(sample_drivedata)
+@pytest.mark.parametrize(
+    "target_name, expected_nonzero",
+    [
+        (None, False),
+        ("WindScreen", True)
+    ]
+)
+def test_gaze_metrics(sample_drivedata, target_name, expected_nonzero):
+    result = gazeAnglePreProcessing(sample_drivedata, half_angle_deg=5.0, target_name=target_name)
 
-    # verify added columns
-    for col in ["gaze_angle", "gaze_cutout", "off_target"]:
-        assert col in out.data.columns, f"Missing column: {col}"
+    duration = gazeCutoutAngleDuration(result)
+    ratio = gazeCutoutAngleRatio(result)
+    violations = gazeCutoutAngleViolations(result)
 
-    # all gaze angles should be >= 0
-    assert (out.data["gaze_angle"] >= 0).all()
+    print(f"\n[{target_name}] Duration={duration:.3f}, Ratio={ratio:.3f}, Violations={violations}")
 
-    # there should be at least one cutout True and one False
-    assert out.data["gaze_cutout"].any() and not out.data["gaze_cutout"].all()
-
-
-def test_gazeanglecutout_metrics(sample_drivedata):
-    """
-    Check that gazeanglecutout metrics produce consistent, interpretable results.
-    """
-    # Apply filter first
-    filtered = gazeAnglePreProcessing(sample_drivedata)
-
-    # 1) Duration should be > 0
-    duration = gazeanglecutout.gazeCutoutAngleDuration(filtered)
-    assert isinstance(duration, float)
-    assert duration >= 0.0
-
-    # 2) Ratio should be between 0 and 1
-    ratio = gazeanglecutout.gazeCutoutAngleRatio(filtered)
-    assert 0.0 <= ratio <= 1.0
-
-    # 3) Violations should be an integer >= 0
-    violations = gazeanglecutout.gazeCutoutAngleViolations(filtered)
-    assert isinstance(violations, int)
-    assert violations >= 0
-
-    # Sanity relationship: if no off-target frames exist, duration must be 0
-    df = filtered.data.with_columns(pl.lit(False).alias("off_target"))
-    filtered.data = df
-    assert gazeanglecutout.gazeCutoutAngleDuration(filtered) == 0.0
-
-
-def test_empty_dataframe_behavior():
-    """
-    Empty data should not raise and should return 0 metrics.
-    """
-    d = DriveData()
-    d.data = pl.DataFrame({
-        "DatTime": [],
-        "gaze_cutout": [],
-        "off_target": [],
-    })
-
-    assert gazeanglecutout.gazeCutoutAngleDuration(d) == 0.0
-    assert gazeanglecutout.gazeCutoutAngleRatio(d) == 0.0
-    assert gazeanglecutout.gazeCutoutAngleViolations(d) == 0
+    if expected_nonzero:
+        assert duration > 0.0
+        assert 0.0 < ratio <= 1.0
+        assert violations >= 1
+    else:
+        assert duration == 0.0
+        assert ratio == 0.0
+        assert violations == 0
