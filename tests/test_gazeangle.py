@@ -3,7 +3,7 @@ import numpy as np
 
 path = r"C:\Users\spark\Downloads\AMS1_testdat\Experimenter_51_Test_1747251071.dat"
 
-df = pl.read_csv(path, separator=" ", has_header=True, infer_schema_length=0)
+df = pl.read_csv(path, separator="\t", has_header=True, infer_schema_length=0)
 
 print("Detected gaze-related columns:", [c for c in df.columns if "GAZE" in c])
 
