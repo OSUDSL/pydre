@@ -1,5 +1,6 @@
 [filters.gazeangle]
 function = "gazeAnglePreProcessing"
+target_name = "WindScreen"
 
 [metrics.gazeCutoutAngleDuration]
 function = "gazeCutoutAngleDuration"
