@@ -23,7 +23,7 @@ def sample_drivedata(tmp_path):
 
     dd = pydre.core.DriveData()
     dd.data = df
-    dd.metadata = {"ParticipantID": "debug01"}
+    dd.metadata = {"ParticipantID": "debug-filter"}
     return dd
 
 def test_gazeAnglePreProcessing_debug(sample_drivedata):
