@@ -1,15 +1,18 @@
 import math
 import polars as pl
 import pydre.core
-from pydre.core import ColumnsMatchError
 from pydre.filters import registerFilter
 
 
 @registerFilter()
 def gazeAnglePreProcessing(
-        drivedata: pydre.core.DriveData,
-        half_angle_deg: float = 5.0,
-        target_name: str | None = None
+    drivedata: pydre.core.DriveData,
+    timeColName: str = "DatTime",
+    headingColName: str = "GAZE_HEADING",
+    pitchColName: str = "GAZE_PITCH",
+    targetColName: str = "FILTERED_GAZE_OBJ_NAME",
+    half_angle_deg: float = 5.0,
+    target_name: str | None = None,
 ) -> pydre.core.DriveData:
     """
     Compute gaze angle magnitude and mark whether gaze is off-target (cutout).
@@ -18,9 +21,16 @@ def gazeAnglePreProcessing(
     ----------
     drivedata : pydre.core.DriveData
         Input DriveData object containing raw gaze columns.
+    timeColName : str
+        Column name for time stamps (default: 'DatTime').
+    headingColName : str
+        Column name for horizontal gaze component (default: 'GAZE_HEADING').
+    pitchColName : str
+        Column name for vertical gaze component (default: 'GAZE_PITCH').
+    targetColName : str
+        Column name for object gaze classification (default: 'FILTERED_GAZE_OBJ_NAME').
     half_angle_deg : float, optional
         Default cutout half-angle threshold, in degrees. Default is 5.0°.
-        Note: eyetracking machine data is in radians, so this is converted internally.
     target_name : str | None, optional
         Optional target object name to check against FILTERED_GAZE_OBJ_NAME.
 
@@ -33,41 +43,38 @@ def gazeAnglePreProcessing(
             - off_target : bool
     """
 
-    required_cols = [
-        "DatTime",
-        "GAZE_HEADING",
-        "GAZE_PITCH",
-        "FILTERED_GAZE_OBJ_NAME"
-    ]
-
-    if not all(col in drivedata.data.columns for col in required_cols):
-        raise ColumnsMatchError(f"Missing one or more required columns: {required_cols}") #FIXME:can't read file correctly
+    required_cols = [timeColName, headingColName, pitchColName, targetColName]
+    drivedata.checkColumns(required_cols)
 
     df = drivedata.data
 
-    # Using sqrt(yaw^2 + pitch^2), directly in radians
+    # Compute gaze angle magnitude (radians)
     df = df.with_columns(
-        ((pl.col("GAZE_HEADING") ** 2 + pl.col("GAZE_PITCH") ** 2).sqrt())
+        ((pl.col(headingColName) ** 2 + pl.col(pitchColName) ** 2).sqrt())
         .alias("gaze_angle")
     )
 
-    # Convert threshold from degrees to radians for comparison
+    # Convert threshold from degrees to radians
     half_angle_rad = math.radians(half_angle_deg)
 
+    # Mark if gaze exceeds half-angle cutoff
     df = df.with_columns(
-        (pl.col("gaze_angle").abs() > half_angle_rad).cast(pl.Boolean).alias("gaze_cutout")
+        (pl.col("gaze_angle").abs() > half_angle_rad)
+        .cast(pl.Boolean)
+        .alias("gaze_cutout")
     )
 
+    # Determine off-target samples
     if target_name:
         off_target_mask = (
-            (pl.col("FILTERED_GAZE_OBJ_NAME").is_null())
-            | (pl.col("FILTERED_GAZE_OBJ_NAME") != target_name)
+            (pl.col(targetColName).is_null())
+            | (pl.col(targetColName) != target_name)
         )
     else:
-        # If no specific target provided, consider None values only as off-target
-        off_target_mask = pl.col("FILTERED_GAZE_OBJ_NAME").is_null()
+        off_target_mask = pl.col(targetColName).is_null()
 
     df = df.with_columns(off_target_mask.alias("off_target"))
 
     drivedata.data = df
+
     return drivedata
