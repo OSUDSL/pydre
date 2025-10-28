@@ -1,7 +1,7 @@
 import polars as pl
 import pytest
 from pydre.core import DriveData
-from pydre.filters.gazeangle import gazeangle
+from pydre.filters.gazeangle import gazeAnglePreProcessing
 from pydre.metrics import gazeanglecutout
 
 
@@ -27,7 +27,7 @@ def test_gazeangle_filter_outputs(sample_drivedata):
     """
     The gazeangle filter should produce expected columns and reasonable values.
     """
-    out = gazeangle(sample_drivedata)
+    out = gazeAnglePreProcessing(sample_drivedata)
 
     # verify added columns
     for col in ["gaze_angle", "gaze_cutout", "off_target"]:
@@ -45,7 +45,7 @@ def test_gazeanglecutout_metrics(sample_drivedata):
     Check that gazeanglecutout metrics produce consistent, interpretable results.
     """
     # Apply filter first
-    filtered = gazeangle(sample_drivedata)
+    filtered = gazeAnglePreProcessing(sample_drivedata)
 
     # 1) Duration should be > 0
     duration = gazeanglecutout.gazeCutoutAngleDuration(filtered)

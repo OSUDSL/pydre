@@ -1,5 +1,5 @@
 [filters.gazeangle]
-function = "gazeangle"
+function = "gazeAnglePreProcessing"
 
 [metrics.gazeCutoutAngleDuration]
 function = "gazeCutoutAngleDuration"

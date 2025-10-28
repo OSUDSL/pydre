@@ -6,7 +6,7 @@ from pydre.filters import registerFilter
 
 
 @registerFilter()
-def gazeangle(
+def gazeAnglePreProcessing(
         drivedata: pydre.core.DriveData,
         half_angle_deg: float = 5.0,
         target_name: str | None = None
