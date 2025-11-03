@@ -114,9 +114,35 @@ def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
         = DatTime: time from simobserver recording start
 
     Returns:
-        Original DriveData object with identical DatTime and SimTime
+        Original DriveData object with identical DatTime and SimTime. Original SimTime is renamed to OrigSimTime.
     """
-    drivedata.data = drivedata.data.with_columns(pl.col("DatTime").alias("SimTime"))
+    drivedata.data = drivedata.data.with_columns(pl.col("SimTime").alias("OrigSimTime"),
+                                                 pl.col("DatTime").alias("SimTime"))
+    return drivedata
+
+
+@registerFilter()
+def FixLinearLandRoadOffset(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
+    """Replaces RoadOffset values with Corrected YPos
+
+    RoadOffset becomes - YPos - 9.1
+
+    Note: Requires data columns
+        - YPos: Y position of ownship
+        - XPos: Y position of ownship
+        - RoadOffset: lateral distance on roadway
+
+    Returns:
+        Original DriveData object with altered RoadOffset column data
+    """
+    # yPos - 9.1 = RoadOffset
+
+    drivedata.data = drivedata.data.with_columns(
+        pl.when(pl.col("XPos").cast(pl.Float32).is_between(-2332, -2268))
+        .then(pl.col("YPos") - 9.1)
+        .otherwise(pl.col("RoadOffset").cast(pl.Float32))
+        .alias("RoadOffset")
+    )
     return drivedata
 
 
@@ -417,4 +443,36 @@ def trimPreAndPostDrive(
     else:
         drivedata.data = drivedata.data.slice(first_above_speed, last_above_speed-first_above_speed+1)
 
+    return drivedata
+
+
+@registerFilter()
+def nullifyOutlier(
+    drivedata: pydre.core.DriveData, threshold=1000, col="HeadwayDistance"
+):
+    """
+    Fixes outliers in 'col' by replacing values greater than the threshold with 'null'.
+    Metrics functions such as `colMean` & `colSD` will ignore these null values.
+
+    Parameters:
+        threshold (int): The threshold above which values are considered outliers.
+        col (str): The name of column to check for outliers. Default is "HeadwayDistance".
+    """
+
+    try:
+        drivedata.checkColumns([col])
+    except pydre.core.ColumnsMatchError as e:
+        logger.warning(f"Column '{col}' not found in the data: {e}")
+        return drivedata
+
+    df = drivedata.data
+
+    df = df.with_columns([
+        pl.when(pl.col(col) > threshold)
+        .then(None)
+        .otherwise(pl.col(col))
+        .alias(col)
+    ])
+
+    drivedata.data = df
     return drivedata

@@ -5,6 +5,7 @@ import os
 from os import PathLike
 
 import polars as pl
+import polars.exceptions
 import re
 import sys
 import tomllib
@@ -499,7 +500,7 @@ class Project:
             logger.error("No results found; no metrics data generated")
             return pl.DataFrame() # return empty DataFrame to keep return type consistent
 
-        result_dataframe = pl.from_dicts(results_list)
+        result_dataframe = pl.from_dicts(results_list, infer_schema_length=5000)
 
         # sorting_columns = ["Subject", "ScenarioName", "ROI"]
         # try:
