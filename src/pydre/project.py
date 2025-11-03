@@ -500,7 +500,15 @@ class Project:
             logger.error("No results found; no metrics data generated")
             return pl.DataFrame() # return empty DataFrame to keep return type consistent
 
-        result_dataframe = pl.from_dicts(results_list, infer_schema_length=5000)
+        infer_schema_length = self.config.get("infer_schema_length", 5000)
+        try:
+            infer_schema_length = int(infer_schema_length)
+            logger.info(f"Using infer_schema_length={infer_schema_length}")
+        except (TypeError, ValueError):
+            logger.warning(f"Invalid infer_schema_length={infer_schema_length}, defaulting to 5000")
+            infer_schema_length = 5000
+
+        result_dataframe = pl.from_dicts(results_list, infer_schema_length=infer_schema_length)
 
         # sorting_columns = ["Subject", "ScenarioName", "ROI"]
         # try:
