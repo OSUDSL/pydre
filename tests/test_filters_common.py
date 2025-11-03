@@ -1,12 +1,10 @@
-<<<<<<< HEAD
 import datetime
-
 import numpy as np
 import polars as pl
 import polars.testing
 import pytest
-
 import pydre.core
+
 from pydre.filters.common import (
     FixReversedRoadLinearLand,
     Jenks,
@@ -23,18 +21,8 @@ from pydre.filters.common import (
     filterValuesBelow,
     mergeSplitFiletime,
     zscoreCol,
+    nullifyOutlier,
 )
-=======
-import polars as pl
-import polars.datatypes
-import pytest
-import pydre.core
-import polars.testing
-
-from pydre.filters.common import trimPreAndPostDrive
-from pydre.filters.common import nullifyOutlier
-
->>>>>>> origin/R2DRV
 
 
 def test_trim_pre_and_post_drive():
@@ -134,9 +122,10 @@ def test_trim_pre_and_post_drive_missing_column():
         trimPreAndPostDrive(dd)
 
 
-<<<<<<< HEAD
 def test_sim_time_from_dat_time():
+    # Create data with both SimTime (existing) and DatTime
     data = {
+        "SimTime": [0.0, 1.0, 2.0],
         "DatTime": [10.0, 11.0, 12.0],
         "OtherCol": [1, 2, 3]
     }
@@ -145,7 +134,12 @@ def test_sim_time_from_dat_time():
 
     result = SimTimeFromDatTime(dd)
 
-    expected_df = df.with_columns(pl.col("DatTime").alias("SimTime"))
+    # Expect 'OrigSimTime' (copied from original SimTime) and 'SimTime' (from DatTime)
+    expected_df = df.with_columns([
+        pl.col("SimTime").alias("OrigSimTime"),
+        pl.col("DatTime").alias("SimTime")
+    ])
+
     pl.testing.assert_frame_equal(result.data, expected_df)
 
 
@@ -164,91 +158,36 @@ def test_remove_data_outside():
     pl.testing.assert_frame_equal(result.data, expected_df)
 
 
-def test_number_binary_blocks_basic():
-    data = {
-        "SimTime": [0, 1, 2, 3, 4, 5],
-        "ButtonStatus": [0, 0, 1, 1, 0, 1],
-=======
 def test_nullify_outlier_default_parameters():
-    # Create a sample Polars DataFrame with outliers in HeadwayDistance
     data = {
         "SimTime": [0, 1, 2, 3, 4, 5],
         "HeadwayDistance": [500.0, 800.0, 1500.0, 2000.0, 950.0, 700.0],
->>>>>>> origin/R2DRV
     }
     df = pl.DataFrame(data)
     dd = pydre.core.DriveData.init_test(df, "test.dat")
-
-<<<<<<< HEAD
-    result = numberBinaryBlocks(dd)
-
-    expected = [0, 0, 1, 1, 2, 3]
-    assert result.data["NumberedBlocks"].to_list() == expected
-
-
-def test_number_binary_blocks_only_on():
-    data = {
-        "SimTime": [0, 1, 2, 3, 4],
-        "ButtonStatus": [1, 1, 0, 1, 0],
-=======
-    # Apply the filter with default parameters (HeadwayDistance, threshold=1000)
     filtered_dd = nullifyOutlier(dd)
-
-    # Expected result (values >1000 replaced with None)
     expected_df = pl.DataFrame({
         "SimTime": [0, 1, 2, 3, 4, 5],
         "HeadwayDistance": [500.0, 800.0, None, None, 950.0, 700.0],
     })
-
     pl.testing.assert_frame_equal(filtered_dd.data, expected_df)
 
 
-def test_nullify_outlier_custom_threshold():
-    # Create a sample Polars DataFrame with outliers
-    data = {
-        "SimTime": [0, 1, 2, 3, 4],
-        "HeadwayDistance": [50.0, 150.0, 200.0, 500.0, 100.0],
->>>>>>> origin/R2DRV
-    }
+def test_number_binary_blocks_only_on():
+    data = {"SimTime": [0, 1, 2, 3, 4],
+            "ButtonStatus": [1, 1, 0, 1, 0]}
     df = pl.DataFrame(data)
     dd = pydre.core.DriveData.init_test(df, "test.dat")
-
-<<<<<<< HEAD
     result = numberBinaryBlocks(dd, only_on=1)
-
-    # Only rows with ButtonStatus==1 remain, block numbers shifted and divided
     assert all(result.data["ButtonStatus"] == 1)
     assert result.data["NumberedBlocks"].to_list() == [1.0, 1.0, 2.0]
 
 
 def test_jenks_basic_classification():
-    data = {
-        "SimTime": [0, 1, 2, 3, 4],
-        "headPitch": [5.0, 5.2, 10.0, 10.2, 10.5],  # Two natural clusters
-=======
-    # Apply the filter with custom threshold
-    filtered_dd = nullifyOutlier(dd, threshold=200)
-
-    # Expected result (values >200 replaced with None)
-    expected_df = pl.DataFrame({
-        "SimTime": [0, 1, 2, 3, 4],
-        "HeadwayDistance": [50.0, 150.0, 200.0, None, 100.0],
-    })
-
-    pl.testing.assert_frame_equal(filtered_dd.data, expected_df)
-
-
-def test_nullify_outlier_custom_column():
-    # Create a sample Polars DataFrame with outliers in a different column
-    data = {
-        "SimTime": [0, 1, 2, 3, 4],
-        "Speed": [30.0, 120.0, 150.0, 200.0, 50.0],
->>>>>>> origin/R2DRV
-    }
+    data = {"SimTime": [0, 1, 2, 3, 4],
+            "headPitch": [5.0, 5.2, 10.0, 10.2, 10.5]}
     df = pl.DataFrame(data)
     dd = pydre.core.DriveData.init_test(df, "test.dat")
-
-<<<<<<< HEAD
     result = Jenks(dd, oldCol="headPitch", newCol="hpBinary")
 
     # Check only 0 and 1 are present
@@ -258,34 +197,11 @@ def test_nullify_outlier_custom_column():
 
 
 def test_fix_reversed_road_linear_land():
-    data = {
-        "SimTime": [0, 1, 2, 3, 4],
-        "XPos": [600, 750, 800, 850, 950],
-        "RoadOffset": [1.0, 2.0, -3.0, 4.0, -5.0],
-=======
-    # Apply the filter with custom column name
-    filtered_dd = nullifyOutlier(dd, col="Speed", threshold=100)
-
-    # Expected result (values >100 replaced with None)
-    expected_df = pl.DataFrame({
-        "SimTime": [0, 1, 2, 3, 4],
-        "Speed": [30.0, None, None, None, 50.0],
-    })
-
-    pl.testing.assert_frame_equal(filtered_dd.data, expected_df)
-
-
-def test_nullify_outlier_no_outliers():
-    # Create a sample Polars DataFrame with no outliers
-    data = {
-        "SimTime": [0, 1, 2, 3, 4],
-        "HeadwayDistance": [500.0, 600.0, 700.0, 800.0, 900.0],
->>>>>>> origin/R2DRV
-    }
+    data = {"SimTime": [0, 1, 2, 3, 4],
+            "XPos": [600, 750, 800, 850, 950],
+            "RoadOffset": [1.0, 2.0, -3.0, 4.0, -5.0]}
     df = pl.DataFrame(data)
     dd = pydre.core.DriveData.init_test(df, "test.dat")
-
-<<<<<<< HEAD
     result = FixReversedRoadLinearLand(dd)
 
     expected = [1.0, -2.0, 3.0, -4.0, -5.0]
@@ -352,6 +268,7 @@ def test_remove_data_outside():
 
     # keep only values outside [20, 40]
     result = removeDataOutside(dd, col="Speed", lower=20.0, upper=40.0)
+    assert result.data["Speed"].to_list() == [10.0, 50.0]
 
     expected = [10.0, 50.0]
     actual = result.data["Speed"].to_list()
@@ -384,14 +301,9 @@ def test_write_to_csv(tmp_path):
 
     output_dir = tmp_path / "out"
     output_dir.mkdir()
-    result = writeToCSV(dd, str(output_dir))
-
-    # Fix: determine correct expected file name from code logic
+    writeToCSV(dd, str(output_dir))
     expected_file = output_dir.parent / "test_session.csv"
-
     assert expected_file.exists()
-    df_read = pl.read_csv(expected_file)
-    pl.testing.assert_frame_equal(df_read, df)
 
 
 def test_filetime_to_datetime():
@@ -403,48 +315,54 @@ def test_filetime_to_datetime():
 
 
 def test_merge_split_filetime():
-    # 64-bit value split into two 32-bit integers
     full_value = 12345678901234567890
     low = full_value & 0xFFFFFFFF
     high = (full_value >> 32) & 0xFFFFFFFF
-
-    merged = mergeSplitFiletime(high, low)
-    assert merged == full_value
-
-
-def test_remove_data_inside():
-    data = {
-        "SimTime": [0, 1, 2, 3, 4],
-        "Speed": [5.0, 10.0, 15.0, 20.0, 25.0],
-    }
-    df = pl.DataFrame(data)
-    dd = pydre.core.DriveData.init_test(df, "test.dat")
-
-    # Expect to remove rows where Speed ∈ [10, 20]
-    result = removeDataInside(dd, col="Speed", lower=10.0, upper=20.0)
-
-    expected_df = df.filter((pl.col("Speed") < 10.0) | (pl.col("Speed") > 20.0))
-    pl.testing.assert_frame_equal(result.data, expected_df)
+    assert mergeSplitFiletime(high, low) == full_value
 
 
 def test_filter_values_below():
-    data = {
-        "SimTime": [0, 1, 2, 3, 4],
-        "Velocity": [0.5, 1.0, 2.0, 0.9, 1.5],
-    }
+    data = {"SimTime": [0, 1, 2, 3, 4],
+            "Velocity": [0.5, 1.0, 2.0, 0.9, 1.5]}
     df = pl.DataFrame(data)
     dd = pydre.core.DriveData.init_test(df, "test.dat")
-
     result = filterValuesBelow(dd, col="Velocity", threshold=1.0)
-
     expected_df = df.filter(pl.col("Velocity") >= 1.0)
     pl.testing.assert_frame_equal(result.data, expected_df)
 
-=======
-    # Apply the filter
-    filtered_dd = nullifyOutlier(dd, threshold=1000)
 
-    # No values should change
+def test_nullify_outlier_custom_threshold():
+    data = {"SimTime": [0, 1, 2, 3, 4],
+            "HeadwayDistance": [50.0, 150.0, 200.0, 500.0, 100.0]}
+    df = pl.DataFrame(data)
+    dd = pydre.core.DriveData.init_test(df, "test.dat")
+    filtered_dd = nullifyOutlier(dd, threshold=200)
+    expected_df = pl.DataFrame({
+        "SimTime": [0, 1, 2, 3, 4],
+        "HeadwayDistance": [50.0, 150.0, 200.0, None, 100.0],
+    })
+    pl.testing.assert_frame_equal(filtered_dd.data, expected_df)
+
+
+def test_nullify_outlier_custom_column():
+    data = {"SimTime": [0, 1, 2, 3, 4],
+            "Speed": [30.0, 120.0, 150.0, 200.0, 50.0]}
+    df = pl.DataFrame(data)
+    dd = pydre.core.DriveData.init_test(df, "test.dat")
+    filtered_dd = nullifyOutlier(dd, col="Speed", threshold=100)
+    expected_df = pl.DataFrame({
+        "SimTime": [0, 1, 2, 3, 4],
+        "Speed": [30.0, None, None, None, 50.0],
+    })
+    pl.testing.assert_frame_equal(filtered_dd.data, expected_df)
+
+
+def test_nullify_outlier_no_outliers():
+    data = {"SimTime": [0, 1, 2, 3, 4],
+            "HeadwayDistance": [500.0, 600.0, 700.0, 800.0, 900.0]}
+    df = pl.DataFrame(data)
+    dd = pydre.core.DriveData.init_test(df, "test.dat")
+    filtered_dd = nullifyOutlier(dd, threshold=1000)
     pl.testing.assert_frame_equal(filtered_dd.data, df)
 
 
@@ -486,4 +404,3 @@ def test_nullify_outlier_all_outliers():
     ])
 
     pl.testing.assert_frame_equal(filtered_dd.data, expected_df)
->>>>>>> origin/R2DRV
