@@ -106,22 +106,42 @@ class DriveData:
 
     def __load_datfile(self):
         """Load a single .dat file (space delimited csv)"""
+        infer_len = 5000
+        try:
+            if hasattr(self, "config") and isinstance(self.config, dict):
+                infer_len = int(self.config.get("infer_schema_length", 5000))
+        except Exception as e:
+            logger.warning(f"Invalid infer_schema_length config ({e}), defaulting to 5000")
+            infer_len = 5000
+
+        logger.info(f"Using infer_schema_length={infer_len} for file {self.sourcefilename}")
+
         self.data = polars.read_csv(
             self.sourcefilename,
             separator=" ",
             null_values=".",
             truncate_ragged_lines=True,
-            infer_schema_length=5000,
+            infer_schema_length=infer_len,
         )
 
     def __load_scannerfile(self):
         """Load a single csv file containing data from the Scanners simulator"""
+        infer_len = 100000
+        try:
+            if hasattr(self, "config") and isinstance(self.config, dict):
+                infer_len = int(self.config.get("infer_schema_length", 100000))
+        except Exception as e:
+            logger.warning(f"Invalid infer_schema_length config ({e}), defaulting to 100000")
+            infer_len = 100000
+
+        logger.info(f"Using infer_schema_length={infer_len} for file {self.sourcefilename}")
+
         self.data = polars.read_csv(
             self.sourcefilename,
             separator="\t",
             null_values="null",
             truncate_ragged_lines=True,
-            infer_schema_length=100000,
+            infer_schema_length=infer_len,
         )
 
     def copyMetaData(self, other: DriveData):

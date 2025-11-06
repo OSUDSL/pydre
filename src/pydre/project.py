@@ -537,7 +537,7 @@ class Project:
                 datafile = DriveData.init_rti(datafilename)
         else:
             datafile = DriveData.init_rti(datafilename)
-
+        datafile.config = self.config
         datafile.loadData()
         roi_datalist = []
         results_list = []
