@@ -164,6 +164,13 @@ class DriveData:
         if len(non_numeric) > 0:
             raise ColumnsMatchError(f"Columns {non_numeric} not numeric.", non_numeric)
 
+    def copy(self):
+        new_dd = DriveData()
+        new_dd.data = self.data.clone()  # if using polars
+        new_dd.metadata = copy.deepcopy(self.metadata)
+        new_dd.sourcefilename = self.sourcefilename
+        return new_dd
+
 
 class ColumnsMatchError(Exception):
     """Exception when a filter or metric expects a certain column in DriveData but it is not present or an unexpected type"""

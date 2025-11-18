@@ -1,4 +1,4 @@
-__all__ = ["common", "box", "driverdistraction"]
+__all__ = ["registerMetric", "common", "box", "driverdistraction", "gazeanglecutout"]
 
 from functools import wraps
 from typing import Any, Optional, Callable, Concatenate

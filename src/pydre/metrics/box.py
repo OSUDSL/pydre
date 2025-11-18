@@ -6,42 +6,47 @@ from pydre.metrics import registerMetric
 @registerMetric()
 def averageBoxReactionTime(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
-    diff = drivedata.checkColumns(required_col)
-    # Filter all reaction times that are negative (missed boxes) then output mean
-    return (
-        drivedata.data.filter(pl.col("ReactionTime") > 0)
-        .select("ReactionTime")
-        .mean()
-        .item()
-    )
+    drivedata.checkColumns(required_col)
+
+    # Filter all reaction times that are positive (hit boxes)
+    df = drivedata.data.filter(pl.col("ReactionTime") > 0).select("ReactionTime")
+
+    if df.is_empty():
+        return 0
+
+    return df.mean().item()
 
 
 @registerMetric()
 def sdBoxReactionTime(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
-    diff = drivedata.checkColumns(required_col)
-    return (
-        drivedata.data.filter(pl.col("ReactionTime") > 0)
-        .select("ReactionTime")
-        .std()
-        .item()
-    )
+    drivedata.checkColumns(required_col)
+
+    df = drivedata.data.filter(pl.col("ReactionTime") > 0).select("ReactionTime")
+
+    if df.is_empty():
+        return 0
+
+    return df.std().item()
 
 
 def countBoxHits(drivedata: pydre.core.DriveData, cutoff=5):
     required_col = ["ReactionTime"]
     diff = drivedata.checkColumns(required_col)
     return drivedata.data.filter(
-        pl.col("ReactionTime").is_between(0, cutoff, closed=None)
+        pl.col("ReactionTime").is_between(0, cutoff, closed="both")
     ).height
 
 
+@registerMetric()
 def percentBoxHits(drivedata: pydre.core.DriveData, cutoff=5):
     required_col = ["ReactionTime"]
-    diff = drivedata.checkColumns(required_col)
-    df = drivedata.data.select(pl.col("ReactionTime"))
+    drivedata.checkColumns(required_col)
+    df = drivedata.data.select(pl.col("ReactionTime")).drop_nulls()
+    if df.is_empty():
+        return 0
     return (
-        df.filter(pl.col("ReactionTime").is_between(0, cutoff, closed=None)).height
+        df.filter(pl.col("ReactionTime").is_between(0, cutoff, closed="both")).height
         / df.height
     ) * 100
 
@@ -53,10 +58,13 @@ def countBoxMisses(drivedata: pydre.core.DriveData):
     return drivedata.data.filter(pl.col("ReactionTime") < 0).height
 
 
+@registerMetric()
 def percentBoxMisses(drivedata: pydre.core.DriveData):
     required_col = ["ReactionTime"]
-    diff = drivedata.checkColumns(required_col)
-    df = drivedata.data.select(pl.col("ReactionTime"))
+    drivedata.checkColumns(required_col)
+    df = drivedata.data.select(pl.col("ReactionTime")).drop_nulls()
+    if df.is_empty():
+        return 0
     return (df.filter(pl.col("ReactionTime") < 0).height / df.height) * 100
 
 

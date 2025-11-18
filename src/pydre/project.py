@@ -1,6 +1,7 @@
 import copy
 import json
 import traceback
+import os
 from os import PathLike
 
 import polars as pl
@@ -22,6 +23,7 @@ from loguru import logger
 from tqdm import tqdm
 import concurrent.futures
 import importlib.util
+import threading
 
 
 class Project:
@@ -119,6 +121,8 @@ class Project:
         if len(self.config.get("datafiles", [])) == 0:
             logger.error("No datafile found in project definition.")
 
+        # Configure logging from TOML [config]
+        self._configure_logging()
 
         self._load_custom_functions()
 
@@ -253,7 +257,57 @@ class Project:
             ).resolve()
         return computed_path
 
-    def processROI(self, roi: dict, datafile: pydre.core.DriveData
+    def _configure_logging(self):
+        """
+        Configure Loguru sinks based on [config] in the project file.
+
+        Behavior:
+        - Always log to stderr (keeps current behavior).
+        - If 'logfile' is provided in TOML [config], also log to that file (append-only).
+        - Optional 'log_level' in TOML controls both sinks; defaults to 'INFO'.
+
+        Notes:
+        - Remove existing handlers to avoid duplicated sinks if multiple Project instances are created.
+        - Use enqueue=True for the file sink because processing uses a ThreadPoolExecutor,
+          which benefits from thread-safe, non-blocking logging.
+        """
+        # Read settings from self.config
+        logfile = self.config.get("logfile", None)
+        log_level = self.config.get("log_level", "INFO")
+
+        # Ensure the stop flag exists before we build filters that close over it
+        if not hasattr(self, "_stop_event") or self._stop_event is None:
+            self._stop_event = threading.Event()
+
+        # Filter factory bound to this Project instance's stop flag
+        def _silence_after_interrupt(record: dict) -> bool:
+            # record["level"].no: DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50
+            if self._stop_event.is_set():
+                # Mute everything below CRITICAL once Ctrl+C triggered
+                return record["level"].no >= 50
+            return True
+
+        # Reset existing handlers to prevent duplicate outputs
+        logger.remove()
+
+        # Re-add stderr sink (keep existing behavior)
+        logger.add(sys.stderr, level=log_level, filter=_silence_after_interrupt)
+
+        # If a logfile path is provided, add a file sink (append-only)
+        if logfile:
+            # Resolve relative path against the project file location for convenience
+            logfile_path = self.resolve_file(logfile)
+            # Add file sink with enqueue for thread safety during concurrent processing
+            logger.add(
+                str(logfile_path),
+                level=log_level,
+                enqueue=True,  # thread-safe with ThreadPoolExecutor
+                backtrace=False,  # set True if you want very detailed tracebacks
+                diagnose=False  # set True to include variable values in tracebacks
+            )
+
+    def processROI(self,
+        roi: dict, datafile: pydre.core.DriveData
     ) -> list[pydre.core.DriveData]:
         """
         Handles running region of interest definitions for a dataset
@@ -268,15 +322,15 @@ class Project:
         roi_obj: pydre.rois.ROIProcessor
         roi_type = roi["type"]
         if roi_type == "time":
-            logger.info("Processing time ROI " + roi["filename"])
-            roi_filename = self.resolve_file(roi["filename"])
+            resolved_filename = self.resolve_file(roi["filename"])
+            logger.info("Processing time ROI " + str(resolved_filename))
             if "timecol" in roi:
-                roi_obj = pydre.rois.TimeROI(roi_filename, roi["timecol"])
+                roi_obj = pydre.rois.TimeROI(resolved_filename, roi["timecol"])
             else:
-                roi_obj = pydre.rois.TimeROI(roi_filename)
+                roi_obj = pydre.rois.TimeROI(resolved_filename)
         elif roi_type == "rect":
             logger.info("Processing space ROI " + roi["filename"])
-            roi_filename = resolve_file(roi["filename"])
+            roi_filename = self.resolve_file(roi["filename"])
             roi_obj = pydre.rois.SpaceROI(roi_filename)
         elif roi_type == "column":
             logger.info("Processing column ROI " + roi["columnname"])
@@ -284,6 +338,15 @@ class Project:
         else:
             logger.warning("Unknown ROI type {}".format(roi_type))
             return [datafile]
+
+        # Inject the stop flag so ROI code can silence logs after Ctrl+C
+        # This keeps the public API unchanged and avoids threading-kill problems.
+        try:
+            # If the project set _stop_event, give it to the ROI object.
+            setattr(roi_obj, "_stop_event", getattr(self, "_stop_event", None))
+        except Exception:
+            pass
+
         return roi_obj.split(datafile)
 
     @staticmethod
@@ -357,11 +420,12 @@ class Project:
             src_str.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
         )
 
-    def processDatafiles(self, numThreads: int = 12) -> Optional[pl.DataFrame]:
-        """Load all metrics, then iterate over each file and process the filters, rois, and metrics for each.
+    def processDatafiles(self, numThreads: int = None) -> Optional[pl.DataFrame]:
+        """
+        Load all metrics, then iterate over each file and process the filters, ROIs, and metrics for each file concurrently using a thread pool.
 
         Args:
-            numThreads: number of threads to run simultaneously in the thread pool
+            numThreads: number of threads to run simultaneously in the thread pool is configurable from project.toml [config]
 
         Returns:
             metrics data for all metrics, or None on error
@@ -370,7 +434,31 @@ class Project:
         if "metrics" not in self.definition:
             logger.critical("No metrics in project file. No results will be generated")
             return None
-        results_list = []
+
+        # Determine number of threads
+        # Priority: function argument > config file > default (12)
+        config_threads = self.config.get("num_threads", None)
+        if numThreads is None:
+            if config_threads is not None:
+                numThreads = int(config_threads)
+            else:
+                numThreads = os.cpu_count() - 1 or 1  # use available cores - 1
+
+        # Sanity check amd warnings
+        if numThreads > 32:
+            logger.warning(f"High thread count requested: {numThreads}. "
+                           "This may degrade performance instead of improving it.")
+        if numThreads <= 0:
+            logger.warning(f"Invalid num_threads={numThreads}, falling back to 1.")
+            numThreads = 1
+
+        logger.info(f"Using {numThreads} threads for processing")
+
+        results_list: list[dict] = [] # results_list = []
+
+        # STOP FLAG
+        self._stop_event = threading.Event()
+
         with tqdm(total=len(self.filelist)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=numThreads
@@ -379,26 +467,40 @@ class Project:
                     executor.submit(self.processSingleFile, singleFile): singleFile
                     for singleFile in self.filelist
                 }
-                results = {}
-                for future in concurrent.futures.as_completed(futures):
-                    arg = futures[future]
-                    results_valid = False
-                    try:
-                        results[arg] = future.result()
-                        results_valid = True
-                    except polars.exceptions.NoDataError as e:
-                        logger.error(f"Empty CSV: {arg}")
-                    except Exception as exc:
-                        logger.error("problem with running {}".format(arg))
-                        logger.critical("Unhandled Exception: {}".format(exc))
-                        logger.error(traceback.format_exc())
+                try:
+                    # Iterate in completion order (fastest-first)
+                    for future in concurrent.futures.as_completed(futures):
+                        arg = futures[future]
+                        try:
+                            # Collect result only ONCE; this will re-raise any worker exception.
+                            per_file_rows = future.result()  # list[dict] from processSingleFile
+                            # Extend the global accumulator with this file's rows.
+                            results_list.extend(per_file_rows)
+                        except KeyboardInterrupt:
+                            self._stop_event.set() # STOP FLAG
+                            # User hit Ctrl+C: log, cancel outstanding work, and re-raise to abort.
+                            logger.critical("Execution interrupted by user (Ctrl+C). Cancelling pending work...")
+                            # Cancel any futures that have not started/run yet.
+                            # Note: shutdown with cancel_futures=True will attempt to cancel waiting tasks.
+                            executor.shutdown(wait=False, cancel_futures=True)
+                        except Exception as exc:
+                            # Non-fatal per-file failure: log and continue processing remaining files.
+                            logger.error("problem with running {}".format(arg))
+                            logger.critical("Unhandled Exception {}".format(exc))
+                            logger.error(traceback.format_exc())
+                        finally:
+                            pbar.update(1) # update progress bar for each completed future
+                except KeyboardInterrupt:
+                    self._stop_event.set() # STOP FLAG
+                    # Outer handler for Ctrl+C during as_completed iteration or shutdown.
+                    logger.critical("Aborted by user (Ctrl+C).")
 
-                    if results_valid:
-                        results_list.extend(future.result())
-                    pbar.update(1)
+        # Postconditions: convert to a Polars DataFrame
         if len(results_list) == 0:
             logger.error("No results found; no metrics data generated")
-        result_dataframe = pl.from_dicts(results_list, infer_schema_length=5000)
+            return pl.DataFrame() # return empty DataFrame to keep return type consistent
+
+        result_dataframe = pl.from_dicts(results_list)
 
         # sorting_columns = ["Subject", "ScenarioName", "ROI"]
         # try:
@@ -410,6 +512,8 @@ class Project:
         return result_dataframe
 
     def processSingleFile(self, datafilename: Path):
+        if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+            return []
         logger.info("Loading file {}".format(datafilename))
         if "datafile_type" in self.config:
             if self.config["datafile_type"] == "rti":
@@ -455,10 +559,14 @@ class Project:
 
         else:
             # no ROIs to process, but that's OK
+            if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+                return []  # silent early-exit; avoids post-abort warning spam
             logger.warning("No ROIs defined, processing raw data.")
             roi_datalist.append(datafile)
 
         if len(roi_datalist) == 0:
+            if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+                return []  # silent early-exit; avoids post-abort warning spam
             logger.warning(
                 "Qualifying ROIs fail to generate results for {}, no output generated.".format(
                     datafilename

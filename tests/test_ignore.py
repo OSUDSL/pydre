@@ -18,6 +18,7 @@ def test_ignore_1(datafiles):
     assert isinstance(proj, pydre.project.Project)
     assert len(proj.filelist) == 8
 
+
 @pytest.mark.datafiles(
     FIXTURE_DIR / "good_projectfiles",
     FIXTURE_DIR / "test_datfiles",
@@ -27,3 +28,4 @@ def test_ignore_2(datafiles):
     proj = pydre.project.Project(datafiles / "good_projectfiles" / "test_ignore_2.toml")
     assert isinstance(proj, pydre.project.Project)
     assert len(proj.filelist) == 6
+
