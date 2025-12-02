@@ -48,7 +48,7 @@ def numberBinaryBlocks(
         try:
             new_dd = new_dd.filter(pl.col(binary_column) == 1)
             new_dd = new_dd.with_columns((pl.col(new_column) + 1) / 2.0)
-        except pl.exceptions.ComputeError as e:
+        except pl.exceptions.ComputeError:
             logger.warning(
                 "Assumed binary column {} in {} has non-numeric value.".format(
                     binary_column, drivedata.sourcefilename
@@ -116,8 +116,9 @@ def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
     Returns:
         Original DriveData object with identical DatTime and SimTime. Original SimTime is renamed to OrigSimTime.
     """
-    drivedata.data = drivedata.data.with_columns(pl.col("SimTime").alias("OrigSimTime"),
-                                                 pl.col("DatTime").alias("SimTime"))
+    drivedata.data = drivedata.data.with_columns(
+        pl.col("SimTime").alias("OrigSimTime"), pl.col("DatTime").alias("SimTime")
+    )
     return drivedata
 
 
@@ -417,9 +418,9 @@ def filterValuesBelow(
 
 @registerFilter()
 def trimPreAndPostDrive(
-        drivedata: pydre.core.DriveData,
-        velocity_col: str = "Velocity",
-        velocity_threshold: float = 0.1
+    drivedata: pydre.core.DriveData,
+    velocity_col: str = "Velocity",
+    velocity_threshold: float = 0.1,
 ) -> pydre.core.DriveData:
     """
     Trims the data to remove pre-drive and post-drive segments based on velocity.
@@ -432,7 +433,9 @@ def trimPreAndPostDrive(
     required_col = [velocity_col]
     drivedata.checkColumns(required_col)
 
-    above_speed = drivedata.data.select((pl.col(velocity_col) >= velocity_threshold).arg_true())
+    above_speed = drivedata.data.select(
+        (pl.col(velocity_col) >= velocity_threshold).arg_true()
+    )
 
     first_above_speed = above_speed.min().item()
     last_above_speed = above_speed.max().item()
@@ -441,7 +444,9 @@ def trimPreAndPostDrive(
         logger.info("No data above the velocity threshold found.")
         drivedata.data = drivedata.data.slice(0, 0)
     else:
-        drivedata.data = drivedata.data.slice(first_above_speed, last_above_speed-first_above_speed+1)
+        drivedata.data = drivedata.data.slice(
+            first_above_speed, last_above_speed - first_above_speed + 1
+        )
 
     return drivedata
 
@@ -467,12 +472,9 @@ def nullifyOutlier(
 
     df = drivedata.data
 
-    df = df.with_columns([
-        pl.when(pl.col(col) > threshold)
-        .then(None)
-        .otherwise(pl.col(col))
-        .alias(col)
-    ])
+    df = df.with_columns(
+        [pl.when(pl.col(col) > threshold).then(None).otherwise(pl.col(col)).alias(col)]
+    )
 
     drivedata.data = df
     return drivedata

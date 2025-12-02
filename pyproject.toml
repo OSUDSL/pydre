@@ -61,7 +61,8 @@ dev = [
     "pytest-cov",
     "pytest-mock",
     "pytest-datafiles",
-    "griffe==1.2.0"
+    "griffe==1.2.0",
+    "ruff>=0.14.7",
 ]
 
 [tool.rye]

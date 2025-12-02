@@ -6,9 +6,7 @@ import pydre.metrics.box as box
 
 @pytest.fixture
 def sample_data():
-    df = pl.DataFrame({
-        "ReactionTime": [1.2, 2.4, 0.8, None, 3.0]
-    })
+    df = pl.DataFrame({"ReactionTime": [1.2, 2.4, 0.8, None, 3.0]})
     return DriveData.init_test(data=df, sourcefilename="dummy.dat")
 
 
@@ -58,4 +56,3 @@ def test_metrics_with_empty_data():
     assert box.percentBoxMisses(empty_data) == 0
     assert box.averageBoxReactionTime(empty_data) == 0
     assert box.sdBoxReactionTime(empty_data) == 0
-

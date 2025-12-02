@@ -4,7 +4,6 @@ import tempfile
 import os
 from pydre.core import DriveData
 from pydre.rois import ColumnROI, SpaceROI, sliceByTime
-from polars.exceptions import ColumnNotFoundError
 
 
 def test_column_roi_invalid_type():
@@ -15,10 +14,7 @@ def test_column_roi_invalid_type():
 
 
 def test_column_roi_with_null_group_skipped():
-    df = pl.DataFrame({
-        "ROI": ["A", None, "B"],
-        "Value": [1, 2, 3]
-    })
+    df = pl.DataFrame({"ROI": ["A", None, "B"], "Value": [1, 2, 3]})
     dd = DriveData.init_test(df, "test.dat")
     processor = ColumnROI("ROI")
     result = processor.split(dd)
@@ -47,4 +43,3 @@ def test_slice_by_time_column_not_found():
     assert result.shape == df.shape
     assert result.columns == df.columns
     assert result.rows() == df.rows()
-

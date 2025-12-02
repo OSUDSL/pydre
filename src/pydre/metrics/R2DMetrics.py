@@ -61,7 +61,9 @@ def throttleReactionTime(drivedata: pydre.core.DriveData) -> Optional[float]:
     Returns:
         Time in seconds from when the follow car braked to when the ownship started accelerating forward.
     """
-    drivedata.data = drivedata.data.with_columns(drivedata.data["SimTime"].cast(pl.Float64))
+    drivedata.data = drivedata.data.with_columns(
+        drivedata.data["SimTime"].cast(pl.Float64)
+    )
 
     required_col = ["FollowCarBrakingStatus", "LonAccel", "SimTime", "Brake"]
 
@@ -127,7 +129,9 @@ def eventSpeedRecoveryTime(
     Returns:
         Time in seconds from the start of the CE to when the Subject returned to (operational speed - tolerance)
     """
-    drivedata.data = drivedata.data.with_columns(drivedata.data["SimTime"].cast(pl.Float64))
+    drivedata.data = drivedata.data.with_columns(
+        drivedata.data["SimTime"].cast(pl.Float64)
+    )
     required_col = ["SimTime", "Velocity"]
     lower_bound = op_speed - tolerance
 
@@ -136,7 +140,9 @@ def eventSpeedRecoveryTime(
     except pl.exceptions.PolarsError:
         return None
 
-    df = drivedata.data.select([pl.col("Velocity"), pl.col("SimTime"), pl.col("Brake"), pl.col("EventName")])
+    df = drivedata.data.select(
+        [pl.col("Velocity"), pl.col("SimTime"), pl.col("Brake"), pl.col("EventName")]
+    )
 
     non_event_detect = df.filter(pl.col("EventName") == "")
 
@@ -145,7 +151,9 @@ def eventSpeedRecoveryTime(
         try:
             df = df.filter(
                 pl.col("SimTime")
-                > df.filter(pl.col("Velocity") < lower_bound).get_column("SimTime").item(0)
+                > df.filter(pl.col("Velocity") < lower_bound)
+                .get_column("SimTime")
+                .item(0)
             )
         except IndexError:
             logger.warning(
@@ -187,7 +195,9 @@ def eventRecenterRecoveryTime(
         Time in seconds from when the Subject left (lane_offset +- tolerance )
         to when the Subject returned to (lane_offset +- tolerance)
     """
-    drivedata.data = drivedata.data.with_columns(drivedata.data["SimTime"].cast(pl.Float64))
+    drivedata.data = drivedata.data.with_columns(
+        drivedata.data["SimTime"].cast(pl.Float64)
+    )
     required_col = ["LaneOffset", "SimTime"]
 
     try:
@@ -242,7 +252,9 @@ def reactionCheckVarVal(
     drivedata: pydre.core.DriveData, var: str, val: float
 ) -> Optional[float]:
     required_col = [var, "SimTime"]
-    drivedata.data = drivedata.data.with_columns(drivedata.data["SimTime"].cast(pl.Float64))
+    drivedata.data = drivedata.data.with_columns(
+        drivedata.data["SimTime"].cast(pl.Float64)
+    )
     try:
         drivedata.checkColumnsNumeric(required_col)
     except ColumnsMatchError:
@@ -250,7 +262,7 @@ def reactionCheckVarVal(
 
     try:
         df = drivedata.data.filter(pl.col(var) < val)
-    except pl.exceptions.ComputeError as e:
+    except pl.exceptions.ComputeError:
         logger.warning("Brake value non-numeric in {}".format(drivedata.sourcefilename))
         return None
     if drivedata.data.height == 0 or df.height == 0:
@@ -266,7 +278,9 @@ def reactionTimeEventTrueR2D(
     drivedata: pydre.core.DriveData, var1: str, var2: str, val1: float, val2: float
 ):
     required_col = [var1, var2, "SimTime"]
-    drivedata.data = drivedata.data.with_columns(drivedata.data["SimTime"].cast(pl.Float64))
+    drivedata.data = drivedata.data.with_columns(
+        drivedata.data["SimTime"].cast(pl.Float64)
+    )
     try:
         drivedata.checkColumnsNumeric(required_col)
     except ColumnsMatchError:

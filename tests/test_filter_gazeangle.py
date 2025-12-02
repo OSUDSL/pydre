@@ -4,6 +4,7 @@ import pytest
 import pydre.core
 from pydre.filters.gazeangle import gazeAnglePreProcessing
 
+
 @pytest.fixture
 def sample_drivedata(tmp_path):
     # .dat file structure for debugging
@@ -25,6 +26,7 @@ def sample_drivedata(tmp_path):
     dd.data = df
     dd.metadata = {"ParticipantID": "debug-filter"}
     return dd
+
 
 def test_gazeAnglePreProcessing_debug(sample_drivedata):
     result = gazeAnglePreProcessing(sample_drivedata, half_angle_deg=5.0)

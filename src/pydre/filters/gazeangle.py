@@ -50,8 +50,9 @@ def gazeAnglePreProcessing(
 
     # Compute gaze angle magnitude (radians)
     df = df.with_columns(
-        ((pl.col(headingColName) ** 2 + pl.col(pitchColName) ** 2).sqrt())
-        .alias("gaze_angle")
+        ((pl.col(headingColName) ** 2 + pl.col(pitchColName) ** 2).sqrt()).alias(
+            "gaze_angle"
+        )
     )
 
     # Convert threshold from degrees to radians
@@ -66,9 +67,8 @@ def gazeAnglePreProcessing(
 
     # Determine off-target samples
     if target_name:
-        off_target_mask = (
-            (pl.col(targetColName).is_null())
-            | (pl.col(targetColName) != target_name)
+        off_target_mask = (pl.col(targetColName).is_null()) | (
+            pl.col(targetColName) != target_name
         )
     else:
         off_target_mask = pl.col(targetColName).is_null()

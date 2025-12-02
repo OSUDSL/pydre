@@ -1,11 +1,9 @@
-import pathlib
 import threading
 from abc import ABCMeta, abstractmethod
 from os import PathLike
 
 import pydre.core
 import polars as pl
-import re
 import typing
 from typing import Optional
 from loguru import logger
@@ -87,7 +85,7 @@ class TimeROI(ROIProcessor):
                     roi_definition[k] = str(v)
                     meta_values.append(str(v))
                     self.rois_meta.add(k)
-            roi_name = ':'.join(meta_values)
+            roi_name = ":".join(meta_values)
             self.rois[roi_name] = roi_definition
 
     def split(
@@ -130,7 +128,6 @@ class TimeROI(ROIProcessor):
                 )
         return output_list
 
-
     @staticmethod
     def parseTimeStamp(duration: str | typing.SupportsFloat) -> float:
         # the string will have the format as:
@@ -163,7 +160,6 @@ class TimeROI(ROIProcessor):
             time = float(sec)
         return time
 
-
     @staticmethod
     def from_ranges(ranges, column):
         obj = TimeROI.__new__(TimeROI)
@@ -171,11 +167,13 @@ class TimeROI(ROIProcessor):
         obj.roi_column = column
         obj.name_prefix = ""
         obj.rois_meta = []
-        obj.rois = pl.DataFrame({
-            column: [r[0] for r in ranges],
-            f"{column}_end": [r[1] for r in ranges],
-            "roi": [f"roi{i}" for i in range(len(ranges))]
-        })
+        obj.rois = pl.DataFrame(
+            {
+                column: [r[0] for r in ranges],
+                f"{column}_end": [r[1] for r in ranges],
+                "roi": [f"roi{i}" for i in range(len(ranges))],
+            }
+        )
         return obj
 
 
@@ -260,7 +258,9 @@ class ColumnROI:
         df = sourcedrivedata.data
 
         if self.roi_column not in df.columns:
-            logger.error(f"Column '{self.roi_column}' not found in data for {sourcedrivedata.sourcefilename}")
+            logger.error(
+                f"Column '{self.roi_column}' not found in data for {sourcedrivedata.sourcefilename}"
+            )
             raise KeyError(f"ROI column '{self.roi_column}' not found in data")
 
         df_valid = df.drop_nulls(subset=[self.roi_column])

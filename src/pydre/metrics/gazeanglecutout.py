@@ -9,11 +9,7 @@ def _check_and_prepare(drivedata: pydre.core.DriveData) -> pl.DataFrame:
     Validate required columns and compute dt (Δt) between DatTime samples.
     """
 
-    required_cols = [
-        "DatTime",
-        "gaze_cutout",
-        "off_target"
-    ]
+    required_cols = ["DatTime", "gaze_cutout", "off_target"]
     try:
         drivedata.checkColumns(required_cols)
     except ColumnsMatchError:
@@ -32,8 +28,8 @@ def _check_and_prepare(drivedata: pydre.core.DriveData) -> pl.DataFrame:
     # combined mask for cutout + off-target
     df = df.with_columns(
         (
-                pl.col("gaze_cutout").fill_null(False).cast(pl.Boolean)
-                & pl.col("off_target").fill_null(False).cast(pl.Boolean)
+            pl.col("gaze_cutout").fill_null(False).cast(pl.Boolean)
+            & pl.col("off_target").fill_null(False).cast(pl.Boolean)
         ).alias("mask")
     )
 
@@ -87,9 +83,7 @@ def gazeCutoutAngleViolations(drivedata: pydre.core.DriveData) -> int:
     if df.is_empty():
         return 0
 
-    df = df.with_columns(
-        pl.col("mask").shift(1).fill_null(False).alias("prev_mask")
-    )
+    df = df.with_columns(pl.col("mask").shift(1).fill_null(False).alias("prev_mask"))
 
     violation_expr = (
         pl.when((pl.col("mask") == True) & (pl.col("prev_mask") == False))

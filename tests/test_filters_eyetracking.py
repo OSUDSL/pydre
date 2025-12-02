@@ -1,4 +1,5 @@
 import warnings
+
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import polars as pl
@@ -13,13 +14,21 @@ class DummyDriveData(DriveData):
 
 
 def test_smooth_gaze_data_basic_case():
-    df = pl.DataFrame({
-        "DatTime": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-        "FILTERED_GAZE_OBJ_NAME": [
-            "WindScreen", "None", "DrvrSideMirror", "WindScreen",
-            "RearViewMirror", "WindScreen", "InteriorCabin", "WindScreen"
-        ]
-    })
+    df = pl.DataFrame(
+        {
+            "DatTime": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+            "FILTERED_GAZE_OBJ_NAME": [
+                "WindScreen",
+                "None",
+                "DrvrSideMirror",
+                "WindScreen",
+                "RearViewMirror",
+                "WindScreen",
+                "InteriorCabin",
+                "WindScreen",
+            ],
+        }
+    )
 
     dd = DummyDriveData(df)
     result = smoothGazeData(dd)
@@ -33,14 +42,12 @@ def test_smooth_gaze_data_basic_case():
 
 
 def test_smooth_gaze_data_low_variation():
-    df = pl.DataFrame({
-        "DatTime": [0.0, 0.1, 0.2],
-        "FILTERED_GAZE_OBJ_NAME": ["None", "None", "None"]
-    })
+    df = pl.DataFrame(
+        {"DatTime": [0.0, 0.1, 0.2], "FILTERED_GAZE_OBJ_NAME": ["None", "None", "None"]}
+    )
 
     dd = DummyDriveData(df)
     result = smoothGazeData(dd)
 
     assert isinstance(result, DriveData)
     assert result.data.shape == dd.data.shape
-

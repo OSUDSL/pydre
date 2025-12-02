@@ -111,10 +111,14 @@ class DriveData:
             if hasattr(self, "config") and isinstance(self.config, dict):
                 infer_len = int(self.config.get("infer_schema_length", 5000))
         except Exception as e:
-            logger.warning(f"Invalid infer_schema_length config ({e}), defaulting to 5000")
+            logger.warning(
+                f"Invalid infer_schema_length config ({e}), defaulting to 5000"
+            )
             infer_len = 5000
 
-        logger.info(f"Using infer_schema_length={infer_len} for file {self.sourcefilename}")
+        logger.info(
+            f"Using infer_schema_length={infer_len} for file {self.sourcefilename}"
+        )
 
         self.data = polars.read_csv(
             self.sourcefilename,
@@ -131,10 +135,14 @@ class DriveData:
             if hasattr(self, "config") and isinstance(self.config, dict):
                 infer_len = int(self.config.get("infer_schema_length", 100000))
         except Exception as e:
-            logger.warning(f"Invalid infer_schema_length config ({e}), defaulting to 100000")
+            logger.warning(
+                f"Invalid infer_schema_length config ({e}), defaulting to 100000"
+            )
             infer_len = 100000
 
-        logger.info(f"Using infer_schema_length={infer_len} for file {self.sourcefilename}")
+        logger.info(
+            f"Using infer_schema_length={infer_len} for file {self.sourcefilename}"
+        )
 
         self.data = polars.read_csv(
             self.sourcefilename,

@@ -1,6 +1,5 @@
 import pytest
 from pathlib import Path
-import sys
 import argparse
 
 from pydre.run import parse_arguments, setup_logging, run_project, main

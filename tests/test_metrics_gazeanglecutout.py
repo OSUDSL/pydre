@@ -9,6 +9,7 @@ from pydre.metrics.gazeanglecutout import (
     gazeCutoutAngleViolations,
 )
 
+
 @pytest.fixture
 def sample_drivedata():
     # .dat file structure for debugging
@@ -31,21 +32,22 @@ def sample_drivedata():
     dd.metadata = {"ParticipantID": "debug-metric"}
     return dd
 
+
 @pytest.mark.parametrize(
-    "target_name, expected_nonzero",
-    [
-        (None, False),
-        ("WindScreen", True)
-    ]
+    "target_name, expected_nonzero", [(None, False), ("WindScreen", True)]
 )
 def test_gaze_metrics(sample_drivedata, target_name, expected_nonzero):
-    result = gazeAnglePreProcessing(sample_drivedata, half_angle_deg=5.0, target_name=target_name)
+    result = gazeAnglePreProcessing(
+        sample_drivedata, half_angle_deg=5.0, target_name=target_name
+    )
 
     duration = gazeCutoutAngleDuration(result)
     ratio = gazeCutoutAngleRatio(result)
     violations = gazeCutoutAngleViolations(result)
 
-    print(f"\n[{target_name}] Duration={duration:.3f}, Ratio={ratio:.3f}, Violations={violations}")
+    print(
+        f"\n[{target_name}] Duration={duration:.3f}, Ratio={ratio:.3f}, Violations={violations}"
+    )
 
     if expected_nonzero:
         assert duration > 0.0

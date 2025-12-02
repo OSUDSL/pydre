@@ -49,8 +49,16 @@ def test_time_roi_builds_rois_dict(datafiles):
     csv_path = datafiles / "test_time_2.csv"
     time_roi = TimeROI(csv_path, timecol="DatTime")
     expected = {
-        "roi_1:Practice": {"ScenarioName": "Practice", "time_start": 0.0, "time_end": 180.0},
-        "roi_2:Practice": {"ScenarioName": "Practice", "time_start": 180.0, "time_end": 300.0},
+        "roi_1:Practice": {
+            "ScenarioName": "Practice",
+            "time_start": 0.0,
+            "time_end": 180.0,
+        },
+        "roi_2:Practice": {
+            "ScenarioName": "Practice",
+            "time_start": 180.0,
+            "time_end": 300.0,
+        },
     }
     assert time_roi.rois == expected
     assert isinstance(time_roi, TimeROI)
@@ -62,10 +70,12 @@ def test_time_roi_splits_into_segments(datafiles):
     TimeROI.split() should produce one DriveData per defined ROI segment.
     """
     roi = TimeROI(datafiles / "test_time_2.csv", timecol="DatTime")
-    df = pl.DataFrame({
-        "DatTime":   [0.0, 90.0, 179.9, 180.0, 240.0, 299.9],
-        "Indicator": [1, 2, 3, 4, 5, 6]
-    })
+    df = pl.DataFrame(
+        {
+            "DatTime": [0.0, 90.0, 179.9, 180.0, 240.0, 299.9],
+            "Indicator": [1, 2, 3, 4, 5, 6],
+        }
+    )
     dd = DriveData.init_test(df, "drive.dat")
     dd.metadata = {"ScenarioName": "Practice"}
 
@@ -83,12 +93,14 @@ def test_time_roi_skips_on_metadata_mismatch(tmp_path):
     """
     TimeROI.split() should skip ROI segments when metadata does not match.
     """
-    roi_df = pl.DataFrame({
-        "ROI": ["RegionA"],
-        "time_start": ["00:00"],
-        "time_end": ["00:10"],
-        "ScenarioName": ["Expected"]
-    })
+    roi_df = pl.DataFrame(
+        {
+            "ROI": ["RegionA"],
+            "time_start": ["00:00"],
+            "time_end": ["00:10"],
+            "ScenarioName": ["Expected"],
+        }
+    )
     path = tmp_path / "roi.csv"
     roi_df.write_csv(str(path))
 
@@ -103,11 +115,9 @@ def test_time_roi_warns_when_no_data_matches(tmp_path, caplog):
     """
     TimeROI.split() should log a WARNING when no data falls within any ROI.
     """
-    roi_df = pl.DataFrame({
-        "ROI": ["EmptyRegion"],
-        "time_start": ["00:00"],
-        "time_end": ["00:01"]
-    })
+    roi_df = pl.DataFrame(
+        {"ROI": ["EmptyRegion"], "time_start": ["00:00"], "time_end": ["00:01"]}
+    )
     path = tmp_path / "empty.csv"
     roi_df.write_csv(str(path))
 
@@ -124,10 +134,7 @@ def test_slice_by_time_valid_range():
     """
     sliceByTime() should include rows where time_column is in [begin, end).
     """
-    df = pl.DataFrame({
-        "SimTime": [0.0, 0.5, 1.0, 1.5],
-        "Value":   [10, 20, 30, 40]
-    })
+    df = pl.DataFrame({"SimTime": [0.0, 0.5, 1.0, 1.5], "Value": [10, 20, 30, 40]})
     result = sliceByTime(0.5, 1.5, "SimTime", df)
     assert result.to_dicts() == [
         {"SimTime": 0.5, "Value": 20},
@@ -139,7 +146,10 @@ def test_slice_by_time_valid_range():
     "df, time_column",
     [
         # Case A: only a non-matching column present
-        (pl.DataFrame({"OtherTime": [0.1, 0.2, 0.3], "Value": [10, 20, 30]}), "SimTime"),
+        (
+            pl.DataFrame({"OtherTime": [0.1, 0.2, 0.3], "Value": [10, 20, 30]}),
+            "SimTime",
+        ),
         # Case B: time column exists but the name is wrong
         (pl.DataFrame({"SimTime": [0.1, 0.2, 0.3]}), "NotAColumn"),
     ],
@@ -160,4 +170,3 @@ def test_slice_by_time_missing_column_logs_error_and_returns_original(
 
     # Should log an error about the missing time column
     assert "Problem in applying Time ROI".lower() in caplog.text.lower()
-

@@ -37,7 +37,9 @@ def test_register_metric_defaults_to_func_name(dummy_drive_data):
 def test_check_data_columns_decorator_logs(monkeypatch):
     log_msgs = []
 
-    monkeypatch.setattr(metrics_module.logger, "debug", lambda msg: log_msgs.append(msg))
+    monkeypatch.setattr(
+        metrics_module.logger, "debug", lambda msg: log_msgs.append(msg)
+    )
 
     @metrics_module.check_data_columns(None)
     def double_value(x):
@@ -52,4 +54,3 @@ def test_check_data_columns_decorator_logs(monkeypatch):
 def teardown_module(module):
     metricsList.clear()
     metricsColNames.clear()
-

@@ -1,9 +1,8 @@
 from loguru import logger
 from pydre import project
 import sys
-import pathlib
 import argparse
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 
 
 def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
@@ -72,8 +71,10 @@ def main(args: Optional[List[str]] = None) -> int:
         logger.error(f"Application failed: {str(e)}")
         return 1
 
+
 def pydre():
     sys.exit(main())
+
 
 if __name__ == "__main__":
     pydre()

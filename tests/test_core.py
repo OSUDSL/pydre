@@ -207,4 +207,3 @@ def test_check_columns_numeric_missing_column_logged():
     with pytest.raises(ColumnsMatchError) as exc_info:
         dd.checkColumnsNumeric(["not_a_column"])
     assert "not numeric" in str(exc_info.value)
-

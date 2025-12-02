@@ -9,7 +9,6 @@ import shutil
 import pydre.metrics
 
 from pydre.core import DriveData
-from loguru import logger
 from pydre.project import Project
 
 FIXTURE_DIR = Path(__file__).parent.resolve() / "test_data"
@@ -110,6 +109,7 @@ def test_process_filter_missing_function():
     with pytest.raises(KeyError):
         pydre.project.Project.processFilter(bad_filter, dummy_data)
 
+
 @pytest.mark.datafiles(FIXTURE_DIR / "good_projectfiles" / "test1_pf.toml")
 def test_process_roi_unknown_type(datafiles):
     dummy_data = DriveData()
@@ -198,7 +198,7 @@ def test_project_ignore_files(tmp_path):
     ignored_file.write_text("VidTime SimTime\n1 1")
 
     toml = tmp_path / "ignore.toml"
-    toml.write_text(f"""
+    toml.write_text("""
     [config]
     datafiles = ["*.dat"]
     ignore = ["ignore_this"]
@@ -227,6 +227,7 @@ def test_process_datafiles_with_exception(monkeypatch, tmp_path):
     """)
     proj = pydre.project.Project(toml)
 
+
 def faulty_process(_):
     raise RuntimeError("Forced failure")
 
@@ -254,14 +255,21 @@ def test_process_roi_rect(monkeypatch, tmp_path):
 
 
 class DummyROI:
-    def split(self, data): return [data]
-    def process(self, data): return [data]
+    def split(self, data):
+        return [data]
+
+    def process(self, data):
+        return [data]
 
 
 def test_project_toml_parse_error(monkeypatch, tmp_path):
     bad_toml = tmp_path / "bad.toml"
     bad_toml.write_text("bad:::toml")
-    monkeypatch.setattr(tomllib, "load", lambda _: (_ for _ in ()).throw(tomllib.TOMLDecodeError("bad", "bad", 1)))
+    monkeypatch.setattr(
+        tomllib,
+        "load",
+        lambda _: (_ for _ in ()).throw(tomllib.TOMLDecodeError("bad", "bad", 1)),
+    )
     project = pydre.project.Project(bad_toml)
     assert project.definition == {}
 
@@ -309,7 +317,7 @@ def test_project_eq_true(tmp_path):
 def test_project_eq_false(tmp_path):
     t1 = tmp_path / "p1.toml"
     t2 = tmp_path / "p2.toml"
-    t1.write_text('[config]\ndatafiles = []')
+    t1.write_text("[config]\ndatafiles = []")
     t2.write_text('[config]\ndatafiles = ["fake.dat"]')
     p1 = Project(t1)
     p2 = Project(t2)
@@ -318,7 +326,7 @@ def test_project_eq_false(tmp_path):
 
 def test_resolve_file_relative_and_absolute(tmp_path):
     config_file = tmp_path / "cfg.toml"
-    config_file.write_text('[config]\ndatafiles = []')
+    config_file.write_text("[config]\ndatafiles = []")
     p = Project(config_file)
 
     # relative path test
@@ -372,7 +380,9 @@ def test_load_custom_functions(tmp_path):
     custom_path.write_text("def test(): pass")
 
     config = tmp_path / "project.toml"
-    config.write_text(f'[config]\ncustommetrics = ["{custom_path.name}"]\ndatafiles = []')
+    config.write_text(
+        f'[config]\ncustommetrics = ["{custom_path.name}"]\ndatafiles = []'
+    )
 
     target_path = tmp_path / "subdir" / custom_path.name
     target_path.parent.mkdir(exist_ok=True)
@@ -386,7 +396,7 @@ def test_process_metric_multiple_columns(tmp_path):
     dummy_csv.write_text("a,b\n1,3\n2,4\n")
 
     config = tmp_path / "project.toml"
-    config.write_text(f"[config]\ndatafiles = [\"{dummy_csv.name}\"]")
+    config.write_text(f'[config]\ndatafiles = ["{dummy_csv.name}"]')
 
     p = Project(config)
     p.data = polars.read_csv(dummy_csv)
@@ -397,11 +407,7 @@ def test_process_metric_multiple_columns(tmp_path):
     pydre.metrics.metricsList["dummy_compute"] = dummy_compute
     pydre.metrics.metricsColNames["dummy_compute"] = ["metric_id"]
 
-    metric_dict = {
-        "name": "metric_id",
-        "function": "dummy_compute",
-        "col_names": ["a"]
-    }
+    metric_dict = {"name": "metric_id", "function": "dummy_compute", "col_names": ["a"]}
 
     result = p.processMetric(metric_dict, p.data)
     assert result == {"metric_id": 42}
@@ -433,6 +439,7 @@ def test_project_init_no_datafiles_logs_error(tmp_path, caplog):
     # 4. Assert that the specific error message was logged
     assert "No datafile found in project definition." in caplog.text
 
+
 def test_save_results_without_running_logs_error(tmp_path, caplog, capsys):
     """
     Calling saveResults() before results are computed should:
@@ -462,4 +469,3 @@ def test_save_results_without_running_logs_error(tmp_path, caplog, capsys):
     out, err = capsys.readouterr()
     msg = "Results not computed yet"
     assert (msg in caplog.text) or (msg in err)
-

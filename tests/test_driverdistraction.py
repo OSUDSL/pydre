@@ -51,21 +51,18 @@ def test_speed_limit_match_time_increasing():
     df = {
         "DatTime": [0, 1, 2, 3],
         "Velocity": [5, 10, 15, 20],
-        "SpeedLimit": [10, 10, 20, 20]
+        "SpeedLimit": [10, 10, 20, 20],
     }
     data = make_drive_data(df)
-    result = driverdistraction.speedLimitMatchTime(data, mpsBound=1.0, speedLimitCol="SpeedLimit")
+    result = driverdistraction.speedLimitMatchTime(
+        data, mpsBound=1.0, speedLimitCol="SpeedLimit"
+    )
     assert isinstance(result, (float, int))
 
 
 # ---- speedLimitMatchTime: no speed limit change (should raise IndexError or return None)
 def test_speed_limit_match_time_none():
-    df = {
-        "DatTime": [0, 1, 2],
-        "Velocity": [2, 2, 2],
-        "SpeedLimit": [10, 10, 10]
-    }
+    df = {"DatTime": [0, 1, 2], "Velocity": [2, 2, 2], "SpeedLimit": [10, 10, 10]}
     data = make_drive_data(df)
     with pytest.raises(IndexError):
         driverdistraction.speedLimitMatchTime(data, 2.0, "SpeedLimit")
-

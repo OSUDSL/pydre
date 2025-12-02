@@ -33,7 +33,9 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
 
 
 @registerFilter()
-def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, trim_data=False):
+def ValidateDataStartEnd(
+    drivedata: pydre.core.DriveData, dataFile="", tol=100, trim_data=False
+):
     """
     Ensure that the end of the drive data fits into the expected
     format - by distance & time.
@@ -62,7 +64,9 @@ def ValidateDataStartEnd(drivedata: pydre.core.DriveData, dataFile="", tol=100, 
             merge_df.get_column("Week") == week,
         )
     else:
-        raise Exception("Datafile start/end definition not present - cannot merge w/o source of truth.")
+        raise Exception(
+            "Datafile start/end definition not present - cannot merge w/o source of truth."
+        )
 
     if len(merge_df) > 0:
         status = []
@@ -151,9 +155,7 @@ def CropStartPosition(drivedata: pydre.core.DriveData):
 
     # only used to apply this to UAB, but applies to all sites
     df = df.with_columns(pl.col("DatTime").alias("SimTime"))
-    df = df.with_columns(
-        pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff")
-        )
+    df = df.with_columns(pl.col("XPos").cast(pl.Float32).diff().abs().alias("PosDiff"))
     df_actual_start = df.filter(df.get_column("PosDiff") > 500)
     if not df_actual_start.is_empty():
         start_time = df_actual_start.get_column("SimTime").item(0)
@@ -214,8 +216,8 @@ def MergeCriticalEventPositions(
     week = ident_groups.group(5)
     df = drivedata.data
     df = df.with_columns(
-            pl.lit(-1).alias("CriticalEventNum"), pl.lit("").alias("EventName")
-        )
+        pl.lit(-1).alias("CriticalEventNum"), pl.lit("").alias("EventName")
+    )
     if "No Event" not in scenario:
         # adding cols with meaningless values for later CE info, ensuring shape
         if dataFile != "":
@@ -292,7 +294,9 @@ def MergeCriticalEventPositions(
         if ceInfo_df.shape[0] == 0:
             logger.warning("No imported merge info - no known CE positions.")
     else:
-        logger.warning("Attempting to run 'Event' filtering on scenario with no Events - don't filter.")
+        logger.warning(
+            "Attempting to run 'Event' filtering on scenario with no Events - don't filter."
+        )
         drivedata.data = df
     return drivedata
 

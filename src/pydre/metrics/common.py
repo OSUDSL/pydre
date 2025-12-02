@@ -747,6 +747,7 @@ def laneViolationDuration(
 
     return lane_data.select(pl.col("LaneViolations") * pl.col("Duration")).sum().item()
 
+
 @registerMetric()
 def roadExits(drivedata: pydre.core.DriveData):
     required_col = ["SimTime", "RoadOffset", "Velocity"]
@@ -803,8 +804,7 @@ def roadExitsY(drivedata: pydre.core.DriveData):
     )
 
     outtimes = df.filter(
-        pl.col("RoadOffset").is_between(0.9, 6.3)
-        & (pl.col("Velocity") > 1)
+        pl.col("RoadOffset").is_between(0.9, 6.3) & (pl.col("Velocity") > 1)
         # TODO: double check offsets
     )
 
@@ -1038,7 +1038,7 @@ def timeFirstTrue(
 
     try:
         df = drivedata.data.filter(pl.col(var) > 0)
-    except pl.exceptions.ComputeError as e:
+    except pl.exceptions.ComputeError:
         logger.warning(
             "Failure processing timeFirstTrue metric for variable {} in file {}".format(
                 var, drivedata.sourcefilename
@@ -1065,7 +1065,7 @@ def reactionBrakeFirstTrue(
 
     try:
         df = drivedata.data.filter(pl.col(var) > 5)
-    except pl.exceptions.ComputeError as e:
+    except pl.exceptions.ComputeError:
         logger.warning("Brake value non-numeric in {}".format(drivedata.sourcefilename))
         return None
     if drivedata.data.height == 0 or df.height == 0:
@@ -1212,5 +1212,3 @@ def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff=1, steer_cutoff=0
     else:
         reactionTime = min(steer_reaction, brake_reaction)
     return reactionTime
-
-

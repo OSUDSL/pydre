@@ -1,12 +1,8 @@
-from typing import List
-
-import numpy as np
 import polars as pl
 from loguru import logger
 
 import pydre.core
 from pydre.filters import registerFilter
-from pydre.filters.common import mergeSplitFiletime, filetimeToDatetime
 
 # The following functions need to be revised to work with polars rather than pandas
 
@@ -145,7 +141,6 @@ from pydre.filters.common import mergeSplitFiletime, filetimeToDatetime
 #     return drivedata
 
 
-
 @registerFilter()
 def smoothGazeData(
     drivedata: pydre.core.DriveData,
@@ -168,44 +163,50 @@ def smoothGazeData(
         "TopCenterDisplay": 0,
         "DrvrSideMirror": 0,
         "RearViewMirror": 0,
-        "PassSideMirror": 0
+        "PassSideMirror": 0,
     }
-    dt = dt.with_columns(pl.col(gazeColName).replace(mapping,
-                                                    default=0,
-                                                    return_dtype=pl.Float32).alias("onroad"))
+    dt = dt.with_columns(
+        pl.col(gazeColName)
+        .replace(mapping, default=0, return_dtype=pl.Float32)
+        .alias("onroad")
+    )
 
     if dt.get_column("onroad").n_unique() < 2:
         logger.error("Gaze data not of sufficient variety. Skipping filtering.")
         return drivedata
 
     # smooth frame blips
-    dt = dt.with_columns(pl.col("onroad").rolling_median(window_size=5, center=True).alias("onroad"))
+    dt = dt.with_columns(
+        pl.col("onroad").rolling_median(window_size=5, center=True).alias("onroad")
+    )
 
     # find list of runs
     dt = dt.with_columns(
-        (pl.col("onroad").shift() != pl.col("onroad"))
-        .cum_sum()
-        .alias("gazenum")
+        (pl.col("onroad").shift() != pl.col("onroad")).cum_sum().alias("gazenum")
     )
 
-    durations = dt.group_by("gazenum").agg(glance_duration = pl.col(timeColName).max()-pl.col(timeColName).min())
+    durations = dt.group_by("gazenum").agg(
+        glance_duration=pl.col(timeColName).max() - pl.col(timeColName).min()
+    )
 
     # SAE J2396 defines fixations as at least 0.2 seconds,
     # so we ignore changes in gaze that are less than that
-    sub200msGazes = durations.filter(pl.col("glance_duration") < 0.2).get_column("gazenum")
+    sub200msGazes = durations.filter(pl.col("glance_duration") < 0.2).get_column(
+        "gazenum"
+    )
 
-    dt = dt.with_columns(pl.when(pl.col("gazenum")
-                                 .is_in(sub200msGazes))
-                                 .then(None)
-                                 .otherwise(pl.col("onroad")).alias("onroad"))
+    dt = dt.with_columns(
+        pl.when(pl.col("gazenum").is_in(sub200msGazes))
+        .then(None)
+        .otherwise(pl.col("onroad"))
+        .alias("onroad")
+    )
 
     dt = dt.with_columns(pl.col("onroad").fill_null(strategy="backward"))
 
     # find list of runs with short fixations removed
     dt = dt.with_columns(
-        (pl.col("onroad").shift() != pl.col("onroad"))
-        .cum_sum()
-        .alias("gazenum")
+        (pl.col("onroad").shift() != pl.col("onroad")).cum_sum().alias("gazenum")
     )
 
     drivedata.data = dt

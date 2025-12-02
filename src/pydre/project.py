@@ -6,7 +6,6 @@ from os import PathLike
 
 import polars as pl
 import polars.exceptions
-import re
 import sys
 import tomllib
 from typing import Optional
@@ -147,9 +146,7 @@ class Project:
             include_file = True
             for ignore_file in ignore_files:
                 if str(ignore_file) in str(potential_file):
-                    logger.info(
-                        f"Ignoring file {potential_file} based on ignore list."
-                    )
+                    logger.info(f"Ignoring file {potential_file} based on ignore list.")
                     include_file = False
             if include_file:
                 self.filelist.append(potential_file)
@@ -303,11 +300,11 @@ class Project:
                 level=log_level,
                 enqueue=True,  # thread-safe with ThreadPoolExecutor
                 backtrace=False,  # set True if you want very detailed tracebacks
-                diagnose=False  # set True to include variable values in tracebacks
+                diagnose=False,  # set True to include variable values in tracebacks
             )
 
-    def processROI(self,
-        roi: dict, datafile: pydre.core.DriveData
+    def processROI(
+        self, roi: dict, datafile: pydre.core.DriveData
     ) -> list[pydre.core.DriveData]:
         """
         Handles running region of interest definitions for a dataset
@@ -446,15 +443,17 @@ class Project:
 
         # Sanity check amd warnings
         if numThreads > 32:
-            logger.warning(f"High thread count requested: {numThreads}. "
-                           "This may degrade performance instead of improving it.")
+            logger.warning(
+                f"High thread count requested: {numThreads}. "
+                "This may degrade performance instead of improving it."
+            )
         if numThreads <= 0:
             logger.warning(f"Invalid num_threads={numThreads}, falling back to 1.")
             numThreads = 1
 
         logger.info(f"Using {numThreads} threads for processing")
 
-        results_list: list[dict] = [] # results_list = []
+        results_list: list[dict] = []  # results_list = []
 
         # STOP FLAG
         self._stop_event = threading.Event()
@@ -473,13 +472,17 @@ class Project:
                         arg = futures[future]
                         try:
                             # Collect result only ONCE; this will re-raise any worker exception.
-                            per_file_rows = future.result()  # list[dict] from processSingleFile
+                            per_file_rows = (
+                                future.result()
+                            )  # list[dict] from processSingleFile
                             # Extend the global accumulator with this file's rows.
                             results_list.extend(per_file_rows)
                         except KeyboardInterrupt:
-                            self._stop_event.set() # STOP FLAG
+                            self._stop_event.set()  # STOP FLAG
                             # User hit Ctrl+C: log, cancel outstanding work, and re-raise to abort.
-                            logger.critical("Execution interrupted by user (Ctrl+C). Cancelling pending work...")
+                            logger.critical(
+                                "Execution interrupted by user (Ctrl+C). Cancelling pending work..."
+                            )
                             # Cancel any futures that have not started/run yet.
                             # Note: shutdown with cancel_futures=True will attempt to cancel waiting tasks.
                             executor.shutdown(wait=False, cancel_futures=True)
@@ -489,26 +492,34 @@ class Project:
                             logger.critical("Unhandled Exception {}".format(exc))
                             logger.error(traceback.format_exc())
                         finally:
-                            pbar.update(1) # update progress bar for each completed future
+                            pbar.update(
+                                1
+                            )  # update progress bar for each completed future
                 except KeyboardInterrupt:
-                    self._stop_event.set() # STOP FLAG
+                    self._stop_event.set()  # STOP FLAG
                     # Outer handler for Ctrl+C during as_completed iteration or shutdown.
                     logger.critical("Aborted by user (Ctrl+C).")
 
         # Postconditions: convert to a Polars DataFrame
         if len(results_list) == 0:
             logger.error("No results found; no metrics data generated")
-            return pl.DataFrame() # return empty DataFrame to keep return type consistent
+            return (
+                pl.DataFrame()
+            )  # return empty DataFrame to keep return type consistent
 
         infer_schema_length = self.config.get("infer_schema_length", 5000)
         try:
             infer_schema_length = int(infer_schema_length)
             logger.info(f"Using infer_schema_length={infer_schema_length}")
         except (TypeError, ValueError):
-            logger.warning(f"Invalid infer_schema_length={infer_schema_length}, defaulting to 5000")
+            logger.warning(
+                f"Invalid infer_schema_length={infer_schema_length}, defaulting to 5000"
+            )
             infer_schema_length = 5000
 
-        result_dataframe = pl.from_dicts(results_list, infer_schema_length=infer_schema_length)
+        result_dataframe = pl.from_dicts(
+            results_list, infer_schema_length=infer_schema_length
+        )
 
         # sorting_columns = ["Subject", "ScenarioName", "ROI"]
         # try:

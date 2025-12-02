@@ -9,14 +9,19 @@ from pydre.rois import ColumnROI
 # Define the directory that contains test CSV data
 FIXTURE_DIR = Path(__file__).parent.resolve() / "test_data" / "test_roi_files"
 
-@pytest.mark.datafiles(FIXTURE_DIR / "test_column_roi.csv")  # This file is not used in this test but kept for consistency
+
+@pytest.mark.datafiles(
+    FIXTURE_DIR / "test_column_roi.csv"
+)  # This file is not used in this test but kept for consistency
 def test_column_roi_split(datafiles):
     # Create sample drive data with a column "Task" used for ROI
-    df = pl.DataFrame({
-        "SimTime": [0, 1, 2, 3, 4, 5],
-        "Task": [1, 1, 2, 2, 3, 3],
-        "Speed": [10, 20, 30, 40, 50, 60]
-    })
+    df = pl.DataFrame(
+        {
+            "SimTime": [0, 1, 2, 3, 4, 5],
+            "Task": [1, 1, 2, 2, 3, 3],
+            "Speed": [10, 20, 30, 40, 50, 60],
+        }
+    )
 
     # Metadata is required by DriveData, even if simple
     metadata = {"ParticipantID": "Test01"}
@@ -42,10 +47,7 @@ def test_column_roi_split(datafiles):
 
 
 def test_column_roi_with_null_group():
-    df = pl.DataFrame({
-        "ROI": ["A", None, "B"],
-        "Value": [1, 2, 3]
-    })
+    df = pl.DataFrame({"ROI": ["A", None, "B"], "Value": [1, 2, 3]})
     dd = DriveData.init_test(df, "test.dat")
     processor = ColumnROI("ROI")
     result = processor.split(dd)
@@ -99,16 +101,9 @@ def test_column_roi_missing_column_keyerror(caplog):
 
 
 def test_column_roi_sets_metadata_and_roi_field():
+    roi_df = pl.DataFrame({"roi": ["Zone1", "Zone2"], "column_value": ["A", "B"]})
 
-    roi_df = pl.DataFrame({
-        "roi": ["Zone1", "Zone2"],
-        "column_value": ["A", "B"]
-    })
-
-    df = pl.DataFrame({
-        "column_value": ["A", "B", "C"],
-        "other_col": [1, 2, 3]
-    })
+    df = pl.DataFrame({"column_value": ["A", "B", "C"], "other_col": [1, 2, 3]})
     drive_data = DriveData.init_test(df, "dummy_drive.csv")
 
     roi = ColumnROI("column_value")
@@ -123,16 +118,9 @@ def test_column_roi_sets_metadata_and_roi_field():
 
 
 def test_column_roi_split_with_no_matching_values(caplog):
+    roi_df = pl.DataFrame({"roi": ["ZoneA"], "column_value": ["Z"]})
 
-    roi_df = pl.DataFrame({
-        "roi": ["ZoneA"],
-        "column_value": ["Z"]
-    })
-
-    df = pl.DataFrame({
-        "column_value": ["X", "Y"],
-        "other_col": [10, 20]
-    })
+    df = pl.DataFrame({"column_value": ["X", "Y"], "other_col": [10, 20]})
     drive_data = DriveData.init_test(df, "drive.csv")
 
     roi = ColumnROI("column_value")
@@ -141,8 +129,9 @@ def test_column_roi_split_with_no_matching_values(caplog):
     with caplog.at_level("WARNING"):
         split_results = roi.split(drive_data)
 
-    assert any("ROI value Z not found in data" in message for message in caplog.messages)
+    assert any(
+        "ROI value Z not found in data" in message for message in caplog.messages
+    )
 
     for result in split_results:
         assert "ROIName" not in result.metadata
-

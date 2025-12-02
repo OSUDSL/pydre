@@ -1,10 +1,8 @@
-from loguru import logger
 import polars as pl
 import pydre.core
 from pydre.core import ColumnsMatchError
 from pydre.metrics import registerMetric
 import numpy as np
-import math
 from scipy import signal
 
 
@@ -98,6 +96,7 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
         total_time_offroad_glances,
     ]
 
+
 @registerMetric(
     columnnames=[
         "numOfGlancesOffR",
@@ -106,13 +105,12 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
         "sumGlanceOffRDuration",
     ]
 )
-def gazeNHTSATask(drivedata: pydre.core.DriveData,
-              gazetype_col = "onroad",
-              gazenum_col = "gazenum",
-              time_col = "DatTime"
-              ):
-
-
+def gazeNHTSATask(
+    drivedata: pydre.core.DriveData,
+    gazetype_col="onroad",
+    gazenum_col="gazenum",
+    time_col="DatTime",
+):
     try:
         drivedata.checkColumns([gazenum_col, gazetype_col, time_col])
     except ColumnsMatchError:
@@ -123,21 +121,24 @@ def gazeNHTSATask(drivedata: pydre.core.DriveData,
 
     glancelist = gr.agg(
         duration=(pl.col(time_col).max() - pl.col(time_col).min()),
-        location=pl.col(gazetype_col).first()
+        location=pl.col(gazetype_col).first(),
     )
-
-
 
     # table constructed, now find metrics
 
     num_over_2s_offroad_glances = glancelist.filter(
-        (pl.col("duration") > 2) & (pl.col("location") == 0)).height
+        (pl.col("duration") > 2) & (pl.col("location") == 0)
+    ).height
 
     num_offroad_glances = glancelist.filter(pl.col("location") == 0).height
 
-    total_time_offroad_glances = glancelist.filter(pl.col("location") == 0).get_column("duration").sum()
+    total_time_offroad_glances = (
+        glancelist.filter(pl.col("location") == 0).get_column("duration").sum()
+    )
 
-    mean_time_offroad_glances = glancelist.filter(pl.col("location") == 0).get_column("duration").mean()
+    mean_time_offroad_glances = (
+        glancelist.filter(pl.col("location") == 0).get_column("duration").mean()
+    )
 
     # print(">2s glances: {}, num glances: {}, total time glances: {}, mean time glances {}".format(
     # num_over_2s_offroad_glances, num_offroad_glances, total_time_offroad_glances, mean_time_offroad_glances))
@@ -148,7 +149,6 @@ def gazeNHTSATask(drivedata: pydre.core.DriveData,
         mean_time_offroad_glances,
         total_time_offroad_glances,
     ]
-
 
 
 @registerMetric(
@@ -215,7 +215,6 @@ def gazeNHTSA(drivedata: pydre.core.DriveData):
         mean_time_offroad_glances,
         total_time_offroad_glances,
     ]
-
 
 
 # not working
