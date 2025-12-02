@@ -304,7 +304,7 @@ def filetimeToDatetime(ft: int) -> Optional[datetime.datetime]:
 
 
 def mergeSplitFiletime(hi: int, lo: int):
-    return struct.unpack("Q", struct.pack("LL", lo, hi))[0]
+    return struct.unpack("Q", struct.pack("=LL", lo, hi))[0]
 
 
 @registerFilter()
