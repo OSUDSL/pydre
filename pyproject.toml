@@ -1,6 +1,6 @@
 [project]
 name = "pydre"
-version = "25.2.1.dev1"
+version = "25.3"
 readme = "readme.md"
 dependencies = [
     "polars",
@@ -16,10 +16,10 @@ authors = [ {name = "Thomas Kerwin", email = "kerwin.6@osu.edu"} ]
 description = "Driving simulation data processing engine"
 keywords = ["driving simulation"]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
 
   "Intended Audience :: Science/Research",
-  "Topic :: Software Development :: Build Tools",
+  "Topic :: Scientific/Engineering :: Information Analysis",
 
   "License :: OSI Approved :: Apache Software License",
 
@@ -28,7 +28,6 @@ classifiers = [
 
 [project.scripts]
 pydre = "pydre.run:pydre"
-
 
 [project.urls]
 Documentation = "https://osudsl.github.io/pydre/"
