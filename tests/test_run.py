@@ -1,4 +1,5 @@
 import pytest
+import os
 from pathlib import Path
 import argparse
 
@@ -96,7 +97,11 @@ def test_run_project_basic(mock_project):
     mock_project_class.assert_called_once_with(
         "project.toml", ["data.dat"], "output.csv"
     )
-    mock_instance.processDatafiles.assert_called_once_with(numThreads=12)
+    expected_threads = max(1, int(os.cpu_count() * 0.75))
+
+    mock_instance.processDatafiles.assert_called_once_with(
+        numThreads=expected_threads
+    )
     mock_instance.saveResults.assert_called_once()
     assert result == mock_instance
 
