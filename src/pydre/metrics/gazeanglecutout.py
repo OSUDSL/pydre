@@ -41,6 +41,14 @@ def gazeCutoutAngleDuration(drivedata: pydre.core.DriveData) -> float:
     """
     Returns the total duration (seconds) that the gaze was both
     outside the cutout angle AND off-target.
+
+    Returns 0 if DatTime is missing.
+
+    Note: Requires data columns (from `gazeAnglePreProcessing` filter):
+        - DatTime
+        - gaze_cutout
+        - off_target
+
     """
     df = _check_and_prepare(drivedata)
     if df.is_empty():
@@ -56,6 +64,12 @@ def gazeCutoutAngleRatio(drivedata: pydre.core.DriveData) -> float:
     """
     Fraction of total time spent outside the cutout angle (and off-target).
     Returns 0 if DatTime is missing or total duration = 0.
+
+    Note: Requires data columns (from `gazeAnglePreProcessing` filter):
+        - DatTime
+        - gaze_cutout
+        - off_target
+
     """
     df = _check_and_prepare(drivedata)
     if df.is_empty():
@@ -78,6 +92,12 @@ def gazeCutoutAngleViolations(drivedata: pydre.core.DriveData) -> int:
     outside the cutout angle and off-target.
 
     A new violation is counted when mask transitions from False → True.
+
+    Note: Requires data columns (from `gazeAnglePreProcessing` filter):
+        - DatTime
+        - gaze_cutout
+        - off_target
+
     """
     df = _check_and_prepare(drivedata)
     if df.is_empty():

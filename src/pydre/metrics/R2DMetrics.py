@@ -13,6 +13,21 @@ from pydre.metrics import registerMetric
     "R2DIDColumns", ["ParticipantID", "MatchID", "Case", "Location", "Gender", "Week"]
 )
 def R2DIDColumns(drivedata: pydre.core.DriveData):
+    """Parses R2D ParticipantID into its components
+
+    Adds the following columns:
+        - ParticipantID: R2D formatted participant ID string without week
+        - MatchID: Match identifier number
+        - Case: 'Case', 'Control', or 'Enrolled'
+        - Location: 'UAB', 'OSU', or 'UA'
+        - Gender: 'Male' or 'Female'
+        - Week: Week number of the study visit
+
+    Note: Requires metadata field
+        - ParticipantID: R2D formatted participant ID string
+
+    """
+
     ident = drivedata.metadata["ParticipantID"]
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
