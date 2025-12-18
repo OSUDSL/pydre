@@ -1,8 +1,6 @@
-import threading
-from abc import ABCMeta, abstractmethod
 from os import PathLike
 
-import pydre.core
+from .core import DriveData
 import polars as pl
 import typing
 from typing import Optional
@@ -11,16 +9,13 @@ from collections.abc import Iterable
 from polars.exceptions import ColumnNotFoundError
 
 
-class ROIProcessor(object, metaclass=ABCMeta):
-    @abstractmethod
+class ROIProcessor:
     def __init__(self, filename: PathLike, nameprefix: str = ""):
-        self._stop_event: Optional[threading.Event] = None
         pass
 
-    @abstractmethod
     def split(
-        self, sourcedrivedata: pydre.core.DriveData
-    ) -> Iterable[pydre.core.DriveData]:
+        self, sourcedrivedata: DriveData
+    ) -> Iterable[DriveData]:
         """Splits the drivedata object according to the ROI specifications.
 
         Parameters:
@@ -89,10 +84,10 @@ class TimeROI(ROIProcessor):
             self.rois[roi_name] = roi_definition
 
     def split(
-        self, sourcedrivedata: pydre.core.DriveData
-    ) -> list[pydre.core.DriveData]:
+        self, sourcedrivedata: DriveData
+    ) -> list[DriveData]:
         """
-        return list of pydre.core.DriveData objects
+        return list of DriveData objects
         the 'roi' field of the objects will be filled with the roi tag listed
         in the roi definition file column name
         """
@@ -115,12 +110,10 @@ class TimeROI(ROIProcessor):
             timecol = self.timecol
             new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
             if new_data.height > 0:
-                new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+                new_ddata = DriveData(sourcedrivedata, new_data)
                 new_ddata.roi = k
                 output_list.append(new_ddata)
             else:
-                if getattr(self, "_stop_event", None) and self._stop_event.is_set():
-                    return []  # silent early-exit; avoids post-abort warning spam
                 logger.warning(
                     "ROI fails to qualify for {}, ignoring data".format(
                         sourcedrivedata.sourcefilename
@@ -197,9 +190,9 @@ class SpaceROI(ROIProcessor):
         self.name_prefix = nameprefix
 
     def split(
-        self, sourcedrivedata: pydre.core.DriveData
-    ) -> Iterable[pydre.core.DriveData]:
-        return_list: list[pydre.core.DriveData] = []
+        self, sourcedrivedata: DriveData
+    ) -> Iterable[DriveData]:
+        return_list: list[DriveData] = []
 
         for roi_name, roi_location in self.roi_info.items():
             try:
@@ -222,8 +215,6 @@ class SpaceROI(ROIProcessor):
             )
 
             if region_data.height == 0:
-                if getattr(self, "_stop_event", None) and self._stop_event.is_set():
-                    return []  # silent early-exit; avoids post-abort warning spam
                 logger.warning(
                     "No data for SubjectID: {}, Source: {},  ROI: {}".format(
                         sourcedrivedata.metadata["ParticipantID"],
@@ -240,19 +231,18 @@ class SpaceROI(ROIProcessor):
                         sourcedrivedata.sourcefilename,
                     )
                 )
-            new_ddata = pydre.core.DriveData(sourcedrivedata, region_data)
+            new_ddata = DriveData(sourcedrivedata, region_data)
             new_ddata.roi = roi_name
             return_list.append(new_ddata)
 
         return return_list
 
 
-class ColumnROI:
+class ColumnROI(ROIProcessor):
     def __init__(self, roi_column: str):
         if not isinstance(roi_column, str):
             raise TypeError(f"Expected roi_column to be str, got {type(roi_column)}")
         self.roi_column = roi_column
-        self._stop_event: Optional[threading.Event] = None
 
     def split(self, sourcedrivedata):
         df = sourcedrivedata.data
@@ -276,8 +266,6 @@ class ColumnROI:
 
                 matched_rows = df_valid.filter(pl.col(self.roi_column) == column_value)
                 if matched_rows.is_empty():
-                    if getattr(self, "_stop_event", None) and self._stop_event.is_set():
-                        return []  # silent early-exit; avoids post-abort warning spam
                     logger.warning(f"ROI value {column_value} not found in data")
                     continue
 

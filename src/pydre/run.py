@@ -1,6 +1,6 @@
 import os
 from loguru import logger
-from pydre import project
+from . import project
 import sys
 import argparse
 from typing import List, Optional

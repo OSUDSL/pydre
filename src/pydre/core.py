@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import re
+from os import PathLike
 
 import polars
 from loguru import logger
@@ -11,7 +12,7 @@ from pathlib import Path
 
 class DriveData:
     data: polars.DataFrame
-    sourcefilename: Path
+    sourcefilename: PathLike
     sourcefiletype: Optional[str]
     roi: Optional[str]
     metadata: dict[str, Any]
@@ -37,6 +38,7 @@ class DriveData:
             self.sourcefiletype = None
             self.metadata = {}
 
+
     @classmethod
     def init_test(cls, data: polars.DataFrame, sourcefilename: Path):
         """Initializes a DriveData object with a given sourcefilename and data. Used for testing."""
@@ -46,7 +48,7 @@ class DriveData:
         return obj
 
     @classmethod
-    def init_old_rti(cls, sourcefilename: Path):
+    def init_old_rti(cls, sourcefilename: PathLike):
         obj = cls()
         obj.sourcefilename = sourcefilename
         obj.sourcefiletype = "old SimObserver"
@@ -61,7 +63,7 @@ class DriveData:
         return obj
 
     @classmethod
-    def init_rti(cls, sourcefilename: Path):
+    def init_rti(cls, sourcefilename: PathLike):
         obj = cls()
         obj.sourcefilename = sourcefilename
         obj.sourcefiletype = "SimObserver r2"
@@ -80,7 +82,7 @@ class DriveData:
         return obj
 
     @classmethod
-    def init_scanner(cls, sourcefilename: Path):
+    def init_scanner(cls, sourcefilename: PathLike):
         obj = cls()
         obj.sourcefilename = sourcefilename
         obj.sourcefiletype = "Scanner"

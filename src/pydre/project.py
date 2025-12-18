@@ -5,17 +5,16 @@ import os
 from os import PathLike
 
 import polars as pl
-import polars.exceptions
 import sys
 import tomllib
-from typing import Optional
-import pydre.core
-import pydre.rois
-import pydre.metrics
-from pydre.core import DriveData
-from pydre.metrics import *
-import pydre.filters
-from pydre.filters import *
+from typing import Optional, Iterable
+
+from . import core
+from . import rois
+from .core import DriveData
+from . import filters
+from . import metrics
+
 import pathlib
 from pathlib import Path
 from loguru import logger
@@ -42,6 +41,7 @@ class Project:
         self.config = {}
         self.results = None
         self.filelist = []
+        self._stop_event = threading.Event()
         try:
             logger.info("Loading project from: " + str(self.project_filename))
             with open(self.project_filename, "rb") as project_file:
@@ -272,10 +272,6 @@ class Project:
         logfile = self.config.get("logfile", None)
         log_level = self.config.get("log_level", "INFO")
 
-        # Ensure the stop flag exists before we build filters that close over it
-        if not hasattr(self, "_stop_event") or self._stop_event is None:
-            self._stop_event = threading.Event()
-
         # Filter factory bound to this Project instance's stop flag
         def _silence_after_interrupt(record: dict) -> bool:
             # record["level"].no: DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50
@@ -304,8 +300,8 @@ class Project:
             )
 
     def processROI(
-        self, roi: dict, datafile: pydre.core.DriveData
-    ) -> list[pydre.core.DriveData]:
+        self, roi: dict, datafile: DriveData
+    ) -> Iterable[DriveData]:
         """
         Handles running region of interest definitions for a dataset
 
@@ -316,40 +312,32 @@ class Project:
         Returns:
                 A list of drivedata objects containing the data for each region of interest
         """
-        roi_obj: pydre.rois.ROIProcessor
+        roi_obj: rois.ROIProcessor
         roi_type = roi["type"]
         if roi_type == "time":
             resolved_filename = self.resolve_file(roi["filename"])
             logger.info("Processing time ROI " + str(resolved_filename))
             if "timecol" in roi:
-                roi_obj = pydre.rois.TimeROI(resolved_filename, roi["timecol"])
+                roi_obj = rois.TimeROI(resolved_filename, roi["timecol"])
             else:
-                roi_obj = pydre.rois.TimeROI(resolved_filename)
+                roi_obj = rois.TimeROI(resolved_filename)
         elif roi_type == "rect":
             logger.info("Processing space ROI " + roi["filename"])
             roi_filename = self.resolve_file(roi["filename"])
-            roi_obj = pydre.rois.SpaceROI(roi_filename)
+            roi_obj = rois.SpaceROI(roi_filename)
         elif roi_type == "column":
             logger.info("Processing column ROI " + roi["columnname"])
-            roi_obj = pydre.rois.ColumnROI(roi["columnname"])
+            roi_obj = rois.ColumnROI(roi["columnname"])
         else:
             logger.warning("Unknown ROI type {}".format(roi_type))
             return [datafile]
-
-        # Inject the stop flag so ROI code can silence logs after Ctrl+C
-        # This keeps the public API unchanged and avoids threading-kill problems.
-        try:
-            # If the project set _stop_event, give it to the ROI object.
-            setattr(roi_obj, "_stop_event", getattr(self, "_stop_event", None))
-        except Exception:
-            pass
 
         return roi_obj.split(datafile)
 
     @staticmethod
     def processFilter(
-        datafilter: dict, datafile: pydre.core.DriveData
-    ) -> pydre.core.DriveData:
+        datafilter: dict, datafile: DriveData
+    ) -> DriveData:
         """
         Handles running any filter definition
 
@@ -363,7 +351,7 @@ class Project:
         ldatafilter = copy.deepcopy(datafilter)
         try:
             func_name = ldatafilter.pop("function")
-            filter_func = pydre.filters.filtersList[func_name]
+            filter_func = filters.filtersList[func_name]
             datafilter_name = ldatafilter.pop("name")
         except KeyError as e:
             logger.error(
@@ -389,9 +377,9 @@ class Project:
         metric = copy.deepcopy(metric)
         try:
             func_name = metric.pop("function")
-            metric_func = pydre.metrics.metricsList[func_name]
+            metric_func = metrics.metricsList[func_name]
             report_name = metric.pop("name")
-            col_names = pydre.metrics.metricsColNames[func_name]
+            col_names = metrics.metricsColNames[func_name]
         except KeyError as e:
             logger.warning(
                 'Metric definitions require both "name" and "function". Malformed metrics definition'
@@ -417,7 +405,7 @@ class Project:
             src_str.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
         )
 
-    def processDatafiles(self, numThreads: int = None) -> Optional[pl.DataFrame]:
+    def processDatafiles(self, numThreads: int = 0) -> Optional[pl.DataFrame]:
         """
         Load all metrics, then iterate over each file and process the filters, ROIs, and metrics for each file concurrently using a thread pool.
 
@@ -435,8 +423,8 @@ class Project:
         # Determine number of threads
         # Priority: function argument > config file > default (12)
         config_threads = self.config.get("num_threads", None)
-        if numThreads is None:
-            if config_threads is not None:
+        if numThreads == 0:
+            if config_threads:
                 numThreads = int(config_threads)
             else:
                 numThreads = os.cpu_count() - 1 or 1  # use available cores - 1
@@ -456,14 +444,13 @@ class Project:
         results_list: list[dict] = []  # results_list = []
 
         # STOP FLAG
-        self._stop_event = threading.Event()
 
         with tqdm(total=len(self.filelist)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=numThreads
             ) as executor:
                 futures = {
-                    executor.submit(self.processSingleFile, singleFile): singleFile
+                    executor.submit(self.processSingleFile, singleFile, self._stop_event): singleFile
                     for singleFile in self.filelist
                 }
                 try:
@@ -530,8 +517,8 @@ class Project:
         self.results = result_dataframe
         return result_dataframe
 
-    def processSingleFile(self, datafilename: Path):
-        if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+    def processSingleFile(self, datafilename: PathLike, stop_event: threading.Event = threading.Event()) -> list[dict]:
+        if stop_event.is_set():
             return []
         logger.info("Loading file {}".format(datafilename))
         if "datafile_type" in self.config:
@@ -578,13 +565,13 @@ class Project:
 
         else:
             # no ROIs to process, but that's OK
-            if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+            if stop_event.is_set():
                 return []  # silent early-exit; avoids post-abort warning spam
             logger.warning("No ROIs defined, processing raw data.")
             roi_datalist.append(datafile)
 
         if len(roi_datalist) == 0:
-            if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+            if stop_event.is_set():
                 return []  # silent early-exit; avoids post-abort warning spam
             logger.warning(
                 "Qualifying ROIs fail to generate results for {}, no output generated.".format(
