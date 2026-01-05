@@ -1,3 +1,6 @@
+
+from __future__ import annotations
+
 import copy
 import json
 import traceback
@@ -17,7 +20,10 @@ from . import metrics
 
 import pathlib
 from pathlib import Path
+
+import loguru
 from loguru import logger
+
 from tqdm import tqdm
 import concurrent.futures
 import importlib.util
@@ -269,11 +275,11 @@ class Project:
           which benefits from thread-safe, non-blocking logging.
         """
         # Read settings from self.config
-        logfile = self.config.get("logfile", None)
-        log_level = self.config.get("log_level", "INFO")
+        logfile: Optional[str] = self.config.get("logfile", None)
+        log_level: str = str(self.config.get("log_level", "INFO"))
 
         # Filter factory bound to this Project instance's stop flag
-        def _silence_after_interrupt(record: dict) -> bool:
+        def _silence_after_interrupt(record: loguru.Record) -> bool:
             # record["level"].no: DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50
             if self._stop_event.is_set():
                 # Mute everything below CRITICAL once Ctrl+C triggered
@@ -362,7 +368,7 @@ class Project:
 
         return filter_func(datafile, **ldatafilter)
 
-    def processMetric(self, metric: dict, dataset: pydre.core.DriveData) -> dict:
+    def processMetric(self, metric: dict, dataset: DriveData) -> dict:
         """
         Handles running any metric definition
 
@@ -427,7 +433,7 @@ class Project:
             if config_threads:
                 numThreads = int(config_threads)
             else:
-                numThreads = os.cpu_count() - 1 or 1  # use available cores - 1
+                numThreads = (os.cpu_count() or 1) - 1 or 1  # use available cores - 1
 
         # Sanity check amd warnings
         if numThreads > 32:
