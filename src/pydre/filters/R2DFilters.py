@@ -4,14 +4,14 @@ import pathlib
 import polars as pl
 from loguru import logger
 
-import pydre.core
-from pydre.filters import registerFilter
+from ..core import DriveData
+from . import registerFilter
 
 THISDIR = pathlib.Path(__file__).resolve().parent
 
 
 @registerFilter()
-def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
+def modifyCriticalEventsCol(drivedata: DriveData):
     ident = drivedata.metadata["ParticipantID"]
     ident_groups = re.match(r"(\d)(\d)(\d)(\d\d\d\d)[wW](\d)", ident)
     if ident_groups is None:
@@ -34,7 +34,7 @@ def modifyCriticalEventsCol(drivedata: pydre.core.DriveData):
 
 @registerFilter()
 def ValidateDataStartEnd(
-    drivedata: pydre.core.DriveData, dataFile="", tol=100, trim_data=False
+    drivedata: DriveData, dataFile="", tol=100, trim_data=False
 ):
     """
     Ensure that the end of the drive data fits into the expected
@@ -125,7 +125,7 @@ def ValidateDataStartEnd(
 
 @registerFilter()
 def BinaryColReverse(
-    drivedata: pydre.core.DriveData, old_col: str, new_col="MinusOneCol"
+    drivedata: DriveData, old_col: str, new_col="MinusOneCol"
 ):
     """
     'reverses' a binary column's values.
@@ -138,7 +138,7 @@ def BinaryColReverse(
 
 
 @registerFilter()
-def CropStartPosition(drivedata: pydre.core.DriveData):
+def CropStartPosition(drivedata: DriveData):
     """
     Ensure that drive data starts from consistent point between sites.
     This code was decoupled from merge filter to zero UAB start points.
@@ -168,7 +168,7 @@ def CropStartPosition(drivedata: pydre.core.DriveData):
 
 @registerFilter()
 def MergeCriticalEventPositions(
-    drivedata: pydre.core.DriveData,
+    drivedata: DriveData,
     dataFile="",
     analyzePriorCutOff=False,
     criticalEventDist=250.0,
@@ -302,7 +302,7 @@ def MergeCriticalEventPositions(
 
 
 @registerFilter()
-def DesignateNonEventRegions(drivedata: pydre.core.DriveData, dataFile=""):
+def DesignateNonEventRegions(drivedata: DriveData, dataFile=""):
     """
     Imports specified csv dataFile for use in XPos-based filtering,
     using each start-end x range. dataFile also determines additional columns

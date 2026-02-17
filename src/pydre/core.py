@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import re
-from os import PathLike
 
 import polars
 from loguru import logger
@@ -12,7 +11,7 @@ from pathlib import Path
 
 class DriveData:
     data: polars.DataFrame
-    sourcefilename: PathLike
+    sourcefilename: Path
     sourcefiletype: Optional[str]
     roi: Optional[str]
     metadata: dict[str, Any]
@@ -48,7 +47,7 @@ class DriveData:
         return obj
 
     @classmethod
-    def init_old_rti(cls, sourcefilename: PathLike):
+    def init_old_rti(cls, sourcefilename: Path):
         obj = cls()
         obj.sourcefilename = sourcefilename
         obj.sourcefiletype = "old SimObserver"
@@ -63,7 +62,7 @@ class DriveData:
         return obj
 
     @classmethod
-    def init_rti(cls, sourcefilename: PathLike):
+    def init_rti(cls, sourcefilename: Path):
         obj = cls()
         obj.sourcefilename = sourcefilename
         obj.sourcefiletype = "SimObserver r2"
@@ -82,7 +81,7 @@ class DriveData:
         return obj
 
     @classmethod
-    def init_scanner(cls, sourcefilename: PathLike):
+    def init_scanner(cls, sourcefilename: Path):
         obj = cls()
         obj.sourcefilename = sourcefilename
         obj.sourcefiletype = "Scanner"
@@ -97,61 +96,39 @@ class DriveData:
         obj.metadata["DriveID"] = drive_id
         return obj
 
-    def loadData(self):
+    def loadData(self, infer_schema_length=None):
         """Load data from the internal filename into the DriveData object based on the fire"""
         if self.sourcefiletype == "old SimObserver":
-            self.__load_datfile()
+            self.__load_datfile(infer_schema_length)
         elif self.sourcefiletype == "SimObserver r2":
-            self.__load_datfile()
+            self.__load_datfile(infer_schema_length)
         elif self.sourcefiletype == "Scanner":
-            self.__load_scannerfile()
+            self.__load_scannerfile(infer_schema_length)
 
-    def __load_datfile(self):
+    def __load_datfile(self, infer_schema_length=None):
         """Load a single .dat file (space delimited csv)"""
-        infer_len = 5000
-        try:
-            if hasattr(self, "config") and isinstance(self.config, dict):
-                infer_len = int(self.config.get("infer_schema_length", 5000))
-        except Exception as e:
-            logger.warning(
-                f"Invalid infer_schema_length config ({e}), defaulting to 5000"
-            )
-            infer_len = 5000
-
-        logger.info(
-            f"Using infer_schema_length={infer_len} for file {self.sourcefilename}"
-        )
+        if infer_schema_length is None:
+            infer_schema_length = 5000
 
         self.data = polars.read_csv(
             self.sourcefilename,
             separator=" ",
             null_values=".",
             truncate_ragged_lines=True,
-            infer_schema_length=infer_len,
+            infer_schema_length=infer_schema_length,
         )
 
-    def __load_scannerfile(self):
+    def __load_scannerfile(self, infer_schema_length=None):
         """Load a single csv file containing data from the Scanners simulator"""
-        infer_len = 100000
-        try:
-            if hasattr(self, "config") and isinstance(self.config, dict):
-                infer_len = int(self.config.get("infer_schema_length", 100000))
-        except Exception as e:
-            logger.warning(
-                f"Invalid infer_schema_length config ({e}), defaulting to 100000"
-            )
-            infer_len = 100000
-
-        logger.info(
-            f"Using infer_schema_length={infer_len} for file {self.sourcefilename}"
-        )
+        if infer_schema_length is None:
+            infer_schema_length = 100000
 
         self.data = polars.read_csv(
             self.sourcefilename,
             separator="\t",
             null_values="null",
             truncate_ragged_lines=True,
-            infer_schema_length=infer_len,
+            infer_schema_length=infer_schema_length,
         )
 
     def copyMetaData(self, other: DriveData):

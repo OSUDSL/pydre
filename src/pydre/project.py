@@ -34,7 +34,7 @@ class Project:
     project_filename: Path  # used only for information
     definition: dict
     results: Optional[pl.DataFrame]
-    filelist: list[PathLike]
+    filelist: list[Path]
 
     def __init__(
         self,
@@ -155,7 +155,7 @@ class Project:
                     logger.info(f"Ignoring file {potential_file} based on ignore list.")
                     include_file = False
             if include_file:
-                self.filelist.append(potential_file)
+                self.filelist.append(Path(potential_file))
 
         if len(self.filelist) == 0 and len(filelist) > 0:
             logger.error("No data files left after removing ignored files.")
@@ -244,7 +244,7 @@ class Project:
                         f"Error loading custom filters from {filters_file}: {e}"
                     )
 
-    def resolve_file(self, pathname: PathLike) -> pathlib.Path:
+    def resolve_file(self, pathname: Path) -> pathlib.Path:
         """Resolve the given file to an absolute path based on the project file location.
         Args:
             pathname: A string or Path object.
@@ -381,14 +381,21 @@ class Project:
         """
 
         metric = copy.deepcopy(metric)
+        logger.info(metric)
         try:
             func_name = metric.pop("function")
-            metric_func = metrics.metricsList[func_name]
             report_name = metric.pop("name")
-            col_names = metrics.metricsColNames[func_name]
         except KeyError as e:
             logger.warning(
-                'Metric definitions require both "name" and "function". Malformed metrics definition'
+                'Metric definitions require both "name" and "function". Malformed metrics definition:'
+            )
+            raise e
+        try:
+            metric_func = metrics.metricsList[func_name]
+            col_names = metrics.metricsColNames[func_name]
+        except KeyError as e:
+            logger.error(
+                f'Metric function "{func_name}" not found in registered metrics.'
             )
             raise e
 
@@ -500,18 +507,8 @@ class Project:
                 pl.DataFrame()
             )  # return empty DataFrame to keep return type consistent
 
-        infer_schema_length = self.config.get("infer_schema_length", 5000)
-        try:
-            infer_schema_length = int(infer_schema_length)
-            logger.info(f"Using infer_schema_length={infer_schema_length}")
-        except (TypeError, ValueError):
-            logger.warning(
-                f"Invalid infer_schema_length={infer_schema_length}, defaulting to 5000"
-            )
-            infer_schema_length = 5000
-
         result_dataframe = pl.from_dicts(
-            results_list, infer_schema_length=infer_schema_length
+            results_list
         )
 
         # sorting_columns = ["Subject", "ScenarioName", "ROI"]
@@ -523,7 +520,7 @@ class Project:
         self.results = result_dataframe
         return result_dataframe
 
-    def processSingleFile(self, datafilename: PathLike, stop_event: threading.Event = threading.Event()) -> list[dict]:
+    def processSingleFile(self, datafilename: Path, stop_event: threading.Event = threading.Event()) -> list[dict]:
         if stop_event.is_set():
             return []
         logger.info("Loading file {}".format(datafilename))
@@ -541,8 +538,7 @@ class Project:
                 datafile = DriveData.init_rti(datafilename)
         else:
             datafile = DriveData.init_rti(datafilename)
-        datafile.config = self.config
-        datafile.loadData()
+        datafile.loadData(self.config.get("infer_schema_length", None))
         roi_datalist = []
         results_list = []
 

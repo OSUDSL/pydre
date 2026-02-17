@@ -3,7 +3,7 @@ import struct
 from loguru import logger
 from pathlib import Path
 import polars as pl
-import pydre.core
+from ..core import DriveData, ColumnsMatchError
 from typing import Optional
 from . import registerFilter
 import jenkspy
@@ -11,13 +11,13 @@ import jenkspy
 
 @registerFilter()
 def numberBinaryBlocks(
-    drivedata: pydre.core.DriveData,
+    drivedata: DriveData,
     binary_column="ButtonStatus",
     new_column="NumberedBlocks",
     only_on=0,
     limit_fill_null=700,
     extend_blocks=0,
-) -> pydre.core.DriveData:
+) -> DriveData:
     """Adds a column that separates data into blocks based on the value of another column
 
     If only_on is set to 1, it filters the data to only include rows where binary_col is set to 1.
@@ -73,8 +73,8 @@ def numberBinaryBlocks(
 
 @registerFilter()
 def Jenks(
-    drivedata: pydre.core.DriveData, oldCol: str, newCol: str
-) -> pydre.core.DriveData:
+    drivedata: DriveData, oldCol: str, newCol: str
+) -> DriveData:
     """
     Classifies the given column using Jenks natural breaks and outputs a binary column.
 
@@ -106,7 +106,7 @@ def Jenks(
 
 
 @registerFilter()
-def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
+def SimTimeFromDatTime(drivedata: DriveData) -> DriveData:
     """Copies DatTime to SimTime
 
     Note: Requires data columns
@@ -123,7 +123,7 @@ def SimTimeFromDatTime(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
 
 
 @registerFilter()
-def FixLinearLandRoadOffset(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
+def FixLinearLandRoadOffset(drivedata: DriveData) -> DriveData:
     """Replaces RoadOffset values with Corrected YPos
 
     RoadOffset becomes - YPos - 9.1
@@ -148,7 +148,7 @@ def FixLinearLandRoadOffset(drivedata: pydre.core.DriveData) -> pydre.core.Drive
 
 
 @registerFilter()
-def FixReversedRoadLinearLand(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
+def FixReversedRoadLinearLand(drivedata: DriveData) -> DriveData:
     """Fixes a section of reversed road in the LinearLand map
 
     RoadOffset becomes -RoadOffset between XPos 700 and 900
@@ -171,13 +171,13 @@ def FixReversedRoadLinearLand(drivedata: pydre.core.DriveData) -> pydre.core.Dri
 
 @registerFilter()
 def setinrange(
-    drivedata: pydre.core.DriveData,
+    drivedata: DriveData,
     coltoset: str,
     valtoset: float,
     colforrange: str,
     rangemin: float,
     rangemax: float,
-) -> pydre.core.DriveData:
+) -> DriveData:
     """Set values of one column based on the values of another column
 
     If the value of *colforrange* is outside the range of (*rangemin*, *rangemax*), then
@@ -205,7 +205,7 @@ def setinrange(
 
 
 @registerFilter()
-def relativeBoxPos(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
+def relativeBoxPos(drivedata: DriveData) -> DriveData:
     start_x = drivedata.data.get_column("XPos").min()
     drivedata.data = drivedata.data.with_columns(
         [
@@ -219,8 +219,8 @@ def relativeBoxPos(drivedata: pydre.core.DriveData) -> pydre.core.DriveData:
 
 @registerFilter()
 def zscoreCol(
-    drivedata: pydre.core.DriveData, col: str, newcol: str
-) -> pydre.core.DriveData:
+    drivedata: DriveData, col: str, newcol: str
+) -> DriveData:
     """Transform a column into a standardized z-score column
 
     Parameters:
@@ -240,8 +240,8 @@ def zscoreCol(
 
 @registerFilter()
 def speedLimitTransitionMarker(
-    drivedata: pydre.core.DriveData, speedlimitcol: str
-) -> pydre.core.DriveData:
+    drivedata: DriveData, speedlimitcol: str
+) -> DriveData:
     speedlimitpos = drivedata.data.select(
         [
             (pl.col(speedlimitcol).shift() != pl.col(speedlimitcol)).alias(
@@ -279,8 +279,8 @@ def speedLimitTransitionMarker(
 
 @registerFilter()
 def writeToCSV(
-    drivedata: pydre.core.DriveData, outputDirectory: str
-) -> pydre.core.DriveData:
+    drivedata: DriveData, outputDirectory: str
+) -> DriveData:
     logger.warning("Starting to write to CSV file")
     sourcefilename = Path(drivedata.sourcefilename).stem
     outputfilename = Path(outputDirectory).with_stem(sourcefilename).with_suffix(".csv")
@@ -309,8 +309,8 @@ def mergeSplitFiletime(hi: int, lo: int):
 
 @registerFilter()
 def removeDataOutside(
-    drivedata: pydre.core.DriveData, col: str, lower: float, upper: float
-) -> pydre.core.DriveData:
+    drivedata: DriveData, col: str, lower: float, upper: float
+) -> DriveData:
     """
     Removes data outside a certain range for a certain variable.
     Rows that have values outside the range [lower, upper] for the specified column are removed.
@@ -335,8 +335,8 @@ def removeDataOutside(
 
 @registerFilter()
 def removeDataInside(
-    drivedata: pydre.core.DriveData, col: str, lower: float, upper: float
-) -> pydre.core.DriveData:
+    drivedata: DriveData, col: str, lower: float, upper: float
+) -> DriveData:
     """
     Removes data inside a certain range for a certain variable.
     Rows that have values inside the range [lower, upper] for the specified column are removed.
@@ -361,12 +361,12 @@ def removeDataInside(
 
 @registerFilter()
 def separateData(
-    drivedata: pydre.core.DriveData,
+    drivedata: DriveData,
     col: str,
     threshold: float,
     high: int = 1,
     low: int = 0,
-) -> pydre.core.DriveData:
+) -> DriveData:
     """
     Creates a new column called `*col*_categorized` that is a binary categorization of the original column `col`.
     If the value in `col` is greater than or equal to `threshold`, it is categorized as "high" (1), otherwise as "low" (0).
@@ -397,8 +397,8 @@ def separateData(
 
 @registerFilter()
 def filterValuesBelow(
-    drivedata: pydre.core.DriveData, col: str, threshold=1
-) -> pydre.core.DriveData:
+    drivedata: DriveData, col: str, threshold=1
+) -> DriveData:
     """
     Removes rows from the dataset where the specified column's value is below a given threshold.
 
@@ -418,10 +418,10 @@ def filterValuesBelow(
 
 @registerFilter()
 def trimPreAndPostDrive(
-    drivedata: pydre.core.DriveData,
+    drivedata: DriveData,
     velocity_col: str = "Velocity",
     velocity_threshold: float = 0.1,
-) -> pydre.core.DriveData:
+) -> DriveData:
     """
     Trims the data to remove pre-drive and post-drive segments based on velocity.
     All data points under the velocity threshold are removed from the start and end of the dataset.
@@ -453,7 +453,7 @@ def trimPreAndPostDrive(
 
 @registerFilter()
 def nullifyOutlier(
-    drivedata: pydre.core.DriveData, threshold=1000, col="HeadwayDistance"
+    drivedata: DriveData, threshold=1000, col="HeadwayDistance"
 ):
     """
     Fixes outliers in 'col' by replacing values greater than the threshold with 'null'.
@@ -466,7 +466,7 @@ def nullifyOutlier(
 
     try:
         drivedata.checkColumns([col])
-    except pydre.core.ColumnsMatchError as e:
+    except ColumnsMatchError as e:
         logger.warning(f"Column '{col}' not found in the data: {e}")
         return drivedata
 
