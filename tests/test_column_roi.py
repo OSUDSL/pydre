@@ -68,11 +68,8 @@ def test_column_roi_missing_column_logs_error(caplog):
 
 
 def test_column_roi_columnname_none():
-    df = pl.DataFrame({"Task": ["A", "B"]})
-    dd = DriveData.init_test(df, "sim.dat")
     with pytest.raises(TypeError):
-        roi = ColumnROI(columnname=None)
-        roi.split(dd)
+        _ = ColumnROI(None)
 
 
 def test_column_roi_columnname_numeric():
@@ -101,37 +98,29 @@ def test_column_roi_missing_column_keyerror(caplog):
 
 
 def test_column_roi_sets_metadata_and_roi_field():
-    roi_df = pl.DataFrame({"roi": ["Zone1", "Zone2"], "column_value": ["A", "B"]})
-
-    df = pl.DataFrame({"column_value": ["A", "B", "C"], "other_col": [1, 2, 3]})
+    # Test that ROIName metadata is set correctly
+    df = pl.DataFrame({"Task": ["A", "A", "B"], "Value": [1, 2, 3]})
     drive_data = DriveData.init_test(df, "dummy_drive.csv")
 
-    roi = ColumnROI("column_value")
-    roi.roi_column_df = roi_df
-
+    roi = ColumnROI("Task")
     result_list = roi.split(drive_data)
 
+    # Check that ROIName is set in metadata
     roi_names = [res.metadata.get("ROIName", "") for res in result_list]
+    assert set(roi_names) == {"A", "B"}
 
-    assert "Zone1" in roi_names
-    assert "Zone2" in roi_names
+    # Check that roi field is also set
+    roi_fields = [res.roi for res in result_list]
+    assert set(roi_fields) == {"A", "B"}
 
 
-def test_column_roi_split_with_no_matching_values(caplog):
-    roi_df = pl.DataFrame({"roi": ["ZoneA"], "column_value": ["Z"]})
-
-    df = pl.DataFrame({"column_value": ["X", "Y"], "other_col": [10, 20]})
+def test_column_roi_split_with_no_matching_values():
+    # Test that empty result is returned when all values are null
+    df = pl.DataFrame({"Task": [None, None], "Value": [10, 20]})
     drive_data = DriveData.init_test(df, "drive.csv")
 
-    roi = ColumnROI("column_value")
-    roi.roi_column_df = roi_df
+    roi = ColumnROI("Task")
+    split_results = roi.split(drive_data)
 
-    with caplog.at_level("WARNING"):
-        split_results = roi.split(drive_data)
-
-    assert any(
-        "ROI value Z not found in data" in message for message in caplog.messages
-    )
-
-    for result in split_results:
-        assert "ROIName" not in result.metadata
+    # Should return empty list since all Task values are null
+    assert split_results == []

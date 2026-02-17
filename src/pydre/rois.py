@@ -1,5 +1,5 @@
-from os import PathLike
-
+from pathlib import Path
+from abc import ABC, abstractmethod
 from .core import DriveData
 import polars as pl
 import typing
@@ -9,10 +9,8 @@ from collections.abc import Iterable
 from polars.exceptions import ColumnNotFoundError
 
 
-class ROIProcessor:
-    def __init__(self, filename: PathLike, nameprefix: str = ""):
-        pass
-
+class ROIProcessor(ABC):
+    @abstractmethod
     def split(
         self, sourcedrivedata: DriveData
     ) -> Iterable[DriveData]:
@@ -58,7 +56,7 @@ class TimeROI(ROIProcessor):
     rois_meta: set
     timecol: str
 
-    def __init__(self, filename: PathLike, timecol: str = "DatTime"):
+    def __init__(self, filename: Path, timecol: str = "DatTime"):
         # parse time filename values
         pl_rois = pl.read_csv(filename)
         roi_list = []
@@ -174,7 +172,7 @@ class SpaceROI(ROIProcessor):
     x_column_name = "XPos"
     y_column_name = "YPos"
 
-    def __init__(self, filename: PathLike, nameprefix: str = ""):
+    def __init__(self, filename: Path, nameprefix: str = ""):
         # parse time filename values
         # roi_info is a data frame containing the cutoff points for the region in each row.
         # It's columns must be roi, X1, X2, Y1, Y2
@@ -202,7 +200,7 @@ class SpaceROI(ROIProcessor):
                 ymax = max(roi_location.get("Y1"), roi_location.get("Y2"))
             except KeyError:
                 logger.error(
-                    f"ROI {roi_name} does not contain expected columns {self.roi_info.columns}"
+                    f"ROI {roi_name} does not contain expected columns {self.roi_info.keys()}"
                 )
                 return return_list
             except TypeError as e:
@@ -244,7 +242,7 @@ class ColumnROI(ROIProcessor):
             raise TypeError(f"Expected roi_column to be str, got {type(roi_column)}")
         self.roi_column = roi_column
 
-    def split(self, sourcedrivedata):
+    def split(self, sourcedrivedata) -> Iterable[DriveData]:
         df = sourcedrivedata.data
 
         if self.roi_column not in df.columns:
@@ -259,28 +257,12 @@ class ColumnROI(ROIProcessor):
 
         result = []
 
-        if hasattr(self, "roi_column_df"):
-            for row in self.roi_column_df.iter_rows(named=True):
-                column_value = row[self.roi_column]
-                roi_name = row.get("roi", str(column_value))
-
-                matched_rows = df_valid.filter(pl.col(self.roi_column) == column_value)
-                if matched_rows.is_empty():
-                    logger.warning(f"ROI value {column_value} not found in data")
-                    continue
-
-                new_dd = sourcedrivedata.copy()
-                new_dd.data = matched_rows
-                new_dd.roi = roi_name
-                new_dd.metadata["ROIName"] = roi_name
-                result.append(new_dd)
-        else:
-            for gname, gdata in df_valid.group_by(self.roi_column):
-                roi_name = str(gname[0])
-                new_dd = sourcedrivedata.copy()
-                new_dd.data = gdata
-                new_dd.roi = roi_name
-                new_dd.metadata["ROIName"] = roi_name
-                result.append(new_dd)
+        for gname, gdata in df_valid.group_by(self.roi_column):
+            roi_name = str(gname[0])
+            new_dd = sourcedrivedata.copy()
+            new_dd.data = gdata
+            new_dd.roi = roi_name
+            new_dd.metadata["ROIName"] = roi_name
+            result.append(new_dd)
 
         return result
