@@ -1,5 +1,4 @@
 [config]
-datafiles = ["../test_datfiles/test_infer_schema.dat"]
 infer_schema_length = 5
 num_threads = 1
 

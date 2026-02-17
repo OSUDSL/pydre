@@ -1,6 +1,5 @@
 [config]
-datafiles = ["../test_datfiles/test_infer_schema.dat"]
-infer_schema_length = 5
+infer_schema_length = 2
 num_threads = 1
 
 [metrics.meanXPos]
