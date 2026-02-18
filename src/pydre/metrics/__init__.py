@@ -3,9 +3,9 @@ __all__ = ["registerMetric", "common", "box", "driverdistraction", "gazeanglecut
 from functools import wraps
 from typing import Any, Optional, Callable, Concatenate
 from loguru import logger
-import pydre.core
+from ..core import DriveData
 
-metricsList: dict[str, Callable[Concatenate[pydre.core.DriveData, ...], Any]] = {}
+metricsList: dict[str, Callable[Concatenate[DriveData, ...], Any]] = {}
 metricsColNames: dict[str, list[str]] = {}
 
 
@@ -13,9 +13,9 @@ def registerMetric(
     metricname: Optional[str] = None, columnnames: Optional[list[str]] = None
 ) -> Callable:
     def registering_decorator(
-        func: Callable[Concatenate[pydre.core.DriveData, ...], Any],
-    ) -> Callable[Concatenate[pydre.core.DriveData, ...], Any]:
-        name: str = metricname or func.__name__
+        func: Callable[Concatenate[DriveData, ...], Any],
+    ) -> Callable[Concatenate[DriveData, ...], Any]:
+        name: str = metricname or getattr(func, '__name__', repr(func))
         # register function
         metricsList[name] = func
         if columnnames:

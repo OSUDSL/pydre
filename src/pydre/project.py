@@ -18,6 +18,9 @@ from .core import DriveData
 from . import filters
 from . import metrics
 
+from .filters import *
+from .metrics import *
+
 import pathlib
 from pathlib import Path
 
@@ -381,7 +384,6 @@ class Project:
         """
 
         metric = copy.deepcopy(metric)
-        logger.info(metric)
         try:
             func_name = metric.pop("function")
             report_name = metric.pop("name")
