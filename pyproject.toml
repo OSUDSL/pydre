@@ -51,8 +51,7 @@ dev = [
 [dependency-groups]
 dev = [
     "ptpython",
-    "mkdocs>=1.6.0",
-    "mkdocs-material",
+    "zensical",
     "mkdocstrings[python]",
     "black",
     "mypy",

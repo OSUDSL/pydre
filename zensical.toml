@@ -1,0 +1,26 @@
+[project]
+site_name = "Pydre"
+site_description = "Documentation for Pydre, a driving simulation data processing engine."
+extra_css = ["stylesheets/extra.css"]
+
+[project.theme]
+icon.logo = "lucide/car"
+variant = "modern"
+
+[project.theme.palette]
+scheme = "OSU"
+primary = "custom"
+
+[project.plugins.mkdocstrings.handlers.python]
+inventories = ["https://docs.python.org/3/objects.inv"]
+paths = ["src"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+inherited_members = true
+show_source = false
+show_root_heading = false
+separate_signature = true
+line_length = 100
+show_signature_annotations = true
+signature_crossrefs = true

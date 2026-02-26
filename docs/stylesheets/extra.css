@@ -9,3 +9,7 @@
   --md-accent-fg-color--transparent:   #A7B1B720;
 }
 
+:root {
+  --md-text-font: "BuckeyeSans";
+
+}
