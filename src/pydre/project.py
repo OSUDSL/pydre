@@ -1,11 +1,9 @@
-
 from __future__ import annotations
 
 import copy
 import json
 import traceback
 import os
-from os import PathLike
 
 import polars as pl
 import sys
@@ -135,7 +133,7 @@ class Project:
         self._load_custom_functions()
 
         # resolve the file paths
-        filelist: list[PathLike] = []
+        filelist: list[Path] = []
         for fn in self.config.get("datafiles", []):
             # convert relative path to absolute path
             fn = Path(fn)
@@ -146,7 +144,7 @@ class Project:
             datafiles = sorted(datapath.parent.glob(datapath.name))
             filelist.extend(datafiles)
 
-        ignore_files: list[PathLike] = []
+        ignore_files: list[Path] = []
         for fn in self.config.get("ignore", []):
             fn = Path(fn)
             ignore_files.append(fn)
@@ -321,22 +319,21 @@ class Project:
         Returns:
                 A list of drivedata objects containing the data for each region of interest
         """
-        roi_obj: rois.ROIProcessor
-        roi_type = roi["type"]
+        roi_type = roi.get("type")
+
         if roi_type == "time":
-            resolved_filename = self.resolve_file(roi["filename"])
-            logger.info("Processing time ROI " + str(resolved_filename))
-            if "timecol" in roi:
-                roi_obj = rois.TimeROI(resolved_filename, roi["timecol"])
-            else:
-                roi_obj = rois.TimeROI(resolved_filename)
+            roi_params = roi.copy()
+            roi_params["filename"] = self.resolve_file(roi["filename"])
+            logger.info("Processing time ROI " + str(roi_params["filename"]))
+            roi_obj = rois.TimeROI(**roi_params)
         elif roi_type == "rect":
-            logger.info("Processing space ROI " + roi["filename"])
-            roi_filename = self.resolve_file(roi["filename"])
-            roi_obj = rois.SpaceROI(roi_filename)
+            roi_params = roi.copy()
+            roi_params["filename"] = self.resolve_file(roi["filename"])
+            logger.info("Processing space ROI " + str(roi_params["filename"]))
+            roi_obj = rois.SpaceROI(**roi_params)
         elif roi_type == "column":
             logger.info("Processing column ROI " + roi["columnname"])
-            roi_obj = rois.ColumnROI(roi["columnname"])
+            roi_obj = rois.ColumnROI(**roi)
         else:
             logger.warning("Unknown ROI type {}".format(roi_type))
             return [datafile]

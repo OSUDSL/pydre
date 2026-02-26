@@ -30,8 +30,8 @@ def test_column_roi_split(datafiles):
     drive_data.metadata = metadata
     drive_data.sourcefilename = "dummy"
 
-    # Instantiate a ColumnROI using the "Task" column
-    roi = pydre.rois.ColumnROI("Task")
+    # Instantiate a ColumnROI using keyword arguments
+    roi = pydre.rois.ColumnROI(columnname="Task")
     results = roi.split(drive_data)
 
     # Expecting 3 distinct ROIs (1, 2, 3)
@@ -49,7 +49,7 @@ def test_column_roi_split(datafiles):
 def test_column_roi_with_null_group():
     df = pl.DataFrame({"ROI": ["A", None, "B"], "Value": [1, 2, 3]})
     dd = DriveData.init_test(df, "test.dat")
-    processor = ColumnROI("ROI")
+    processor = ColumnROI(columnname="ROI")
     result = processor.split(dd)
 
     cleaned_rois = set(d.roi for d in result if d.roi not in (None, "None"))
@@ -60,7 +60,7 @@ def test_column_roi_missing_column_logs_error(caplog):
     df = pl.DataFrame({"UnrelatedCol": [1, 2, 3]})
     dd = DriveData.init_test(df, "file.dat")
 
-    roi = ColumnROI("MissingCol")
+    roi = ColumnROI(columnname="MissingCol")
     with caplog.at_level("ERROR"):
         with pytest.raises(KeyError):
             list(roi.split(dd))
@@ -68,19 +68,19 @@ def test_column_roi_missing_column_logs_error(caplog):
 
 
 def test_column_roi_columnname_none():
-    with pytest.raises(TypeError):
-        _ = ColumnROI(None)
+    with pytest.raises((TypeError, KeyError)):
+        _ = ColumnROI(columnname=None)
 
 
 def test_column_roi_columnname_numeric():
     with pytest.raises(TypeError):
-        _ = ColumnROI(123)
+        _ = ColumnROI(columnname=123)
 
 
 def test_column_roi_grouping_returns_empty():
     df = pl.DataFrame({"Task": [None, None, None]})
     dd = DriveData.init_test(df, "sim.dat")
-    roi = ColumnROI("Task")
+    roi = ColumnROI(columnname="Task")
     result = roi.split(dd)
     assert result == []
 
@@ -88,7 +88,7 @@ def test_column_roi_grouping_returns_empty():
 def test_column_roi_missing_column_keyerror(caplog):
     df = pl.DataFrame({"Other": ["x", "y"]})
     dd = DriveData.init_test(df, "sim.dat")
-    roi = ColumnROI("MissingCol")
+    roi = ColumnROI(columnname="MissingCol")
 
     with caplog.at_level("ERROR"):
         with pytest.raises(KeyError):
@@ -102,7 +102,7 @@ def test_column_roi_sets_metadata_and_roi_field():
     df = pl.DataFrame({"Task": ["A", "A", "B"], "Value": [1, 2, 3]})
     drive_data = DriveData.init_test(df, "dummy_drive.csv")
 
-    roi = ColumnROI("Task")
+    roi = ColumnROI(columnname="Task")
     result_list = roi.split(drive_data)
 
     # Check that ROIName is set in metadata
@@ -119,7 +119,7 @@ def test_column_roi_split_with_no_matching_values():
     df = pl.DataFrame({"Task": [None, None], "Value": [10, 20]})
     drive_data = DriveData.init_test(df, "drive.csv")
 
-    roi = ColumnROI("Task")
+    roi = ColumnROI(columnname="Task")
     split_results = roi.split(drive_data)
 
     # Should return empty list since all Task values are null

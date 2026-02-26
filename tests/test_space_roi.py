@@ -121,8 +121,8 @@ def test_space_roi_rectangle_out_of_bounds_logs_warning(
 
 def test_space_roi_invalid_type_logs_error(tmp_path, basic_points_df, caplog):
     """
-    When ROI CSV contains non-numeric coordinate, split should return empty list
-    and log an ERROR about bad datatype.
+    When ROI CSV contains non-numeric coordinate, SpaceROI constructor should
+    raise ValueError and log an ERROR about non-numeric coordinate columns.
     """
     roi_df = pl.DataFrame(
         {
@@ -136,15 +136,11 @@ def test_space_roi_invalid_type_logs_error(tmp_path, basic_points_df, caplog):
     path = tmp_path / "invalid_space_roi.csv"
     roi_df.write_csv(str(path))
 
-    dd = DriveData.init_test(basic_points_df, "dummy.dat")
-
-    roi = SpaceROI(str(path))
     with caplog.at_level("ERROR"):
-        results = roi.split(dd)
+        with pytest.raises(ValueError, match="Coordinate columns must be numeric"):
+            SpaceROI(str(path))
 
-    assert results == []
-    # Look for 'bad datatype' substring in error log
-    assert re.search(r"bad datatype", caplog.text.lower())
+    assert re.search(r"non-numeric coordinate columns", caplog.text.lower())
 
 
 # TODO: Implement tests for correct input handling in the ROIs tests. At the moment, only error scenarios are tested. (Use test files for validation)
