@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import argparse
 
-from pydre.run import parse_arguments, setup_logging, run_project, main
+from pydre.run import parse_arguments, run_project, main
 
 FIXTURE_DIR = Path(__file__).parent.resolve() / "test_data"
 
@@ -65,28 +65,6 @@ def test_parse_arguments_missing_required():
         parse_arguments([])
 
 
-def test_setup_logging_valid(mock_logger):
-    """Test logging setup with valid log level."""
-    result = setup_logging("INFO")
-
-    mock_logger["remove"].assert_called_once()
-    mock_logger["add"].assert_called_once()
-    assert mock_logger["add"].call_args[1]["level"] == "INFO"
-    assert result == "INFO"
-
-
-def test_setup_logging_invalid(mock_logger):
-    """Test logging setup with invalid log level."""
-    result = setup_logging("INVALID")
-
-    mock_logger["remove"].assert_called_once()
-    mock_logger["add"].assert_called_once()
-    assert mock_logger["add"].call_args[1]["level"] == "WARNING"
-    mock_logger["warning"].assert_called_once_with(
-        "Command line log level (-l) invalid. Defaulting to WARNING"
-    )
-    assert result == "WARNING"
-
 
 def test_run_project_basic(mock_project):
     """Test basic project run functionality."""
@@ -95,7 +73,7 @@ def test_run_project_basic(mock_project):
     result = run_project("project.toml", ["data.dat"], "output.csv")
 
     mock_project_class.assert_called_once_with(
-        "project.toml", ["data.dat"], "output.csv"
+        "project.toml", ["data.dat"], "output.csv", log_level="WARNING"
     )
     expected_threads = max(1, int(os.cpu_count() * 0.75))
 
@@ -128,7 +106,6 @@ def test_run_project_missing_file(mocker):
 def test_main_success(mocker):
     """Test successful execution of main function."""
     mock_parse_args = mocker.patch("pydre.run.parse_arguments")
-    mock_setup_logging = mocker.patch("pydre.run.setup_logging")
     mock_run_project = mocker.patch("pydre.run.run_project")
 
     mock_parse_args.return_value = argparse.Namespace(
@@ -141,15 +118,15 @@ def test_main_success(mocker):
     result = main(["dummy"])
 
     mock_parse_args.assert_called_once_with(["dummy"])
-    mock_setup_logging.assert_called_once_with("INFO")
-    mock_run_project.assert_called_once_with("project.toml", ["data.dat"], "output.csv")
+    mock_run_project.assert_called_once_with(
+        "project.toml", ["data.dat"], "output.csv", log_level="INFO"
+    )
     assert result == 0
 
 
 def test_main_project_error(mocker, mock_logger):
     """Test main function with project processing error."""
     mock_parse_args = mocker.patch("pydre.run.parse_arguments")
-    mock_setup_logging = mocker.patch("pydre.run.setup_logging")
     mocker.patch(
         "pydre.run.run_project", side_effect=FileNotFoundError("File not found")
     )

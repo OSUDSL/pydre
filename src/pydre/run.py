@@ -32,25 +32,12 @@ def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
-def setup_logging(level: str) -> str:
-    """Set up logging with the specified level."""
-    logger.remove()
-    level = level.upper()
-    accepted_levels = ["DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
-    if level in accepted_levels:
-        logger.add(sys.stderr, level=level)
-        return level
-    else:
-        logger.add(sys.stderr, level="WARNING")
-        logger.warning("Command line log level (-l) invalid. Defaulting to WARNING")
-        return "WARNING"
-
-
 def run_project(
     projectfile: str,
     datafiles: Optional[List[str]],
     outputfile: Optional[str],
     num_threads: int = 0,
+    log_level: str = "WARNING",
 ) -> project.Project:
     """Create, process and save a project."""
 
@@ -89,7 +76,7 @@ def run_project(
             num_threads = 1
 
     # Initialize and run project
-    p = project.Project(projectfile, datafiles, outputfile)
+    p = project.Project(projectfile, datafiles, outputfile, log_level=log_level)
     p.processDatafiles(numThreads=num_threads)
     p.saveResults()
     return p
@@ -99,9 +86,9 @@ def main(args: Optional[List[str]] = None) -> int:
     """Main entry point for the application."""
     try:
         parsed_args = parse_arguments(args)
-        setup_logging(parsed_args.warninglevel)
         run_project(
-            parsed_args.projectfile, parsed_args.datafiles, parsed_args.outputfile
+            parsed_args.projectfile, parsed_args.datafiles, parsed_args.outputfile,
+            log_level=parsed_args.warninglevel,
         )
         return 0
     except Exception as e:

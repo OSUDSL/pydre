@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import copy
 import json
+import logging
 import traceback
 import os
+import warnings
 
 import polars as pl
 import sys
@@ -42,6 +44,7 @@ class Project:
         projectfilename: str,
         additional_data_paths: Optional[list[str]] = None,
         outputfile: Optional[str] = None,
+        log_level: Optional[str] = None,
     ):
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
@@ -49,6 +52,7 @@ class Project:
         self.results = None
         self.filelist = []
         self._stop_event = threading.Event()
+        self._cli_log_level = log_level  # preserve CLI-specified level
         try:
             logger.info("Loading project from: " + str(self.project_filename))
             with open(self.project_filename, "rb") as project_file:
@@ -277,7 +281,18 @@ class Project:
         """
         # Read settings from self.config
         logfile: Optional[str] = self.config.get("logfile", None)
-        log_level: str = str(self.config.get("log_level", "INFO"))
+        accepted_levels = ["DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
+        # CLI-specified level takes precedence over the TOML config value,
+        # which in turn falls back to "INFO".
+        raw_level: str = str(
+            self._cli_log_level.upper()
+            if self._cli_log_level is not None
+            else self.config.get("log_level", "INFO")
+        )
+        if raw_level not in accepted_levels:
+            log_level = "WARNING"
+        else:
+            log_level = raw_level
 
         # Filter factory bound to this Project instance's stop flag
         def _silence_after_interrupt(record: loguru.Record) -> bool:
@@ -293,6 +308,12 @@ class Project:
         # Re-add stderr sink (keep existing behavior)
         logger.add(sys.stderr, level=log_level, filter=_silence_after_interrupt)
 
+        if raw_level not in accepted_levels:
+            logger.warning(
+                f"Log level '{raw_level}' is invalid. Defaulting to WARNING. "
+                f"Accepted levels: {accepted_levels}"
+            )
+
         # If a logfile path is provided, add a file sink (append-only)
         if logfile:
             # Resolve relative path against the project file location for convenience
@@ -305,6 +326,54 @@ class Project:
                 backtrace=False,  # set True if you want very detailed tracebacks
                 diagnose=False,  # set True to include variable values in tracebacks
             )
+
+        # --- Bridge Python warnings → loguru ---
+        # 1. Redirect warnings that flow through stdlib logging (e.g. DeprecationWarning
+        #    captured by logging.captureWarnings) into loguru via its logging intercept.
+        logging.captureWarnings(True)
+
+        # Set up a loguru sink that intercepts stdlib logging records so that
+        # captureWarnings output lands in loguru instead of the default handler.
+        class _InterceptHandler(logging.Handler):
+            def emit(self, record: logging.LogRecord) -> None:
+                # Map stdlib level to loguru level name
+                try:
+                    level = logger.level(record.levelname).name
+                except ValueError:
+                    level = str(record.levelno)
+                # Walk the call stack to find the true origin of the warning
+                frame, depth = logging.currentframe(), 0
+                while frame and (depth == 0 or frame.f_code.co_filename == logging.__file__):
+                    frame = frame.f_back
+                    depth += 1
+                logger.opt(depth=depth, exception=record.exc_info).log(
+                    level, record.getMessage()
+                )
+
+        # Attach the intercept handler to the root stdlib logger (once)
+        stdlib_root = logging.getLogger()
+        # Avoid adding duplicate handlers if _configure_logging is called more than once
+        if not any(isinstance(h, _InterceptHandler) for h in stdlib_root.handlers):
+            stdlib_root.handlers.clear()
+            stdlib_root.addHandler(_InterceptHandler())
+            stdlib_root.setLevel(0)  # let loguru decide what to show
+
+        # 2. Also override warnings.showwarning directly so that libraries which call
+        #    warnings.warn() without going through logging are still captured.
+        from typing import TextIO
+        def _showwarning(
+            message: Warning | str,
+            category: type[Warning],
+            filename: str,
+            lineno: int,
+            file: TextIO | None = None,
+            line: str | None = None,
+        ) -> None:
+            logger.opt(depth=2).warning(
+                f"{filename}:{lineno}: {category.__name__}: {message}"
+            )
+
+        warnings.showwarning = _showwarning  # type: ignore[assignment]
 
     def processROI(
         self, roi: dict, datafile: DriveData
@@ -354,7 +423,7 @@ class Project:
         Returns:
             The augmented DriveData object
         """
-        ldatafilter = copy.deepcopy(datafilter)
+        ldatafilter = datafilter.copy()
         try:
             func_name = ldatafilter.pop("function")
             filter_func = filters.filtersList[func_name]
@@ -380,7 +449,7 @@ class Project:
             A dictionary containing the results of the metric
         """
 
-        metric = copy.deepcopy(metric)
+        metric = metric.copy()
         try:
             func_name = metric.pop("function")
             report_name = metric.pop("name")
@@ -582,7 +651,7 @@ class Project:
             return []
 
         for data in roi_datalist:
-            result_dict = copy.deepcopy(datafile.metadata)
+            result_dict = datafile.metadata.copy()
             result_dict["ROI"] = data.roi
 
             for metric in self.definition["metrics"]:

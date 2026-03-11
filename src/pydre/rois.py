@@ -95,7 +95,7 @@ class TimeROI(ROIProcessor):
         if len(self.rois_meta) > 0:
             for k, v in self.rois.items():
                 for meta in self.rois_meta:
-                    if type(v[meta]) != str:
+                    if type(v[meta]) is str:
                         if v[meta] != float(sourcedrivedata.metadata[meta]):
                             del matching_rois[k]
                             break
