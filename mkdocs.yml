@@ -34,9 +34,9 @@ markdown_extensions:
 nav:
   - Home: 'index.md'
   - Tutorial:
-    - Installation: 'tutorial/installation2.md'
-    - Getting Started: 'tutorial/getting_started2.md'
-    - Custom Metrics: 'tutorial/custom_metrics2.md'
+    - Installation: 'tutorial/installation.md'
+    - Getting Started: 'tutorial/getting_started.md'
+    - Custom Metrics: 'tutorial/custom_metrics.md'
     - Setup Just: 'tutorial/justSetup.md'
   - Reference:
     - Filter definitions: 'reference/filters.md'

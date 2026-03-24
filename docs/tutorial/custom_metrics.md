@@ -90,11 +90,11 @@ my_project/
 
 ```bash
 cd my_project
-rye add pydre
-rye sync
+uv add pydre
+uv sync
 ```
 
-This will initialize the directory like a python package using *rye* and the pydre package. This will use the latest [published version of *pydre*](https://pypi.org/project/pydre/) from PyPI. If you want to use the latest development version of *pydre*, you can clone the repository and add it as a dependency instead.
+This will initialize the directory like a python package using *uv* and the pydre package. This will use the latest [published version of *pydre*](https://pypi.org/project/pydre/) from PyPI. If you want to use the latest development version of *pydre*, you can clone the repository and add it as a dependency instead.
 
 ### 3. Write Your Custom Metrics
 
@@ -143,12 +143,12 @@ var = "XPos"
 
 ```
 
-### 4. Run Pydre with Your Custom Metrics
+### 5. Run Pydre with Your Custom Metrics
 
 Run Pydre with your project file:
 
 ```bash
-rye run pydre -p examples/custom_project/custom_test.toml -d examples/custom_project/data/Experimenter_S1_Tutorial_11002233.dat -o custom.csv
+uv run pydre -p examples/custom_project/custom_test.toml -d examples/custom_project/data/Experimenter_S1_Tutorial_11002233.dat -o custom.csv
 ```
 
 ## How It Works

@@ -1,8 +1,8 @@
 # Getting Started
 
-Pydre is a Python application, run from the command line. 
+Pydre is a Python application, run from the command line. This guide walks you through creating a project file and running it on example data to produce your first aggregated metrics output.
 
-# pydre.run
+## Running Pydre
 
 The main entry point to run Pydre is `pydre`. This application that allows the user to analyze data using command line arguments.
 
@@ -20,10 +20,10 @@ The user must enter the path for the project file and data file in order to aggr
   
 Command Line Syntax:
 
-If pydre is installed via `rye` (similar for `uv`):
+If pydre is installed via `uv` (recommended):
 
 ```
-rye run pydre -p [project file path] -d [data file path] 
+uv run pydre -p [project file path] -d [data file path] 
     -o [output file name] -l [warning level]
 ```
 
@@ -37,7 +37,7 @@ pydre -p [project file path] -d [data file path]
 
 Example execution: 
 ```
-rye run pydre -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
+uv run pydre -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
 ```
 
 You can download the example files [here](examples.zip).
@@ -75,7 +75,7 @@ After saving the project file, you can then run:
 
 ```bash
 
-rye run pydre -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
+uv run pydre -p examples/tutorial/tutorial.toml -d examples/tutorial/Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
 ```
 
 This will run the project commands on the specified data file and out the result in `tutorial.csv`. If you wanted to run on multiple data files, you could enter `-d ../datafiles/tutorialdata/*.dat` or something similar. Since we have no ROIs, the output csv will contain one row per input data file:
