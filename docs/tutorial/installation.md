@@ -6,7 +6,7 @@ Pydre is a Python package that can be installed using a Python package manager. 
 
 # Set up a new Pydre project directory with *uv*
 
-# 1. Install UV
+## 1. Install UV
 
 Follow the instructions at [uv's official website](https://docs.astral.sh/uv/) to install it on your system. You will likely need to restart your terminal after installation.
 
@@ -62,7 +62,7 @@ To run a specific analysis target using just:
 uv run just overallMetrics
 ```
 
-If you want to try an example project file, follow along with the [getting started tutorial](getting_started.md).
+If you want to try an example project file, follow along with the [getting started tutorial](running_pydre.md).
 
 
 ## Troubleshooting
@@ -101,7 +101,7 @@ Activate the virtual environment:
 
 - On Windows:
   ```bash
-  venv\Scripts\activate
+  venv/Scripts/activate
   ```
 - On macOS/Linux:
   ```bash

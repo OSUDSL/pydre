@@ -34,10 +34,11 @@ markdown_extensions:
 nav:
   - Home: 'index.md'
   - Tutorial:
-    - Installation: 'tutorial/installation.md'
     - Getting Started: 'tutorial/getting_started.md'
+    - Installation: 'tutorial/installation.md'
+    - Using Pydre: 'tutorial/running_pydre.md'
     - Custom Metrics: 'tutorial/custom_metrics.md'
-    - Setup Just: 'tutorial/justSetup.md'
+    - Use Just for Pydre Project: 'tutorial/justSetup.md'
   - Reference:
     - Filter definitions: 'reference/filters.md'
     - Metric definitions: 'reference/metrics.md'
