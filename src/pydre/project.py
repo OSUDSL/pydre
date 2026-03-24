@@ -637,7 +637,7 @@ class Project:
             # no ROIs to process, but that's OK
             if stop_event.is_set():
                 return []  # silent early-exit; avoids post-abort warning spam
-            logger.warning("No ROIs defined, processing raw data.")
+            logger.info(f"No ROIs defined for {datafilename}, processing raw data.")
             roi_datalist.append(datafile)
 
         if len(roi_datalist) == 0:
