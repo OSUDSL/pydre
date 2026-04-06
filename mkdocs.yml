@@ -36,7 +36,7 @@ nav:
   - Tutorial:
     - Getting Started: 'tutorial/getting_started.md'
     - Installation: 'tutorial/installation.md'
-    - Using Pydre: 'tutorial/running_pydre.md'
+    - Basic Analysis: 'tutorial/basic_analysis.md'
     - Custom Metrics: 'tutorial/custom_metrics.md'
     - Use Just for Pydre Project: 'tutorial/justSetup.md'
   - Reference:

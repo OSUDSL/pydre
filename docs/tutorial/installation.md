@@ -62,7 +62,7 @@ To run a specific analysis target using just:
 uv run just overallMetrics
 ```
 
-If you want to try an example project file, follow along with the [getting started tutorial](running_pydre.md).
+If you want to try an example project file, follow along with the [getting started tutorial](basic_analysis.md).
 
 
 ## Troubleshooting
