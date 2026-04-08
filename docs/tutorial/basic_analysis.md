@@ -1,4 +1,6 @@
-# Basic Analysis
+---
+title: "Basic Analysis"
+---
  
 Pydre is a Python application run from the command line. This guide walks you through creating your first project file and running it on example data to produce your first aggregated metrics output.
  
@@ -52,8 +54,16 @@ Pydre will process the data file and write the results to `tutorial.csv`. With n
 |---|---|---|---|---|---|
 | S1 | Experimenter | Tutorial | 11002233 | | 0.0456... |
 
-The `ROI` column is blank because no regions of interest were specified. The `SDLP` column header matches the name given in the project file.
+The first four columns are parsed from the data filename — Pydre expects filenames in the format `Mode_Subject_ScenarioName_UniqueID.dat`. The `ROI` column is blank because no regions of interest were specified. The `SDLP` column header matches the name given in the project file.
 
 ---
 
-Once you're comfortable running basic analyses, move on to [Custom Metrics](custom_metrics.md) to learn how to write your own metric functions.
+## What's next
+ 
+You now know how to run a basic analysis. Custom metrics are a significant step up in complexity. You'll be writing Python functions that operate directly on the data. Before moving on, make sure you're comfortable with:
+ 
+- editing the project file to add or change metrics
+- understanding which columns your data file contains (you can check with `-l debug` to see column names logged at startup)
+- interpreting the output CSV
+ 
+When you're ready: [Custom Metrics](custom_metrics.md)

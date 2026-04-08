@@ -9,7 +9,7 @@ Before you can use Pydre, you need to install it and set up a project directory.
 
 By the end of this step you'll have Pydre installed and be able to run `pydre --help` to confirm everything is working.
 
-## 2. Running Pydre
+## 2. Basic Analysis
 With Pydre installed, the next step is learning how to run it. Pydre is driven by a project file, a TOML file where you define which metrics to compute and which regions of your data to focus on. You point Pydre at a project file and a data file, and it produces a CSV of aggregated results.
 
 This step walks through creating your first project file and running it on example data, so you can see exactly what the inputs and outputs look like end-to-end.
@@ -25,4 +25,4 @@ Once your analysis is working, you'll want a repeatable way to run it, especiall
 This step walks through creating a justfile that automates your Pydre runs so that a full analysis pipeline is a single command: `uv run just`
 
 -----
-By the end of this tutorial you'll have a working, automated Pydre project that you can adapt to your own simulator data and analysis needs. Start with the Installation guide to get set up.
+By the end of this tutorial you'll have a working, automated Pydre project that you can adapt to your own simulator data and analysis needs. Start with the [Installation](installation.md) guide to get set up.

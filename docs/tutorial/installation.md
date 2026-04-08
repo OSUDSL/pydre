@@ -62,7 +62,7 @@ To run a specific analysis target using just:
 uv run just overallMetrics
 ```
 
-If you want to try an example project file, follow along with the [getting started tutorial](basic_analysis.md).
+If you want to try an example project file, follow along with the [Basic Analysis tutorial](basic_analysis.md).
 
 
 ## Troubleshooting
@@ -126,6 +126,10 @@ pydre --help
 
 You should see the help output showing available command line options.
 
+---
+**Next Step:** [Basic Analysis Guide](basic_analysis.md)
+---
+
 # Setting up a development environment
 
 If you want to contribute to Pydre or modify its source code, you can set up a development environment. You will need to clone the Pydre repository:
@@ -138,4 +142,6 @@ uv run pytest
 ```
 
 If you are more comfortable with *rye*, you can use that instead of *uv*.
+
+
 

@@ -1,4 +1,7 @@
-# Pydre — Justfile Setup Guide
+---
+title: "Using Just for a Pydre Project"
+---
+
 *Automating Pydre analysis runs with just and uv*
 
 ---
@@ -6,15 +9,19 @@
 Pydre should always be invoked through `uv run just` rather than directly, to ensure the correct environment is used and outputs are consistent across runs. A justfile encodes your project's targets: which project files to use, where the data lives, and where results should go; so that running a full analysis is a single command.
 
 ---
-
+ 
 ## Prerequisites
-
-Before using a justfile, ensure the following tools are installed:
-
-- `uv` — Python environment and package manager
-- `just` — cross-platform command runner ([just.systems](https://just.systems))
-- Pydre, added as a dependency via `uv add pydre` and synced with `uv sync`
-
+ 
+Before continuing, ensure you have completed the previous steps in this tutorial:
+ 
+- Pydre installed and working (`uv run pydre --help` succeeds) — see [Installation](installation.md)
+- A working project file and at least one successful analysis run — see [Running Pydre](basic_analysis.md)
+ 
+Additionally, install `just`:
+ 
+- See [just.systems](https://just.systems/man/en/installation.html) for platform-specific instructions.
+- After installing, verify with `just --version`.
+ 
 ---
 
 ## Project Structure
@@ -86,9 +93,35 @@ pydre-run PROJFILE OUTFILE DATFILES:
     uv run pydre -p '{{PROJFILE}}' -o '{{OUTFILE}}' -d '{{DATFILES}}'
 ```
 
+> **Note:** The indentation before `uv run pydre` must be a real tab character, not spaces. Most editors will insert spaces by default — check your editor's settings if you see an indentation error.
+ 
+> **macOS users:** If you use zsh as your default shell, change `"bash"` to `"zsh"` in the `set shell` line.
+
 ---
 
-## Step 3 — Understanding the Justfile
+## Step 3 — Running the Analysis
+
+**Run the default target** (everything `outfiles` depends on):
+
+```sh
+uv run just
+```
+
+**Run a specific target:**
+
+```sh
+uv run just overallMetrics
+```
+
+**List all available targets:**
+
+```sh
+uv run just --list
+```
+
+---
+
+## Understanding the Justfile
 
 ### Shell Configuration
 
@@ -146,29 +179,7 @@ This is a parameterised recipe and reusable building block. `PROJFILE`, `OUTFILE
 
 ---
 
-## Step 4 — Running the Analysis
-
-**Run the default target** (everything `outfiles` depends on):
-
-```sh
-uv run just
-```
-
-**Run a specific target:**
-
-```sh
-uv run just overallMetrics
-```
-
-**List all available targets:**
-
-```sh
-uv run just --list
-```
-
----
-
-## Step 5 — Extending the Justfile
+## Extending the Justfile
 
 To add a new analysis, add a new target and wire it into the dependency chain. For example, to add a per-scenario breakdown:
 

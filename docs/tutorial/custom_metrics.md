@@ -1,104 +1,33 @@
-# Writing Custom Metrics for Pydre
+---
+title: "Writing Custom Metrics for Pydre"
+---
 
-Custom metrics in Pydre allow you to extract meaningful data from driving simulation data. Here's how to create one:
+Pydre ships with a library of built-in metric functions. When those don't cover your needs, you can write your own. Custom metrics in Pydre allow you to extract meaningful data from driving simulation data. Here's how to create one:
 
 ## Basic Metric Structure
 
 A custom metric is a function decorated with `@registerMetric()` that takes a `DriveData` object as its first parameter and returns a numeric value or collection of values.
 
-```python
-from pydre.metrics import registerMetric
-import pydre.core
+---
 
-@registerMetric()
-def myCustomMetric(drivedata: pydre.core.DriveData, param1: str = "default") -> float:
-    """Brief description of what this metric calculates
-    
-    Parameters:
-        param1: Description of this parameter
-        
-    Note: Requires data columns
-        - Column1: Description of required column
-        - Column2: Description of another required column
-        
-    Returns:
-        Description of return value
-    """
-    # Check for required columns
-    required_cols = ["Column1", "Column2"]
-    drivedata.checkColumns(required_cols)
-    
-    # Verify columns are numeric
-    try:
-        drivedata.checkColumnsNumeric(required_cols)
-    except pydre.core.ColumnsMatchError:
-        return None
-        
-    # Process data and compute the metric value
-    result = some_calculation(drivedata.data)
-    
-    return result
-```
-
-## Advanced Metrics
-
-### Multiple Return Values
-
-For metrics that return multiple values, specify column names in the decorator:
-
-```python
-@registerMetric(columnnames=["value1", "value2"])
-def multiValueMetric(drivedata: pydre.core.DriveData) -> list[float]:
-    # ...
-    return [value1, value2]
-```
-
-### Custom Metric Names
-
-Override the function name for metric registration:
-
-```python
-@registerMetric(metricname="betterMetricName")
-def internal_function_name(drivedata: pydre.core.DriveData) -> float:
-    # ...
-```
-
-## Best Practices
-
-1. Always validate required columns exist before processing
-2. Use robust error handling with clear log messages
-3. Return `None` when calculation fails rather than raising exceptions
-4. Include comprehensive docstrings with parameter descriptions
-5. Use polars operations when possible for performance
-
-## Step-by-Step Guide
-
-### 1. Create a Custom Metrics Directory
-
-Create a directory for your custom metrics (outside the Pydre repository):
-
+## Step-by-step guide
+ 
+### 1. Create a custom metrics directory
+ 
+Add a directory for your custom metrics inside your project:
+ 
 ```
 my_project/
-├── custom_metric/
+├── custom_metrics/
 │   └── custom.py
 ├── data/
 │   └── drive_data.dat
-└── custom_test.toml
+└── my_project.toml
 ```
-
-### 2. Set up your directory to use pydre
-
-```bash
-cd my_project
-uv add pydre
-uv sync
-```
-
-This will initialize the directory like a python package using *uv* and the pydre package. This will use the latest [published version of *pydre*](https://pypi.org/project/pydre/) from PyPI. If you want to use the latest development version of *pydre*, you can clone the repository and add it as a dependency instead.
-
-### 3. Write Your Custom Metrics
-
-Create a Python file (e.g., `custom.py`) in your custom metrics directory. Your metrics should use the `@registerMetric()` decorator:
+ 
+### 2. Write your custom metric
+ 
+Create a Python file in the directory. Each metric is a function decorated with `@registerMetric()` that takes a `DriveData` object as its first parameter and returns a numeric value (or a list of values for multi-column metrics).
 
 ```python title="custom_metric/custom.py"
 from typing import Optional
@@ -113,11 +42,24 @@ from loguru import logger
 def testMean(
     drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
 ) -> Optional[float]:
-
+    """Mean of a column, optionally filtered to values above a cutoff.
+ 
+    Parameters:
+        var: Name of the column to average.
+        cutoff: If provided, only values >= cutoff are included.
+ 
+    Note: Requires data columns
+        - var: must be numeric
+ 
+    Returns:
+        Mean of the (filtered) column, or None if the column is non-numeric.
+    """
     try:
         drivedata.checkColumnsNumeric([var])
     except ColumnsMatchError:
+        logger.warning(f"testMean: column '{var}' is not numeric, returning None")
         return None
+ 
     if cutoff is not None:
         return (
             drivedata.data.get_column(var)
@@ -128,6 +70,14 @@ def testMean(
         return drivedata.data.get_column(var).mean()
 
 ```
+
+**Best Practices:**
+
+1. Always validate required columns exist before processing
+2. Use robust error handling with clear log messages
+3. Return `None` when calculation fails rather than raising exceptions
+4. Include comprehensive docstrings with parameter descriptions
+5. Use polars operations when possible for performance
 
 ### 4. Configure Your Project File
 
@@ -168,6 +118,31 @@ uv run pydre -p examples/custom_project/custom_test.toml -d examples/custom_proj
 
 With this approach, you can maintain your custom metrics separately from the Pydre codebase while still using them in your projects.
 
+---
+
+## Advanced Metrics
+
+### Multiple Return Values
+
+For metrics that return multiple values, specify column names in the decorator:
+
+```python
+@registerMetric(columnnames=["value1", "value2"])
+def multiValueMetric(drivedata: pydre.core.DriveData) -> list[float]:
+    # ...
+    return [value1, value2]
+```
+
+### Custom Metric Names
+
+Override the function name for metric registration:
+
+```python
+@registerMetric(metricname="betterMetricName")
+def internal_function_name(drivedata: pydre.core.DriveData) -> float:
+    # ...
+```
+---
 
 # Custom filters
 
@@ -182,3 +157,5 @@ outputfile = "results.csv"
 custom_metrics_dirs = ["custom_metrics"]
 custom_filters_dirs = ["custom_filters"]
 ```
+---
+**Next:** [Setting up Just](justSetup.md)
