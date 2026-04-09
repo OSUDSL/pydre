@@ -142,6 +142,7 @@ Override the function name for metric registration:
 def internal_function_name(drivedata: pydre.core.DriveData) -> float:
     # ...
 ```
+
 ---
 
 # Custom filters
@@ -157,5 +158,7 @@ outputfile = "results.csv"
 custom_metrics_dirs = ["custom_metrics"]
 custom_filters_dirs = ["custom_filters"]
 ```
+
 ---
+
 **Next:** [Setting up Just](justSetup.md)
