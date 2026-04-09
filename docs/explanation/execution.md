@@ -6,10 +6,10 @@ The `pydre` entrypoint provides a command-line interface for processing driving 
 
 ## Command Line Usage
 
-If installed via `rye` (similarly for `uv`):
+If installed via `uv`:
 
 ```
-rye run pydre -p PROJECT_FILE [-d DATAFILES [DATAFILES ...]] [-o OUTPUT_FILE] [-l LOG_LEVEL]
+uv run pydre -p PROJECT_FILE [-d DATAFILES [DATAFILES ...]] [-o OUTPUT_FILE] [-l LOG_LEVEL]
 ```
 
 If installed via `pip` or another situation where `pydre` is in your `PATH`:
