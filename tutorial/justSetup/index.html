@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../basic_analysis/">
+        <link rel="prev" href="../custom_metrics/">
       
       
-        <link rel="next" href="../justSetup/">
+        <link rel="next" href="../../reference/filters/">
       
       
         
@@ -23,7 +23,7 @@
     
     
       
-        <title>Writing Custom Metrics for Pydre - Pydre documentation</title>
+        <title>Using Just for a Pydre Project - Pydre documentation</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#basic-metric-structure" class="md-skip">
+        <a href="#prerequisites" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Writing Custom Metrics for Pydre
+              Using Just for a Pydre Project
             
           </span>
         </div>
@@ -325,6 +325,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../custom_metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -342,7 +370,7 @@
   <span class="md-ellipsis">
     
   
-    Custom Metrics
+    Use Just for Pydre Project
   
 
     
@@ -360,7 +388,7 @@
   <span class="md-ellipsis">
     
   
-    Custom Metrics
+    Use Just for Pydre Project
   
 
     
@@ -384,10 +412,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#basic-metric-structure" class="md-nav__link">
+  <a href="#prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Basic Metric Structure
+        Prerequisites
       
     </span>
   </a>
@@ -395,22 +423,66 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-by-step-guide" class="md-nav__link">
+  <a href="#project-structure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step-by-step guide
+        Project Structure
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Step-by-step guide">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-create-the-env-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Create the .env File
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-create-the-justfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Create the Justfile
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-running-the-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Running the Analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-the-justfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding the Justfile
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding the Justfile">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-create-a-custom-metrics-directory" class="md-nav__link">
+  <a href="#shell-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Create a custom metrics directory
+        Shell Configuration
       
     </span>
   </a>
@@ -418,10 +490,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-write-your-custom-metric" class="md-nav__link">
+  <a href="#loading-environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Write your custom metric
+        Loading Environment Variables
       
     </span>
   </a>
@@ -429,10 +501,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#4-configure-your-project-file" class="md-nav__link">
+  <a href="#building-file-path-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Configure Your Project File
+        Building File Path Patterns
       
     </span>
   </a>
@@ -440,10 +512,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-run-pydre-with-your-custom-metrics" class="md-nav__link">
+  <a href="#targets-and-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Run Pydre with Your Custom Metrics
+        Targets and Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-pydre-run-recipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The pydre-run Recipe
       
     </span>
   </a>
@@ -456,10 +539,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
+  <a href="#extending-the-justfile" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How It Works
+        Extending the Justfile
       
     </span>
   </a>
@@ -467,80 +550,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tips" class="md-nav__link">
+  <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tips
+        Troubleshooting
       
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#advanced-metrics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Advanced Metrics
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Metrics">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#multiple-return-values" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Multiple Return Values
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#custom-metric-names" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Custom Metric Names
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-filters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Custom filters
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Custom filters">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -548,34 +564,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../justSetup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Use Just for Pydre Project
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -944,10 +932,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#basic-metric-structure" class="md-nav__link">
+  <a href="#prerequisites" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Basic Metric Structure
+        Prerequisites
       
     </span>
   </a>
@@ -955,22 +943,66 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-by-step-guide" class="md-nav__link">
+  <a href="#project-structure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step-by-step guide
+        Project Structure
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Step-by-step guide">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-create-the-env-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Create the .env File
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-create-the-justfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Create the Justfile
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-running-the-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Running the Analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-the-justfile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding the Justfile
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding the Justfile">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-create-a-custom-metrics-directory" class="md-nav__link">
+  <a href="#shell-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Create a custom metrics directory
+        Shell Configuration
       
     </span>
   </a>
@@ -978,10 +1010,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-write-your-custom-metric" class="md-nav__link">
+  <a href="#loading-environment-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Write your custom metric
+        Loading Environment Variables
       
     </span>
   </a>
@@ -989,10 +1021,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#4-configure-your-project-file" class="md-nav__link">
+  <a href="#building-file-path-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Configure Your Project File
+        Building File Path Patterns
       
     </span>
   </a>
@@ -1000,10 +1032,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-run-pydre-with-your-custom-metrics" class="md-nav__link">
+  <a href="#targets-and-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Run Pydre with Your Custom Metrics
+        Targets and Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-pydre-run-recipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The pydre-run Recipe
       
     </span>
   </a>
@@ -1016,10 +1059,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
+  <a href="#extending-the-justfile" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How It Works
+        Extending the Justfile
       
     </span>
   </a>
@@ -1027,80 +1070,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tips" class="md-nav__link">
+  <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tips
+        Troubleshooting
       
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#advanced-metrics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Advanced Metrics
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Metrics">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#multiple-return-values" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Multiple Return Values
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#custom-metric-names" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Custom Metric Names
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-filters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Custom filters
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Custom filters">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1121,125 +1097,207 @@
 
 
 
-<p>Pydre ships with a library of built-in metric functions. When those don't cover your needs, you can write your own. Custom metrics in Pydre allow you to extract meaningful data from driving simulation data. Here's how to create one:</p>
-<h2 id="basic-metric-structure">Basic Metric Structure</h2>
-<p>A custom metric is a function decorated with <code>@registerMetric()</code> that takes a <code>DriveData</code> object as its first parameter and returns a numeric value or collection of values.</p>
+  <h1>Use Just for Pydre Project</h1>
+
+<p><em>Automating Pydre analysis runs with <code>just</code> and <code>uv</code></em></p>
 <hr />
-<h2 id="step-by-step-guide">Step-by-step guide</h2>
-<h3 id="1-create-a-custom-metrics-directory">1. Create a custom metrics directory</h3>
-<p>Add a directory for your custom metrics inside your project:</p>
-<div class="highlight"><pre><span></span><code>my_project/
-├── custom_metrics/
-│   └── custom.py
-├── data/
-│   └── drive_data.dat
-└── my_project.toml
-</code></pre></div>
-<h3 id="2-write-your-custom-metric">2. Write your custom metric</h3>
-<p>Create a Python file in the directory. Each metric is a function decorated with <code>@registerMetric()</code> that takes a <code>DriveData</code> object as its first parameter and returns a numeric value (or a list of values for multi-column metrics).</p>
-<div class="highlight"><span class="filename">custom_metric/custom.py</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pydre.core</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydre.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">ColumnsMatchError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydre.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">registerMetric</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">loguru</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
-
-<span class="nd">@registerMetric</span><span class="p">()</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">testMean</span><span class="p">(</span>
-    <span class="n">drivedata</span><span class="p">:</span> <span class="n">pydre</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">DriveData</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean of a column, optionally filtered to values above a cutoff.</span>
-
-<span class="sd">    Parameters:</span>
-<span class="sd">        var: Name of the column to average.</span>
-<span class="sd">        cutoff: If provided, only values &gt;= cutoff are included.</span>
-
-<span class="sd">    Note: Requires data columns</span>
-<span class="sd">        - var: must be numeric</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Mean of the (filtered) column, or None if the column is non-numeric.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">drivedata</span><span class="o">.</span><span class="n">checkColumnsNumeric</span><span class="p">([</span><span class="n">var</span><span class="p">])</span>
-    <span class="k">except</span> <span class="n">ColumnsMatchError</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;testMean: column &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; is not numeric, returning None&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">if</span> <span class="n">cutoff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="n">drivedata</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">drivedata</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">cutoff</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">drivedata</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get_column</span><span class="p">(</span><span class="n">var</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-</code></pre></div>
-<p><strong>Best Practices:</strong></p>
-<ol>
-<li>Always validate required columns exist before processing</li>
-<li>Use robust error handling with clear log messages</li>
-<li>Return <code>None</code> when calculation fails rather than raising exceptions</li>
-<li>Include comprehensive docstrings with parameter descriptions</li>
-<li>Use polars operations when possible for performance</li>
-</ol>
-<h3 id="4-configure-your-project-file">4. Configure Your Project File</h3>
-<p>Include your custom metrics directory in the config section of your <a href="../../explanation/project_files/">project file</a>. </p>
-<div class="highlight"><span class="filename">custom_test.toml</span><pre><span></span><code><span class="k">[config]</span>
-<span class="n">custom_metrics_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;custom_metric&quot;</span><span class="p">]</span>
-
-<span class="k">[metrics.custom_test]</span>
-<span class="n">function</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;testMean&quot;</span>
-<span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;XPos&quot;</span>
-</code></pre></div>
-<h3 id="5-run-pydre-with-your-custom-metrics">5. Run Pydre with Your Custom Metrics</h3>
-<p><a href="../../explanation/execution/">Run Pydre</a> with your project file:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pydre<span class="w"> </span>-p<span class="w"> </span>examples/custom_project/custom_test.toml<span class="w"> </span>-d<span class="w"> </span>examples/custom_project/data/Experimenter_S1_Tutorial_11002233.dat<span class="w"> </span>-o<span class="w"> </span>custom.csv
-</code></pre></div>
-<h2 id="how-it-works">How It Works</h2>
-<ol>
-<li>Pydre loads all metrics defined in its core library</li>
-<li>It then searches the directory paths specified in <code>custom_metrics_dirs</code></li>
-<li>For each Python file in those directories, it dynamically imports the metrics</li>
-<li>The <code>@registerMetric()</code> decorator automatically registers your custom metrics with <em>pydre</em></li>
-<li>Your metrics become available for use in the project configuration</li>
-</ol>
-<h2 id="tips">Tips</h2>
+<p>Pydre should always be invoked through <code>uv run just</code> rather than directly, to ensure the correct environment is used and outputs are consistent across runs. A justfile encodes your project's targets: which project files to use, where the data lives, and where results should go; so that running a full analysis is a single command.</p>
+<hr />
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Before continuing, ensure you have completed the previous steps in this tutorial:</p>
 <ul>
-<li>Ensure your custom metrics follow the same pattern as built-in metrics</li>
-<li>Add proper docstrings to document required columns and return values</li>
-<li>Always include error handling for missing columns using <code>checkColumns</code> or <code>checkColumnsNumeric</code></li>
-<li>Use type hints to document your function parameters and return values</li>
+<li>Pydre installed and working (<code>uv run pydre --help</code> succeeds) — see <a href="../installation/">Installation</a></li>
+<li>A working project file and at least one successful analysis run — see <a href="../basic_analysis/">Running Pydre</a></li>
 </ul>
-<p>With this approach, you can maintain your custom metrics separately from the Pydre codebase while still using them in your projects.</p>
+<p>Additionally, install <code>just</code>:</p>
+<ul>
+<li>See <a href="https://just.systems/man/en/installation.html">just.systems</a> for platform-specific instructions.</li>
+<li>After installing, verify with <code>just --version</code>.</li>
+</ul>
 <hr />
-<h2 id="advanced-metrics">Advanced Metrics</h2>
-<h3 id="multiple-return-values">Multiple Return Values</h3>
-<p>For metrics that return multiple values, specify column names in the decorator:</p>
-<div class="highlight"><pre><span></span><code><span class="nd">@registerMetric</span><span class="p">(</span><span class="n">columnnames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;value1&quot;</span><span class="p">,</span> <span class="s2">&quot;value2&quot;</span><span class="p">])</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">multiValueMetric</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n">pydre</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">DriveData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-    <span class="c1"># ...</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">value1</span><span class="p">,</span> <span class="n">value2</span><span class="p">]</span>
+<h2 id="project-structure">Project Structure</h2>
+<p>A typical Pydre project using <code>just</code> looks like this:</p>
+<div class="highlight"><pre><span></span><code>my_project/
+├── justfile
+├── .env
+├── pyproject.toml
+├── uv.lock
+├── pydre-projects/
+│   └── overallMetrics.toml
+└── out/
 </code></pre></div>
-<h3 id="custom-metric-names">Custom Metric Names</h3>
-<p>Override the function name for metric registration:</p>
-<div class="highlight"><pre><span></span><code><span class="nd">@registerMetric</span><span class="p">(</span><span class="n">metricname</span><span class="o">=</span><span class="s2">&quot;betterMetricName&quot;</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">internal_function_name</span><span class="p">(</span><span class="n">drivedata</span><span class="p">:</span> <span class="n">pydre</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">DriveData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="c1"># ...</span>
+<table>
+<thead>
+<tr>
+<th>File / Directory</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>justfile</code></td>
+<td>Defines analysis targets and how to run them</td>
+</tr>
+<tr>
+<td><code>.env</code></td>
+<td>Stores the local path to raw data files (never committed to version control)</td>
+</tr>
+<tr>
+<td><code>pyproject.toml</code></td>
+<td>Python project configuration; lists pydre as a dependency</td>
+</tr>
+<tr>
+<td><code>uv.lock</code></td>
+<td>Locked dependency versions for reproducible installs</td>
+</tr>
+<tr>
+<td><code>pydre-projects/</code></td>
+<td>TOML project files defining filters, ROIs, and metrics</td>
+</tr>
+<tr>
+<td><code>out/</code></td>
+<td>Output directory where aggregated results are written</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="step-1-create-the-env-file">Step 1 — Create the .env File</h2>
+<p>The justfile reads the location of your raw simulator data from a local <code>.env</code> file. This keeps machine-specific paths out of the justfile itself, so the justfile can be shared across team members and committed to version control.</p>
+<p>Create a file named <code>.env</code> in your project root:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># .env</span>
+<span class="nv">rawdatadir</span><span class="o">=</span><span class="s2">&quot;E:/Work/data/cleanData/&quot;</span>
+</code></pre></div>
+<p>The path should point to the directory containing your raw <code>.dat</code> simulator output files.</p>
+<hr />
+<h2 id="step-2-create-the-justfile">Step 2 — Create the Justfile</h2>
+<p>Create a file named <code>justfile</code> (no extension) in your project root:</p>
+<div class="highlight"><pre><span></span><code># Shell configuration
+set windows-shell := [&quot;powershell.exe&quot;, &quot;-c&quot;]
+set shell := [&quot;zsh&quot;, &quot;-c&quot;]
+
+# Load variables from .env automatically
+set dotenv-load
+
+# Build file patterns from the rawdatadir env variable
+allDatFiles  := env(&#39;rawdatadir&#39;) / &quot;*.dat&quot;
+testDatFiles := env(&#39;rawdatadir&#39;) / &quot;*Test Drive*.dat&quot;
+
+# Default target — running `uv run just` with no arguments runs this
+outfiles: overallMetrics
+
+# Named analysis target
+overallMetrics: (pydre-run &quot;pydre-projects/overallMetrics.toml&quot; &quot;out/Metrics_Overall.csv&quot; testDatFiles)
+
+# Reusable recipe: runs pydre with given project file, output, and data glob
+pydre-run PROJFILE OUTFILE DATFILES:
+    uv run pydre -p &#39;{{PROJFILE}}&#39; -o &#39;{{OUTFILE}}&#39; -d &#39;{{DATFILES}}&#39;
+</code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> The indentation before <code>uv run pydre</code> must be a real tab character, not spaces. Most editors will insert spaces by default — check your editor's settings if you see an indentation error.</p>
+<p><strong>macOS users:</strong> If you use zsh as your default shell, change <code>"bash"</code> to <code>"zsh"</code> in the <code>set shell</code> line.</p>
+</blockquote>
+<hr />
+<h2 id="step-3-running-the-analysis">Step 3 — Running the Analysis</h2>
+<p><strong>Run the default target</strong> (everything <code>outfiles</code> depends on):</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>just
+</code></pre></div>
+<p><strong>Run a specific target:</strong></p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>just<span class="w"> </span>overallMetrics
+</code></pre></div>
+<p><strong>List all available targets:</strong></p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>just<span class="w"> </span>--list
 </code></pre></div>
 <hr />
-<h1 id="custom-filters">Custom filters</h1>
-<p>Custom filters can be created in a similar way to custom metrics. the search path for custom filters is similar to the custom metrics search path: "custom_filters_dirs". Additionally, <code>@registerFilter()</code> instead of <code>@registerMetric()</code> is used as the decorator.</p>
-<h2 id="example">Example</h2>
-<div class="highlight"><pre><span></span><code><span class="k">[config]</span>
-<span class="n">datafiles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;data/drive_data.dat&quot;</span><span class="p">]</span>
-<span class="n">outputfile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;results.csv&quot;</span>
-<span class="n">custom_metrics_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;custom_metrics&quot;</span><span class="p">]</span>
-<span class="n">custom_filters_dirs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;custom_filters&quot;</span><span class="p">]</span>
+<h2 id="understanding-the-justfile">Understanding the Justfile</h2>
+<h3 id="shell-configuration">Shell Configuration</h3>
+<div class="highlight"><pre><span></span><code>set windows-shell := [&quot;powershell.exe&quot;, &quot;-c&quot;]
+set shell := [&quot;zsh&quot;, &quot;-c&quot;]
 </code></pre></div>
+<p>These two lines tell <code>just</code> which shell to use when executing recipes. <code>windows-shell</code> is used on Windows; <code>shell</code> is used on macOS and Linux. Having both means the same justfile works on all platforms without modification.</p>
+<h3 id="loading-environment-variables">Loading Environment Variables</h3>
+<div class="highlight"><pre><span></span><code>set dotenv-load
+</code></pre></div>
+<p>This directive tells <code>just</code> to automatically read <code>.env</code> before running any recipe. Once loaded, variables like <code>rawdatadir</code> become available to the justfile via the <code>env()</code> function.</p>
+<h3 id="building-file-path-patterns">Building File Path Patterns</h3>
+<div class="highlight"><pre><span></span><code>allDatFiles  := env(&#39;rawdatadir&#39;) / &quot;*.dat&quot;
+testDatFiles := env(&#39;rawdatadir&#39;) / &quot;*Test Drive*.dat&quot;
+</code></pre></div>
+<p>These lines create variables by joining <code>rawdatadir</code> with a file pattern using the <code>/</code> path-join operator. The result is a full pattern like <code>E:/Work/data/cleanData/*.dat</code> that pydre uses to find input files.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Matches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>allDatFiles</code></td>
+<td>All <code>.dat</code> files in <code>rawdatadir</code></td>
+</tr>
+<tr>
+<td><code>testDatFiles</code></td>
+<td>Only files with <code>"Test Drive"</code> in the filename</td>
+</tr>
+</tbody>
+</table>
+<h3 id="targets-and-dependencies">Targets and Dependencies</h3>
+<div class="highlight"><pre><span></span><code>outfiles: overallMetrics
+
+overallMetrics: (pydre-run &quot;pydre-projects/overallMetrics.toml&quot; &quot;out/Metrics_Overall.csv&quot; testDatFiles)
+</code></pre></div>
+<p>The <code>outfiles</code> target is the default. It runs when you call <code>uv run just</code> with no arguments. It depends on <code>overallMetrics</code>, which in turn calls the <code>pydre-run</code> recipe with specific arguments.</p>
+<p>Chaining targets this way lets you build up complex multi-step pipelines. Adding a new analysis is as simple as adding a new target and listing it as a dependency of the default.</p>
+<h3 id="the-pydre-run-recipe">The pydre-run Recipe</h3>
+<div class="highlight"><pre><span></span><code>pydre-run PROJFILE OUTFILE DATFILES:
+    uv run pydre -p &#39;{{PROJFILE}}&#39; -o &#39;{{OUTFILE}}&#39; -d &#39;{{DATFILES}}&#39;
+</code></pre></div>
+<p>This is a parameterised recipe and reusable building block. <code>PROJFILE</code>, <code>OUTFILE</code>, and <code>DATFILES</code> are parameters substituted using the <code>{{...}}</code> syntax. By centralising the pydre call here, all targets stay consistent: same flags, same environment, same output format.</p>
+<blockquote>
+<p><strong>Note:</strong> The leading tab before <code>uv run pydre</code> is required by <code>just</code>. Use a real tab character, not spaces.</p>
+</blockquote>
 <hr />
-<p><strong>Next:</strong> <a href="../justSetup/">Setting up Just</a></p>
+<h2 id="extending-the-justfile">Extending the Justfile</h2>
+<p>To add a new analysis, add a new target and wire it into the dependency chain. For example, to add a per-scenario breakdown:</p>
+<div class="highlight"><pre><span></span><code>scenarioMetrics: (pydre-run &quot;pydre-projects/scenarios.toml&quot; &quot;out/Metrics_Scenarios.csv&quot; allDatFiles)
+
+outfiles: overallMetrics scenarioMetrics
+</code></pre></div>
+<p>Now <code>uv run just</code> will run both <code>overallMetrics</code> and <code>scenarioMetrics</code> in sequence. No changes to raw data, pydre itself, or the <code>.env</code> file are needed.</p>
+<table>
+<thead>
+<tr>
+<th>To change...</th>
+<th>Edit this...</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Which data files are processed</td>
+<td><code>.env</code> — update <code>rawdatadir</code></td>
+</tr>
+<tr>
+<td>Which metrics are computed</td>
+<td>The relevant <code>.toml</code> file in <code>pydre-projects/</code></td>
+</tr>
+<tr>
+<td>Which analyses run by default</td>
+<td>The <code>outfiles</code> target in <code>justfile</code></td>
+</tr>
+<tr>
+<td>Where output files are written</td>
+<td>The <code>OUTFILE</code> argument in each target</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><strong><code>rawdatadir</code> not found</strong> — Ensure <code>.env</code> exists in the project root and <code>set dotenv-load</code> is present in the justfile.</li>
+<li><strong>No <code>.dat</code> files matched</strong> — Check the path in <code>.env</code> and verify the pattern matches your actual filenames.</li>
+<li><strong><code>just: command not found</code></strong> — Install <code>just</code> and ensure it is on your <code>PATH</code>. See <a href="https://just.systems">just.systems</a> for platform-specific instructions.</li>
+<li><strong>Indentation error in justfile</strong> — Recipe bodies must be indented with a real tab character, not spaces.</li>
+</ul>
 
 
 

@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../project_files/">
+        <link rel="prev" href="../installation/">
       
       
-        <link rel="next" href="../developernotes/">
+        <link rel="next" href="../custom_metrics/">
       
       
         
@@ -23,7 +23,7 @@
     
     
       
-        <title>Regions of Interest - Pydre documentation</title>
+        <title>Basic Analysis - Pydre documentation</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#regions-of-interest-rois" class="md-skip">
+        <a href="#command-line-syntax" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Regions of Interest
+              Basic Analysis
             
           </span>
         </div>
@@ -192,18 +192,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -224,7 +226,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -242,7 +244,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorial/getting_started/" class="md-nav__link">
+      <a href="../getting_started/" class="md-nav__link">
         
   
   
@@ -270,7 +272,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorial/installation/" class="md-nav__link">
+      <a href="../installation/" class="md-nav__link">
         
   
   
@@ -295,10 +297,35 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../tutorial/basic_analysis/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Analysis
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -314,6 +341,68 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Line Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-first-project-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your First Project File
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-on-example-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running on Example Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -326,7 +415,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorial/custom_metrics/" class="md-nav__link">
+      <a href="../custom_metrics/" class="md-nav__link">
         
   
   
@@ -354,7 +443,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorial/justSetup/" class="md-nav__link">
+      <a href="../justSetup/" class="md-nav__link">
         
   
   
@@ -524,20 +613,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -558,7 +645,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -576,7 +663,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../execution/" class="md-nav__link">
+      <a href="../../explanation/execution/" class="md-nav__link">
         
   
   
@@ -604,7 +691,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../project_files/" class="md-nav__link">
+      <a href="../../explanation/project_files/" class="md-nav__link">
         
   
   
@@ -629,19 +716,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../explanation/rois/" class="md-nav__link">
         
   
   
@@ -657,7 +735,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -670,7 +747,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../developernotes/" class="md-nav__link">
+      <a href="../../explanation/developernotes/" class="md-nav__link">
         
   
   
@@ -742,8 +819,58 @@
   
   
   
-    
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Line Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-first-project-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your First Project File
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-on-example-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running on Example Data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What's next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -760,155 +887,87 @@
 
 
 
-<h1 id="regions-of-interest-rois">Regions of Interest (ROIs)</h1>
-<p>Each region of interest is an area of data that the user is interested in examining. This can include things such as where the car starts on the track, when the car hits a traffic jam, when the car hits construction, etc. </p>
-<p>Pydre uses csv files to define three types of ROIS: temporal, spatial, and rectangular.</p>
-<h1 id="time-roi">Time ROI</h1>
-<p>Time ROIs are used to define groups of data according to given time ranges. Any of the three time data columns can be
-used: DatTime, SimTime, or MediaTime. If no column name is given, then DatTime is used by default.</p>
-<h2 id="general-time-rois">General Time ROIS</h2>
-<p>The time ROI file <code>.csv</code> is formatted as below:</p>
-<table>
-<thead>
-<tr>
-<th>ROI</th>
-<th>time_start</th>
-<th>time_end</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><em>ROI name 1</em></td>
-<td><em>start time 1</em></td>
-<td><em>end time 1</em></td>
-</tr>
-<tr>
-<td><em>ROI name 2</em></td>
-<td><em>start time 2</em></td>
-<td><em>end time 2</em></td>
-</tr>
-<tr>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-</tr>
-<tr>
-<td><em>ROI name N</em></td>
-<td><em>start time N</em></td>
-<td><em>end time N</em></td>
-</tr>
-</tbody>
-</table>
-<p>By default, every time ROIs is applied to every data file given.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Start and end times are formatted as either <code>hh:mm:ss-hh:mm:ss</code> or <code>mm:ss-mm:ss</code>.</p>
-</div>
-<h2 id="specific-time-rois">Specific Time ROIs</h2>
-<p>Time ROIs can also be specified to match any metadata value and only apply ROIs to certain data files. Multiple metadata
-values can be used to filter the ROIs. The specific time ROI format is below:</p>
-<table>
-<thead>
-<tr>
-<th>ROI</th>
-<th>time_start</th>
-<th>time_end</th>
-<th>metadata_col 1</th>
-<th>metadata_col 2</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><em>ROI name 1</em></td>
-<td><em>start time 1</em></td>
-<td><em>end time 1</em></td>
-<td><em>metadata 1 value 1</em></td>
-<td><em>metadata 2 value 1</em></td>
-</tr>
-<tr>
-<td><em>ROI name 2</em></td>
-<td><em>start time 2</em></td>
-<td><em>end time 2</em></td>
-<td><em>metadata 1 value 2</em></td>
-<td><em>metadata 2 value 2</em></td>
-</tr>
-<tr>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-</tr>
-<tr>
-<td><em>ROI name N</em></td>
-<td><em>start time N</em></td>
-<td><em>end time N</em></td>
-<td><em>metadata 1 value 2</em></td>
-<td><em>metadata 2 value 3</em></td>
-</tr>
-</tbody>
-</table>
-<h1 id="space-roi">Space ROI</h1>
-<table>
-<thead>
-<tr>
-<th>ROI</th>
-<th>X1</th>
-<th>Y1</th>
-<th>X2</th>
-<th>Y2</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><em>ROI name</em></td>
-<td><em>min x</em></td>
-<td><em>min y</em></td>
-<td><em>max x</em></td>
-<td><em>max y</em></td>
-</tr>
-<tr>
-<td><em>ROI name</em></td>
-<td><em>min x</em></td>
-<td><em>min y</em></td>
-<td><em>max x</em></td>
-<td><em>max y</em></td>
-</tr>
-<tr>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-</tr>
-<tr>
-<td><em>ROI name</em></td>
-<td><em>min x</em></td>
-<td><em>min y</em></td>
-<td><em>max x</em></td>
-<td><em>max y</em></td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>-Z corresponds to positive X, and if Y is 0 in the WRL file, set Y1 = -100, Y2 = 100.</p>
-</div>
-<p>The ROI will consist of the area inside the max_y - min_y and the max_x - min_x.</p>
-<p>For an example file, look at spatial_rois.csv in the main pydre folder.  Once the ROI csv file has been generated, reference it in the project file to perform the function calculations only on the regions of interest specified by the x and y coordinates in this csv file.</p>
-<h1 id="column-roi">Column ROI</h1>
-<p>Column ROIS are used to define groups of data according to given column values. They are defined in the project file using the following format:</p>
-<div class="highlight"><pre><span></span><code><span class="k">[rois.roi1]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;column&quot;</span>
-<span class="n">columnname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;CriticalEventNum&quot;</span>
+  <h1>Basic Analysis</h1>
+
+<p>Pydre is a Python application run from the command line. This guide walks you through creating your first project file and running it on example data to produce your first aggregated metrics output.</p>
+<hr />
+<h2 id="command-line-syntax">Command Line Syntax</h2>
+<p>The basic command syntax is:</p>
+<div class="highlight"><pre><span></span><code>uv run pydre -p [project file] -d [data file] -o [output file] -l [log level]
 </code></pre></div>
-<p>In the above example, the ROI is defined by the values in the column "CriticalEventNum". Each ROI will consist of all the rows in the data that have the same value in the "CriticalEventNum" column. These rows do not need to be contiguous in the data file. </p>
+<div class="admonition info">
+<p class="admonition-title">Command Line Arguments for <code>pydre</code></p>
+<ul>
+<li>
+<p>Project File [-p]: The project file specifies a file for the regions of interest from which the data should be aggregated. It also specifies a list of metrics (the type of data) that will be aggregated from the regions of interest. </p>
+</li>
+<li>
+<p>Data File [-d]: The data file contains the raw metrics obtained from the simulation. This argument supports wildcards.</p>
+</li>
+<li>
+<p>Output File [-o]: After the script has executed, the output file will display the aggregated metrics from the regions of interests that were both specified in the project file. The output file will be saved in the same folder as the script. </p>
+</li>
+<li>
+<p>Logger level [-l]: This defines the level the logger will print out. The default is 'warning'. Options include debug, info, warning, error, and critical.</p>
+</li>
+</ul>
+</div>
+<hr />
+<p>See <a href="../../explanation/execution/">Execution</a> for more information on running Pydre.</p>
+<h2 id="your-first-project-file">Your First Project File</h2>
+<p><a href="../../explanation/project_files/">Project files</a> are written in TOML. Each metric is defined as a section with a function name and any parameters that function requires. Here's a minimal example that calculates the standard deviation of lane position (SDLP):</p>
+<div class="highlight"><pre><span></span><code><span class="k">[metrics.SDLP]</span>
+<span class="n">function</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;colSD&quot;</span>
+<span class="n">var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;LaneOffset&quot;</span>
+</code></pre></div>
+<p>The section name <code>metrics.SDLP</code> tells Pydre this is a metric called <code>SDLP</code>. The <code>function</code> field refers to a built-in Pydre function, and <code>var</code> specifies which column in the data file to operate on.</p>
+<hr />
+<h2 id="running-on-example-data">Running on Example Data</h2>
+<p>Save the project file above as <code>tutorial.toml</code>, then run:</p>
+<div class="highlight"><pre><span></span><code>uv run pydre -p tutorial.toml -d Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
+</code></pre></div>
+<p>Pydre will process the data file and write the results to <code>tutorial.csv</code>. With no regions of interest defined, the output contains one row per input file:</p>
+<table>
+<thead>
+<tr>
+<th>Subject</th>
+<th>Mode</th>
+<th>ScenarioName</th>
+<th>UniqueID</th>
+<th>ROI</th>
+<th>SDLP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>Experimenter</td>
+<td>Tutorial</td>
+<td>11002233</td>
+<td></td>
+<td>0.0456...</td>
+</tr>
+</tbody>
+</table>
+<p>The first four columns are parsed from the data filename. Pydre expects filenames in the format <code>Mode_Subject_ScenarioName_UniqueID.dat</code>. The <code>ROI</code> column is blank because no <a href="../../explanation/rois/">regions of interest</a> were specified. The <code>SDLP</code> column header matches the name given in the project file.</p>
+<hr />
+<h2 id="whats-next">What's next</h2>
+<p>You now know how to run a basic analysis. Custom metrics are a significant step up in complexity. You'll be writing Python functions that operate directly on the data. Before moving on, make sure you're comfortable with:</p>
+<ul>
+<li>editing the project file to add or change metrics</li>
+<li>understanding which columns your data file contains (you can check with <code>-l debug</code> to see column names logged at startup)</li>
+<li>interpreting the output CSV</li>
+</ul>
+<p>When you're ready: <a href="../custom_metrics/">Custom Metrics</a></p>
 
 
 
 
 
 
+
+  
+  
 
 
 
