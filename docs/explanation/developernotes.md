@@ -6,12 +6,12 @@ If you want to create your own metrics or filters, we recommend
 setting up a local development environment. 
 
 The recommended way to set up your local 
-environment to run Pydre is to use [Rye](https://rye.astral.sh/):
+environment to run Pydre is to use [uv](https://docs.astral.sh/uv/):
 
-1. Install Rye.
+1. Install `uv`.
 2. Either clone the Git repository to a local directory or unzip a release package of Pydre
 3. Navigate to the Pydre directory in the terminal.
-4. Run `rye sync`
+4. Run `uv sync`
 
 This will download the appropriate python packages needed to run Pydre.
 

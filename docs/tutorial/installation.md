@@ -2,11 +2,11 @@
 title: "Installation Guide"
 ---
 
-Pydre is a Python package that can be installed using a Python package manager. While pip works, we recommend using *uv* for a more robust and isolated environment.
+Pydre is a Python package that can be installed using a Python package manager. While pip works, we recommend using `uv` for a more robust and isolated environment.
 
-# Set up a new Pydre project directory with *uv*
+# Set up a new Pydre project directory with `uv`
 
-## 1. Install UV
+## 1. Install `uv`
 
 Follow the instructions at [uv's official website](https://docs.astral.sh/uv/) to install it on your system. You will likely need to restart your terminal after installation.
 
@@ -19,7 +19,7 @@ mkdir my_pydre_project
 cd my_pydre_project
 ```
 
-Initialize a uv project:
+Initialize a `uv` project:
 
 ```
 uv init
@@ -33,7 +33,7 @@ uv add pydre
 
 ## 3. Install Dependencies
 
-uv will install pydre and all dependencies in a virtual environment specific to your project. To sync the dependencies, run:
+`uv` will install pydre and all dependencies in a virtual environment specific to your project. To sync the dependencies, run:
 
 ```
 uv sync
@@ -141,7 +141,7 @@ uv sync
 uv run pytest
 ```
 
-If you are more comfortable with *rye*, you can use that instead of *uv*.
+If you are more comfortable with `rye`, you can use that instead of `uv`.
 
 
 

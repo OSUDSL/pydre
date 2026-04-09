@@ -81,7 +81,7 @@ def testMean(
 
 ### 4. Configure Your Project File
 
-Include your custom metrics directory in the config section of your project file. 
+Include your custom metrics directory in the config section of your [project file](../explanation/project_files.md). 
 
 ```toml title="custom_test.toml"
 [config]
@@ -95,7 +95,7 @@ var = "XPos"
 
 ### 5. Run Pydre with Your Custom Metrics
 
-Run Pydre with your project file:
+[Run Pydre](../explanation/execution.md) with your project file:
 
 ```bash
 uv run pydre -p examples/custom_project/custom_test.toml -d examples/custom_project/data/Experimenter_S1_Tutorial_11002233.dat -o custom.csv

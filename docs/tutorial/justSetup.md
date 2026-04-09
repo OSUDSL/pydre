@@ -2,7 +2,7 @@
 title: "Using Just for a Pydre Project"
 ---
 
-*Automating Pydre analysis runs with just and uv*
+*Automating Pydre analysis runs with `just` and `uv`*
 
 ---
 

@@ -26,9 +26,11 @@ uv run pydre -p [project file] -d [data file] -o [output file] -l [log level]
 
 ---
 
+See [Execution](../explanation/execution.md) for more information on running Pydre.
+
 ## Your First Project File
 
-Project files are written in TOML. Each metric is defined as a section with a function name and any parameters that function requires. Here's a minimal example that calculates the standard deviation of lane position (SDLP):
+[Project files](../explanation/project_files.md) are written in TOML. Each metric is defined as a section with a function name and any parameters that function requires. Here's a minimal example that calculates the standard deviation of lane position (SDLP):
 
 ```toml
 [metrics.SDLP]
@@ -54,7 +56,7 @@ Pydre will process the data file and write the results to `tutorial.csv`. With n
 |---|---|---|---|---|---|
 | S1 | Experimenter | Tutorial | 11002233 | | 0.0456... |
 
-The first four columns are parsed from the data filename — Pydre expects filenames in the format `Mode_Subject_ScenarioName_UniqueID.dat`. The `ROI` column is blank because no regions of interest were specified. The `SDLP` column header matches the name given in the project file.
+The first four columns are parsed from the data filename. Pydre expects filenames in the format `Mode_Subject_ScenarioName_UniqueID.dat`. The `ROI` column is blank because no [regions of interest](../explanation/rois.md) were specified. The `SDLP` column header matches the name given in the project file.
 
 ---
 

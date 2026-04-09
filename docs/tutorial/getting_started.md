@@ -5,7 +5,7 @@ Pydre is a package for analyzing driving simulator data. It takes raw data files
 This tutorial walks you through everything you need to go from installation to a fully automated analysis. Here's an overview of what each step covers:
 
 ## 1. Installation
-Before you can use Pydre, you need to install it and set up a project directory. We recommend using uv, a modern Python package manager that handles dependencies in an isolated environment automatically. If you prefer, Pydre can also be installed with standard pip.
+Before you can use Pydre, you need to install it and set up a project directory. We recommend using `uv`, a modern Python package manager that handles dependencies in an isolated environment automatically. If you prefer, Pydre can also be installed with standard pip.
 
 By the end of this step you'll have Pydre installed and be able to run `pydre --help` to confirm everything is working.
 
