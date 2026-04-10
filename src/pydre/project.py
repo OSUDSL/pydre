@@ -187,67 +187,48 @@ class Project:
         """
         Process custom metrics and filters directories specified in the config and load metrics.
         """
-        custom_metrics_dirs = self.config.get("custom_metrics_dirs", [])
+        project_dir = self.project_filename.parent
+        Project._load_custom_dir(
+            self.config.get("custom_metrics_dirs", []), project_dir, "metrics"
+        )
+        Project._load_custom_dir(
+            self.config.get("custom_filters_dirs", []), project_dir, "filters"
+        )
 
-        if isinstance(custom_metrics_dirs, str):
-            custom_metrics_dirs = [custom_metrics_dirs]
+    @staticmethod
+    def _load_custom_dir(dirs: list[str] | str, project_dir: Path, kind: str) -> None:
+        """Load all Python files from custom function directories, triggering registration decorators.
 
-        for metrics_dir in custom_metrics_dirs:
-            metrics_path = self.resolve_file(metrics_dir)
-            if not metrics_path.exists():
-                logger.warning(f"Custom metrics directory not found: {metrics_path}")
+        Used by both :meth:`_load_custom_functions` (during normal project init) and
+        by :func:`pydre.run._load_custom_from_project` (during ``--list-metrics`` /
+        ``--list-filters``) so the loading logic is not duplicated.
+
+        Args:
+            dirs: A single directory path or a list of directory paths to scan.
+            project_dir: Base directory used to resolve relative paths.
+            kind: Label used in log messages and module naming (``"metrics"`` or ``"filters"``).
+        """
+        if isinstance(dirs, str):
+            dirs = [dirs]
+        for d in dirs:
+            p = Path(d)
+            dir_path = p if p.is_absolute() else (project_dir / p).resolve()
+            if not dir_path.exists():
+                logger.warning(f"Custom {kind} directory not found: {dir_path}")
                 continue
-
-            logger.info(f"Loading custom metrics from: {metrics_path}")
-
-            # Process all Python files in the directory
-            for metrics_file in metrics_path.glob("*.py"):
+            logger.info(f"Loading custom {kind} from: {dir_path}")
+            for py_file in sorted(dir_path.glob("*.py")):
                 try:
-                    # Create a module name
-                    module_name = f"custom_metrics_{metrics_file.stem}"
-                    spec = importlib.util.spec_from_file_location(
-                        module_name, metrics_file
-                    )
+                    module_name = f"custom_{kind}_{py_file.stem}"
+                    spec = importlib.util.spec_from_file_location(module_name, py_file)
                     if spec is None or spec.loader is None:
-                        logger.error(f"Could not load spec for {metrics_file}")
-                        continue
-
-                    module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(module)
-
-                    # The @registerMetric decorator will automatically register the metrics
-                    logger.info(f"Successfully loaded metrics from {metrics_file}")
-                except Exception as e:
-                    logger.exception(
-                        f"Error loading custom metrics from {metrics_file}: {e}"
-                    )
-
-        custom_filters_dirs = self.config.get("custom_filters_dirs", [])
-
-        if isinstance(custom_filters_dirs, str):
-            custom_filters_dirs = [custom_filters_dirs]
-        for filters_dir in custom_filters_dirs:
-            filters_path = self.resolve_file(filters_dir)
-            if not filters_path.exists():
-                logger.warning(f"Custom filters directory not found: {filters_path}")
-                continue
-            logger.info(f"Loading custom filters from: {filters_path}")
-            for filters_file in filters_path.glob("*.py"):
-                try:
-                    module_name = f"custom_filters_{filters_file.stem}"
-                    spec = importlib.util.spec_from_file_location(
-                        module_name, filters_file
-                    )
-                    if spec is None or spec.loader is None:
-                        logger.error(f"Could not load spec for {filters_file}")
+                        logger.error(f"Could not load spec for {py_file}")
                         continue
                     module = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(module)
-                    logger.info(f"Successfully loaded filters from {filters_file}")
+                    logger.info(f"Successfully loaded {kind} from {py_file}")
                 except Exception as e:
-                    logger.exception(
-                        f"Error loading custom filters from {filters_file}: {e}"
-                    )
+                    logger.exception(f"Error loading custom {kind} from {py_file}: {e}")
 
     def resolve_file(self, pathname: Path) -> pathlib.Path:
         """Resolve the given file to an absolute path based on the project file location.
