@@ -1,6 +1,7 @@
 import inspect
 import os
 import tomllib
+from importlib.metadata import version, PackageNotFoundError
 from loguru import logger
 from . import project
 from . import filters as filters_module
@@ -10,11 +11,19 @@ import argparse
 from pathlib import Path
 from typing import List, Optional
 
+try:
+    _VERSION = version("pydre")
+except PackageNotFoundError:
+    _VERSION = "unknown"
+
 
 def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
     """Set up argparse based parser."""
     parser = argparse.ArgumentParser(
         description="pydre: Driving simulation data processing engine"
+    )
+    parser.add_argument(
+        "--version", action="version", version=f"pydre {_VERSION}"
     )
     parser.add_argument(
         "-p", "--projectfile", type=str, help="the project file path", default=None

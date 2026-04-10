@@ -6,6 +6,7 @@ import argparse
 from pydre.run import (
     parse_arguments, run_project, main,
     print_metrics, print_filters, _load_custom_from_project,
+    _VERSION,
 )
 
 FIXTURE_DIR = Path(__file__).parent.resolve() / "test_data"
@@ -32,6 +33,16 @@ def mock_logger(mocker):
         "warning": mocker.patch("loguru.logger.warning"),
         "error": mocker.patch("loguru.logger.error"),
     }
+
+
+def test_parse_arguments_version(capsys):
+    """--version should print the version string and exit."""
+    with pytest.raises(SystemExit) as exc_info:
+        parse_arguments(["--version"])
+    assert exc_info.value.code == 0
+    captured = capsys.readouterr()
+    assert "pydre" in captured.out
+    assert _VERSION in captured.out
 
 
 def test_parse_arguments_minimal():
