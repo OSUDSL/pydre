@@ -1,7 +1,7 @@
 from loguru import logger
 from typing import Optional, Callable, Concatenate
 
-__all__ = ["common", "eyetracking", "gazeangle"]
+__all__ = ["common", "eyetracking", "gazeangle", "empatica"]
 
 from ..core import DriveData
 

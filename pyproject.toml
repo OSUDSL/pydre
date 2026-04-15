@@ -1,6 +1,6 @@
 [project]
 name = "pydre"
-version = "26.2.0"
+version = "26.2.1"
 readme = "readme.md"
 dependencies = [
     "polars",
@@ -9,7 +9,10 @@ dependencies = [
     "icecream",
     "tqdm",
     "loguru",
-    "jenkspy"
+    "jenkspy",
+    "pandas",
+    "neurokit2",
+    "fastavro"
 ]
 requires-python = ">= 3.12"
 authors = [ {name = "Thomas Kerwin", email = "kerwin.6@osu.edu"} ]

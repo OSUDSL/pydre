@@ -200,6 +200,64 @@ def colLast(drivedata: DriveData, var: str) -> Optional[float]:
 
 
 @registerMetric()
+def amountOfChange(drivedata: DriveData, var: str):
+    """
+    Calculates the difference between the first and last value of the specified column
+
+    Parameters:
+        var: The column name to process.
+
+    Returns:
+        (Last value - first value) of the column
+    """
+    required_col = [var]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    d = drivedata.data.select(required_col).drop_nulls()
+
+    try:
+        result = d.item(-1, var) - d.item(0, var)
+        #result = d.get_column(var).last() - d.get_column(var).first()
+    except TypeError as e:
+        result = None
+
+    return result
+
+
+@registerMetric()
+def colCount(drivedata: DriveData, var: str, floor: Optional[float] = 0):
+    """
+    Calculate the number of rows with values greater than the threshold value in a column.
+
+    :param drivedata: The DriveData object containing the data.
+    :param var: The name of the variable.
+    :param floor: The lower threshold value of the column.
+    :return: The number of rows with values greater than the threshold value in a column.
+    """
+    try:
+        drivedata.checkColumnsNumeric([var])
+    except ColumnsMatchError:
+        return None
+
+    var_count = drivedata.data.filter(pl.col(var) > floor).get_column(var).len()
+
+    return var_count
+
+@registerMetric()
+def colMinAbove(drivedata: DriveData, var: str, floor: float):
+    required_col = [var]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    df = drivedata.data.select(required_col).remove(pl.col(var) < floor)
+
+    return df.get_column(var).min()
+
+
+@registerMetric()
 def timeAboveSpeed(
     drivedata: DriveData, cutoff: float = 0, percentage: bool = False
 ) -> Optional[float]:
@@ -1099,18 +1157,18 @@ TBI Reaction algorithm
 To find the braking reaction time to the event (for each Section):
     Only look at values after the event E (Activation = 1)
     Find the first timestep X where:
-		X is after the Event (Activation=1)
-			AND
-		BrakeForce(X) – BrakeForce(E) > 0
+        X is after the Event (Activation=1)
+            AND
+        BrakeForce(X) – BrakeForce(E) > 0
     Reaction time is Time(X) – Time(First timestep where Activation = 1)
 
 
 To find the throttle reaction time to the event (for each Section):
     Only look at values after the event E (Activation = 1)
     Find the first timestep X where:
-		X is after the Event (Activation=1)
-			AND
-		Throttle(X) – Throttle(X-1) > SD([Throttle for all X in Section where Activation !=1]).
+        X is after the Event (Activation=1)
+            AND
+        Throttle(X) – Throttle(X-1) > SD([Throttle for all X in Section where Activation !=1]).
     Reaction time is Time(X) – Time(First timestep where Activation = 1)
 
 
