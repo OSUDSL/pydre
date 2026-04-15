@@ -405,14 +405,20 @@ class Project:
             The augmented DriveData object
         """
         ldatafilter = datafilter.copy()
+
+        datafilter_name = ldatafilter.pop("name")
         try:
             func_name = ldatafilter.pop("function")
-            filter_func = filters.filtersList[func_name]
-            datafilter_name = ldatafilter.pop("name")
         except KeyError as e:
             logger.error(
-                'Filter definitions require a "function". Malformed filters definition: missing '
-                + str(e)
+                f'No filter function defined in {datafilter_name}.'
+            )
+            raise e
+        try:
+            filter_func = filters.filtersList[func_name]
+        except KeyError as e:
+            logger.error(
+                f'Filter function "{func_name}" not found in registered filters. Error in filter {datafilter_name}.'
             )
             raise e
 
