@@ -30,7 +30,7 @@ See [Execution](../explanation/execution.md) for more information on running Pyd
 
 ## Your First Project File
 
-[Project files](../explanation/project_files.md) are written in TOML. Each metric is defined as a section with a function name and any parameters that function requires. Here's a minimal example that calculates the standard deviation of lane position (SDLP):
+[Project files](../explanation/project_files.md) are written in TOML. Each metric is defined as a section with a function name and any parameters that function requires. Here's a minimal example that calculates the standard deviation of lane position (SDLP). Save the project file below as `tutorial.toml`:
 
 ```toml
 [metrics.SDLP]
@@ -44,7 +44,7 @@ The section name `metrics.SDLP` tells Pydre this is a metric called `SDLP`. The 
 
 ## Running on Example Data
 
-Save the project file above as `tutorial.toml`, then run:
+Download the example `.dat` file (LINK), then run:
 
 ```
 uv run pydre -p tutorial.toml -d Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv

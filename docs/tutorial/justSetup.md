@@ -55,14 +55,19 @@ my_project/
 
 The justfile reads the location of your raw simulator data from a local `.env` file. This keeps machine-specific paths out of the justfile itself, so the justfile can be shared across team members and committed to version control.
 
+Downlaod the exmaples `.dat` files (LINK) and move the `Data` folder to the project direcotry
+
 Create a file named `.env` in your project root:
 
 ```sh
-# .env
-rawdatadir="E:/Work/data/cleanData/"
+# .env (Windows)
+rawdatadir="E:/Work/data/cleanData/Data"
+
+# .env (Mac)
+rawdatadir="/Users/Work/data/cleanData/Data
 ```
 
-The path should point to the directory containing your raw `.dat` simulator output files.
+> **Note:** The path should point to the directory containing your raw `.dat` simulator output files (Data folder).
 
 ---
 
@@ -80,7 +85,7 @@ set dotenv-load
 
 # Build file patterns from the rawdatadir env variable
 allDatFiles  := env('rawdatadir') / "*.dat"
-testDatFiles := env('rawdatadir') / "*Test Drive*.dat"
+testDatFiles := env('rawdatadir') / "*.dat"
 
 # Default target — running `uv run just` with no arguments runs this
 outfiles: overallMetrics
@@ -90,10 +95,13 @@ overallMetrics: (pydre-run "pydre-projects/overallMetrics.toml" "out/Metrics_Ove
 
 # Reusable recipe: runs pydre with given project file, output, and data glob
 pydre-run PROJFILE OUTFILE DATFILES:
+    mkdir -p $(dirname '{{OUTFILE}}')
     uv run pydre -p '{{PROJFILE}}' -o '{{OUTFILE}}' -d '{{DATFILES}}'
 ```
 
-> **Note:** The indentation before `uv run pydre` must be a real tab character, not spaces. Most editors will insert spaces by default — check your editor's settings if you see an indentation error.
+> **Note:** The indentation before `uv run pydre` and `mkdir` must be a real tab character, not spaces. Most editors will insert spaces by default — check your editor's settings if you see an indentation error.
+
+> **Note:** Remember to either rename `tutorial.toml` to `overallMetrics.toml` or create a new `overallMetrics.toml`file with the same contents as `tutorial.toml`.
  
 > **macOS users:** If you use zsh as your default shell, change `"bash"` to `"zsh"` in the `set shell` line.
 
@@ -149,6 +157,8 @@ testDatFiles := env('rawdatadir') / "*Test Drive*.dat"
 
 These lines create variables by joining `rawdatadir` with a file pattern using the `/` path-join operator. The result is a full pattern like `E:/Work/data/cleanData/*.dat` that pydre uses to find input files.
 
+> **Note:** Remove `'*Test Drive'` if using a folder rather than a singular file
+
 | Variable | Matches |
 |----------|---------|
 | `allDatFiles` | All `.dat` files in `rawdatadir` |
@@ -170,6 +180,7 @@ Chaining targets this way lets you build up complex multi-step pipelines. Adding
 
 ```just
 pydre-run PROJFILE OUTFILE DATFILES:
+    mkdir -p $(dirname '{{OUTFILE}}')
     uv run pydre -p '{{PROJFILE}}' -o '{{OUTFILE}}' -d '{{DATFILES}}'
 ```
 
