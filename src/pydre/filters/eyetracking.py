@@ -3,6 +3,8 @@ from loguru import logger
 
 import pydre.core
 from pydre.filters import registerFilter
+from ..core import DriveData, ColumnsMatchError
+
 
 # The following functions need to be revised to work with polars rather than pandas
 
@@ -212,3 +214,5 @@ def smoothGazeData(
     drivedata.data = dt
 
     return drivedata
+
+

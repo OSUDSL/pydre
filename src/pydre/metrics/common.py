@@ -200,6 +200,64 @@ def colLast(drivedata: DriveData, var: str) -> Optional[float]:
 
 
 @registerMetric()
+def amountOfChange(drivedata: DriveData, var: str):
+    """
+    Calculates the difference between the first and last value of the specified column
+
+    Parameters:
+        var: The column name to process.
+
+    Returns:
+        (Last value - first value) of the column
+    """
+    required_col = [var]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    d = drivedata.data.select(required_col).drop_nulls()
+
+    try:
+        result = d.item(-1, var) - d.item(0, var)
+        #result = d.get_column(var).last() - d.get_column(var).first()
+    except TypeError as e:
+        result = None
+
+    return result
+
+
+@registerMetric()
+def colCount(drivedata: DriveData, var: str, floor: Optional[float] = 0):
+    """
+    Calculate the number of rows with values greater than the threshold value in a column.
+
+    :param drivedata: The DriveData object containing the data.
+    :param var: The name of the variable.
+    :param floor: The lower threshold value of the column.
+    :return: The number of rows with values greater than the threshold value in a column.
+    """
+    try:
+        drivedata.checkColumnsNumeric([var])
+    except ColumnsMatchError:
+        return None
+
+    var_count = drivedata.data.filter(pl.col(var) > floor).get_column(var).len()
+
+    return var_count
+
+@registerMetric()
+def colMinAbove(drivedata: DriveData, var: str, floor: float):
+    required_col = [var]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    df = drivedata.data.select(required_col).remove(pl.col(var) < floor)
+
+    return df.get_column(var).min()
+
+
+@registerMetric()
 def timeAboveSpeed(
     drivedata: DriveData, cutoff: float = 0, percentage: bool = False
 ) -> Optional[float]:
@@ -461,17 +519,78 @@ def numbrakes(
     return numberofbrakes
 
 
-def _calculateReversals(df):
-    k = 1
-    n = 0
+def _calculateReversals(df: np.ndarray) -> int:
+    """Count steering reversals using a vectorised numpy approach.
+
+    A reversal is counted when the cumulative maximum of the series increases
+    by at least `threshold` from the last reversal anchor, matching the original
+    iterative algorithm.
+    """
     threshold = 0.0523598776 * 2
-    for l in range(2, len(df)):
-        if df[l] - df[k] >= threshold:
-            n = n + 1
-            k = l
-        elif df[l] <= df[k]:
-            k = l
+    if len(df) < 2:
+        return 0
+
+    n = 0
+    anchor = df[0]
+    for val in df[1:]:
+        if val - anchor >= threshold:
+            n += 1
+            anchor = val
+        elif val <= anchor:
+            anchor = val
     return n
+
+
+def _computeSteeringReversals(drivedata: DriveData):
+    """Shared helper: resample, filter, and count steering reversals.
+
+    Returns:
+        (reversals, original_time) tuple, or (None, None) on error.
+    """
+    required_col = ["SimTime", "Steer"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None, None
+
+    df = drivedata.data.select([pl.col("SimTime"), pl.col("Steer")]).slice(1, None)
+    numpy_df = df.to_numpy()
+    original_time = numpy_df[:, 0]
+    original_steer = numpy_df[:, 1]
+
+    if len(original_time) < 2:
+        return None, None
+
+    # Resample to 32 Hz
+    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
+    new_steer = np.interp(new_time, original_time, original_steer)
+
+    # Second-order Butterworth filter at 6 Hz
+    sos = signal.butter(2, 6, output="sos", fs=32)
+    theta_i = signal.sosfilt(sos, new_steer, zi=None)
+
+    theta_prime_i = np.diff(theta_i)
+    theta_prime_i = np.append(0, theta_prime_i)
+
+    i = np.arange(1, len(theta_prime_i) + 1)
+    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
+
+    df = pl.from_numpy(df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row")
+    zeros = (
+        df.filter(pl.col("i") > 1)
+        .filter(pl.col("thetaPrimeI") == 0)
+        .drop("thetaPrimeI")
+    )
+    sign_diff = df.with_columns(pl.col("thetaPrimeI").sign().diff(-1).alias("SignDiff"))
+    diff_two = sign_diff.filter(
+        pl.col("SignDiff").abs() == 2
+    ).drop(["SignDiff", "thetaPrimeI"])
+
+    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
+
+    n_upwards = _calculateReversals(set_of_i[:, 1])
+    n_downwards = _calculateReversals(-set_of_i[:, 1])
+    return n_upwards + n_downwards, original_time
 
 
 @registerMetric()
@@ -486,70 +605,12 @@ def steeringReversals(drivedata: DriveData) -> Optional[float]:
         total reversals in this ROI
 
     """
-
-    required_col = ["SimTime", "Steer"]
-    # to verify if column is numeric
-    try:
-        drivedata.checkColumnsNumeric(required_col)
-    except ColumnsMatchError:
-        return None
-
-    df = drivedata.data.select([pl.col("SimTime"), pl.col("Steer")])
-    # convert to numpy and resample data to have even time steps (of 32Hz)
-    df = df.slice(1, None)
-    numpy_df = df.to_numpy()
-    original_time = numpy_df[:, 0]
-    original_steer = numpy_df[:, 1]
-
-    # 32Hz = 0.03125seconds
-    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
-    new_steer = np.interp(new_time, original_time, original_steer)
-    numpy_df = np.column_stack((new_time, new_steer))
-
-    # apply second order butterworth filter at 6z frequency
-    sos = signal.butter(2, 6, output="sos", fs=32)
-    theta_i = signal.sosfilt(sos, numpy_df[:, 1], zi=None)
-
-    # calcuate thetaI
-    theta_prime_i = np.diff(theta_i)
-    theta_prime_i = np.append(0, theta_prime_i)
-
-    # make column for i and combine with theta_prime_i column
-    i = np.arange(1, len(theta_prime_i) + 1)
-    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
-
-    # find all values of i where theta_prime_i is 0
-    df = pl.from_numpy(
-        df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row"
-    )
-    df_except_one = df.filter(df.get_column("i") > 1)
-    zeros = df_except_one.filter(df_except_one.get_column("thetaPrimeI") == 0).drop(
-        "thetaPrimeI"
-    )
-
-    # find values of i where difference between consequential signs of theta_prime_i is 2
-    sign_diff = df.with_columns(
-        df.get_column("thetaPrimeI").sign().diff(-1).alias("SignDiff")
-    )
-    diff_two = sign_diff.filter(
-        (sign_diff.get_column("SignDiff") == 2)
-        | (sign_diff.get_column("SignDiff") == -2)
-    ).drop(["SignDiff", "thetaPrimeI"])
-
-    # merge list of i's to get one sorted list of i's
-    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
-
-    # calculate total reversals
-    n_upwards = _calculateReversals(set_of_i[:, 1])
-    set_of_i_down = np.multiply(set_of_i[:, 1], -1)
-    n_downwards = _calculateReversals(set_of_i_down)
-    reversals = n_upwards + n_downwards
-
+    reversals, _ = _computeSteeringReversals(drivedata)
     return reversals
 
 
 @registerMetric()
-def steeringReversalRate(drivedata: DriveData) -> float:
+def steeringReversalRate(drivedata: DriveData) -> Optional[float]:
     """Steering reversal rate
 
     As defined in [SAE j2944](https://www.auto-ui.org/docs/sae_J2944_appendices_PG_130212.pdf)
@@ -562,66 +623,14 @@ def steeringReversalRate(drivedata: DriveData) -> float:
         reversals per minute
 
     """
-    required_col = ["SimTime", "Steer"]
+    reversals, original_time = _computeSteeringReversals(drivedata)
+    if reversals is None or original_time is None:
+        return None
+    duration_minutes = (np.max(original_time) - np.min(original_time)) / 60
+    if duration_minutes == 0:
+        return None
+    return reversals / duration_minutes
 
-    # to verify if column is numeric
-    drivedata.checkColumnsNumeric(required_col)
-    drivedata.checkColumns(required_col)
-
-    df = drivedata.data.select([pl.col("SimTime"), pl.col("Steer")])
-    # convert to numpy and resample data to have even time steps (of 32Hz)
-    df = df.slice(1, None)
-    numpy_df = df.to_numpy()
-    original_time = numpy_df[:, 0]
-    original_steer = numpy_df[:, 1]
-
-    # 32Hz = 0.03125seconds
-    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
-    new_steer = np.interp(new_time, original_time, original_steer)
-    numpy_df = np.column_stack((new_time, new_steer))
-
-    # apply second order butterworth filter at 6z frequency
-    sos = signal.butter(2, 6, output="sos", fs=32)
-    theta_i = signal.sosfilt(sos, numpy_df[:, 1], zi=None)
-
-    # calcuate thetaI
-    theta_prime_i = np.diff(theta_i)
-    theta_prime_i = np.append(0, theta_prime_i)
-
-    # make column for i and combine with theta_prime_i column
-    i = np.arange(1, len(theta_prime_i) + 1)
-    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
-
-    # find all values of i where theta_prime_i is 0
-    df = pl.from_numpy(
-        df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row"
-    )
-    df_except_one = df.filter(df.get_column("i") > 1)
-    zeros = df_except_one.filter(df_except_one.get_column("thetaPrimeI") == 0).drop(
-        "thetaPrimeI"
-    )
-
-    # find values of i where difference between consequential signs of theta_prime_i is 2
-    sign_diff = df.with_columns(
-        df.get_column("thetaPrimeI").sign().diff(-1).alias("SignDiff")
-    )
-    diff_two = sign_diff.filter(
-        (sign_diff.get_column("SignDiff") == 2)
-        | (sign_diff.get_column("SignDiff") == -2)
-    ).drop(["SignDiff", "thetaPrimeI"])
-
-    # merge list of i's to get one sorted list of i's
-    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
-
-    # calculate total reversals
-    n_upwards = _calculateReversals(set_of_i[:, 1])
-    set_of_i_down = np.multiply(set_of_i[:, 1], -1)
-    n_downwards = _calculateReversals(set_of_i_down)
-    reversals = n_upwards + n_downwards
-
-    # reversal rate as reversals/ minute
-    reversal_rate = reversals / ((np.max(original_time) - np.min(original_time)) / 60)
-    return reversal_rate
 
 
 # mean dip time
@@ -1148,18 +1157,18 @@ TBI Reaction algorithm
 To find the braking reaction time to the event (for each Section):
     Only look at values after the event E (Activation = 1)
     Find the first timestep X where:
-		X is after the Event (Activation=1)
-			AND
-		BrakeForce(X) – BrakeForce(E) > 0
+        X is after the Event (Activation=1)
+            AND
+        BrakeForce(X) – BrakeForce(E) > 0
     Reaction time is Time(X) – Time(First timestep where Activation = 1)
 
 
 To find the throttle reaction time to the event (for each Section):
     Only look at values after the event E (Activation = 1)
     Find the first timestep X where:
-		X is after the Event (Activation=1)
-			AND
-		Throttle(X) – Throttle(X-1) > SD([Throttle for all X in Section where Activation !=1]).
+        X is after the Event (Activation=1)
+            AND
+        Throttle(X) – Throttle(X-1) > SD([Throttle for all X in Section where Activation !=1]).
     Reaction time is Time(X) – Time(First timestep where Activation = 1)
 
 

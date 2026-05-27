@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import copy
 import json
+import logging
 import traceback
 import os
+import warnings
 
 import polars as pl
 import sys
@@ -42,6 +44,7 @@ class Project:
         projectfilename: str,
         additional_data_paths: Optional[list[str]] = None,
         outputfile: Optional[str] = None,
+        log_level: Optional[str] = None,
     ):
         self.project_filename = pathlib.Path(projectfilename)
         self.definition = {}
@@ -49,6 +52,7 @@ class Project:
         self.results = None
         self.filelist = []
         self._stop_event = threading.Event()
+        self._cli_log_level = log_level  # preserve CLI-specified level
         try:
             logger.info("Loading project from: " + str(self.project_filename))
             with open(self.project_filename, "rb") as project_file:
@@ -183,67 +187,48 @@ class Project:
         """
         Process custom metrics and filters directories specified in the config and load metrics.
         """
-        custom_metrics_dirs = self.config.get("custom_metrics_dirs", [])
+        project_dir = self.project_filename.parent
+        Project._load_custom_dir(
+            self.config.get("custom_metrics_dirs", []), project_dir, "metrics"
+        )
+        Project._load_custom_dir(
+            self.config.get("custom_filters_dirs", []), project_dir, "filters"
+        )
 
-        if isinstance(custom_metrics_dirs, str):
-            custom_metrics_dirs = [custom_metrics_dirs]
+    @staticmethod
+    def _load_custom_dir(dirs: list[str] | str, project_dir: Path, kind: str) -> None:
+        """Load all Python files from custom function directories, triggering registration decorators.
 
-        for metrics_dir in custom_metrics_dirs:
-            metrics_path = self.resolve_file(metrics_dir)
-            if not metrics_path.exists():
-                logger.warning(f"Custom metrics directory not found: {metrics_path}")
+        Used by both :meth:`_load_custom_functions` (during normal project init) and
+        by :func:`pydre.run._load_custom_from_project` (during ``--list-metrics`` /
+        ``--list-filters``) so the loading logic is not duplicated.
+
+        Args:
+            dirs: A single directory path or a list of directory paths to scan.
+            project_dir: Base directory used to resolve relative paths.
+            kind: Label used in log messages and module naming (``"metrics"`` or ``"filters"``).
+        """
+        if isinstance(dirs, str):
+            dirs = [dirs]
+        for d in dirs:
+            p = Path(d)
+            dir_path = p if p.is_absolute() else (project_dir / p).resolve()
+            if not dir_path.exists():
+                logger.warning(f"Custom {kind} directory not found: {dir_path}")
                 continue
-
-            logger.info(f"Loading custom metrics from: {metrics_path}")
-
-            # Process all Python files in the directory
-            for metrics_file in metrics_path.glob("*.py"):
+            logger.info(f"Loading custom {kind} from: {dir_path}")
+            for py_file in sorted(dir_path.glob("*.py")):
                 try:
-                    # Create a module name
-                    module_name = f"custom_metrics_{metrics_file.stem}"
-                    spec = importlib.util.spec_from_file_location(
-                        module_name, metrics_file
-                    )
+                    module_name = f"custom_{kind}_{py_file.stem}"
+                    spec = importlib.util.spec_from_file_location(module_name, py_file)
                     if spec is None or spec.loader is None:
-                        logger.error(f"Could not load spec for {metrics_file}")
-                        continue
-
-                    module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(module)
-
-                    # The @registerMetric decorator will automatically register the metrics
-                    logger.info(f"Successfully loaded metrics from {metrics_file}")
-                except Exception as e:
-                    logger.exception(
-                        f"Error loading custom metrics from {metrics_file}: {e}"
-                    )
-
-        custom_filters_dirs = self.config.get("custom_filters_dirs", [])
-
-        if isinstance(custom_filters_dirs, str):
-            custom_filters_dirs = [custom_filters_dirs]
-        for filters_dir in custom_filters_dirs:
-            filters_path = self.resolve_file(filters_dir)
-            if not filters_path.exists():
-                logger.warning(f"Custom filters directory not found: {filters_path}")
-                continue
-            logger.info(f"Loading custom filters from: {filters_path}")
-            for filters_file in filters_path.glob("*.py"):
-                try:
-                    module_name = f"custom_filters_{filters_file.stem}"
-                    spec = importlib.util.spec_from_file_location(
-                        module_name, filters_file
-                    )
-                    if spec is None or spec.loader is None:
-                        logger.error(f"Could not load spec for {filters_file}")
+                        logger.error(f"Could not load spec for {py_file}")
                         continue
                     module = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(module)
-                    logger.info(f"Successfully loaded filters from {filters_file}")
+                    logger.info(f"Successfully loaded {kind} from {py_file}")
                 except Exception as e:
-                    logger.exception(
-                        f"Error loading custom filters from {filters_file}: {e}"
-                    )
+                    logger.exception(f"Error loading custom {kind} from {py_file}: {e}")
 
     def resolve_file(self, pathname: Path) -> pathlib.Path:
         """Resolve the given file to an absolute path based on the project file location.
@@ -277,7 +262,18 @@ class Project:
         """
         # Read settings from self.config
         logfile: Optional[str] = self.config.get("logfile", None)
-        log_level: str = str(self.config.get("log_level", "INFO"))
+        accepted_levels = ["DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
+        # CLI-specified level takes precedence over the TOML config value,
+        # which in turn falls back to "INFO".
+        raw_level: str = str(
+            self._cli_log_level.upper()
+            if self._cli_log_level is not None
+            else self.config.get("log_level", "INFO")
+        )
+        if raw_level not in accepted_levels:
+            log_level = "WARNING"
+        else:
+            log_level = raw_level
 
         # Filter factory bound to this Project instance's stop flag
         def _silence_after_interrupt(record: loguru.Record) -> bool:
@@ -293,6 +289,12 @@ class Project:
         # Re-add stderr sink (keep existing behavior)
         logger.add(sys.stderr, level=log_level, filter=_silence_after_interrupt)
 
+        if raw_level not in accepted_levels:
+            logger.warning(
+                f"Log level '{raw_level}' is invalid. Defaulting to WARNING. "
+                f"Accepted levels: {accepted_levels}"
+            )
+
         # If a logfile path is provided, add a file sink (append-only)
         if logfile:
             # Resolve relative path against the project file location for convenience
@@ -305,6 +307,54 @@ class Project:
                 backtrace=False,  # set True if you want very detailed tracebacks
                 diagnose=False,  # set True to include variable values in tracebacks
             )
+
+        # --- Bridge Python warnings → loguru ---
+        # 1. Redirect warnings that flow through stdlib logging (e.g. DeprecationWarning
+        #    captured by logging.captureWarnings) into loguru via its logging intercept.
+        logging.captureWarnings(True)
+
+        # Set up a loguru sink that intercepts stdlib logging records so that
+        # captureWarnings output lands in loguru instead of the default handler.
+        class _InterceptHandler(logging.Handler):
+            def emit(self, record: logging.LogRecord) -> None:
+                # Map stdlib level to loguru level name
+                try:
+                    level = logger.level(record.levelname).name
+                except ValueError:
+                    level = str(record.levelno)
+                # Walk the call stack to find the true origin of the warning
+                frame, depth = logging.currentframe(), 0
+                while frame and (depth == 0 or frame.f_code.co_filename == logging.__file__):
+                    frame = frame.f_back
+                    depth += 1
+                logger.opt(depth=depth, exception=record.exc_info).log(
+                    level, record.getMessage()
+                )
+
+        # Attach the intercept handler to the root stdlib logger (once)
+        stdlib_root = logging.getLogger()
+        # Avoid adding duplicate handlers if _configure_logging is called more than once
+        if not any(isinstance(h, _InterceptHandler) for h in stdlib_root.handlers):
+            stdlib_root.handlers.clear()
+            stdlib_root.addHandler(_InterceptHandler())
+            stdlib_root.setLevel(0)  # let loguru decide what to show
+
+        # 2. Also override warnings.showwarning directly so that libraries which call
+        #    warnings.warn() without going through logging are still captured.
+        from typing import TextIO
+        def _showwarning(
+            message: Warning | str,
+            category: type[Warning],
+            filename: str,
+            lineno: int,
+            file: TextIO | None = None,
+            line: str | None = None,
+        ) -> None:
+            logger.opt(depth=2).warning(
+                f"{filename}:{lineno}: {category.__name__}: {message}"
+            )
+
+        warnings.showwarning = _showwarning  # type: ignore[assignment]
 
     def processROI(
         self, roi: dict, datafile: DriveData
@@ -354,15 +404,21 @@ class Project:
         Returns:
             The augmented DriveData object
         """
-        ldatafilter = copy.deepcopy(datafilter)
+        ldatafilter = datafilter.copy()
+
+        datafilter_name = ldatafilter.pop("name")
         try:
             func_name = ldatafilter.pop("function")
-            filter_func = filters.filtersList[func_name]
-            datafilter_name = ldatafilter.pop("name")
         except KeyError as e:
             logger.error(
-                'Filter definitions require a "function". Malformed filters definition: missing '
-                + str(e)
+                f'No filter function defined in {datafilter_name}.'
+            )
+            raise e
+        try:
+            filter_func = filters.filtersList[func_name]
+        except KeyError as e:
+            logger.error(
+                f'Filter function "{func_name}" not found in registered filters. Error in filter {datafilter_name}.'
             )
             raise e
 
@@ -380,7 +436,7 @@ class Project:
             A dictionary containing the results of the metric
         """
 
-        metric = copy.deepcopy(metric)
+        metric = metric.copy()
         try:
             func_name = metric.pop("function")
             report_name = metric.pop("name")
@@ -568,7 +624,7 @@ class Project:
             # no ROIs to process, but that's OK
             if stop_event.is_set():
                 return []  # silent early-exit; avoids post-abort warning spam
-            logger.warning("No ROIs defined, processing raw data.")
+            logger.info(f"No ROIs defined for {datafilename}, processing raw data.")
             roi_datalist.append(datafile)
 
         if len(roi_datalist) == 0:
@@ -582,7 +638,7 @@ class Project:
             return []
 
         for data in roi_datalist:
-            result_dict = copy.deepcopy(datafile.metadata)
+            result_dict = datafile.metadata.copy()
             result_dict["ROI"] = data.roi
 
             for metric in self.definition["metrics"]:

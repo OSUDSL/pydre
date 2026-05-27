@@ -1,0 +1,71 @@
+---
+title: "Basic Analysis"
+---
+ 
+Pydre is a Python application run from the command line. This guide walks you through creating your first project file and running it on example data to produce your first aggregated metrics output.
+ 
+---
+ 
+## Command Line Syntax
+ 
+The basic command syntax is:
+ 
+```
+uv run pydre -p [project file] -d [data file] -o [output file] -l [log level]
+```
+
+!!! info "Command Line Arguments for `pydre`"
+
+    * Project File [-p]: The project file specifies a file for the regions of interest from which the data should be aggregated. It also specifies a list of metrics (the type of data) that will be aggregated from the regions of interest. 
+
+    * Data File [-d]: The data file contains the raw metrics obtained from the simulation. This argument supports wildcards.
+    
+    * Output File [-o]: After the script has executed, the output file will display the aggregated metrics from the regions of interests that were both specified in the project file. The output file will be saved in the same folder as the script. 
+    
+    * Logger level [-l]: This defines the level the logger will print out. The default is 'warning'. Options include debug, info, warning, error, and critical.
+
+---
+
+See [Execution](../explanation/execution.md) for more information on running Pydre.
+
+## Your First Project File
+
+[Project files](../explanation/project_files.md) are written in TOML. Each metric is defined as a section with a function name and any parameters that function requires. Here's a minimal example that calculates the standard deviation of lane position (SDLP). Save the project file below as `tutorial.toml`:
+
+```toml
+[metrics.SDLP]
+function = "colSD"
+var = "LaneOffset"
+```
+
+The section name `metrics.SDLP` tells Pydre this is a metric called `SDLP`. The `function` field refers to a built-in Pydre function, and `var` specifies which column in the data file to operate on.
+
+---
+
+## Running on Example Data
+
+Download the example `.dat` file (LINK), then run:
+
+```
+uv run pydre -p tutorial.toml -d Experimenter_S1_Tutorial_11002233.dat -o tutorial.csv
+```
+
+Pydre will process the data file and write the results to `tutorial.csv`. With no regions of interest defined, the output contains one row per input file:
+
+| Subject | Mode | ScenarioName | UniqueID | ROI | SDLP |
+|---|---|---|---|---|---|
+| S1 | Experimenter | Tutorial | 11002233 | | 0.0456... |
+
+The first four columns are parsed from the data filename. Pydre expects filenames in the format `Mode_Subject_ScenarioName_UniqueID.dat`. The `ROI` column is blank because no [regions of interest](../explanation/rois.md) were specified. The `SDLP` column header matches the name given in the project file.
+
+---
+
+## What's next
+ 
+You now know how to run a basic analysis. Custom metrics are a significant step up in complexity. You'll be writing Python functions that operate directly on the data. Before moving on, make sure you're comfortable with:
+ 
+- editing the project file to add or change metrics
+- understanding which columns your data file contains (you can check with `-l debug` to see column names logged at startup)
+- interpreting the output CSV
+ 
+When you're ready: [Custom Metrics](custom_metrics.md)

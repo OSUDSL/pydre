@@ -25,7 +25,7 @@ class DriveData:
             if newdata is not None:
                 self.data = newdata
             else:
-                self.data = copy.deepcopy(orig.data)
+                self.data = orig.data.clone()
             self.roi = orig.roi
             self.sourcefilename = orig.sourcefilename
             self.sourcefiletype = orig.sourcefiletype
