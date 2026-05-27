@@ -45,7 +45,7 @@ dev = [
     "pytest-cov",
     "pytest-mock",
     "pytest-datafiles",
-    "griffe==1.2.0"
+    "griffe"
 ]
 
 [dependency-groups]
@@ -59,7 +59,7 @@ dev = [
     "pytest-cov",
     "pytest-mock",
     "pytest-datafiles",
-    "griffe==1.2.0",
+    "griffe",
     "ruff>=0.14.7",
 ]
 
@@ -76,7 +76,7 @@ dev-dependencies = [
     "pytest-cov",
     "pytest-mock",
     "pytest-datafiles",
-    "griffe==1.2.0"
+    "griffe"
 ]
 
 # Build System
