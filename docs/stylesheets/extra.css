@@ -1,15 +1,23 @@
 @import url("https://assets.bux.osu.edu/bux-webfonts2/bux-webfonts2.css");
 
-[data-md-color-scheme="OSU"] {
-  --md-primary-fg-color:        #BA0C2F;
-  --md-primary-fg-color--light: #70071c;
-  --md-primary-fg-color--dark:  #4a0513;
-
-  --md-accent-fg-color:                #A7B1B7;
-  --md-accent-fg-color--transparent:   #A7B1B720;
+html, [data-md-color-scheme="OSU"] {
+    --md-primary-fg-color:        #BA0C2F;
+    --md-primary-fg-color--light: #70071c;
+    --md-primary-fg-color--dark:  #4a0513;
+    --md-accent-fg-color:                #A7B1B7;
+    --md-accent-fg-color--transparent:   #A7B1B720;
+    --md-text-font: "BuckeyeSans";
 }
 
-:root {
-  --md-text-font: "BuckeyeSans";
+header.md-header {
+    background-color: #BA0C2F;
+    color: white
+}
 
+.md-tabs {
+    background-color: #BA0C2F;
+}
+
+.md-search__button {
+  color: white !important;
 }

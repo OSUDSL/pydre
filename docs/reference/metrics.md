@@ -6,4 +6,3 @@ For metrics, the *Receives* field in the function descriptions is used to docume
 ::: pydre.metrics.common
     options:
         show_root_heading: false
-        filters: ["!^_"]

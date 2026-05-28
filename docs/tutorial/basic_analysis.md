@@ -16,13 +16,13 @@ uv run pydre -p [project file] -d [data file] -o [output file] -l [log level]
 
 !!! info "Command Line Arguments for `pydre`"
 
-    * Project File [-p]: The project file specifies a file for the regions of interest from which the data should be aggregated. It also specifies a list of metrics (the type of data) that will be aggregated from the regions of interest. 
+    * Project File `-p`: The project file specifies a file for the regions of interest from which the data should be aggregated. It also specifies a list of metrics (the type of data) that will be aggregated from the regions of interest. 
 
-    * Data File [-d]: The data file contains the raw metrics obtained from the simulation. This argument supports wildcards.
+    * Data File `-d`: The data file contains the raw metrics obtained from the simulation. This argument supports wildcards.
     
-    * Output File [-o]: After the script has executed, the output file will display the aggregated metrics from the regions of interests that were both specified in the project file. The output file will be saved in the same folder as the script. 
+    * Output File `-o`: After the script has executed, the output file will display the aggregated metrics from the regions of interests that were both specified in the project file. The output file will be saved in the same folder as the script. 
     
-    * Logger level [-l]: This defines the level the logger will print out. The default is 'warning'. Options include debug, info, warning, error, and critical.
+    * Logger level `-l`: This defines the level the logger will print out. The default is 'warning'. Options include debug, info, warning, error, and critical.
 
 ---
 

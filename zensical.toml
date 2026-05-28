@@ -10,6 +10,7 @@ variant = "modern"
 [project.theme.palette]
 scheme = "OSU"
 primary = "custom"
+accent = "custom"
 
 [project.plugins.mkdocstrings.handlers.python]
 inventories = ["https://docs.python.org/3/objects.inv"]
@@ -24,3 +25,4 @@ separate_signature = true
 line_length = 100
 show_signature_annotations = true
 signature_crossrefs = true
+filters = ["!^_"]
