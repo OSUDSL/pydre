@@ -9,7 +9,11 @@ dependencies = [
     "icecream",
     "tqdm",
     "loguru",
-    "jenkspy"
+    "jenkspy",
+    "duckdb>=1.5.5",
+    "dotenv>=0.9.9",
+    "typer>=0.27.1",
+    "pyarrow>=25.0.1",
 ]
 requires-python = ">= 3.12"
 authors = [ {name = "Thomas Kerwin", email = "kerwin.6@osu.edu"} ]

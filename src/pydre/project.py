@@ -3,6 +3,7 @@ import json
 import traceback
 import os
 from os import PathLike
+import re
 
 import polars as pl
 import polars.exceptions
@@ -23,6 +24,7 @@ from tqdm import tqdm
 import concurrent.futures
 import importlib.util
 import threading
+from pydre.ducklake_connector import connect_to_ducklake, get_file_names, load_file_from_ducklake, DuckLakeConfig, env_file_path
 
 
 class Project:
@@ -38,9 +40,12 @@ class Project:
         outputfile: Optional[str] = None,
     ):
         self.project_filename = pathlib.Path(projectfilename)
+        self.additional_data_paths = additional_data_paths
         self.definition = {}
         self.config = {}
         self.results = None
+        self.local_data_files = []
+        ducklake_file_names = []
         self.filelist = []
         try:
             logger.info("Loading project from: " + str(self.project_filename))
@@ -103,10 +108,8 @@ class Project:
             logger.error(f"File '{projectfilename}' not found.")
             raise e
 
-        if additional_data_paths is not None:
-            self.config["datafiles"] = (
-                self.config.get("datafiles", []) + additional_data_paths
-            )
+        if self.additional_data_paths is not None:
+            self.local_data_files += self.additional_data_paths
 
         if "outputfile" in self.config:
             if outputfile is not None:
@@ -117,25 +120,69 @@ class Project:
             else:
                 self.config["outputfile"] = "out.csv"
 
-        if len(self.config.get("datafiles", [])) == 0:
-            logger.error("No datafile found in project definition.")
 
         # Configure logging from TOML [config]
         self._configure_logging()
 
         self._load_custom_functions()
 
+
+        if "source" in self.config:
+            if self.config["source"] == "localfilesystem":
+                if "datafiles" in self.config:
+                    self.local_data_files += self.config["datafiles"]
+                if "baseDirectory" in self.config:
+                    if "pattern" in self.config:
+                        for filename in os.listdir(self.config["baseDirectory"]):
+                            if re.search(self.config["pattern"], filename):
+                                file_path = os.path.join(self.config["baseDirectory"], filename)
+                                self.local_data_files.append(file_path)
+                    else:
+                        logger.error("No pattern found in project definition")
+                else:
+                    logger.error("No base directory found in project definition")
+            elif self.config["source"] == "ducklake":
+                if "datafiles" in self.config:
+                    ducklake_file_names += self.config["datafiles"]
+                if "pattern" in self.config:
+                    # Create a DuckLakeConfig object by loading the configuration from the .env file
+                    self.ducklake_config = DuckLakeConfig.from_env_file(env_file_path())
+                    ducklake_connection = connect_to_ducklake(self.ducklake_config)
+                    try:
+                       ducklake_file_names += get_file_names(ducklake_connection, self.config["pattern"])
+                    finally:
+                        ducklake_connection.close()
+                else:
+                    logger.error("No pattern found in project definition")
+            else:
+                logger.error("Source specified in project definition not supported")
+        else:
+            if "pattern" in self.config or (not self.local_data_files and not "datafiles" in self.config):
+                logger.error("No source found in project definition")
+            elif "datafiles" in self.config:
+                logger.warning("No source found in project definition, set source as local file system")
+                self.local_data_files += self.config["datafiles"]
+
+
+        if (not self.local_data_files and not ducklake_file_names):
+           logger.error("No data files were provided.")
+
         # resolve the file paths
         filelist: list[PathLike] = []
-        for fn in self.config.get("datafiles", []):
-            # convert relative path to absolute path
-            fn = Path(fn)
-            if not fn.is_absolute():
-                datapath = pathlib.Path(self.project_filename.parent / fn).resolve()
-            else:
-                datapath = fn
-            datafiles = sorted(datapath.parent.glob(datapath.name))
-            filelist.extend(datafiles)
+
+        if ducklake_file_names:
+            filelist = ducklake_file_names
+
+        if self.local_data_files:
+            for fn in self.local_data_files :
+                # convert relative path to absolute path
+                fn = Path(fn)
+                if not fn.is_absolute():
+                    datapath = pathlib.Path(self.project_filename.parent / fn).resolve()
+                else:
+                    datapath = fn
+                datafiles = sorted(datapath.parent.glob(datapath.name))
+                filelist.extend(datafiles)
 
         ignore_files: list[PathLike] = []
         for fn in self.config.get("ignore", []):
@@ -549,7 +596,15 @@ class Project:
         else:
             datafile = DriveData.init_rti(datafilename)
         datafile.config = self.config
-        datafile.loadData()
+
+        if isinstance(datafilename,Path):
+            datafile.loadData()
+        else:
+            # Create a ducklake_connection to DuckLake
+            ducklake_connection = connect_to_ducklake(self.ducklake_config)
+            datafile.data = load_file_from_ducklake(ducklake_connection,datafilename)
+            ducklake_connection.close()
+
         roi_datalist = []
         results_list = []
 

@@ -68,7 +68,7 @@ class DriveData:
         datafile_re_format1 = re.compile(
             r"([^_]+)_([^_]+)_([^_]+)_(\d+)(?:.*).dat"
         )  # [mode]_[participant id]_[scenario name]_[uniquenumber].dat
-        match_format1 = datafile_re_format1.search(str(sourcefilename.name))
+        match_format1 = datafile_re_format1.search(str(sourcefilename.name if isinstance(sourcefilename, Path) else sourcefilename))
         if match_format1 is None:
             logger.error(f"Filename {sourcefilename} does not match expected format.")
             return obj

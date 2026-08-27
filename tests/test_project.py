@@ -100,8 +100,7 @@ def test_project_additional_data_paths(tmp_path):
     """)
 
     project = pydre.project.Project(dummy_toml, additional_data_paths=[str(test_file)])
-    assert str(test_file) in project.config["datafiles"]
-
+    assert str(test_file) in project.local_data_files
 
 def test_process_filter_missing_function():
     dummy_data = DriveData()
@@ -421,10 +420,10 @@ def test_clean_method_via_project(tmp_path):
     assert cleaned == "Hello World!! @#"
 
 
-def test_project_init_no_datafiles_logs_error(tmp_path, caplog):
+def test_project_init_no_datafiles_logs_error(tmp_path, caplog, capsys):
     """
     When a project is initialized with no datafiles in [config],
-    it should emit an ERROR log 'No datafile found in project definition.'
+    it should emit an ERROR log 'No data files were provided.'
     """
     # 1. Create a minimal TOML with empty datafiles list
     toml = tmp_path / "nodata.toml"
@@ -436,8 +435,10 @@ def test_project_init_no_datafiles_logs_error(tmp_path, caplog):
     caplog.set_level("ERROR")
     # 3. Initialize project
     project = Project(str(toml))
-    # 4. Assert that the specific error message was logged
-    assert "No datafile found in project definition." in caplog.text
+    # 4. Capture output from either in caplog or stderr
+    out, err = capsys.readouterr()
+    # 5. Assert that the specific error message was logged
+    assert ("No data files were provided." in caplog.text or "No data files were provided." in err)
 
 
 def test_save_results_without_running_logs_error(tmp_path, caplog, capsys):
