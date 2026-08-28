@@ -5,9 +5,6 @@ from pathlib import Path
 from typing import ClassVar
 from dotenv import dotenv_values
 import os
-import typer
-from rich.console import Console
-from rich.panel import Panel
 from loguru import logger
 
 @dataclass
@@ -64,7 +61,8 @@ class DuckLakeConfig:
         self.storage_backend = self.storage_backend.strip().lower()
         if self.storage_backend != "s3":
             raise ValueError(
-                f"Invalid {self.ENV_STORAGE_BACKEND} in .env: {self.storage_backend}"
+                f"Invalid value for {self.ENV_STORAGE_BACKEND}: '{self.storage_backend}'. "
+                "Only 's3' is currently supported."
             )
         if self.s3_endpoint is None:
             self.s3_endpoint = self.DEFAULT_S3_ENDPOINT
@@ -86,6 +84,13 @@ class DuckLakeConfig:
     @staticmethod
     def from_env_file(path: Path) -> "DuckLakeConfig":
         """Load DuckLake configuration from a .env file."""
+
+        if not os.path.exists(path):
+           raise FileNotFoundError(
+               f"Configuration file '.env' was not found at: {path}. "
+               "Please create a .env file and configure it as described in the documentation."
+            )
+       
         values = dotenv_values(path)
         host = values.get(DuckLakeConfig.ENV_HOST) or DuckLakeConfig.DEFAULT_HOST
         database = values.get(DuckLakeConfig.ENV_DATABASE) or DuckLakeConfig.DEFAULT_DATABASE
@@ -107,9 +112,7 @@ class DuckLakeConfig:
             elif lowered in {"0", "false", "no", "n", "off"}:
                 s3_verify_ssl = False
             else:
-                raise ValueError(
-                    f"Invalid {DuckLakeConfig.ENV_S3_VERIFY_SSL} in .env: {raw_verify_ssl}"
-                )
+                raise ValueError(f"Invalid value for {DuckLakeConfig.ENV_S3_VERIFY_SSL}: '{raw_verify_ssl}'.")
             
         raw_port = values.get(DuckLakeConfig.ENV_PORT)
         if raw_port in (None, ""):
@@ -118,7 +121,9 @@ class DuckLakeConfig:
             try:
                 port = int(raw_port)
             except ValueError as exc:
-                raise ValueError(f"Invalid {DuckLakeConfig.ENV_PORT} in .env: {raw_port}") from exc
+                raise ValueError(f"Invalid value for {DuckLakeConfig.ENV_PORT}: '{raw_port}'. "
+                                "The port must be a whole number, for example '5432'."
+                ) from exc
 
         return DuckLakeConfig(
             host=host,
@@ -134,8 +139,6 @@ class DuckLakeConfig:
             s3_verify_ssl=s3_verify_ssl,
         )
     
-
-console = Console()
     
 # Returns the path to the .env file, either from an environment variable override, the current working directory, or the home directory.
 def env_file_path() -> Path:
@@ -148,17 +151,17 @@ def env_file_path() -> Path:
         return current_env
     return Path.home() / ".env"
 
-#Reads the database credentials (username and password) from the specified .env file. 
+# Reads the database credentials (username and password) from the specified .env file. 
 # It returns a tuple containing the username and password, or None for each if they are not found in the file.
 def _read_credentials(path: Path) -> tuple[str | None, str | None]:
     values = dotenv_values(path)
     return values.get("DB_USERNAME"), values.get("DB_PASSWORD")
 
-#Replaces single quotes with two single quotes. 
+# Replaces single quotes with two single quotes. 
 def _sql_literal(value: str) -> str:
     return value.replace("'", "''")
     
-#Generates a list of SQL statements to set up the DuckLake connection using the provided username, password, and configuration.
+# Generates a list of SQL statements to set up the DuckLake connection using the provided username, password, and configuration.
 def _ducklake_setup_sql(
     username: str,
     password: str,
@@ -203,22 +206,17 @@ def _ducklake_setup_sql(
         "USE data;",
     ]
 
-#Loads the database credentials from the .env file and checks if they are present.
-#  If either the username or password is missing, it prints an error message and exits the program. 
-# If both credentials are present, it returns them as a tuple.
+# Loads the database credentials from the .env file and checks if they are present.
+# Raises a ValueError if either credential is missing. 
 def _load_credentials() -> tuple[str, str]:
     username, password = _read_credentials(env_file_path())
     if not username or not password:
-        console.print(
-            Panel.fit(
-                "Missing DB credentials. Run [bold]config set[/bold] first to save DB_USERNAME/DB_PASSWORD.",
-                style="red",
-            )
-        )
-        raise typer.Exit(code=1)
+        raise ValueError(
+                    "Database credentials are missing. Please set DB_USERNAME and " 
+                    "DB_PASSWORD in your .env file. See the documentation for setup instructions.")
     return username, password
 
-#Loads the DuckLake configuration from the .env file, builds the necessary SQL statements to set up the DuckLake connection, 
+# Loads the DuckLake configuration from the .env file, builds the necessary SQL statements to set up the DuckLake connection, 
 # creates a DuckDB connection, and executes those statements.
 def _connect_to_ducklake(config: DuckLakeConfig) -> duckdb.DuckDBPyConnection:
     missing = []
@@ -231,16 +229,11 @@ def _connect_to_ducklake(config: DuckLakeConfig) -> duckdb.DuckDBPyConnection:
     if not config.s3_secret:
         missing.append(DuckLakeConfig.ENV_S3_SECRET)
     if missing:
-        console.print(
-            Panel.fit(
-                "Missing S3 configuration for DuckLake: "
-                + ", ".join(missing)
-                + ". Run [bold]config set[/bold] first.",
-                style="red",
-            )
+        raise ValueError(
+            f"Missing required S3 configuration: {', '.join(missing)}. "
+            "Please add these values to your .env file. See the documentation for setup instructions."
         )
-        raise typer.Exit(code=1)
-
+    
     username, password = _load_credentials()
     setup_sql = _ducklake_setup_sql(username, password, config)
     connection = duckdb.connect()
@@ -258,8 +251,8 @@ def connect_to_ducklake(config: DuckLakeConfig):
         connection = _connect_to_ducklake(config)
         logger.info("Successfully connected to DuckLake.")
         return connection
-    except Exception:
-        logger.opt(exception=True).error("Failed to connect to DuckLake.")
+    except Exception as exc:
+        logger.opt(exception=True).error(f"Failed to connect to DuckLake: {exc}")
         raise 
 
 def get_file_names(connection, pattern):
@@ -277,15 +270,18 @@ def load_file_from_ducklake(connection, file_name):
     ).fetchone()
 
     if result is None:
-        raise ValueError(f"File not found in datafiles: {file_name}")
+        raise ValueError(f"File '{file_name}' was not found in the DuckLake datafiles table.")
     
     project_name = result[0]
 
     if project_name is None:
-        raise ValueError(f"No project is associated with file: {file_name}")
+        raise ValueError(f"No project is associated with file '{file_name}' in DuckLake.")
 
     if not isinstance(project_name, str):
-        raise ValueError(f"Invalid project {project_name} for file: {file_name}")
+        raise ValueError(
+            f"The project associated with file '{file_name}' is invalid: "
+            f"expected a project name, but received '{project_name}'."
+        )
 
     
     table_name = f"{project_name}/{Path(file_name).stem}"
