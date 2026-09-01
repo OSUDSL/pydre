@@ -37,6 +37,9 @@ nav:
     - Installation: 'tutorial/installation.md'
     - Getting Started: 'tutorial/getting_started.md'
     - Custom metrics: 'tutorial/custom_metrics.md'
+    - Setting up Configuration File: 'tutorial/setting_up_configuration_file.md'
+    - Using Local Files: 'tutorial/using_local_files.md'
+    - Using DuckLake: 'tutorial/using_ducklake.md'
   - Reference:
     - Filter definitions: 'reference/filters.md'
     - Metric definitions: 'reference/metrics.md'
