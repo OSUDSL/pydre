@@ -144,16 +144,20 @@ class Project:
             elif self.config["source"] == "ducklake":
                 if "datafiles" in self.config:
                     ducklake_file_names += self.config["datafiles"]
-                if "pattern" in self.config:
+                if "project" in self.config or "pattern" in self.config:
                     # Create a DuckLakeConfig object by loading the configuration from the .env file
                     self.ducklake_config = DuckLakeConfig.from_env_file(env_file_path())
                     ducklake_connection = connect_to_ducklake(self.ducklake_config)
+                    if not "project" in self.config:
+                        self.config["project"] = None
+                    if not "pattern" in self.config:
+                        self.config["pattern"] = None
                     try:
-                       ducklake_file_names += get_file_names(ducklake_connection, self.config["pattern"])
+                       ducklake_file_names += get_file_names(ducklake_connection, self.config["pattern"], self.config["project"])
                     finally:
                         ducklake_connection.close()
-                else:
-                    logger.error("No pattern found in project definition")
+                if "datafiles" not in self.config and "project" not in self.config and "pattern" not in self.config: 
+                    logger.error("No datafiles, project, or pattern found in project definition")
             else:
                 logger.error("Source specified in project definition not supported")
         else:

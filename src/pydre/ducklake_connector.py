@@ -255,11 +255,20 @@ def connect_to_ducklake(config: DuckLakeConfig):
         logger.opt(exception=True).error(f"Failed to connect to DuckLake: {exc}")
         raise 
 
-def get_file_names(connection, pattern):
-    result = connection.execute(
-        "SELECT filename FROM datafiles WHERE REGEXP_MATCHES(filename, ?)", 
-        [pattern]
-    ).fetchall()
+def get_file_names(connection, pattern, project):
+    if pattern and project:
+        result = connection.execute(
+                "SELECT filename FROM datafiles WHERE project = ? AND REGEXP_MATCHES(filename, ?)", 
+                [project, pattern]
+            ).fetchall()
+    elif pattern and not project:
+        result = connection.execute(
+                "SELECT filename FROM datafiles WHERE REGEXP_MATCHES(filename, ?)", 
+                [pattern]
+            ).fetchall()
+    else:
+        result = connection.execute("SELECT filename FROM datafiles WHERE project = ?", [project]).fetchall()
+
     filenames = [i[0] for i in result]
     return filenames
 
