@@ -139,8 +139,8 @@ class Project:
                                 self.local_data_files.append(file_path)
                     else:
                         logger.error("No pattern found in project definition")
-                else:
-                    logger.error("No base directory found in project definition")
+                if "baseDirectory" not in self.config and "datafiles" not in self.config:
+                    logger.error("No baseDirectory or datafiles found in project definition")
             elif self.config["source"] == "ducklake":
                 if "datafiles" in self.config:
                     ducklake_file_names += self.config["datafiles"]
@@ -164,7 +164,7 @@ class Project:
             if "pattern" in self.config or (not self.local_data_files and not "datafiles" in self.config):
                 logger.error("No source found in project definition")
             elif "datafiles" in self.config:
-                logger.warning("No source found in project definition, set source as local file system")
+                logger.warning("No source found in project definition, setting source as local file system")
                 self.local_data_files += self.config["datafiles"]
 
 
