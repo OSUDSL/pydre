@@ -41,6 +41,13 @@ def test_colMedian():
     # Test for an invalid column name
     assert pydre.metrics.common.colMedian(dd, var="InvalidColumn") is None
 
+def test_colMedian_filtered_odd_count_differs_from_mean():
+    # filtered subset will be [2, 3, 100] -> median = 3, mean = 35.0 (detects incorrect mean-used path)
+    df = pl.DataFrame({"A": [1, 2, 3, 100]})
+    dd = pydre.core.DriveData.init_test(df, "test_colMedian_cutoff_diff.dat")
+    assert pydre.metrics.common.colMedian(dd, var="A", cutoff=1.5) == 3
+
+
 
 def test_colSD():
     # Create a sample Polars DataFrame
@@ -214,43 +221,11 @@ def test_numbrakes():
     assert pydre.metrics.common.numbrakes(dd2) == 0
 
 
-def test_colMax():
-    df = pl.DataFrame({"A": [1, 7, 3]})
-    dd = pydre.core.DriveData.init_test(df, "test_colMax.dat")
-    assert pydre.metrics.common.colMax(dd, var="A") == 7
-
-
-def test_colMin():
-    df = pl.DataFrame({"A": [1, -4, 3]})
-    dd = pydre.core.DriveData.init_test(df, "test_colMin.dat")
-    assert pydre.metrics.common.colMin(dd, var="A") == -4
-
-
-def test_colMean():
-    df = pl.DataFrame({"A": [1, 2, 3, 4]})
-    dd = pydre.core.DriveData.init_test(df, "test_colMean.dat")
-    assert pydre.metrics.common.colMean(dd, var="A") == 2.5
-
-
-def test_colSD():
-    df = pl.DataFrame({"A": [1.0, 2.0, 3.0, 4.0]})
-    dd = pydre.core.DriveData.init_test(df, "test_colSD.dat")
-    result = pydre.metrics.common.colSD(dd, var="A")
-    assert round(result, 5) == round(df["A"].std(), 5)
-
-
-def test_colMedian():
-    df = pl.DataFrame({"A": [1, 3, 5]})
-    dd = pydre.core.DriveData.init_test(df, "test_colMedian.dat")
-    assert pydre.metrics.common.colMedian(dd, var="A") == 3
-
-
 def test_maxacceleration():
     df = pl.DataFrame({"Velocity": [2, 4, 6], "LonAccel": [0.1, 2.5, 1.2]})
     dd = pydre.core.DriveData.init_test(df, "test_maxacceleration.dat")
     result = pydre.metrics.common.maxacceleration(dd)
-    assert result.shape[0] == 1
-    assert result["LonAccel"].item() == 2.5
+    assert result == 2.5
 
 
 def test_maxAcceleration():
@@ -588,3 +563,5 @@ def test_timeToOutsideThreshold():
         dd2, var="Steer", threshold_high=0.5
     )
     assert result2 is None
+
+

@@ -2,9 +2,26 @@ import pytest
 import polars as pl
 from pathlib import Path
 import pydre.metrics as metrics_module
+import copy
 
 from pydre.metrics import registerMetric, metricsList, metricsColNames
 from pydre.core import DriveData
+
+
+@pytest.fixture(scope="module", autouse=True)
+def preserve_metrics_registry():
+    """Save and restore the metrics registry to prevent test interference."""
+    # Save original state
+    original_metrics_list = copy.deepcopy(metricsList)
+    original_metrics_col_names = copy.deepcopy(metricsColNames)
+
+    yield
+
+    # Restore original state
+    metricsList.clear()
+    metricsList.update(original_metrics_list)
+    metricsColNames.clear()
+    metricsColNames.update(original_metrics_col_names)
 
 
 @pytest.fixture
@@ -50,7 +67,3 @@ def test_check_data_columns_decorator_logs(monkeypatch):
     assert any("called with" in str(m) for m in log_msgs)
     assert any("return value" in str(m) for m in log_msgs)
 
-
-def teardown_module(module):
-    metricsList.clear()
-    metricsColNames.clear()

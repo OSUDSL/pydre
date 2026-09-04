@@ -34,12 +34,14 @@ markdown_extensions:
 nav:
   - Home: 'index.md'
   - Tutorial:
-    - Installation: 'tutorial/installation.md'
     - Getting Started: 'tutorial/getting_started.md'
-    - Custom metrics: 'tutorial/custom_metrics.md'
-    - Setting up Configuration File: 'tutorial/setting_up_configuration_file.md'
+    - Installation: 'tutorial/installation.md'
+    - Basic Analysis: 'tutorial/basic_analysis.md'
     - Using Local Files: 'tutorial/using_local_files.md'
     - Using DuckLake: 'tutorial/using_ducklake.md'
+    - Setting up Configuration File: 'tutorial/setting_up_configuration_file.md'
+    - Custom Metrics: 'tutorial/custom_metrics.md'
+    - Use Just for Pydre Project: 'tutorial/justSetup.md'
   - Reference:
     - Filter definitions: 'reference/filters.md'
     - Metric definitions: 'reference/metrics.md'

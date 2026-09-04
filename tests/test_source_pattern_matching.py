@@ -76,7 +76,7 @@ def test_datafiles_no_source(tmp_path, caplog, capsys):
     out, err = capsys.readouterr()
 
     # Assert that the specific error message was logged
-    assert ("No source found in project definition, set source as local file system" in caplog.text or "No source found in project definition, set source as local file system" in err)
+    assert ("No source specified in project definition, setting source as local file system" in caplog.text or "No source specified in project definition, setting source as local file system" in err)
 
 
 def test_no_base_directory(tmp_path, caplog, capsys):
@@ -97,7 +97,7 @@ def test_no_base_directory(tmp_path, caplog, capsys):
     out, err = capsys.readouterr()
 
     # Assert that the specific error message was logged
-    assert ("No base directory found in project definition" in caplog.text or "No base directory found in project definition" in err)
+    assert ("No baseDirectory found in project definition" in caplog.text or "No baseDirectory found in project definition" in err)
 
 
 def test_just_pattern(tmp_path, caplog, capsys):
@@ -117,7 +117,7 @@ def test_just_pattern(tmp_path, caplog, capsys):
     out, err = capsys.readouterr()
 
     # Assert that the specific error message was logged
-    assert ("No source found in project definition" in caplog.text or "No source found in project definition" in err)
+    assert ("No source specified in project definition" in caplog.text or "No source specified in project definition" in err)
 
 
 def test_additionalFiles_patternMatching_and_datafiles(tmp_path, caplog, capsys):

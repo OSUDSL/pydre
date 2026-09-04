@@ -1,26 +1,20 @@
-import threading
-from abc import ABCMeta, abstractmethod
-from os import PathLike
-
-import pydre.core
+from pathlib import Path
+from abc import ABC, abstractmethod
+from .core import DriveData
 import polars as pl
 import typing
 from typing import Optional
+from dataclasses import dataclass
 from loguru import logger
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from polars.exceptions import ColumnNotFoundError
 
 
-class ROIProcessor(object, metaclass=ABCMeta):
-    @abstractmethod
-    def __init__(self, filename: PathLike, nameprefix: str = ""):
-        self._stop_event: Optional[threading.Event] = None
-        pass
-
+class ROIProcessor(ABC):
     @abstractmethod
     def split(
-        self, sourcedrivedata: pydre.core.DriveData
-    ) -> Iterable[pydre.core.DriveData]:
+        self, sourcedrivedata: DriveData
+    ) -> Sequence[DriveData]:
         """Splits the drivedata object according to the ROI specifications.
 
         Parameters:
@@ -63,7 +57,7 @@ class TimeROI(ROIProcessor):
     rois_meta: set
     timecol: str
 
-    def __init__(self, filename: PathLike, timecol: str = "DatTime"):
+    def __init__(self, filename: Path, timecol: str = "DatTime", **kwargs):
         # parse time filename values
         pl_rois = pl.read_csv(filename)
         roi_list = []
@@ -89,10 +83,10 @@ class TimeROI(ROIProcessor):
             self.rois[roi_name] = roi_definition
 
     def split(
-        self, sourcedrivedata: pydre.core.DriveData
-    ) -> list[pydre.core.DriveData]:
+        self, sourcedrivedata: DriveData
+    ) -> list[DriveData]:
         """
-        return list of pydre.core.DriveData objects
+        return list of DriveData objects
         the 'roi' field of the objects will be filled with the roi tag listed
         in the roi definition file column name
         """
@@ -101,11 +95,7 @@ class TimeROI(ROIProcessor):
         if len(self.rois_meta) > 0:
             for k, v in self.rois.items():
                 for meta in self.rois_meta:
-                    if type(v[meta]) != str:
-                        if v[meta] != float(sourcedrivedata.metadata[meta]):
-                            del matching_rois[k]
-                            break
-                    elif v[meta] != sourcedrivedata.metadata[meta]:
+                    if str(v[meta]) != str(sourcedrivedata.metadata[meta]):
                         del matching_rois[k]
                         break
 
@@ -115,12 +105,10 @@ class TimeROI(ROIProcessor):
             timecol = self.timecol
             new_data = sliceByTime(start, end, timecol, sourcedrivedata.data)
             if new_data.height > 0:
-                new_ddata = pydre.core.DriveData(sourcedrivedata, new_data)
+                new_ddata = DriveData(sourcedrivedata, new_data)
                 new_ddata.roi = k
                 output_list.append(new_ddata)
             else:
-                if getattr(self, "_stop_event", None) and self._stop_event.is_set():
-                    return []  # silent early-exit; avoids post-abort warning spam
                 logger.warning(
                     "ROI fails to qualify for {}, ignoring data".format(
                         sourcedrivedata.sourcefilename
@@ -177,84 +165,103 @@ class TimeROI(ROIProcessor):
         return obj
 
 
+@dataclass
+class SpaceROIRegion:
+    name: str
+    x1: float
+    x2: float
+    y1: float
+    y2: float
+
+    @property
+    def xmin(self) -> float:
+        return min(self.x1, self.x2)
+
+    @property
+    def xmax(self) -> float:
+        return max(self.x1, self.x2)
+
+    @property
+    def ymin(self) -> float:
+        return min(self.y1, self.y2)
+
+    @property
+    def ymax(self) -> float:
+        return max(self.y1, self.y2)
+
+
 class SpaceROI(ROIProcessor):
     x_column_name = "XPos"
     y_column_name = "YPos"
 
-    def __init__(self, filename: PathLike, nameprefix: str = ""):
-        # parse time filename values
-        # roi_info is a data frame containing the cutoff points for the region in each row.
-        # It's columns must be roi, X1, X2, Y1, Y2
+    def __init__(self, filename: Path | str, nameprefix: str = "", **kwargs):
         pl_rois = pl.read_csv(filename, has_header=True)
-        expected_columns = ["roi", "X1", "X2", "Y1", "Y2"]
+
+        # Normalize column names to uppercase for case-insensitive matching
+        pl_rois = pl_rois.rename({col: col.upper() for col in pl_rois.columns})
+
+        expected_columns = ["ROI", "X1", "X2", "Y1", "Y2"]
         if not set(expected_columns).issubset(set(pl_rois.columns)):
             logger.error(
                 f"SpaceROI file {filename} does not contain expected columns {expected_columns}"
             )
             raise ValueError
-        # convert polars table into dictionary with 'roi' as the key and a dict as the value
-        self.roi_info = pl_rois.rows_by_key("roi", unique=True, named=True)
+
+        coordinate_columns = ["X1", "X2", "Y1", "Y2"]
+        try:
+            pl_rois = pl_rois.with_columns(
+                [pl.col(c).cast(pl.Float64) for c in coordinate_columns]
+            )
+        except pl.exceptions.InvalidOperationError as e:
+            logger.error(f"SpaceROI file {filename} has non-numeric coordinate columns: {e}")
+            raise ValueError(f"Coordinate columns must be numeric: {e}") from e
+
+        self.roi_info: list[SpaceROIRegion] = [
+            SpaceROIRegion(name=row["ROI"], x1=row["X1"], x2=row["X2"], y1=row["Y1"], y2=row["Y2"])
+            for row in pl_rois.rows(named=True)
+        ]
         self.name_prefix = nameprefix
 
-    def split(
-        self, sourcedrivedata: pydre.core.DriveData
-    ) -> Iterable[pydre.core.DriveData]:
-        return_list: list[pydre.core.DriveData] = []
+    def split(self, sourcedrivedata: DriveData) -> Sequence[DriveData]:
+        return_list: list[DriveData] = []
 
-        for roi_name, roi_location in self.roi_info.items():
-            try:
-                xmin = min(roi_location.get("X1"), roi_location.get("X2"))
-                xmax = max(roi_location.get("X1"), roi_location.get("X2"))
-                ymin = min(roi_location.get("Y1"), roi_location.get("Y2"))
-                ymax = max(roi_location.get("Y1"), roi_location.get("Y2"))
-            except KeyError:
-                logger.error(
-                    f"ROI {roi_name} does not contain expected columns {self.roi_info.columns}"
-                )
-                return return_list
-            except TypeError as e:
-                logger.error(f"ROI {roi_name} has bad datatype: {e.args}")
-                return return_list
-
+        for region in self.roi_info:
             region_data = sourcedrivedata.data.filter(
-                pl.col(self.x_column_name).cast(pl.Float32).is_between(xmin, xmax)
-                & pl.col(self.y_column_name).cast(pl.Float32).is_between(ymin, ymax)
+                pl.col(self.x_column_name).cast(pl.Float32).is_between(region.xmin, region.xmax)
+                & pl.col(self.y_column_name).cast(pl.Float32).is_between(region.ymin, region.ymax)
             )
 
             if region_data.height == 0:
-                if getattr(self, "_stop_event", None) and self._stop_event.is_set():
-                    return []  # silent early-exit; avoids post-abort warning spam
                 logger.warning(
                     "No data for SubjectID: {}, Source: {},  ROI: {}".format(
                         sourcedrivedata.metadata["ParticipantID"],
                         sourcedrivedata.sourcefilename,
-                        roi_name,
+                        region.name,
                     )
                 )
             else:
                 logger.info(
                     "{} Line(s) read into ROI {} for Subject {} From file {}".format(
                         region_data.height,
-                        roi_name,
+                        region.name,
                         sourcedrivedata.metadata["ParticipantID"],
                         sourcedrivedata.sourcefilename,
                     )
                 )
-            new_ddata = pydre.core.DriveData(sourcedrivedata, region_data)
-            new_ddata.roi = roi_name
+            new_ddata = DriveData(sourcedrivedata, region_data)
+            new_ddata.roi = region.name
             return_list.append(new_ddata)
 
         return return_list
 
 
-class ColumnROI:
-    def __init__(self, roi_column: str):
-        if not isinstance(roi_column, str):
-            raise TypeError(f"Expected roi_column to be str, got {type(roi_column)}")
-        self.roi_column = roi_column
-        self._stop_event: Optional[threading.Event] = None
+class ColumnROI(ROIProcessor):
+    def __init__(self, columnname: str, **kwargs):
+        if not isinstance(columnname, str):
+            raise TypeError(f"Expected columnname to be str, got {type(columnname)}")
+        self.roi_column = columnname
 
-    def split(self, sourcedrivedata):
+    def split(self, sourcedrivedata) -> Sequence[DriveData]:
         df = sourcedrivedata.data
 
         if self.roi_column not in df.columns:
@@ -269,30 +276,12 @@ class ColumnROI:
 
         result = []
 
-        if hasattr(self, "roi_column_df"):
-            for row in self.roi_column_df.iter_rows(named=True):
-                column_value = row[self.roi_column]
-                roi_name = row.get("roi", str(column_value))
-
-                matched_rows = df_valid.filter(pl.col(self.roi_column) == column_value)
-                if matched_rows.is_empty():
-                    if getattr(self, "_stop_event", None) and self._stop_event.is_set():
-                        return []  # silent early-exit; avoids post-abort warning spam
-                    logger.warning(f"ROI value {column_value} not found in data")
-                    continue
-
-                new_dd = sourcedrivedata.copy()
-                new_dd.data = matched_rows
-                new_dd.roi = roi_name
-                new_dd.metadata["ROIName"] = roi_name
-                result.append(new_dd)
-        else:
-            for gname, gdata in df_valid.group_by(self.roi_column):
-                roi_name = str(gname[0])
-                new_dd = sourcedrivedata.copy()
-                new_dd.data = gdata
-                new_dd.roi = roi_name
-                new_dd.metadata["ROIName"] = roi_name
-                result.append(new_dd)
+        for gname, gdata in df_valid.group_by(self.roi_column):
+            roi_name = str(gname[0])
+            new_dd = sourcedrivedata.copy()
+            new_dd.data = gdata
+            new_dd.roi = roi_name
+            new_dd.metadata["ROIName"] = roi_name
+            result.append(new_dd)
 
         return result

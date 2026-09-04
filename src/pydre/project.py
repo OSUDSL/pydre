@@ -1,25 +1,34 @@
+from __future__ import annotations
+
 import copy
 import json
+import logging
 import traceback
 import os
 from os import PathLike
 import re
+import warnings
 
 import polars as pl
-import polars.exceptions
 import sys
 import tomllib
-from typing import Optional
-import pydre.core
-import pydre.rois
-import pydre.metrics
-from pydre.core import DriveData
-from pydre.metrics import *
-import pydre.filters
-from pydre.filters import *
+from typing import Optional, Iterable
+
+from . import core
+from . import rois
+from .core import DriveData
+from . import filters
+from . import metrics
+
+from .filters import *
+from .metrics import *
+
 import pathlib
 from pathlib import Path
+
+import loguru
 from loguru import logger
+
 from tqdm import tqdm
 import concurrent.futures
 import importlib.util
@@ -31,13 +40,14 @@ class Project:
     project_filename: Path  # used only for information
     definition: dict
     results: Optional[pl.DataFrame]
-    filelist: list[PathLike]
+    filelist: list[Path]
 
     def __init__(
         self,
         projectfilename: str,
         additional_data_paths: Optional[list[str]] = None,
         outputfile: Optional[str] = None,
+        log_level: Optional[str] = None,
     ):
         self.project_filename = pathlib.Path(projectfilename)
         self.additional_data_paths = additional_data_paths
@@ -47,6 +57,9 @@ class Project:
         self.local_data_files = []
         ducklake_file_names = []
         self.filelist = []
+        self._stop_event = threading.Event()
+        self._cli_log_level = log_level  # preserve CLI-specified level
+
         try:
             logger.info("Loading project from: " + str(self.project_filename))
             with open(self.project_filename, "rb") as project_file:
@@ -127,52 +140,64 @@ class Project:
         self._load_custom_functions()
 
 
-        if "source" in self.config:
-            if self.config["source"] == "localfilesystem":
-                if "datafiles" in self.config:
-                    self.local_data_files += self.config["datafiles"]
-                if "baseDirectory" in self.config:
-                    if "pattern" in self.config:
-                        for filename in os.listdir(self.config["baseDirectory"]):
-                            if re.search(self.config["pattern"], filename):
-                                file_path = os.path.join(self.config["baseDirectory"], filename)
-                                self.local_data_files.append(file_path)
-                    else:
-                        logger.error("No pattern found in project definition")
-                if "baseDirectory" not in self.config and "datafiles" not in self.config:
-                    logger.error("No baseDirectory or datafiles found in project definition")
-            elif self.config["source"] == "ducklake":
-                if "datafiles" in self.config:
-                    ducklake_file_names += self.config["datafiles"]
-                if "project" in self.config or "pattern" in self.config:
-                    # Create a DuckLakeConfig object by loading the configuration from the .env file
-                    self.ducklake_config = DuckLakeConfig.from_env_file(env_file_path())
-                    ducklake_connection = connect_to_ducklake(self.ducklake_config)
-                    if not "project" in self.config:
-                        self.config["project"] = None
-                    if not "pattern" in self.config:
-                        self.config["pattern"] = None
-                    try:
-                       ducklake_file_names += get_file_names(ducklake_connection, self.config["pattern"], self.config["project"])
-                    finally:
-                        ducklake_connection.close()
-                if "datafiles" not in self.config and "project" not in self.config and "pattern" not in self.config: 
-                    logger.error("No datafiles, project, or pattern found in project definition")
-            else:
-                logger.error("Source specified in project definition not supported")
-        else:
-            if "pattern" in self.config or (not self.local_data_files and not "datafiles" in self.config):
-                logger.error("No source found in project definition")
-            elif "datafiles" in self.config:
-                logger.warning("No source found in project definition, setting source as local file system")
+        source = self.config.get("source")
+
+        if source == "localfilesystem":
+            if "datafiles" in self.config:
                 self.local_data_files += self.config["datafiles"]
+
+            base_directory = self.config.get("baseDirectory")
+            pattern = self.config.get("pattern")
+
+            if base_directory:
+                if pattern:
+                    for filename in os.listdir(base_directory):
+                        if re.search(pattern, filename):
+                            file_path = os.path.join(base_directory, filename)
+                            self.local_data_files.append(file_path)
+                else:
+                    logger.error("No pattern found in project definition")
+
+            elif pattern:
+                logger.error("No baseDirectory found in project definition")
+
+            elif "datafiles" not in self.config:
+                logger.error("No baseDirectory or datafiles found in project definition")
+            
+        elif source == "ducklake":
+            if "datafiles" in self.config:
+                ducklake_file_names += self.config["datafiles"]
+
+            project = self.config.get("project")
+            pattern = self.config.get("pattern")
+
+            if "datafiles" not in self.config and "project" not in self.config and "pattern" not in self.config:
+                logger.error("No datafiles, project, or pattern found in project definition")
+            elif project is not None or pattern is not None:
+                # Create a DuckLakeConfig object by loading the configuration from the .env file
+                self.ducklake_config = DuckLakeConfig.from_env_file(env_file_path())
+                ducklake_connection = connect_to_ducklake(self.ducklake_config)
+                try:
+                    ducklake_file_names += get_file_names(ducklake_connection, pattern, project)
+                finally:
+                    ducklake_connection.close()
+           
+        elif source is None:
+            if "pattern" in self.config or (not self.local_data_files and not "datafiles" in self.config):
+                logger.error("No source specified in project definition")
+            elif "datafiles" in self.config:
+                logger.warning("No source specified in project definition, setting source as local file system")
+                self.local_data_files += self.config["datafiles"]
+                
+        else:
+            logger.error("Source specified in project definition not supported")
 
 
         if (not self.local_data_files and not ducklake_file_names):
-           logger.error("No data files were provided.")
+           logger.error("No data files loaded.")
 
         # resolve the file paths
-        filelist: list[PathLike] = []
+        filelist: list[Path] = []
 
         if ducklake_file_names:
             filelist = ducklake_file_names
@@ -188,7 +213,7 @@ class Project:
                 datafiles = sorted(datapath.parent.glob(datapath.name))
                 filelist.extend(datafiles)
 
-        ignore_files: list[PathLike] = []
+        ignore_files: list[Path] = []
         for fn in self.config.get("ignore", []):
             fn = Path(fn)
             ignore_files.append(fn)
@@ -227,69 +252,50 @@ class Project:
         """
         Process custom metrics and filters directories specified in the config and load metrics.
         """
-        custom_metrics_dirs = self.config.get("custom_metrics_dirs", [])
+        project_dir = self.project_filename.parent
+        Project._load_custom_dir(
+            self.config.get("custom_metrics_dirs", []), project_dir, "metrics"
+        )
+        Project._load_custom_dir(
+            self.config.get("custom_filters_dirs", []), project_dir, "filters"
+        )
 
-        if isinstance(custom_metrics_dirs, str):
-            custom_metrics_dirs = [custom_metrics_dirs]
+    @staticmethod
+    def _load_custom_dir(dirs: list[str] | str, project_dir: Path, kind: str) -> None:
+        """Load all Python files from custom function directories, triggering registration decorators.
 
-        for metrics_dir in custom_metrics_dirs:
-            metrics_path = self.resolve_file(metrics_dir)
-            if not metrics_path.exists():
-                logger.warning(f"Custom metrics directory not found: {metrics_path}")
+        Used by both :meth:`_load_custom_functions` (during normal project init) and
+        by :func:`pydre.run._load_custom_from_project` (during ``--list-metrics`` /
+        ``--list-filters``) so the loading logic is not duplicated.
+
+        Args:
+            dirs: A single directory path or a list of directory paths to scan.
+            project_dir: Base directory used to resolve relative paths.
+            kind: Label used in log messages and module naming (``"metrics"`` or ``"filters"``).
+        """
+        if isinstance(dirs, str):
+            dirs = [dirs]
+        for d in dirs:
+            p = Path(d)
+            dir_path = p if p.is_absolute() else (project_dir / p).resolve()
+            if not dir_path.exists():
+                logger.warning(f"Custom {kind} directory not found: {dir_path}")
                 continue
-
-            logger.info(f"Loading custom metrics from: {metrics_path}")
-
-            # Process all Python files in the directory
-            for metrics_file in metrics_path.glob("*.py"):
+            logger.info(f"Loading custom {kind} from: {dir_path}")
+            for py_file in sorted(dir_path.glob("*.py")):
                 try:
-                    # Create a module name
-                    module_name = f"custom_metrics_{metrics_file.stem}"
-                    spec = importlib.util.spec_from_file_location(
-                        module_name, metrics_file
-                    )
+                    module_name = f"custom_{kind}_{py_file.stem}"
+                    spec = importlib.util.spec_from_file_location(module_name, py_file)
                     if spec is None or spec.loader is None:
-                        logger.error(f"Could not load spec for {metrics_file}")
-                        continue
-
-                    module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(module)
-
-                    # The @registerMetric decorator will automatically register the metrics
-                    logger.info(f"Successfully loaded metrics from {metrics_file}")
-                except Exception as e:
-                    logger.exception(
-                        f"Error loading custom metrics from {metrics_file}: {e}"
-                    )
-
-        custom_filters_dirs = self.config.get("custom_filters_dirs", [])
-
-        if isinstance(custom_filters_dirs, str):
-            custom_filters_dirs = [custom_filters_dirs]
-        for filters_dir in custom_filters_dirs:
-            filters_path = self.resolve_file(filters_dir)
-            if not filters_path.exists():
-                logger.warning(f"Custom filters directory not found: {filters_path}")
-                continue
-            logger.info(f"Loading custom filters from: {filters_path}")
-            for filters_file in filters_path.glob("*.py"):
-                try:
-                    module_name = f"custom_filters_{filters_file.stem}"
-                    spec = importlib.util.spec_from_file_location(
-                        module_name, filters_file
-                    )
-                    if spec is None or spec.loader is None:
-                        logger.error(f"Could not load spec for {filters_file}")
+                        logger.error(f"Could not load spec for {py_file}")
                         continue
                     module = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(module)
-                    logger.info(f"Successfully loaded filters from {filters_file}")
+                    logger.info(f"Successfully loaded {kind} from {py_file}")
                 except Exception as e:
-                    logger.exception(
-                        f"Error loading custom filters from {filters_file}: {e}"
-                    )
+                    logger.exception(f"Error loading custom {kind} from {py_file}: {e}")
 
-    def resolve_file(self, pathname: PathLike) -> pathlib.Path:
+    def resolve_file(self, pathname: Path) -> pathlib.Path:
         """Resolve the given file to an absolute path based on the project file location.
         Args:
             pathname: A string or Path object.
@@ -312,7 +318,7 @@ class Project:
         Behavior:
         - Always log to stderr (keeps current behavior).
         - If 'logfile' is provided in TOML [config], also log to that file (append-only).
-        - Optional 'log_level' in TOML controls both sinks; defaults to 'INFO'.
+        - Optional 'log_level' in TOML controls both sinks; defaults to 'WARNING'.
 
         Notes:
         - Remove existing handlers to avoid duplicated sinks if multiple Project instances are created.
@@ -320,15 +326,24 @@ class Project:
           which benefits from thread-safe, non-blocking logging.
         """
         # Read settings from self.config
-        logfile = self.config.get("logfile", None)
-        log_level = self.config.get("log_level", "INFO")
+        logfile: Optional[str] = self.config.get("logfile", None)
+        accepted_levels = ["DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
+        # CLI-specified level takes precedence over the TOML config value,
+        # which in turn falls back to "WARNING".
+        raw_level: str 
 
-        # Ensure the stop flag exists before we build filters that close over it
-        if not hasattr(self, "_stop_event") or self._stop_event is None:
-            self._stop_event = threading.Event()
+        if self._cli_log_level is None:
+            raw_level = self.config.get("log_level", "WARNING").upper()
+        else:
+            raw_level = str(self._cli_log_level.upper())
+ 
+        if raw_level not in accepted_levels:
+            log_level = "WARNING"
+        else:
+            log_level = raw_level
 
         # Filter factory bound to this Project instance's stop flag
-        def _silence_after_interrupt(record: dict) -> bool:
+        def _silence_after_interrupt(record: loguru.Record) -> bool:
             # record["level"].no: DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50
             if self._stop_event.is_set():
                 # Mute everything below CRITICAL once Ctrl+C triggered
@@ -340,6 +355,12 @@ class Project:
 
         # Re-add stderr sink (keep existing behavior)
         logger.add(sys.stderr, level=log_level, filter=_silence_after_interrupt)
+        
+        if raw_level not in accepted_levels:
+            logger.warning(
+                f"Log level '{raw_level}' is invalid. Defaulting to WARNING. "
+                f"Accepted levels: {accepted_levels}"
+            )
 
         # If a logfile path is provided, add a file sink (append-only)
         if logfile:
@@ -354,9 +375,57 @@ class Project:
                 diagnose=False,  # set True to include variable values in tracebacks
             )
 
+        # --- Bridge Python warnings → loguru ---
+        # 1. Redirect warnings that flow through stdlib logging (e.g. DeprecationWarning
+        #    captured by logging.captureWarnings) into loguru via its logging intercept.
+        logging.captureWarnings(True)
+
+        # Set up a loguru sink that intercepts stdlib logging records so that
+        # captureWarnings output lands in loguru instead of the default handler.
+        class _InterceptHandler(logging.Handler):
+            def emit(self, record: logging.LogRecord) -> None:
+                # Map stdlib level to loguru level name
+                try:
+                    level = logger.level(record.levelname).name
+                except ValueError:
+                    level = str(record.levelno)
+                # Walk the call stack to find the true origin of the warning
+                frame, depth = logging.currentframe(), 0
+                while frame and (depth == 0 or frame.f_code.co_filename == logging.__file__):
+                    frame = frame.f_back
+                    depth += 1
+                logger.opt(depth=depth, exception=record.exc_info).log(
+                    level, record.getMessage()
+                )
+
+        # Attach the intercept handler to the root stdlib logger (once)
+        stdlib_root = logging.getLogger()
+        # Avoid adding duplicate handlers if _configure_logging is called more than once
+        if not any(isinstance(h, _InterceptHandler) for h in stdlib_root.handlers):
+            stdlib_root.handlers.clear()
+            stdlib_root.addHandler(_InterceptHandler())
+            stdlib_root.setLevel(0)  # let loguru decide what to show
+
+        # 2. Also override warnings.showwarning directly so that libraries which call
+        #    warnings.warn() without going through logging are still captured.
+        from typing import TextIO
+        def _showwarning(
+            message: Warning | str,
+            category: type[Warning],
+            filename: str,
+            lineno: int,
+            file: TextIO | None = None,
+            line: str | None = None,
+        ) -> None:
+            logger.opt(depth=2).warning(
+                f"{filename}:{lineno}: {category.__name__}: {message}"
+            )
+
+        warnings.showwarning = _showwarning  # type: ignore[assignment]
+
     def processROI(
-        self, roi: dict, datafile: pydre.core.DriveData
-    ) -> list[pydre.core.DriveData]:
+        self, roi: dict, datafile: DriveData
+    ) -> Iterable[DriveData]:
         """
         Handles running region of interest definitions for a dataset
 
@@ -367,40 +436,31 @@ class Project:
         Returns:
                 A list of drivedata objects containing the data for each region of interest
         """
-        roi_obj: pydre.rois.ROIProcessor
-        roi_type = roi["type"]
+        roi_type = roi.get("type")
+
         if roi_type == "time":
-            resolved_filename = self.resolve_file(roi["filename"])
-            logger.info("Processing time ROI " + str(resolved_filename))
-            if "timecol" in roi:
-                roi_obj = pydre.rois.TimeROI(resolved_filename, roi["timecol"])
-            else:
-                roi_obj = pydre.rois.TimeROI(resolved_filename)
+            roi_params = roi.copy()
+            roi_params["filename"] = self.resolve_file(roi["filename"])
+            logger.info("Processing time ROI " + str(roi_params["filename"]))
+            roi_obj = rois.TimeROI(**roi_params)
         elif roi_type == "rect":
-            logger.info("Processing space ROI " + roi["filename"])
-            roi_filename = self.resolve_file(roi["filename"])
-            roi_obj = pydre.rois.SpaceROI(roi_filename)
+            roi_params = roi.copy()
+            roi_params["filename"] = self.resolve_file(roi["filename"])
+            logger.info("Processing space ROI " + str(roi_params["filename"]))
+            roi_obj = rois.SpaceROI(**roi_params)
         elif roi_type == "column":
             logger.info("Processing column ROI " + roi["columnname"])
-            roi_obj = pydre.rois.ColumnROI(roi["columnname"])
+            roi_obj = rois.ColumnROI(**roi)
         else:
             logger.warning("Unknown ROI type {}".format(roi_type))
             return [datafile]
-
-        # Inject the stop flag so ROI code can silence logs after Ctrl+C
-        # This keeps the public API unchanged and avoids threading-kill problems.
-        try:
-            # If the project set _stop_event, give it to the ROI object.
-            setattr(roi_obj, "_stop_event", getattr(self, "_stop_event", None))
-        except Exception:
-            pass
 
         return roi_obj.split(datafile)
 
     @staticmethod
     def processFilter(
-        datafilter: dict, datafile: pydre.core.DriveData
-    ) -> pydre.core.DriveData:
+        datafilter: dict, datafile: DriveData
+    ) -> DriveData:
         """
         Handles running any filter definition
 
@@ -411,21 +471,27 @@ class Project:
         Returns:
             The augmented DriveData object
         """
-        ldatafilter = copy.deepcopy(datafilter)
+        ldatafilter = datafilter.copy()
+
+        datafilter_name = ldatafilter.pop("name")
         try:
             func_name = ldatafilter.pop("function")
-            filter_func = pydre.filters.filtersList[func_name]
-            datafilter_name = ldatafilter.pop("name")
         except KeyError as e:
             logger.error(
-                'Filter definitions require a "function". Malformed filters definition: missing '
-                + str(e)
+                f'No filter function defined in {datafilter_name}.'
+            )
+            raise e
+        try:
+            filter_func = filters.filtersList[func_name]
+        except KeyError as e:
+            logger.error(
+                f'Filter function "{func_name}" not found in registered filters. Error in filter {datafilter_name}.'
             )
             raise e
 
         return filter_func(datafile, **ldatafilter)
 
-    def processMetric(self, metric: dict, dataset: pydre.core.DriveData) -> dict:
+    def processMetric(self, metric: dict, dataset: DriveData) -> dict:
         """
         Handles running any metric definition
 
@@ -437,15 +503,21 @@ class Project:
             A dictionary containing the results of the metric
         """
 
-        metric = copy.deepcopy(metric)
+        metric = metric.copy()
         try:
             func_name = metric.pop("function")
-            metric_func = pydre.metrics.metricsList[func_name]
             report_name = metric.pop("name")
-            col_names = pydre.metrics.metricsColNames[func_name]
         except KeyError as e:
             logger.warning(
-                'Metric definitions require both "name" and "function". Malformed metrics definition'
+                'Metric definitions require both "name" and "function". Malformed metrics definition:'
+            )
+            raise e
+        try:
+            metric_func = metrics.metricsList[func_name]
+            col_names = metrics.metricsColNames[func_name]
+        except KeyError as e:
+            logger.error(
+                f'Metric function "{func_name}" not found in registered metrics.'
             )
             raise e
 
@@ -468,7 +540,7 @@ class Project:
             src_str.replace("[", "").replace("]", "").replace("'", "").split("\\")[-1]
         )
 
-    def processDatafiles(self, numThreads: int = None) -> Optional[pl.DataFrame]:
+    def processDatafiles(self, numThreads: int = 0) -> Optional[pl.DataFrame]:
         """
         Load all metrics, then iterate over each file and process the filters, ROIs, and metrics for each file concurrently using a thread pool.
 
@@ -486,11 +558,11 @@ class Project:
         # Determine number of threads
         # Priority: function argument > config file > default (12)
         config_threads = self.config.get("num_threads", None)
-        if numThreads is None:
-            if config_threads is not None:
+        if numThreads == 0:
+            if config_threads:
                 numThreads = int(config_threads)
             else:
-                numThreads = os.cpu_count() - 1 or 1  # use available cores - 1
+                numThreads = (os.cpu_count() or 1) - 1 or 1  # use available cores - 1
 
         # Sanity check amd warnings
         if numThreads > 32:
@@ -507,14 +579,13 @@ class Project:
         results_list: list[dict] = []  # results_list = []
 
         # STOP FLAG
-        self._stop_event = threading.Event()
 
         with tqdm(total=len(self.filelist)) as pbar:
             with concurrent.futures.ThreadPoolExecutor(
                 max_workers=numThreads
             ) as executor:
                 futures = {
-                    executor.submit(self.processSingleFile, singleFile): singleFile
+                    executor.submit(self.processSingleFile, singleFile, self._stop_event): singleFile
                     for singleFile in self.filelist
                 }
                 try:
@@ -558,18 +629,8 @@ class Project:
                 pl.DataFrame()
             )  # return empty DataFrame to keep return type consistent
 
-        infer_schema_length = self.config.get("infer_schema_length", 5000)
-        try:
-            infer_schema_length = int(infer_schema_length)
-            logger.info(f"Using infer_schema_length={infer_schema_length}")
-        except (TypeError, ValueError):
-            logger.warning(
-                f"Invalid infer_schema_length={infer_schema_length}, defaulting to 5000"
-            )
-            infer_schema_length = 5000
-
         result_dataframe = pl.from_dicts(
-            results_list, infer_schema_length=infer_schema_length
+            results_list
         )
 
         # sorting_columns = ["Subject", "ScenarioName", "ROI"]
@@ -581,8 +642,8 @@ class Project:
         self.results = result_dataframe
         return result_dataframe
 
-    def processSingleFile(self, datafilename: Path):
-        if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+    def processSingleFile(self, datafilename: Path, stop_event: threading.Event = threading.Event()) -> list[dict]:
+        if stop_event.is_set():
             return []
         logger.info("Loading file {}".format(datafilename))
         if "datafile_type" in self.config:
@@ -599,10 +660,11 @@ class Project:
                 datafile = DriveData.init_rti(datafilename)
         else:
             datafile = DriveData.init_rti(datafilename)
+
         datafile.config = self.config
 
         if isinstance(datafilename,Path):
-            datafile.loadData()
+            datafile.loadData(self.config.get("infer_schema_length"))
         else:
             # Create a ducklake_connection to DuckLake
             ducklake_connection = connect_to_ducklake(self.ducklake_config)
@@ -637,13 +699,13 @@ class Project:
 
         else:
             # no ROIs to process, but that's OK
-            if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+            if stop_event.is_set():
                 return []  # silent early-exit; avoids post-abort warning spam
-            logger.warning("No ROIs defined, processing raw data.")
+            logger.info(f"No ROIs defined for {datafilename}, processing raw data.")
             roi_datalist.append(datafile)
 
         if len(roi_datalist) == 0:
-            if getattr(self, "_stop_event", None) and self._stop_event.is_set():
+            if stop_event.is_set():
                 return []  # silent early-exit; avoids post-abort warning spam
             logger.warning(
                 "Qualifying ROIs fail to generate results for {}, no output generated.".format(
@@ -653,7 +715,7 @@ class Project:
             return []
 
         for data in roi_datalist:
-            result_dict = copy.deepcopy(datafile.metadata)
+            result_dict = datafile.metadata.copy()
             result_dict["ROI"] = data.roi
 
             for metric in self.definition["metrics"]:

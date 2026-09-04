@@ -423,7 +423,7 @@ def test_clean_method_via_project(tmp_path):
 def test_project_init_no_datafiles_logs_error(tmp_path, caplog, capsys):
     """
     When a project is initialized with no datafiles in [config],
-    it should emit an ERROR log 'No data files were provided.'
+    it should emit an ERROR log 'No data files loaded.'
     """
     # 1. Create a minimal TOML with empty datafiles list
     toml = tmp_path / "nodata.toml"
@@ -438,7 +438,7 @@ def test_project_init_no_datafiles_logs_error(tmp_path, caplog, capsys):
     # 4. Capture output from either in caplog or stderr
     out, err = capsys.readouterr()
     # 5. Assert that the specific error message was logged
-    assert ("No data files were provided." in caplog.text or "No data files were provided." in err)
+    assert ("No data files loaded." in caplog.text or "No data files loaded." in err)
 
 
 def test_save_results_without_running_logs_error(tmp_path, caplog, capsys):

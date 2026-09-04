@@ -1,10 +1,8 @@
 import polars as pl
-import pydre.core
-from pydre.core import ColumnsMatchError
-from pydre.metrics import registerMetric
+from . import registerMetric
+from ..core import DriveData, ColumnsMatchError
 
-
-def _check_and_prepare(drivedata: pydre.core.DriveData) -> pl.DataFrame:
+def _check_and_prepare(drivedata: DriveData) -> pl.DataFrame:
     """
     Validate required columns and compute dt (Δt) between DatTime samples.
     """
@@ -37,10 +35,18 @@ def _check_and_prepare(drivedata: pydre.core.DriveData) -> pl.DataFrame:
 
 
 @registerMetric("gazeCutoutAngleDuration")
-def gazeCutoutAngleDuration(drivedata: pydre.core.DriveData) -> float:
+def gazeCutoutAngleDuration(drivedata: DriveData) -> float:
     """
     Returns the total duration (seconds) that the gaze was both
     outside the cutout angle AND off-target.
+
+    Returns 0 if DatTime is missing.
+
+    Note: Requires data columns (from `gazeAnglePreProcessing` filter):
+        - DatTime
+        - gaze_cutout
+        - off_target
+
     """
     df = _check_and_prepare(drivedata)
     if df.is_empty():
@@ -52,10 +58,16 @@ def gazeCutoutAngleDuration(drivedata: pydre.core.DriveData) -> float:
 
 
 @registerMetric("gazeCutoutAngleRatio")
-def gazeCutoutAngleRatio(drivedata: pydre.core.DriveData) -> float:
+def gazeCutoutAngleRatio(drivedata: DriveData) -> float:
     """
     Fraction of total time spent outside the cutout angle (and off-target).
     Returns 0 if DatTime is missing or total duration = 0.
+
+    Note: Requires data columns (from `gazeAnglePreProcessing` filter):
+        - DatTime
+        - gaze_cutout
+        - off_target
+
     """
     df = _check_and_prepare(drivedata)
     if df.is_empty():
@@ -72,12 +84,18 @@ def gazeCutoutAngleRatio(drivedata: pydre.core.DriveData) -> float:
 
 
 @registerMetric("gazeCutoutAngleViolations")
-def gazeCutoutAngleViolations(drivedata: pydre.core.DriveData) -> int:
+def gazeCutoutAngleViolations(drivedata: DriveData) -> int:
     """
     Counts the number of contiguous segments where the gaze was
     outside the cutout angle and off-target.
 
     A new violation is counted when mask transitions from False → True.
+
+    Note: Requires data columns (from `gazeAnglePreProcessing` filter):
+        - DatTime
+        - gaze_cutout
+        - off_target
+
     """
     df = _check_and_prepare(drivedata)
     if df.is_empty():
@@ -93,3 +111,28 @@ def gazeCutoutAngleViolations(drivedata: pydre.core.DriveData) -> int:
     violations = df.select(violation_expr.sum().alias("violations")).item() or 0
 
     return int(violations)
+
+
+
+@registerMetric()
+def blinkMeanDuration(drivedata: DriveData, blink_col: str = "BLINKID"):
+    """
+    Calculate the mean duration of blinks in the dataset.
+
+    :param drivedata: The DriveData object containing the data.
+    :param blink_col: The name of the column containing blink durations.
+    :return: The mean blink duration or None if the column is missing or empty.
+    """
+    required_col = ["DatTime", blink_col]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+
+    blinkgroups = drivedata.data.select(required_col).remove(pl.col(blink_col) == 0).group_by(blink_col)
+    blink_durations = blinkgroups.agg(
+        duration=pl.col("DatTime").max() - pl.col("DatTime").min()
+    )
+    mean_blink_duration = blink_durations.mean().item(row=0, column="duration")
+
+    return mean_blink_duration

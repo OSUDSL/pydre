@@ -1,21 +1,30 @@
-from typing import Optional
+from typing import Optional, Any
 
 import polars as pl
 from polars import exceptions
-import pydre.core
-from pydre.core import ColumnsMatchError
-from pydre.metrics import registerMetric
+from ..core import DriveData, ColumnsMatchError
+from . import registerMetric
 from loguru import logger
 import numpy as np
+from polars.type_aliases import PythonLiteral
 
 from scipy import signal
+
+
+def float_cast(x: PythonLiteral) -> Optional[float]:
+    if x is None:
+        return None
+    try:
+        return float(x)
+    except (ValueError, TypeError):
+        return None
 
 # metrics defined here take a list of DriveData objects and return a single floating point value
 
 # not registered & incomplete
 
 # @registerMetric()
-# def findFirstTimeAboveVel(drivedata: pydre.core.DriveData, cutoff: float = 25):
+# def findFirstTimeAboveVel(drivedata: DriveData, cutoff: float = 25):
 #     required_col = ["Velocity"]
 #     drivedata.checkColumns(required_col)
 #     timestepID = -1
@@ -31,7 +40,7 @@ from scipy import signal
 
 @registerMetric()
 def colMean(
-    drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
+    drivedata: DriveData, var: str, cutoff: Optional[float] = None
 ) -> Optional[float]:
     """Calculates the mean of the specified column
 
@@ -52,18 +61,16 @@ def colMean(
     except ColumnsMatchError:
         return None
     if cutoff is not None:
-        return (
-            drivedata.data.get_column(var)
-            .filter(drivedata.data.get_column(var) >= cutoff)
-            .mean()
-        )
+        ldata = drivedata.data.lazy()
+        r_value = ldata.filter(pl.col(var) >= cutoff).select(var).mean().collect()
+        return float_cast(r_value.item())
     else:
-        return drivedata.data.get_column(var).mean()
+        return float_cast(drivedata.data.get_column(var).mean())
 
 
 @registerMetric()
 def colMedian(
-    drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
+    drivedata: DriveData, var: str, cutoff: Optional[float] = None
 ) -> Optional[float]:
     """Calculates the median of the specified column
 
@@ -84,18 +91,16 @@ def colMedian(
     except ColumnsMatchError:
         return None
     if cutoff is not None:
-        return (
-            drivedata.data.get_column(var)
-            .filter(drivedata.data.get_column(var) >= cutoff)
-            .median()
-        )
+        ldata = drivedata.data.lazy()
+        r_value = ldata.filter(pl.col(var) >= cutoff).select(var).median().collect()
+        return float_cast(r_value.item())
     else:
-        return drivedata.data.get_column(var).median()
+        return float_cast(drivedata.data.get_column(var).median())
 
 
 @registerMetric()
 def colSD(
-    drivedata: pydre.core.DriveData, var: str, cutoff: Optional[float] = None
+    drivedata: DriveData, var: str, cutoff: Optional[float] = None
 ) -> Optional[float]:
     """Calculates the standard deviation of the specified column
 
@@ -116,17 +121,17 @@ def colSD(
         logger.warning(f"Columns not numeric: {e.missing_columns}")
         return None
     if cutoff is not None:
-        return (
+        return float_cast(
             drivedata.data.get_column(var)
             .filter(drivedata.data.get_column(var) >= cutoff)
             .std()
         )
     else:
-        return drivedata.data.get_column(var).std()
+        return float_cast(drivedata.data.get_column(var).std())
 
 
 @registerMetric()
-def colMax(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
+def colMax(drivedata: DriveData, var: str) -> Optional[float]:
     """Calculates the maximum of the specified column
 
     Parameters:
@@ -139,11 +144,11 @@ def colMax(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
         drivedata.checkColumnsNumeric([var])
     except ColumnsMatchError:
         return None
-    return drivedata.data.get_column(var).max()
+    return float_cast(drivedata.data.get_column(var).max())
 
 
 @registerMetric()
-def colMin(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
+def colMin(drivedata: DriveData, var: str) -> Optional[float]:
     """Calculates the minimum of the specified column
 
     Parameters:
@@ -156,11 +161,11 @@ def colMin(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
         drivedata.checkColumnsNumeric([var])
     except ColumnsMatchError:
         return None
-    return drivedata.data.get_column(var).min()
+    return float_cast(drivedata.data.get_column(var).min())
 
 
 @registerMetric()
-def colFirst(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
+def colFirst(drivedata: DriveData, var: str) -> Any:
     """Returns the first value of the specified column
 
     Parameters:
@@ -178,7 +183,7 @@ def colFirst(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
 
 
 @registerMetric()
-def colLast(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
+def colLast(drivedata: DriveData, var: str) -> Optional[float]:
     """Returns the last value of the specified column
 
     Parameters:
@@ -195,8 +200,66 @@ def colLast(drivedata: pydre.core.DriveData, var: str) -> Optional[float]:
 
 
 @registerMetric()
+def amountOfChange(drivedata: DriveData, var: str):
+    """
+    Calculates the difference between the first and last value of the specified column
+
+    Parameters:
+        var: The column name to process.
+
+    Returns:
+        (Last value - first value) of the column
+    """
+    required_col = [var]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    d = drivedata.data.select(required_col).drop_nulls()
+
+    try:
+        result = d.item(-1, var) - d.item(0, var)
+        #result = d.get_column(var).last() - d.get_column(var).first()
+    except TypeError as e:
+        result = None
+
+    return result
+
+
+@registerMetric()
+def colCount(drivedata: DriveData, var: str, floor: Optional[float] = 0):
+    """
+    Calculate the number of rows with values greater than the threshold value in a column.
+
+    :param drivedata: The DriveData object containing the data.
+    :param var: The name of the variable.
+    :param floor: The lower threshold value of the column.
+    :return: The number of rows with values greater than the threshold value in a column.
+    """
+    try:
+        drivedata.checkColumnsNumeric([var])
+    except ColumnsMatchError:
+        return None
+
+    var_count = drivedata.data.filter(pl.col(var) > floor).get_column(var).len()
+
+    return var_count
+
+@registerMetric()
+def colMinAbove(drivedata: DriveData, var: str, floor: float):
+    required_col = [var]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None
+    df = drivedata.data.select(required_col).remove(pl.col(var) < floor)
+
+    return df.get_column(var).min()
+
+
+@registerMetric()
 def timeAboveSpeed(
-    drivedata: pydre.core.DriveData, cutoff: float = 0, percentage: bool = False
+    drivedata: DriveData, cutoff: float = 0, percentage: bool = False
 ) -> Optional[float]:
     """Returns the amount of seconds travelling above the specified speed
 
@@ -228,23 +291,24 @@ def timeAboveSpeed(
         ]
     )
 
-    time = df.get_column("Duration").filter(df.get_column("Velocity") >= cutoff).sum()
-    try:
-        total_time: float = float(df.get_column("SimTime").max()) - float(
-            df.get_column("SimTime").min()
-        )
-    except TypeError:
-        return None
-    if percentage:
-        out: float = time / total_time
+    time = float_cast(df.get_column("Duration").filter(df.get_column("Velocity") >= cutoff).sum())
+    max_time = float_cast(df.get_column("SimTime").max())
+    min_time = float_cast(df.get_column("SimTime").min())
+
+    if time is not None and max_time is not None and min_time is not None:
+        if percentage:
+            out = time / (max_time - min_time)
+        else:
+            out = time
     else:
-        out: float = time
+        out = None
+
     return out
 
 
 @registerMetric()
 def timeWithinSpeedLimit(
-    drivedata: pydre.core.DriveData, lowerlimit: float = 0, percentage: bool = False
+    drivedata: DriveData, lowerlimit: float = 0, percentage: bool = False
 ) -> Optional[float]:
     """Returns the amount of seconds travelling below the speed limit
 
@@ -277,7 +341,7 @@ def timeWithinSpeedLimit(
         ]
     )
 
-    time = (
+    time = float_cast(
         df.filter(
             (pl.col("VelocityMPH") <= pl.col("SpeedLimit"))
             & (pl.col("VelocityMPH") >= lowerlimit)
@@ -286,19 +350,24 @@ def timeWithinSpeedLimit(
         .sum()
     )
 
-    if percentage:
-        total_time = float(df.get_column("SimTime").max()) - float(
-            df.get_column("SimTime").min()
-        )
-        output = time / total_time
+    min_time = float_cast(df.get_column("SimTime").min())
+    max_time = float_cast(df.get_column("SimTime").max())
+
+    if time is not None and min_time is not None and max_time is not None:
+        total_time = max_time - min_time
+        if percentage:
+            output = time / total_time
+        else:
+            output = time
     else:
-        output = time
+        output = None
+
     return output
 
 
 @registerMetric()
 def stoppingDist(
-    drivedata: pydre.core.DriveData, roadtravelposition="XPos"
+    drivedata: DriveData, roadtravelposition="XPos"
 ) -> Optional[float]:
     """Returns the position of the first complete stop of the vehicle, relative to the center position of the
     DriveData object, as measured by the `roadtravelposition` column.
@@ -329,10 +398,12 @@ def stoppingDist(
         (df.get_column("Velocity") >= 0.0) & (df.get_column("Velocity") < 0.01)
     )
 
-    lineposition = (
-        float(df.get_column(roadtravelposition).min())
-        + float(df.get_column(roadtravelposition).max())
-    ) / 2
+    line_min = float_cast(df.get_column(roadtravelposition).min())
+    line_max = float_cast(df.get_column(roadtravelposition).max())
+    if line_min is not None and line_max is not None:
+        lineposition = (line_max - line_min) / 2
+    else:
+        return None
 
     if velocities.height == 0:
         # hard coding a "bad" value for stopposition if vehicle never stopped
@@ -345,7 +416,7 @@ def stoppingDist(
 
 @registerMetric()
 def maxdeceleration(
-    drivedata: pydre.core.DriveData, cutofflimit: float = 1
+    drivedata: DriveData, cutofflimit: float = 1
 ) -> Optional[float]:
     """Returns the maximum deceleration value
 
@@ -372,13 +443,13 @@ def maxdeceleration(
     dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
     decel = dfupdated.filter(dfupdated.get_column("LonAccel") < 0)
 
-    maxdecel = decel.get_column("LonAccel").min()
+    maxdecel = float_cast(decel.get_column("LonAccel").min())
     return maxdecel
 
 
 @registerMetric()
 def maxacceleration(
-    drivedata: pydre.core.DriveData, cutofflimit: int = 1
+    drivedata: DriveData, cutofflimit: int = 1
 ) -> Optional[float]:
     """Returns the maximum acceleration value
 
@@ -402,16 +473,14 @@ def maxacceleration(
     df = drivedata.data.select([pl.col("LonAccel"), pl.col("Velocity")])
     dfupdated = df.filter(df.get_column("Velocity") > cutofflimit)
     accel = dfupdated.filter(dfupdated.get_column("LonAccel") > 0)
-    maxaccel = accel.filter(
-        accel.get_column("LonAccel") == accel.get_column("LonAccel").max()
-    )
+    maxaccel = float_cast(accel.get_column("LonAccel").max())
 
     return maxaccel
 
 
 @registerMetric()
 def numbrakes(
-    drivedata: pydre.core.DriveData, cutofflimit: float = 1
+    drivedata: DriveData, cutofflimit: float = 1
 ) -> Optional[float]:
     """Returns the number of times the brakes were pressed
 
@@ -450,21 +519,82 @@ def numbrakes(
     return numberofbrakes
 
 
-def _calculateReversals(df):
-    k = 1
-    n = 0
+def _calculateReversals(df: np.ndarray) -> int:
+    """Count steering reversals using a vectorised numpy approach.
+
+    A reversal is counted when the cumulative maximum of the series increases
+    by at least `threshold` from the last reversal anchor, matching the original
+    iterative algorithm.
+    """
     threshold = 0.0523598776 * 2
-    for l in range(2, len(df)):
-        if df[l] - df[k] >= threshold:
-            n = n + 1
-            k = l
-        elif df[l] <= df[k]:
-            k = l
+    if len(df) < 2:
+        return 0
+
+    n = 0
+    anchor = df[0]
+    for val in df[1:]:
+        if val - anchor >= threshold:
+            n += 1
+            anchor = val
+        elif val <= anchor:
+            anchor = val
     return n
 
 
+def _computeSteeringReversals(drivedata: DriveData):
+    """Shared helper: resample, filter, and count steering reversals.
+
+    Returns:
+        (reversals, original_time) tuple, or (None, None) on error.
+    """
+    required_col = ["SimTime", "Steer"]
+    try:
+        drivedata.checkColumnsNumeric(required_col)
+    except ColumnsMatchError:
+        return None, None
+
+    df = drivedata.data.select([pl.col("SimTime"), pl.col("Steer")]).slice(1, None)
+    numpy_df = df.to_numpy()
+    original_time = numpy_df[:, 0]
+    original_steer = numpy_df[:, 1]
+
+    if len(original_time) < 2:
+        return None, None
+
+    # Resample to 32 Hz
+    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
+    new_steer = np.interp(new_time, original_time, original_steer)
+
+    # Second-order Butterworth filter at 6 Hz
+    sos = signal.butter(2, 6, output="sos", fs=32)
+    theta_i = signal.sosfilt(sos, new_steer, zi=None)
+
+    theta_prime_i = np.diff(theta_i)
+    theta_prime_i = np.append(0, theta_prime_i)
+
+    i = np.arange(1, len(theta_prime_i) + 1)
+    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
+
+    df = pl.from_numpy(df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row")
+    zeros = (
+        df.filter(pl.col("i") > 1)
+        .filter(pl.col("thetaPrimeI") == 0)
+        .drop("thetaPrimeI")
+    )
+    sign_diff = df.with_columns(pl.col("thetaPrimeI").sign().diff(-1).alias("SignDiff"))
+    diff_two = sign_diff.filter(
+        pl.col("SignDiff").abs() == 2
+    ).drop(["SignDiff", "thetaPrimeI"])
+
+    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
+
+    n_upwards = _calculateReversals(set_of_i[:, 1])
+    n_downwards = _calculateReversals(-set_of_i[:, 1])
+    return n_upwards + n_downwards, original_time
+
+
 @registerMetric()
-def steeringReversals(drivedata: pydre.core.DriveData) -> float:
+def steeringReversals(drivedata: DriveData) -> Optional[float]:
     """Steering reversals, as a count
 
     Note: Requires data columns
@@ -475,70 +605,12 @@ def steeringReversals(drivedata: pydre.core.DriveData) -> float:
         total reversals in this ROI
 
     """
-
-    required_col = ["SimTime", "Steer"]
-    # to verify if column is numeric
-    try:
-        drivedata.checkColumnsNumeric(required_col)
-    except ColumnsMatchError:
-        return None
-
-    df = drivedata.data.select([pl.col("SimTime"), pl.col("Steer")])
-    # convert to numpy and resample data to have even time steps (of 32Hz)
-    df = df.slice(1, None)
-    numpy_df = df.to_numpy()
-    original_time = numpy_df[:, 0]
-    original_steer = numpy_df[:, 1]
-
-    # 32Hz = 0.03125seconds
-    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
-    new_steer = np.interp(new_time, original_time, original_steer)
-    numpy_df = np.column_stack((new_time, new_steer))
-
-    # apply second order butterworth filter at 6z frequency
-    sos = signal.butter(2, 6, output="sos", fs=32)
-    theta_i = signal.sosfilt(sos, numpy_df[:, 1], zi=None)
-
-    # calcuate thetaI
-    theta_prime_i = np.diff(theta_i)
-    theta_prime_i = np.append(0, theta_prime_i)
-
-    # make column for i and combine with theta_prime_i column
-    i = np.arange(1, len(theta_prime_i) + 1)
-    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
-
-    # find all values of i where theta_prime_i is 0
-    df = pl.from_numpy(
-        df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row"
-    )
-    df_except_one = df.filter(df.get_column("i") > 1)
-    zeros = df_except_one.filter(df_except_one.get_column("thetaPrimeI") == 0).drop(
-        "thetaPrimeI"
-    )
-
-    # find values of i where difference between consequential signs of theta_prime_i is 2
-    sign_diff = df.with_columns(
-        df.get_column("thetaPrimeI").sign().diff(-1).alias("SignDiff")
-    )
-    diff_two = sign_diff.filter(
-        (sign_diff.get_column("SignDiff") == 2)
-        | (sign_diff.get_column("SignDiff") == -2)
-    ).drop(["SignDiff", "thetaPrimeI"])
-
-    # merge list of i's to get one sorted list of i's
-    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
-
-    # calculate total reversals
-    n_upwards = _calculateReversals(set_of_i[:, 1])
-    set_of_i_down = np.multiply(set_of_i[:, 1], -1)
-    n_downwards = _calculateReversals(set_of_i_down)
-    reversals = n_upwards + n_downwards
-
+    reversals, _ = _computeSteeringReversals(drivedata)
     return reversals
 
 
 @registerMetric()
-def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
+def steeringReversalRate(drivedata: DriveData) -> Optional[float]:
     """Steering reversal rate
 
     As defined in [SAE j2944](https://www.auto-ui.org/docs/sae_J2944_appendices_PG_130212.pdf)
@@ -551,66 +623,14 @@ def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
         reversals per minute
 
     """
-    required_col = ["SimTime", "Steer"]
+    reversals, original_time = _computeSteeringReversals(drivedata)
+    if reversals is None or original_time is None:
+        return None
+    duration_minutes = (np.max(original_time) - np.min(original_time)) / 60
+    if duration_minutes == 0:
+        return None
+    return reversals / duration_minutes
 
-    # to verify if column is numeric
-    drivedata.checkColumnsNumeric(required_col)
-    drivedata.checkColumns(required_col)
-
-    df = drivedata.data.select([pl.col("SimTime"), pl.col("Steer")])
-    # convert to numpy and resample data to have even time steps (of 32Hz)
-    df = df.slice(1, None)
-    numpy_df = df.to_numpy()
-    original_time = numpy_df[:, 0]
-    original_steer = numpy_df[:, 1]
-
-    # 32Hz = 0.03125seconds
-    new_time = np.arange(original_time[0], original_time[-1], 0.03125)
-    new_steer = np.interp(new_time, original_time, original_steer)
-    numpy_df = np.column_stack((new_time, new_steer))
-
-    # apply second order butterworth filter at 6z frequency
-    sos = signal.butter(2, 6, output="sos", fs=32)
-    theta_i = signal.sosfilt(sos, numpy_df[:, 1], zi=None)
-
-    # calcuate thetaI
-    theta_prime_i = np.diff(theta_i)
-    theta_prime_i = np.append(0, theta_prime_i)
-
-    # make column for i and combine with theta_prime_i column
-    i = np.arange(1, len(theta_prime_i) + 1)
-    df_with_theta = np.column_stack((i, theta_prime_i, theta_i))
-
-    # find all values of i where theta_prime_i is 0
-    df = pl.from_numpy(
-        df_with_theta, schema=["i", "thetaPrimeI", "thetaI"], orient="row"
-    )
-    df_except_one = df.filter(df.get_column("i") > 1)
-    zeros = df_except_one.filter(df_except_one.get_column("thetaPrimeI") == 0).drop(
-        "thetaPrimeI"
-    )
-
-    # find values of i where difference between consequential signs of theta_prime_i is 2
-    sign_diff = df.with_columns(
-        df.get_column("thetaPrimeI").sign().diff(-1).alias("SignDiff")
-    )
-    diff_two = sign_diff.filter(
-        (sign_diff.get_column("SignDiff") == 2)
-        | (sign_diff.get_column("SignDiff") == -2)
-    ).drop(["SignDiff", "thetaPrimeI"])
-
-    # merge list of i's to get one sorted list of i's
-    set_of_i = zeros.merge_sorted(diff_two, key="i").to_numpy()
-
-    # calculate total reversals
-    n_upwards = _calculateReversals(set_of_i[:, 1])
-    set_of_i_down = np.multiply(set_of_i[:, 1], -1)
-    n_downwards = _calculateReversals(set_of_i_down)
-    reversals = n_upwards + n_downwards
-
-    # reversal rate as reversals/ minute
-    reversal_rate = reversals / ((np.max(original_time) - np.min(original_time)) / 60)
-    return reversal_rate
 
 
 # mean dip time
@@ -623,7 +643,7 @@ def steeringReversalRate(drivedata: pydre.core.DriveData) -> float:
         "medianDipTime",
     ]
 )
-def biopticDipMeasure(drivedata: pydre.core.DriveData):
+def biopticDipMeasure(drivedata: DriveData):
     required_col = ["SimTime", "hpBinary", "HeadPitch", "DipRegions"]
     try:
         drivedata.checkColumnsNumeric(required_col)
@@ -659,7 +679,7 @@ def biopticDipMeasure(drivedata: pydre.core.DriveData):
 
 
 @registerMetric()
-def maxAcceleration(drivedata: pydre.core.DriveData) -> Optional[float]:
+def maxAcceleration(drivedata: DriveData) -> Optional[float]:
     required_col = ["LatAccel", "LonAccel"]
 
     drivedata.checkColumnsNumeric(required_col)
@@ -675,14 +695,14 @@ def maxAcceleration(drivedata: pydre.core.DriveData) -> Optional[float]:
         .sqrt()
         .alias("Total_Accel")
     )
-    return df.get_column("Total_Accel").max()
+    return float_cast(df.get_column("Total_Accel").max())
 
 
 # laneExits
 # Will compute the number of transitions from the lane number specified to (lane+1) or (lane-1)
 # the 'sign' function will remove transitions from (lane+1) to (lane+2) or similar
 @registerMetric()
-def laneExits(drivedata: pydre.core.DriveData, lane=2, lane_column="Lane"):
+def laneExits(drivedata: DriveData, lane=2, lane_column="Lane"):
     drivedata.checkColumnsNumeric([lane_column])
     return (
         drivedata.data.select((pl.col(lane_column) - lane).sign().diff().abs())
@@ -693,7 +713,7 @@ def laneExits(drivedata: pydre.core.DriveData, lane=2, lane_column="Lane"):
 
 @registerMetric()
 def laneViolations(
-    drivedata: pydre.core.DriveData,
+    drivedata: DriveData,
     offset: str = "LaneOffset",
     lane: int = 2,
     lane_column: str = "Lane",
@@ -716,16 +736,16 @@ def laneViolations(
     )
 
     # Filter to keep only the rows where a transition occurs
-    transitions = df.filter(pl.col("transition") == True)
+    transitions = df.filter(pl.col("transition") )
 
     # Count the number of transitions from non-violation to violation
-    violation_starts = transitions.filter(pl.col("violation") == True).shape[0]
+    violation_starts = transitions.filter(pl.col("violation")).shape[0]
 
     return violation_starts
 
 
 def laneViolationDuration(
-    drivedata: pydre.core.DriveData,
+    drivedata: DriveData,
     offset: str = "LaneOffset",
     lane: int = 2,
     lane_column: str = "Lane",
@@ -749,7 +769,7 @@ def laneViolationDuration(
 
 
 @registerMetric()
-def roadExits(drivedata: pydre.core.DriveData):
+def roadExits(drivedata: DriveData):
     required_col = ["SimTime", "RoadOffset", "Velocity"]
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
@@ -780,7 +800,7 @@ def roadExits(drivedata: pydre.core.DriveData):
 
 
 @registerMetric()
-def roadExitsY(drivedata: pydre.core.DriveData):
+def roadExitsY(drivedata: DriveData):
     required_col = ["SimTime", "YPos", "Velocity"]
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
@@ -813,7 +833,7 @@ def roadExitsY(drivedata: pydre.core.DriveData):
 
 # cutoff doesn't work
 @registerMetric()
-def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
+def steeringEntropy(drivedata: DriveData, cutoff: float = 0):
     required_col = ["SimTime", "Steer"]
     # to verify if column is numeric
     drivedata.checkColumnsNumeric(required_col)
@@ -901,7 +921,7 @@ def steeringEntropy(drivedata: pydre.core.DriveData, cutoff: float = 0):
 
 @registerMetric()
 def closeFollowing(
-    drivedata: pydre.core.DriveData,
+    drivedata: DriveData,
     threshold: float = 2,
     percentage: bool = False,
     minvelocity: Optional[float] = None,
@@ -970,7 +990,7 @@ def closeFollowing(
 # determines when the ownship collides with another vehicle by examining headway distance as threshold
 @registerMetric()
 def leadVehicleCollision(
-    drivedata: pydre.core.DriveData, cutoff: float = 2.85
+    drivedata: DriveData, cutoff: float = 2.85
 ) -> Optional[float]:
     """Number of collisions between the ownship and the lead vehicle.
 
@@ -1006,17 +1026,9 @@ def leadVehicleCollision(
     return collisions
 
 
-def _firstOccurrence(df: pl.DataFrame, column: str):
-    try:
-        output = df[column].head(1)
-        return output.index[0]
-    except pl.PolarsError:
-        return None
-
-
 @registerMetric()
 def timeFirstTrue(
-    drivedata: pydre.core.DriveData, var: str, timecol: str = "SimTime"
+    drivedata: DriveData, var: str, timecol: str = "SimTime"
 ) -> Optional[float]:
     """Time of the first true (>0) value in the specified variable column
 
@@ -1055,7 +1067,7 @@ def timeFirstTrue(
 
 @registerMetric()
 def reactionBrakeFirstTrue(
-    drivedata: pydre.core.DriveData, var: str
+    drivedata: DriveData, var: str
 ) -> Optional[float]:
     required_col = [var, "SimTime"]
     try:
@@ -1077,7 +1089,7 @@ def reactionBrakeFirstTrue(
 
 
 @registerMetric()
-def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1: str, var2: str):
+def reactionTimeEventTrue(drivedata: DriveData, var1: str, var2: str):
     required_col = [var1, var2, "SimTime"]
     try:
         drivedata.checkColumnsNumeric(required_col)
@@ -1099,7 +1111,7 @@ def reactionTimeEventTrue(drivedata: pydre.core.DriveData, var1: str, var2: str)
 
 @registerMetric()
 def timeToOutsideThreshold(
-    drivedata: pydre.core.DriveData,
+    drivedata: DriveData,
     var: str,
     threshold_low: float = -100000,
     threshold_high: float = 100000,
@@ -1145,18 +1157,18 @@ TBI Reaction algorithm
 To find the braking reaction time to the event (for each Section):
     Only look at values after the event E (Activation = 1)
     Find the first timestep X where:
-		X is after the Event (Activation=1)
-			AND
-		BrakeForce(X) – BrakeForce(E) > 0
+        X is after the Event (Activation=1)
+            AND
+        BrakeForce(X) – BrakeForce(E) > 0
     Reaction time is Time(X) – Time(First timestep where Activation = 1)
 
 
 To find the throttle reaction time to the event (for each Section):
     Only look at values after the event E (Activation = 1)
     Find the first timestep X where:
-		X is after the Event (Activation=1)
-			AND
-		Throttle(X) – Throttle(X-1) > SD([Throttle for all X in Section where Activation !=1]).
+        X is after the Event (Activation=1)
+            AND
+        Throttle(X) – Throttle(X-1) > SD([Throttle for all X in Section where Activation !=1]).
     Reaction time is Time(X) – Time(First timestep where Activation = 1)
 
 
@@ -1166,7 +1178,7 @@ This results in 8 reaction times per participant.
 
 
 @registerMetric()
-def reactionTime(drivedata: pydre.core.DriveData, brake_cutoff=1, steer_cutoff=0.2):
+def reactionTime(drivedata: DriveData, brake_cutoff=1, steer_cutoff=0.2):
     required_col = ["SimTime", "Brake", "Steer", "XPos", "HeadwayDistance"]
     # to verify if column is numeric
     try:

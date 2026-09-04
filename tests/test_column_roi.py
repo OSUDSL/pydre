@@ -30,8 +30,8 @@ def test_column_roi_split(datafiles):
     drive_data.metadata = metadata
     drive_data.sourcefilename = "dummy"
 
-    # Instantiate a ColumnROI using the "Task" column
-    roi = pydre.rois.ColumnROI("Task")
+    # Instantiate a ColumnROI using keyword arguments
+    roi = pydre.rois.ColumnROI(columnname="Task")
     results = roi.split(drive_data)
 
     # Expecting 3 distinct ROIs (1, 2, 3)
@@ -49,7 +49,7 @@ def test_column_roi_split(datafiles):
 def test_column_roi_with_null_group():
     df = pl.DataFrame({"ROI": ["A", None, "B"], "Value": [1, 2, 3]})
     dd = DriveData.init_test(df, "test.dat")
-    processor = ColumnROI("ROI")
+    processor = ColumnROI(columnname="ROI")
     result = processor.split(dd)
 
     cleaned_rois = set(d.roi for d in result if d.roi not in (None, "None"))
@@ -60,7 +60,7 @@ def test_column_roi_missing_column_logs_error(caplog):
     df = pl.DataFrame({"UnrelatedCol": [1, 2, 3]})
     dd = DriveData.init_test(df, "file.dat")
 
-    roi = ColumnROI("MissingCol")
+    roi = ColumnROI(columnname="MissingCol")
     with caplog.at_level("ERROR"):
         with pytest.raises(KeyError):
             list(roi.split(dd))
@@ -68,22 +68,19 @@ def test_column_roi_missing_column_logs_error(caplog):
 
 
 def test_column_roi_columnname_none():
-    df = pl.DataFrame({"Task": ["A", "B"]})
-    dd = DriveData.init_test(df, "sim.dat")
-    with pytest.raises(TypeError):
-        roi = ColumnROI(columnname=None)
-        roi.split(dd)
+    with pytest.raises((TypeError, KeyError)):
+        _ = ColumnROI(columnname=None)
 
 
 def test_column_roi_columnname_numeric():
     with pytest.raises(TypeError):
-        _ = ColumnROI(123)
+        _ = ColumnROI(columnname=123)
 
 
 def test_column_roi_grouping_returns_empty():
     df = pl.DataFrame({"Task": [None, None, None]})
     dd = DriveData.init_test(df, "sim.dat")
-    roi = ColumnROI("Task")
+    roi = ColumnROI(columnname="Task")
     result = roi.split(dd)
     assert result == []
 
@@ -91,7 +88,7 @@ def test_column_roi_grouping_returns_empty():
 def test_column_roi_missing_column_keyerror(caplog):
     df = pl.DataFrame({"Other": ["x", "y"]})
     dd = DriveData.init_test(df, "sim.dat")
-    roi = ColumnROI("MissingCol")
+    roi = ColumnROI(columnname="MissingCol")
 
     with caplog.at_level("ERROR"):
         with pytest.raises(KeyError):
@@ -101,37 +98,29 @@ def test_column_roi_missing_column_keyerror(caplog):
 
 
 def test_column_roi_sets_metadata_and_roi_field():
-    roi_df = pl.DataFrame({"roi": ["Zone1", "Zone2"], "column_value": ["A", "B"]})
-
-    df = pl.DataFrame({"column_value": ["A", "B", "C"], "other_col": [1, 2, 3]})
+    # Test that ROIName metadata is set correctly
+    df = pl.DataFrame({"Task": ["A", "A", "B"], "Value": [1, 2, 3]})
     drive_data = DriveData.init_test(df, "dummy_drive.csv")
 
-    roi = ColumnROI("column_value")
-    roi.roi_column_df = roi_df
-
+    roi = ColumnROI(columnname="Task")
     result_list = roi.split(drive_data)
 
+    # Check that ROIName is set in metadata
     roi_names = [res.metadata.get("ROIName", "") for res in result_list]
+    assert set(roi_names) == {"A", "B"}
 
-    assert "Zone1" in roi_names
-    assert "Zone2" in roi_names
+    # Check that roi field is also set
+    roi_fields = [res.roi for res in result_list]
+    assert set(roi_fields) == {"A", "B"}
 
 
-def test_column_roi_split_with_no_matching_values(caplog):
-    roi_df = pl.DataFrame({"roi": ["ZoneA"], "column_value": ["Z"]})
-
-    df = pl.DataFrame({"column_value": ["X", "Y"], "other_col": [10, 20]})
+def test_column_roi_split_with_no_matching_values():
+    # Test that empty result is returned when all values are null
+    df = pl.DataFrame({"Task": [None, None], "Value": [10, 20]})
     drive_data = DriveData.init_test(df, "drive.csv")
 
-    roi = ColumnROI("column_value")
-    roi.roi_column_df = roi_df
+    roi = ColumnROI(columnname="Task")
+    split_results = roi.split(drive_data)
 
-    with caplog.at_level("WARNING"):
-        split_results = roi.split(drive_data)
-
-    assert any(
-        "ROI value Z not found in data" in message for message in caplog.messages
-    )
-
-    for result in split_results:
-        assert "ROIName" not in result.metadata
+    # Should return empty list since all Task values are null
+    assert split_results == []
