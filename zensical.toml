@@ -1,7 +1,27 @@
 [project]
-site_name = "Pydre"
+site_name = "Pydre documentation"
 site_description = "Documentation for Pydre, a driving simulation data processing engine."
 extra_css = ["stylesheets/extra.css"]
+nav = [
+  { "Pydre Overview" = "index.md" },
+  { "Tutorial" = [
+    "tutorial/getting_started.md",
+    "tutorial/installation.md",
+    "tutorial/basic_analysis.md",
+    "tutorial/custom_metrics.md",
+    "tutorial/justSetup.md"]},
+  {"Reference" = [
+    "reference/filters.md", 
+    "reference/metrics.md", 
+    "reference/metricStandards.md"]},
+  {"Explanation" = [
+    "explanation/execution.md",
+    "explanation/project_files.md",
+    "explanation/rois.md",
+    "explanation/developernotes.md"]},
+  {"Merge Tool" = "mergetool.md"},
+  {"Contributing" = "contrib.md"}
+]
 
 [project.theme]
 icon.logo = "lucide/car"

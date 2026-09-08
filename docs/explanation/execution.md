@@ -1,5 +1,5 @@
 ---
-title: Execution of the pydre package from the command line
+title: Execution from command line
 ---
 
 The `pydre` entrypoint provides a command-line interface for processing driving data through project files and generating analysis results.
