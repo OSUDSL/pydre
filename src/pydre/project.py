@@ -5,6 +5,8 @@ import json
 import logging
 import traceback
 import os
+from os import PathLike
+import re
 import warnings
 
 import polars as pl
@@ -31,6 +33,7 @@ from tqdm import tqdm
 import concurrent.futures
 import importlib.util
 import threading
+from pydre.ducklake_connector import connect_to_ducklake, get_file_names, load_file_from_ducklake, DuckLakeConfig, env_file_path
 
 
 class Project:
@@ -47,12 +50,16 @@ class Project:
         log_level: Optional[str] = None,
     ):
         self.project_filename = pathlib.Path(projectfilename)
+        self.additional_data_paths = additional_data_paths
         self.definition = {}
         self.config = {}
         self.results = None
+        self.local_data_files = []
+        ducklake_file_names = []
         self.filelist = []
         self._stop_event = threading.Event()
         self._cli_log_level = log_level  # preserve CLI-specified level
+
         try:
             logger.info("Loading project from: " + str(self.project_filename))
             with open(self.project_filename, "rb") as project_file:
@@ -114,10 +121,8 @@ class Project:
             logger.error(f"File '{projectfilename}' not found.")
             raise e
 
-        if additional_data_paths is not None:
-            self.config["datafiles"] = (
-                self.config.get("datafiles", []) + additional_data_paths
-            )
+        if self.additional_data_paths is not None:
+            self.local_data_files += self.additional_data_paths
 
         if "outputfile" in self.config:
             if outputfile is not None:
@@ -128,25 +133,85 @@ class Project:
             else:
                 self.config["outputfile"] = "out.csv"
 
-        if len(self.config.get("datafiles", [])) == 0:
-            logger.error("No datafile found in project definition.")
 
         # Configure logging from TOML [config]
         self._configure_logging()
 
         self._load_custom_functions()
 
+
+        source = self.config.get("source")
+
+        if source == "localfilesystem":
+            if "datafiles" in self.config:
+                self.local_data_files += self.config["datafiles"]
+
+            base_directory = self.config.get("baseDirectory")
+            pattern = self.config.get("pattern")
+
+            if base_directory:
+                if pattern:
+                    for filename in os.listdir(base_directory):
+                        if re.search(pattern, filename):
+                            file_path = os.path.join(base_directory, filename)
+                            self.local_data_files.append(file_path)
+                else:
+                    logger.error("No pattern found in project definition")
+
+            elif pattern:
+                logger.error("No baseDirectory found in project definition")
+
+            elif "datafiles" not in self.config:
+                logger.error("No baseDirectory or datafiles found in project definition")
+            
+        elif source == "ducklake":
+            if "datafiles" in self.config:
+                ducklake_file_names += self.config["datafiles"]
+
+            project = self.config.get("project")
+            pattern = self.config.get("pattern")
+
+            if "datafiles" not in self.config and "project" not in self.config and "pattern" not in self.config:
+                logger.error("No datafiles, project, or pattern found in project definition")
+            elif project is not None or pattern is not None:
+                # Create a DuckLakeConfig object by loading the configuration from the .env file
+                self.ducklake_config = DuckLakeConfig.from_env_file(env_file_path())
+                ducklake_connection = connect_to_ducklake(self.ducklake_config)
+                try:
+                    ducklake_file_names += get_file_names(ducklake_connection, pattern, project)
+                finally:
+                    ducklake_connection.close()
+           
+        elif source is None:
+            if "pattern" in self.config or (not self.local_data_files and not "datafiles" in self.config):
+                logger.error("No source specified in project definition")
+            elif "datafiles" in self.config:
+                logger.warning("No source specified in project definition, setting source as local file system")
+                self.local_data_files += self.config["datafiles"]
+                
+        else:
+            logger.error("Source specified in project definition not supported")
+
+
+        if (not self.local_data_files and not ducklake_file_names):
+           logger.error("No data files loaded.")
+
         # resolve the file paths
         filelist: list[Path] = []
-        for fn in self.config.get("datafiles", []):
-            # convert relative path to absolute path
-            fn = Path(fn)
-            if not fn.is_absolute():
-                datapath = pathlib.Path(self.project_filename.parent / fn).resolve()
-            else:
-                datapath = fn
-            datafiles = sorted(datapath.parent.glob(datapath.name))
-            filelist.extend(datafiles)
+
+        if ducklake_file_names:
+            filelist = ducklake_file_names
+
+        if self.local_data_files:
+            for fn in self.local_data_files :
+                # convert relative path to absolute path
+                fn = Path(fn)
+                if not fn.is_absolute():
+                    datapath = pathlib.Path(self.project_filename.parent / fn).resolve()
+                else:
+                    datapath = fn
+                datafiles = sorted(datapath.parent.glob(datapath.name))
+                filelist.extend(datafiles)
 
         ignore_files: list[Path] = []
         for fn in self.config.get("ignore", []):
@@ -160,7 +225,7 @@ class Project:
                     logger.info(f"Ignoring file {potential_file} based on ignore list.")
                     include_file = False
             if include_file:
-                self.filelist.append(Path(potential_file))
+                self.filelist.append(potential_file)
 
         if len(self.filelist) == 0 and len(filelist) > 0:
             logger.error("No data files left after removing ignored files.")
@@ -253,7 +318,7 @@ class Project:
         Behavior:
         - Always log to stderr (keeps current behavior).
         - If 'logfile' is provided in TOML [config], also log to that file (append-only).
-        - Optional 'log_level' in TOML controls both sinks; defaults to 'INFO'.
+        - Optional 'log_level' in TOML controls both sinks; defaults to 'WARNING'.
 
         Notes:
         - Remove existing handlers to avoid duplicated sinks if multiple Project instances are created.
@@ -264,12 +329,14 @@ class Project:
         logfile: Optional[str] = self.config.get("logfile", None)
         accepted_levels = ["DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
         # CLI-specified level takes precedence over the TOML config value,
-        # which in turn falls back to "INFO".
-        raw_level: str = str(
-            self._cli_log_level.upper()
-            if self._cli_log_level is not None
-            else self.config.get("log_level", "INFO")
-        )
+        # which in turn falls back to "WARNING".
+        raw_level: str 
+
+        if self._cli_log_level is None:
+            raw_level = self.config.get("log_level", "WARNING").upper()
+        else:
+            raw_level = str(self._cli_log_level.upper())
+ 
         if raw_level not in accepted_levels:
             log_level = "WARNING"
         else:
@@ -288,7 +355,7 @@ class Project:
 
         # Re-add stderr sink (keep existing behavior)
         logger.add(sys.stderr, level=log_level, filter=_silence_after_interrupt)
-
+        
         if raw_level not in accepted_levels:
             logger.warning(
                 f"Log level '{raw_level}' is invalid. Defaulting to WARNING. "
@@ -593,7 +660,17 @@ class Project:
                 datafile = DriveData.init_rti(datafilename)
         else:
             datafile = DriveData.init_rti(datafilename)
-        datafile.loadData(self.config.get("infer_schema_length", None))
+
+        datafile.config = self.config
+
+        if isinstance(datafilename,Path):
+            datafile.loadData(self.config.get("infer_schema_length"))
+        else:
+            # Create a ducklake_connection to DuckLake
+            ducklake_connection = connect_to_ducklake(self.ducklake_config)
+            datafile.data = load_file_from_ducklake(ducklake_connection,datafilename)
+            ducklake_connection.close()
+
         roi_datalist = []
         results_list = []
 

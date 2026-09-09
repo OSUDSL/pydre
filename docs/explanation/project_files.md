@@ -37,5 +37,29 @@ Below the start of each element, fields for the element are defined. Filters and
 
 [ROIs](../explanation/rois.md) can also be defined, and aid in computing repeated measures experiments or in any experiments where it is useful to partition each datafile into different parts before metrics are run. 
 
-The config section of the project file is used to define any global variables that are used in the project file. Currently, you can define the input data directory and the output file name in the config section. You can also define the
-[custom metrics and custom filter directories](../tutorial/custom_metrics.md) in the config section.
+## Config Section
+
+The `config` section of the project file is used to define global variables that are used during processing. The available configuration options are:
+
+* `source`: Determines where data files are loaded from. Currently, `localfilesystem` and `ducklake` are supported. 
+* `baseDirectory`: Specifies the directory containing the data files when `source` is `localfilesystem`. 
+* `project` : Specifies the project name used to select files when the `source` is `ducklake`. 
+* `pattern`: A regular expression used to select files from the specified source. 
+* `datafiles`: Explicitly specifies a list of data files to process. 
+* `ignore`: Specifies a list of files to exclude from processing. 
+* `datafile_type`: Specifies the format of the input data. Currently, `rti`, `oldrti`, and `scanner` are supported. Defaults to `rti`.
+* `logfile`: Specifies the file where logged messages can be recorded and saved. Defaults to `None`. 
+* `log_level`: The minimum severity level from which logged messages should be sent to the sink. Defaults to `WARNING`
+* `outputfile`: Specifies the file where the aggregated metrics are written. Defaults to `out.csv`.
+* `num_threads`: Number of threads to run simultaneously in the thread pool.
+* `infer_schema_length`: The maximum number of rows to scan for schema inference.
+* `custom_metrics_dirs`: Specifies a list of directory paths for custom metrics. 
+* `custom_filters_dirs`: Specifies a list of directory paths for custom filter.
+
+For more information about using the local file system as a data source, see [Using Local Files](../tutorial/using_local_files.md). For more information about using DuckLake as a data source, see [Using DuckLake](../tutorial/using_ducklake.md)
+
+
+
+
+
+

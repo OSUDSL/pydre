@@ -8,6 +8,9 @@ nav = [
     "tutorial/getting_started.md",
     "tutorial/installation.md",
     "tutorial/basic_analysis.md",
+    "tutorial/using_local_files.md",
+    "tutorial/using_ducklake.md",
+    "tutorial/setting_up_configuration_file.md",
     "tutorial/custom_metrics.md",
     "tutorial/justSetup.md"]},
   {"Reference" = [

@@ -44,7 +44,7 @@ def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
         "--warninglevel",
         dest="warninglevel",
         type=str,
-        default="WARNING",
+        default=None,
         help="Logging level. DEBUG, INFO, WARNING, ERROR, and CRITICAL are allowed.",
     )
     parser.add_argument(
@@ -184,10 +184,10 @@ def print_filters(project_file: Optional[str] = None):
 
 def run_project(
     projectfile: str,
+    log_level: Optional[str],
     datafiles: Optional[List[str]],
     outputfile: Optional[str],
     num_threads: int = 0,
-    log_level: str = "WARNING",
 ) -> project.Project:
     """Create, process and save a project."""
 
@@ -253,8 +253,7 @@ def main(args: Optional[List[str]] = None) -> int:
             return 1
 
         run_project(
-            parsed_args.projectfile, parsed_args.datafiles, parsed_args.outputfile,
-            log_level=parsed_args.warninglevel,
+            parsed_args.projectfile, parsed_args.warninglevel, parsed_args.datafiles, parsed_args.outputfile
         )
         return 0
     except Exception as e:

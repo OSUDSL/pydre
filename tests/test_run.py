@@ -51,7 +51,7 @@ def test_parse_arguments_minimal():
     assert args.projectfile == "project.toml"
     assert args.datafiles is None
     assert args.outputfile == "out.csv"
-    assert args.warninglevel == "WARNING"
+    assert args.warninglevel == None
     assert args.list_metrics is False
     assert args.list_filters is False
 
@@ -108,11 +108,12 @@ def test_run_project_basic(mock_project):
     """Test basic project run functionality."""
     mock_project_class, mock_instance = mock_project
 
-    result = run_project("project.toml", ["data.dat"], "output.csv")
+    result = run_project("project.toml", None, ["data.dat"], "output.csv")
 
     mock_project_class.assert_called_once_with(
-        "project.toml", ["data.dat"], "output.csv", log_level="WARNING"
+        "project.toml", ["data.dat"], "output.csv", log_level=None
     )
+
     expected_threads = max(1, int((os.cpu_count() or 1) * 0.75))
 
     mock_instance.processDatafiles.assert_called_once_with(
@@ -126,7 +127,7 @@ def test_run_project_custom_threads(mock_project):
     """Test project run with custom thread count."""
     mock_project_class, mock_instance = mock_project
 
-    run_project("project.toml", ["data.dat"], "output.csv", num_threads=4)
+    run_project("project.toml", None, ["data.dat"], "output.csv", num_threads=4)
 
     mock_instance.processDatafiles.assert_called_once_with(numThreads=4)
 
@@ -138,7 +139,7 @@ def test_run_project_missing_file(mocker):
     )
 
     with pytest.raises(FileNotFoundError):
-        run_project("nonexistent.toml", ["data.dat"], "output.csv")
+        run_project("nonexistent.toml", None, ["data.dat"], "output.csv")
 
 
 def test_main_success(mocker):
@@ -159,7 +160,7 @@ def test_main_success(mocker):
 
     mock_parse_args.assert_called_once_with(["dummy"])
     mock_run_project.assert_called_once_with(
-        "project.toml", ["data.dat"], "output.csv", log_level="INFO"
+        "project.toml", "INFO", ["data.dat"], "output.csv"
     )
     assert result == 0
 
