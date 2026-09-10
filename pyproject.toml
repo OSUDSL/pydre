@@ -1,6 +1,6 @@
 [project]
 name = "pydre"
-version = "26.2.1"
+version = "26.9.1"
 readme = "readme.md"
 dependencies = [
     "polars",
@@ -42,8 +42,7 @@ Repository = "https://github.com/OSUDSL/pydre"
 [project.optional-dependencies]
 dev = [
     "ptpython",
-    "mkdocs>=1.6.0",
-    "mkdocs-material",
+    "zensical",
     "mkdocstrings[python]",
     "black",
     "mypy",
@@ -71,8 +70,7 @@ dev = [
 managed = true
 dev-dependencies = [
     "ptpython",
-    "mkdocs>=1.6.0",
-    "mkdocs-material",
+    "zensical",
     "mkdocstrings[python]",
     "black",
     "mypy",
