@@ -169,7 +169,7 @@ def smoothGazeData(
     }
     dt = dt.with_columns(
         pl.col(gazeColName)
-        .replace(mapping, default=0, return_dtype=pl.Float32)
+        .replace_strict(mapping, default=0, return_dtype=pl.Float32)
         .alias("onroad")
     )
 

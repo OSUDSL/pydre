@@ -6,7 +6,7 @@ from ..core import DriveData, ColumnsMatchError
 from . import registerMetric
 from loguru import logger
 import numpy as np
-from polars.type_aliases import PythonLiteral
+from polars._typing import PythonLiteral
 
 from scipy import signal
 
@@ -512,7 +512,7 @@ def numbrakes(
 
     numberofbrakes = (
         dfupdated.filter(dfupdated.get_column("BrakeStatus") > 0)
-        .select(pl.count())
+        .select(pl.len())
         .item(0, 0)
     )
 
@@ -845,7 +845,7 @@ def steeringEntropy(drivedata: DriveData, cutoff: float = 0):
         subset=["Steer"], maintain_order=True
     )  # remove nans and drop duplicates
 
-    if df.select(pl.count()).item(0, 0) == 0:
+    if df.select(pl.len()).item(0, 0) == 0:
         return None
 
     # downsample the array to change the time step to every 0.15 seconds
